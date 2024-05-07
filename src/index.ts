@@ -1,20 +1,34 @@
 import 'dotenv/config'
-import { drizzle } from 'drizzle-orm/postgres-js'
-import { migrate } from 'drizzle-orm/postgres-js/migrator'
-import postgres from 'postgres'
+import db from './db/db'
+import { locationsTable } from './db/schema'
+import { LocationImporter } from './importers/locations'
 
-const runMigrations = async () => {
-  const sql = postgres(
-    `postgres://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:5432/${process.env.DB_NAME}`,
-    {
-      max: 1,
-    }
-  )
-  const db = drizzle(sql)
+const aha = async () => {
+  //   await db.insert(locationsTable).values({
+  //     externalId: 1,
+  //     accuracy: 2,
+  //     vericalAccuracy: 3,
+  //     velocity: 4,
+  //     altitude: 5,
+  //     battery: 100,
+  //     batteryStatus: 'unplugged',
+  //     connectionStatus: 'wifi',
+  //     location: { lat: 1, lng: 1 },
 
-  await migrate(db, { migrationsFolder: 'migrations' })
+  //     trigger: 'ping',
 
-  await sql.end()
+  //     topic: 'b',
+  //     wifiSSID: 'asdasd',
+  //     rawData: { asdasd: 1 },
+
+  //     messageCreatedAt: new Date(),
+  //     locationFix: new Date(),
+  //   })
+  //   const locations = await db.select().from(locationsTable)
+  //   console.log(locations)
+
+  const a = new LocationImporter('/home/lorenzo/Downloads/database(1).db')
+  await a.import()
 }
 
-runMigrations()
+aha()

@@ -16,7 +16,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@biomejs/biome": "^1.7.2",
+    "@biomejs/biome": "^1.7.3",
     "@types/node": "^20.12.8",
     "drizzle-kit": "^0.20.17",
     "knex": "^3.1.0",
@@ -28,10 +28,12 @@
   },
   "dependencies": {
     "@fastify/static": "^7.0.3",
+    "better-sqlite3": "^9.6.0",
     "dotenv": "^16.4.5",
     "drizzle-orm": "^0.30.10",
     "fastify": "^4.26.2",
     "postgres": "^3.4.4",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "wkx": "^0.5.0"
   }
 }
