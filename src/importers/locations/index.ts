@@ -186,11 +186,6 @@ export class LocationImporter {
           .orderBy(asc(importerLocationsEventsTable.timestamp))
           .limit(this.importBatchSize)
           .offset(currentOffset)
-        console.log('events', events.length)
-
-        if (currentOffset > 340000) {
-          console.log('AHHHH', events)
-        }
 
         if (!firstEntryDate) {
           firstEntryDate = events[0]?.timestamp ?? undefined
