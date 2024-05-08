@@ -17,9 +17,9 @@ import { MissingFieldError, UnexpectedValueError } from "../../errors";
 import externalLocationSchema from "./schema/externalLocationSchema";
 import { type ExternalLocation, externalLocationsTable } from "./schema/tables";
 
-export class ExternalLocationsImporter {
+export class ExternalDnsRequestImporter {
 	private importDb: BetterSQLite3Database<typeof externalLocationSchema>;
-	private sourceId = "sqlite-locations_events-v1";
+	private sourceId = "sqlite-dns-requests-v1";
 	private destinationTable = getTableName(locationsTable);
 	private entryDateKey = "timestamp";
 	private importBatchSize = 3000;

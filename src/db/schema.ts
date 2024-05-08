@@ -7,7 +7,7 @@ import {
   text,
   timestamp,
 } from 'drizzle-orm/pg-core'
-import { geography } from './customTypes'
+import { geography } from './types'
 
 export const batteryStatusEnum = pgEnum('battery_status', [
   'unknown',

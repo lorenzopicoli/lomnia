@@ -29,6 +29,7 @@
   "dependencies": {
     "@fastify/static": "^7.0.3",
     "better-sqlite3": "^9.6.0",
+    "date-fns": "^3.6.0",
     "dotenv": "^16.4.5",
     "drizzle-orm": "^0.30.10",
     "fastify": "^4.26.2",
