@@ -1,36 +1,16 @@
 import "dotenv/config";
-import db from "./db/db";
-import { locationsTable } from "./db/schema";
+import { ExternalDnsRequestImporter } from "./importers/dnsQueries";
 import { ExternalLocationsImporter } from "./importers/locations";
 
-const aha = async () => {
-	//   await db.insert(locationsTable).values({
-	//     externalId: 1,
-	//     accuracy: 2,
-	//     vericalAccuracy: 3,
-	//     velocity: 4,
-	//     altitude: 5,
-	//     battery: 100,
-	//     batteryStatus: 'unplugged',
-	//     connectionStatus: 'wifi',
-	//     location: { lat: 1, lng: 1 },
-
-	//     trigger: 'ping',
-
-	//     topic: 'b',
-	//     wifiSSID: 'asdasd',
-	//     rawData: { asdasd: 1 },
-
-	//     messageCreatedAt: new Date(),
-	//     locationFix: new Date(),
-	//   })
-	//   const locations = await db.select().from(locationsTable)
-	//   console.log(locations)
-
-	const a = new ExternalLocationsImporter(
-		"/home/lorenzo/Downloads/database(1).db",
+const main = async () => {
+	// const locations = new ExternalLocationsImporter(
+	// 	"/home/lorenzo/Downloads/database(1).db",
+	// );
+	// await locations.import();
+	const dnsQueries = new ExternalDnsRequestImporter(
+		"/home/lorenzo/Downloads/pihole-FTL(1).db",
 	);
-	await a.import();
+	await dnsQueries.import();
 };
 
-aha();
+main();

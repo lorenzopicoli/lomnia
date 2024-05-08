@@ -28,11 +28,13 @@
   },
   "dependencies": {
     "@fastify/static": "^7.0.3",
+    "@types/lodash": "^4.17.1",
     "better-sqlite3": "^9.6.0",
     "date-fns": "^3.6.0",
     "dotenv": "^16.4.5",
     "drizzle-orm": "^0.30.10",
     "fastify": "^4.26.2",
+    "lodash": "^4.17.21",
     "postgres": "^3.4.4",
     "typescript": "^5.4.5",
     "wkx": "^0.5.0"
