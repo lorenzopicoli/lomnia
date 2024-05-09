@@ -35,6 +35,7 @@
     "drizzle-orm": "^0.30.10",
     "fastify": "^4.26.2",
     "lodash": "^4.17.21",
+    "node-ssh": "^13.2.0",
     "postgres": "^3.4.4",
     "typescript": "^5.4.5",
     "wkx": "^0.5.0"
