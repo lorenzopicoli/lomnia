@@ -1,5 +1,4 @@
 import Database from 'better-sqlite3'
-import { differenceInSeconds, intervalToDuration } from 'date-fns'
 import { asc, desc, eq, getTableName, gt, sql } from 'drizzle-orm'
 import { type BetterSQLite3Database, drizzle } from 'drizzle-orm/better-sqlite3'
 import type { SQLiteSelectQueryBuilder } from 'drizzle-orm/sqlite-core'
@@ -13,9 +12,9 @@ import {
   importJobsTable,
 } from '../../db/schema'
 import type { DBTransaction } from '../../db/types'
-import { MissingFieldError, UnexpectedValueError } from '../../errors'
-import progressLog from '../../helpers/progressLog'
-import { downloadFile, newSSHConnection } from '../ssh'
+import { MissingFieldError } from '../../errors'
+import ProgressLogger from '../../helpers/ProgressLogger'
+import { newSSHConnection, safeDownloadFile } from '../ssh'
 import externalDnsQueriesSchema from './schema/externalDnsQueriesSchema'
 import { type ExternalDnsQuery, externalDnsQueriesTable } from './schema/tables'
 
@@ -27,11 +26,16 @@ export class ExternalDnsRequestImporter {
   private importBatchSize = 3000
   private placeholderDate = new Date(1997, 6, 6)
 
-  private localPath = '/home/lorenzo/test/dns_queries.db'
+  private localPath: string
+  private fileName = 'dns_queries.db'
 
   private jobStart = new Date()
 
   constructor() {
+    if (!process.env.PIHOLE_LOCAL_BACKUP_FOLDER) {
+      throw new Error('The env var PIHOLE_LOCAL_BACKUP_FOLDER must be set')
+    }
+    this.localPath = `${process.env.PIHOLE_LOCAL_BACKUP_FOLDER}/${this.fileName}`
     const sqlite = new Database(this.localPath)
     this.importDb = drizzle(sqlite, {
       logger: false,
@@ -61,12 +65,47 @@ export class ExternalDnsRequestImporter {
       .offset(offset)
   }
 
-  public async fetchDataForImport(connection?: NodeSSH) {
-    const conn = connection ?? (await newSSHConnection('192.168.40.2'))
-    await downloadFile(conn, this.localPath, '/home/lorenzo/pihole-backup.db')
-    if (!connection) {
-      conn.dispose()
+  public async fetchDataForImport() {
+    if (
+      !process.env.PIHOLE_HOST ||
+      !process.env.PIHOLE_REMOTE_DB_PATH ||
+      !process.env.PIHOLE_REMOTE_BACKUP_FOLDER ||
+      !process.env.PIHOLE_DOCKER_CONTAINER_NAME
+    ) {
+      throw new Error('The env var PIHOLE_HOST must be set')
     }
+    const sshConnection = await newSSHConnection(process.env.PIHOLE_HOST)
+    await sshConnection
+      .execCommand(
+        `sudo docker exec ${process.env.PIHOLE_DOCKER_CONTAINER_NAME} /bin/bash -c "sudo service pihole-FTL stop"`
+      )
+      .then((result) => {
+        if (result.stderr) {
+          console.log(`Error stopping pihole: ${result.stderr}`)
+        }
+        console.log('Pihole service stopped...')
+      })
+    // Make sure that service stopped
+    await new Promise((r) => setTimeout(r, 2000))
+    await safeDownloadFile({
+      sshConnection,
+      localPath: this.localPath,
+      remotePath: process.env.PIHOLE_REMOTE_DB_PATH,
+      remoteCopyPath: `${process.env.PIHOLE_REMOTE_BACKUP_FOLDER}/${this.fileName}`,
+      onSafeToUseFile: async () => {
+        await sshConnection
+          .execCommand(
+            `sudo docker exec ${process.env.PIHOLE_DOCKER_CONTAINER_NAME} /bin/bash -c "sudo service pihole-FTL start"`
+          )
+          .then((result) => {
+            if (result.stderr) {
+              console.log(`Error starting pihole: ${result.stderr}`)
+            }
+            console.log('Pihole service started...')
+          })
+      },
+    })
+    sshConnection.dispose()
   }
 
   public async sourceHasNewData(): Promise<{
@@ -131,6 +170,10 @@ export class ExternalDnsRequestImporter {
       throw new Error('Failed to insert placeholder job')
     }
 
+    const progressLogger = new ProgressLogger('DNS Queries', {
+      total: totalEstimate,
+    })
+
     while (events?.length !== 0) {
       events = await this.fetchFromSource(currentOffset, from)
       currentOffset += this.importBatchSize
@@ -151,15 +194,11 @@ export class ExternalDnsRequestImporter {
         }
 
         importedCount += events.length
-        console.log(
-          `DNS Queries external import progress: ${importedCount}/${totalEstimate}. ETA: ${progressLog(
-            this.jobStart,
-            totalEstimate,
-            importedCount
-          )}...`
-        )
+        progressLogger.step(importedCount, totalEstimate)
       }
     }
+
+    progressLogger.stop()
 
     if (importedCount === 0) {
       return tx.rollback()

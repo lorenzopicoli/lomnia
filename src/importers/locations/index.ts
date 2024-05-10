@@ -11,8 +11,8 @@ import {
 } from '../../db/schema'
 import type { DBTransaction } from '../../db/types'
 import { MissingFieldError, UnexpectedValueError } from '../../errors'
-import progressLog from '../../helpers/progressLog'
-import { downloadFile, newSSHConnection } from '../ssh'
+import ProgressLogger from '../../helpers/ProgressLogger'
+import { newSSHConnection, safeDownloadFile } from '../ssh'
 import externalLocationSchema from './schema/externalLocationSchema'
 import { type ExternalLocation, externalLocationsTable } from './schema/tables'
 
@@ -23,11 +23,16 @@ export class ExternalLocationsImporter {
   private entryDateKey = 'timestamp'
   private importBatchSize = 3000
   private placeholderDate = new Date(1997, 6, 6)
-  private localPath = '/home/lorenzo/test/locations.db'
+  private localPath: string
+  private fileName = 'locations.db'
 
   private jobStart = new Date()
 
   constructor() {
+    if (!process.env.LOCATIONS_LOCAL_BACKUP_FOLDER) {
+      throw new Error('The env var LOCATIONS_LOCAL_BACKUP_FOLDER must be set')
+    }
+    this.localPath = `${process.env.LOCATIONS_LOCAL_BACKUP_FOLDER}/${this.fileName}`
     const sqlite = new Database(this.localPath)
     this.importDb = drizzle(sqlite, {
       logger: false,
@@ -119,6 +124,9 @@ export class ExternalLocationsImporter {
       throw new Error('Failed to insert placeholder job')
     }
 
+    const progressLogger = new ProgressLogger('Locations import', {
+      total: totalEstimate,
+    })
     while (events?.length !== 0) {
       events = await this.fetchFromSource(currentOffset, from)
       currentOffset += this.importBatchSize
@@ -139,13 +147,7 @@ export class ExternalLocationsImporter {
         }
 
         importedCount += events.length
-        console.log(
-          `Locations external import progress: ${importedCount}/${totalEstimate}. ETA: ${progressLog(
-            this.jobStart,
-            totalEstimate,
-            importedCount
-          )}...`
-        )
+        progressLogger.step(importedCount, totalEstimate)
       }
     }
 
@@ -168,13 +170,21 @@ export class ExternalLocationsImporter {
   }
 
   public async fetchDataForImport() {
-    const conn = await newSSHConnection('192.168.40.27')
-    await downloadFile(
-      conn,
-      this.localPath,
-      '/var/lib/docker/volumes/location-tracker_location_data/_data/database.db'
-    )
-    conn.dispose()
+    if (
+      !process.env.LOCATIONS_HOST ||
+      !process.env.LOCATIONS_REMOTE_DB_PATH ||
+      !process.env.LOCATIONS_REMOTE_BACKUP_FOLDER
+    ) {
+      throw new Error('The env var LOCATIONS_HOST must be set')
+    }
+    const sshConnection = await newSSHConnection(process.env.LOCATIONS_HOST)
+    await safeDownloadFile({
+      sshConnection,
+      localPath: this.localPath,
+      remotePath: process.env.LOCATIONS_REMOTE_DB_PATH,
+      remoteCopyPath: `${process.env.LOCATIONS_REMOTE_BACKUP_FOLDER}/${this.fileName}`,
+    })
+    sshConnection.dispose()
   }
 
   public async import() {
