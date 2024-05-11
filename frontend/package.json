@@ -12,6 +12,7 @@
   "dependencies": {
     "@tanstack/react-query": "^5.35.5",
     "axios": "^1.6.8",
+    "date-fns": "^3.6.0",
     "deck.gl": "^9.0.14",
     "lodash.debounce": "^4.0.8",
     "maplibre-gl": "^4.2.0",

@@ -3,9 +3,11 @@ import './Home.css'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { useQuery } from '@tanstack/react-query'
 import axios from 'axios'
+import { endOfDay } from 'date-fns'
+import { startOfDay } from 'date-fns/startOfDay'
 import debounce from 'lodash.debounce'
 import Heatmap from '../components/Heatmap'
-import type MapQuadrant from '../types/MapQuadrant'
+import type MapViewParams from '../types/MapViewParams'
 
 const NewLineToBr = ({ children = '' }) =>
   children.split('\n').reduce(
@@ -20,25 +22,29 @@ const NewLineToBr = ({ children = '' }) =>
     [] as ReactElement[]
   )
 function Home() {
-  const [mapQuadrant, setMapQuadrant] = useState<MapQuadrant>()
+  const [mapViewParams, setMapViewParams] = useState<MapViewParams>()
 
   const { isPending, error, data } = useQuery({
-    queryKey: ['heatmap', JSON.stringify(mapQuadrant)],
+    queryKey: ['heatmap', mapViewParams],
+    placeholderData: (prev) => prev,
     queryFn: () => {
       return axios
-        .get('http://localhost:3000/locations/heatmap', {
-          params: mapQuadrant,
+        .get('http://localhost:3010/locations/heatmap', {
+          params: {
+            ...mapViewParams,
+            // TODO: timezone yay
+            startDate: startOfDay(new Date()),
+            endDate: endOfDay(new Date()),
+          },
         })
         .then((d) => d.data)
     },
   })
 
-  const handleViewChange = debounce((quadrant: MapQuadrant) => {
-    setMapQuadrant(quadrant)
+  const handleViewChange = debounce((params: MapViewParams) => {
+    setMapViewParams(params)
   }, 500)
-  console.log('isPending', isPending)
-  console.log('error', error)
-  console.log('data', data)
+
   return (
     <>
       <div className="container">
@@ -48,7 +54,10 @@ function Home() {
 
         <div className="right-panel">
           <div className="map">
-            <Heatmap onViewChange={handleViewChange} />
+            <Heatmap
+              points={data?.points ?? []}
+              onViewChange={handleViewChange}
+            />
           </div>
         </div>
       </div>
