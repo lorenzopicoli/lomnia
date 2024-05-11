@@ -1,0 +1,23 @@
+.container {
+  display: flex;
+  gap: 10%;
+  padding: 40px;
+}
+
+.left-panel {
+  text-align: left;
+  width: 60%;
+}
+
+.right-panel {
+  padding-top: 10%;
+  aspect-ratio: 1 / 1;
+  height: 100%;
+  flex: 1;
+}
+
+.map {
+  border-radius: 10px;
+  height: 100%;
+  overflow: clip;
+}
