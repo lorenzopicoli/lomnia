@@ -67,6 +67,10 @@ export async function getHeatmapPoints(params: GetHeatmapQueryParams) {
     return '0.00001'
   }
 
+  // Using sql.raw to get the grid value instead of sql bindings because
+  // with bindings postgres doesn't realize that the select location expression
+  // is the same as the expression in the group by. And since the value
+  // is hardcoded in the function above there's no SQL injection danger
   const results = withPointFilters(
     db
       .select({
