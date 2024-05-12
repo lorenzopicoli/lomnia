@@ -2,16 +2,16 @@ import Database from 'better-sqlite3'
 import { asc, desc, eq, getTableName, gt, sql } from 'drizzle-orm'
 import { type BetterSQLite3Database, drizzle } from 'drizzle-orm/better-sqlite3'
 import type { SQLiteSelectQueryBuilder } from 'drizzle-orm/sqlite-core'
-import { db } from '../../db/connection'
+import { db } from '../../../db/connection'
 import {
   type ImportJob,
   type NewLocation,
   importJobsTable,
   locationsTable,
-} from '../../db/schema'
-import type { DBTransaction } from '../../db/types'
-import { MissingFieldError, UnexpectedValueError } from '../../errors'
-import ProgressLogger from '../../helpers/ProgressLogger'
+} from '../../../db/schema'
+import type { DBTransaction } from '../../../db/types'
+import { MissingFieldError, UnexpectedValueError } from '../../../errors'
+import ProgressLogger from '../../../helpers/ProgressLogger'
 import { newSSHConnection, safeDownloadFile } from '../ssh'
 import externalLocationSchema from './schema/externalLocationSchema'
 import { type ExternalLocation, externalLocationsTable } from './schema/tables'

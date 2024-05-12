@@ -1,6 +1,6 @@
 import 'dotenv/config'
-import { ExternalDnsRequestImporter } from './importers/dnsQueries'
-import { ExternalLocationsImporter } from './importers/locations'
+import { ExternalDnsRequestImporter } from './services/importers/dnsQueries'
+import { ExternalLocationsImporter } from './services/importers/locations'
 const importLocations = async () => {
   const locationsImporter = await new ExternalLocationsImporter()
   await locationsImporter.fetchDataForImport()

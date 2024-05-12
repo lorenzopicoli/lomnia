@@ -1,9 +1,6 @@
-import { sql } from 'drizzle-orm'
 import type { FastifyInstance, RouteHandlerMethod } from 'fastify'
 import { z } from 'zod'
-import { db } from '../db/connection'
-import { locationsTable } from '../db/schema'
-import type { Point } from '../db/types'
+import { getHeatmapPoints } from '../services/locations'
 
 const GetHeatmapQueryParams = z
   .object({
@@ -24,7 +21,7 @@ const GetHeatmapQueryParams = z
     zoom: true,
   })
 
-// type GetHeatmapQueryParams = z.infer<typeof GetHeatmapQueryParams>
+export type GetHeatmapQueryParams = z.infer<typeof GetHeatmapQueryParams>
 
 const getHeatmap: RouteHandlerMethod = async (request, reply) => {
   const queryParams = GetHeatmapQueryParams.safeParse(request.query)
@@ -38,59 +35,11 @@ const getHeatmap: RouteHandlerMethod = async (request, reply) => {
     return
   }
 
-  const {
-    topLeftLat,
-    topLeftLng,
-    bottomRightLat,
-    bottomRightLng,
-    zoom,
-    startDate,
-    endDate,
-  } = queryParams.data
-
   try {
-    const zoomToGrid = (zoom: number) => {
-      if (zoom <= 10.1) {
-        return '0.001'
-      }
-      if (zoom <= 12.5) {
-        return '0.0001'
-      }
-      return '0.00001'
-    }
-
-    const results = await db
-      .select({
-        location: sql<Point>`ST_SnapToGrid(location::geometry, ${sql.raw(
-          zoomToGrid(zoom)
-        )}) AS location`.mapWith(locationsTable.location),
-        // I should use some sort of softmax function here?
-        weight: sql<number>`
-                CASE
-                    WHEN COUNT(*) > 10 THEN 10
-                    ELSE COUNT(*)
-                END AS weight`.mapWith(Number),
-      })
-      .from(locationsTable)
-      .where(
-        sql`
-            ST_Intersects(
-                locations.location,
-                ST_MakeEnvelope(
-                    ${topLeftLng}, ${topLeftLat}, -- Coordinates of top left corner
-                    ${bottomRightLng}, ${bottomRightLat}, -- Coordinates of bottom right corner
-                    4326
-                )
-            ) 
-            ${startDate ? sql`AND location_fix >= ${startDate}` : sql``}
-            ${endDate ? sql`AND location_fix <= ${endDate}` : sql``}
-          `
-      )
-      .groupBy(
-        sql`ST_SnapToGrid(location::geometry, ${sql.raw(zoomToGrid(zoom))})`
-      )
+    const points = await getHeatmapPoints(queryParams.data)
     reply.send({
-      points: results.map((r) => [r.location.lng, r.location.lat, r.weight]),
+      // Can I do this some other way and not have to map over the points?
+      points: points.map((r) => [r.location.lng, r.location.lat, r.weight]),
     })
   } catch (e) {
     console.log('DB ERROR', e)

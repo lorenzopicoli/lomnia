@@ -1,5 +1,5 @@
 import { NodeSSH } from 'node-ssh'
-import ProgressLogger from '../helpers/ProgressLogger'
+import ProgressLogger from '../../helpers/ProgressLogger'
 
 export const newSSHConnection = async (host: string) => {
   return new NodeSSH().connect({
