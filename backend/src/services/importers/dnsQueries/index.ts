@@ -3,17 +3,16 @@ import { asc, desc, eq, getTableName, gt, sql } from 'drizzle-orm'
 import { type BetterSQLite3Database, drizzle } from 'drizzle-orm/better-sqlite3'
 import type { SQLiteSelectQueryBuilder } from 'drizzle-orm/sqlite-core'
 import { isNil } from 'lodash'
-import type { NodeSSH } from 'node-ssh'
-import { db } from '../../db/connection'
+import { db } from '../../../db/connection'
 import {
   type ImportJob,
   type NewDnsQuery,
   dnsQueriesTable,
   importJobsTable,
-} from '../../db/schema'
-import type { DBTransaction } from '../../db/types'
-import { MissingFieldError } from '../../errors'
-import ProgressLogger from '../../helpers/ProgressLogger'
+} from '../../../db/schema'
+import type { DBTransaction } from '../../../db/types'
+import { MissingFieldError } from '../../../errors'
+import ProgressLogger from '../../../helpers/ProgressLogger'
 import { newSSHConnection, safeDownloadFile } from '../ssh'
 import externalDnsQueriesSchema from './schema/externalDnsQueriesSchema'
 import { type ExternalDnsQuery, externalDnsQueriesTable } from './schema/tables'

@@ -69,6 +69,8 @@ export async function getHeatmapPoints(params: GetHeatmapQueryParams) {
     return '0.00001'
   }
 
+  const weightCap = 10
+
   // Using sql.raw to get the grid value instead of sql bindings because
   // with bindings postgres doesn't realize that the select location expression
   // is the same as the expression in the group by. And since the value
@@ -82,7 +84,7 @@ export async function getHeatmapPoints(params: GetHeatmapQueryParams) {
         // I should use some sort of softmax function here?
         weight: sql<number>`
                 CASE
-                    WHEN COUNT(*) > 10 THEN 10
+                    WHEN COUNT(*) > ${weightCap} THEN ${weightCap}
                     ELSE COUNT(*)
                 END AS weight`.mapWith(Number),
       })

@@ -1,13 +1,7 @@
-import { Fragment, type ReactElement, useState } from 'react'
+import { Fragment, type ReactElement } from 'react'
 import './Home.css'
 import 'maplibre-gl/dist/maplibre-gl.css'
-import { useQuery } from '@tanstack/react-query'
-import axios from 'axios'
-import { endOfDay } from 'date-fns'
-import { startOfDay } from 'date-fns/startOfDay'
-import debounce from 'lodash.debounce'
-import Heatmap from '../components/Heatmap'
-import type MapViewParams from '../types/MapViewParams'
+import HeatmapContainer from '../containers/HeatmapContainer'
 
 const NewLineToBr = ({ children = '' }) =>
   children.split('\n').reduce(
@@ -22,29 +16,6 @@ const NewLineToBr = ({ children = '' }) =>
     [] as ReactElement[]
   )
 function Home() {
-  const [mapViewParams, setMapViewParams] = useState<MapViewParams>()
-
-  const { isPending, error, data } = useQuery({
-    queryKey: ['heatmap', mapViewParams],
-    placeholderData: (prev) => prev,
-    queryFn: () => {
-      return axios
-        .get('http://localhost:3010/locations/heatmap', {
-          params: {
-            ...mapViewParams,
-            // TODO: timezone yay
-            startDate: startOfDay(new Date()),
-            endDate: endOfDay(new Date()),
-          },
-        })
-        .then((d) => d.data)
-    },
-  })
-
-  const handleViewChange = debounce((params: MapViewParams) => {
-    setMapViewParams(params)
-  }, 500)
-
   return (
     <>
       <div className="container">
@@ -54,10 +25,7 @@ function Home() {
 
         <div className="right-panel">
           <div className="map">
-            <Heatmap
-              points={data?.points ?? []}
-              onViewChange={handleViewChange}
-            />
+            <HeatmapContainer />
           </div>
         </div>
       </div>
