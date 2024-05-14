@@ -5,7 +5,6 @@ import { Allotment } from 'allotment'
 import HeatmapContainer from '../containers/HeatmapContainer'
 import 'allotment/dist/style.css'
 import {
-  ActionIcon,
   AppShell,
   AspectRatio,
   Center,
@@ -21,7 +20,18 @@ import {
   IconChevronRight,
   IconSearch,
 } from '@tabler/icons-react'
+import { addDays } from 'date-fns/addDays'
+import { endOfDay } from 'date-fns/endOfDay'
 import { format } from 'date-fns/format'
+import { isFuture } from 'date-fns/isFuture'
+import { parse } from 'date-fns/parse'
+import { startOfDay } from 'date-fns/startOfDay'
+import { subDays } from 'date-fns/subDays'
+import {
+  createSearchParams,
+  useNavigate,
+  useSearchParams,
+} from 'react-router-dom'
 
 const NewLineToBr = ({ children = '' }) =>
   children.split('\n').reduce(
@@ -36,8 +46,35 @@ const NewLineToBr = ({ children = '' }) =>
     [] as ReactElement[]
   )
 function Home() {
-  const today = new Date()
-  const formattedDate = format(today, 'MMMM do, yyyy')
+  const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
+  const daySearchParam = searchParams.get('day')
+  const urlDayFormat = 'yyyy-MM-dd'
+  const day = daySearchParam
+    ? startOfDay(parse(daySearchParam, urlDayFormat, new Date()))
+    : startOfDay(new Date())
+
+  const dayAfter = format(addDays(day, 1), urlDayFormat)
+  const dayBefore = format(subDays(day, 1), urlDayFormat)
+
+  const formattedDate = format(day, 'MMMM do, yyyy')
+
+  const handleNextDayClick = () => {
+    navigate({
+      pathname: '',
+      search: createSearchParams({
+        day: dayAfter,
+      }).toString(),
+    })
+  }
+  const handlePreviousDayClick = () => {
+    navigate({
+      pathname: '',
+      search: createSearchParams({
+        day: dayBefore,
+      }).toString(),
+    })
+  }
   return (
     <AppShell header={{ height: 80 }} withBorder={false} padding="md">
       <AppShell.Header p="md">
@@ -50,17 +87,19 @@ function Home() {
           <div>Explore data</div>
 
           <Flex component={'h2'} gap={'lg'} align={'center'}>
-            <UnstyledButton>
+            <UnstyledButton onClick={handlePreviousDayClick}>
               <Center>
                 <IconChevronLeft />
               </Center>
             </UnstyledButton>
             {formattedDate}
-            <UnstyledButton>
-              <Center>
-                <IconChevronRight />
-              </Center>
-            </UnstyledButton>
+            {isFuture(addDays(day, 1)) ? null : (
+              <UnstyledButton onClick={handleNextDayClick}>
+                <Center>
+                  <IconChevronRight />
+                </Center>
+              </UnstyledButton>
+            )}
           </Flex>
           <div>
             <Input
@@ -84,7 +123,10 @@ function Home() {
             <Allotment.Pane preferredSize={'25%'}>
               <Container fluid h={'100vh'} pt={'md'}>
                 <AspectRatio ratio={1} className={classes.map}>
-                  <HeatmapContainer />
+                  <HeatmapContainer
+                    startDate={startOfDay(day)}
+                    endDate={endOfDay(day)}
+                  />
                 </AspectRatio>
               </Container>
             </Allotment.Pane>

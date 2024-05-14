@@ -1,12 +1,15 @@
 import { useDebouncedState } from '@mantine/hooks'
-import { endOfDay } from 'date-fns/endOfDay'
-import { startOfDay } from 'date-fns/startOfDay'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useHeatmapApi } from '../api'
 import Heatmap from '../components/Heatmap'
 import type MapViewParams from '../types/MapViewParams'
 
-export default function HeatmapContainer() {
+type HeatmapContainerProps = {
+  startDate: Date
+  endDate: Date
+}
+
+export default function HeatmapContainer(props: HeatmapContainerProps) {
   const [isFirstFetch, setIsFirstFetch] = useState(false)
   const [fitToBounds, setFitToBounds] = useState(true)
   const [mapViewParams, setMapViewParams] = useDebouncedState<
@@ -24,8 +27,14 @@ export default function HeatmapContainer() {
     500
   )
 
-  const startDate = startOfDay(new Date())
-  const endDate = endOfDay(new Date())
+  const { startDate, endDate } = props
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+  useEffect(() => {
+    setFitToBounds(true)
+    setIsFirstFetch(false)
+  }, [props.startDate, props.endDate])
+
   const { data } = useHeatmapApi({
     ...mapViewParams,
     startDate,
