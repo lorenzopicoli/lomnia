@@ -1,13 +1,28 @@
+import { useDebouncedState } from '@mantine/hooks'
 import { endOfDay } from 'date-fns/endOfDay'
 import { startOfDay } from 'date-fns/startOfDay'
-import debounce from 'lodash.debounce'
 import { useState } from 'react'
 import { useHeatmapApi } from '../api'
 import Heatmap from '../components/Heatmap'
 import type MapViewParams from '../types/MapViewParams'
 
 export default function HeatmapContainer() {
-  const [mapViewParams, setMapViewParams] = useState<MapViewParams>()
+  const [isFirstFetch, setIsFirstFetch] = useState(false)
+  const [fitToBounds, setFitToBounds] = useState(true)
+  const [mapViewParams, setMapViewParams] = useDebouncedState<
+    MapViewParams | undefined
+  >(
+    {
+      // There are PostGIS limitations. Ideally I'd like to check lng 180 to -180
+      // I should just accept null for the first call maybe
+      topLeftLat: 85,
+      topLeftLng: -90,
+      bottomRightLat: -85,
+      bottomRightLng: 90,
+      zoom: 10,
+    },
+    500
+  )
 
   const startDate = startOfDay(new Date())
   const endDate = endOfDay(new Date())
@@ -17,9 +32,24 @@ export default function HeatmapContainer() {
     endDate,
   })
 
-  const handleViewChange = debounce((params: MapViewParams) => {
-    setMapViewParams(params)
-  }, 500)
+  if (data && !isFirstFetch) {
+    setIsFirstFetch(true)
+  }
 
-  return <Heatmap points={data?.points ?? []} onViewChange={handleViewChange} />
+  const handleViewChange = (params: MapViewParams) => {
+    setFitToBounds(false)
+    setMapViewParams(params)
+  }
+
+  if (!isFirstFetch || !data) {
+    return 'Loading...'
+  }
+
+  return (
+    <Heatmap
+      fitToBounds={fitToBounds}
+      points={data.points}
+      onViewChange={handleViewChange}
+    />
+  )
 }

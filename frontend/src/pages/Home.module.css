@@ -1,0 +1,12 @@
+.diaryEntry {
+  text-align: left;
+  vertical-align: top;
+}
+
+.map {
+  border-radius: 10px;
+  overflow: clip;
+}
+.splitPane {
+  --focus-border: var(--mantine-color-gray-6);
+}

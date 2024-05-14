@@ -1,7 +1,27 @@
 import { Fragment, type ReactElement } from 'react'
-import './Home.css'
+import classes from './Home.module.css'
 import 'maplibre-gl/dist/maplibre-gl.css'
+import { Allotment } from 'allotment'
 import HeatmapContainer from '../containers/HeatmapContainer'
+import 'allotment/dist/style.css'
+import {
+  ActionIcon,
+  AppShell,
+  AspectRatio,
+  Center,
+  Code,
+  Container,
+  Flex,
+  Input,
+  Paper,
+  UnstyledButton,
+} from '@mantine/core'
+import {
+  IconChevronLeft,
+  IconChevronRight,
+  IconSearch,
+} from '@tabler/icons-react'
+import { format } from 'date-fns/format'
 
 const NewLineToBr = ({ children = '' }) =>
   children.split('\n').reduce(
@@ -16,27 +36,68 @@ const NewLineToBr = ({ children = '' }) =>
     [] as ReactElement[]
   )
 function Home() {
+  const today = new Date()
+  const formattedDate = format(today, 'MMMM do, yyyy')
   return (
-    <>
-      <div className="container">
-        <div className="left-panel">
-          <NewLineToBr>{text}</NewLineToBr>
-        </div>
+    <AppShell header={{ height: 80 }} withBorder={false} padding="md">
+      <AppShell.Header p="md">
+        <Flex
+          component={Container}
+          fluid
+          justify={'space-between'}
+          align={'center'}
+        >
+          <div>Explore data</div>
 
-        <div className="right-panel">
-          <div className="map">
-            <HeatmapContainer />
+          <Flex component={'h2'} gap={'lg'} align={'center'}>
+            <UnstyledButton>
+              <Center>
+                <IconChevronLeft />
+              </Center>
+            </UnstyledButton>
+            {formattedDate}
+            <UnstyledButton>
+              <Center>
+                <IconChevronRight />
+              </Center>
+            </UnstyledButton>
+          </Flex>
+          <div>
+            <Input
+              radius={10}
+              placeholder="Search..."
+              leftSection={<IconSearch size={16} />}
+              rightSection={<Code>⌘ + K</Code>}
+              rightSectionWidth={80}
+            />
           </div>
-        </div>
-      </div>
-    </>
+        </Flex>
+      </AppShell.Header>
+      <AppShell.Main>
+        <Paper component={Container} fluid h={'100vh'}>
+          <Allotment className={classes.splitPane}>
+            <Allotment.Pane preferredSize={'75%'}>
+              <Container className={classes.diaryEntry} pt={'md'}>
+                <NewLineToBr>{text}</NewLineToBr>
+              </Container>
+            </Allotment.Pane>
+            <Allotment.Pane preferredSize={'25%'}>
+              <Container fluid h={'100vh'} pt={'md'}>
+                <AspectRatio ratio={1} className={classes.map}>
+                  <HeatmapContainer />
+                </AspectRatio>
+              </Container>
+            </Allotment.Pane>
+          </Allotment>
+        </Paper>
+      </AppShell.Main>
+    </AppShell>
   )
 }
 
 export default Home
 
-const text = `
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras vitae magna nec massa auctor hendrerit. Maecenas dolor velit, feugiat non rhoncus id, bibendum et tellus. Ut eleifend dapibus pulvinar. Suspendisse turpis tortor, molestie ac posuere vel, maximus et ipsum. Integer pretium odio id luctus ullamcorper. Quisque ipsum felis, sagittis in tempor ut, commodo a dui. Duis egestas dolor in vehicula lobortis. Suspendisse potenti. Duis ut lorem et ipsum tincidunt venenatis. Curabitur elit mi, pretium imperdiet ligula ut, auctor placerat lectus. Etiam feugiat lectus eu vehicula fringilla. Aliquam mi massa, convallis sed odio eget, elementum porttitor dolor. Donec lobortis, magna non posuere tempor, dolor dui eleifend lacus, sed pulvinar neque purus nec leo.
+const text = `Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras vitae magna nec massa auctor hendrerit. Maecenas dolor velit, feugiat non rhoncus id, bibendum et tellus. Ut eleifend dapibus pulvinar. Suspendisse turpis tortor, molestie ac posuere vel, maximus et ipsum. Integer pretium odio id luctus ullamcorper. Quisque ipsum felis, sagittis in tempor ut, commodo a dui. Duis egestas dolor in vehicula lobortis. Suspendisse potenti. Duis ut lorem et ipsum tincidunt venenatis. Curabitur elit mi, pretium imperdiet ligula ut, auctor placerat lectus. Etiam feugiat lectus eu vehicula fringilla. Aliquam mi massa, convallis sed odio eget, elementum porttitor dolor. Donec lobortis, magna non posuere tempor, dolor dui eleifend lacus, sed pulvinar neque purus nec leo.
 
 Nam sollicitudin ipsum arcu, quis tincidunt ante vulputate non. Fusce et augue in nunc commodo pulvinar ac eget lacus. Nunc vitae odio vulputate, efficitur metus quis, consequat massa. Pellentesque sed gravida eros. Etiam a orci est. Ut fringilla urna lacus, et bibendum ante ullamcorper et. Donec est sem, faucibus et condimentum nec, tristique id dui. In eu magna suscipit, convallis metus mollis, iaculis quam. Donec pulvinar accumsan convallis.
 

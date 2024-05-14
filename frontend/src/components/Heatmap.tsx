@@ -1,30 +1,59 @@
 import DeckGL, {
   HeatmapLayer,
   WebMercatorViewport,
-  type MapViewState,
   type DeckProps,
 } from 'deck.gl'
 import { Map as MapLibre } from 'react-map-gl/maplibre'
 import 'maplibre-gl/dist/maplibre-gl.css'
+import { memo } from 'react'
 import type MapViewParams from '../types/MapViewParams'
 
 type DataPoint = [longitude: number, latitude: number, count: number]
 export type HeatmapProps = {
   onViewChange?: (params: MapViewParams) => void | Promise<void>
+  fitToBounds: boolean
   points: DataPoint[]
 }
 
-export default function Heatmap(props: HeatmapProps) {
+// This shouldn't happen here, the backend should return the bounds for the given period
+function findBounds(points: DataPoint[]) {
+  if (points.length === 0) {
+    throw new Error('Points list cannot be empty')
+  }
+
+  let minLng = points[0][0]
+  let maxLng = points[0][0]
+  let minLat = points[0][1]
+  let maxLat = points[0][1]
+
+  for (const point of points) {
+    const [lng, lat] = point
+    if (lng < minLng) minLng = lng
+    if (lng > maxLng) maxLng = lng
+    if (lat < minLat) minLat = lat
+    if (lat > maxLat) maxLat = lat
+  }
+
+  const topLeft: [number, number] = [minLng, maxLat]
+  const bottomRight: [number, number] = [maxLng, minLat]
+
+  return { topLeft, bottomRight }
+}
+
+function Heatmap(props: HeatmapProps) {
   const MAP_STYLE =
     'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
-  const INITIAL_VIEW_STATE: MapViewState = {
-    longitude: -73.6287938,
-    latitude: 45.517205,
-    zoom: 9,
-    maxZoom: 16,
-    pitch: 0,
-    bearing: 0,
+
+  let initialViewState = undefined
+  if (props.fitToBounds) {
+    const bounds = findBounds(props.points)
+    const { longitude, latitude, zoom } = new WebMercatorViewport({
+      width: 449,
+      height: 449,
+    }).fitBounds([bounds.topLeft, bounds.bottomRight])
+    initialViewState = { longitude, latitude, zoom }
   }
+
   const layers = [
     new HeatmapLayer<DataPoint>({
       data: props.points,
@@ -61,7 +90,7 @@ export default function Heatmap(props: HeatmapProps) {
   return (
     <DeckGL
       style={{ position: 'relative', width: '100%', height: '100%' }}
-      initialViewState={INITIAL_VIEW_STATE}
+      initialViewState={initialViewState}
       controller={true}
       layers={layers}
       onViewStateChange={handleViewStateChange}
@@ -70,3 +99,6 @@ export default function Heatmap(props: HeatmapProps) {
     </DeckGL>
   )
 }
+
+const MemoedHeatmap = memo(Heatmap)
+export default MemoedHeatmap
