@@ -1,2 +1,5 @@
 .env
 node_modules
+
+# Name for files with personal information that I don't want on github
+personal.ts

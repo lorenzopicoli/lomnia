@@ -30,6 +30,9 @@ export const locationTriggerEnum = pgEnum('trigger', [
   'manual',
 ])
 
+export const filesSourceEnum = pgEnum('files_source', ['obsidian'])
+export const filesContentTypeEnum = pgEnum('files_content_type', ['markdown'])
+
 export const importJobsTable = pgTable('import_jobs', {
   id: serial('id').primaryKey(),
   jobStart: timestamp('job_start').notNull(),
@@ -94,6 +97,49 @@ export const locationsTable = pgTable('locations', {
 
 export type Location = typeof locationsTable.$inferSelect
 export type NewLocation = typeof locationsTable.$inferInsert
+
+export const filesTable = pgTable('files', {
+  id: serial('id').primaryKey(),
+  source: filesSourceEnum('source').notNull(),
+  contentType: filesContentTypeEnum('content_type').notNull(),
+  metadata: jsonb('metadata'),
+  checksum: text('checksum'),
+  tags: text('tags').array(),
+  fileCreatedAt: timestamp('file_created_at').notNull(),
+  fileUpdatedAt: timestamp('file_updated_at'),
+  importJobId: integer('import_job_id')
+    .references(() => importJobsTable.id)
+    .notNull(),
+  /***
+   * Relative to the base folder from import
+   */
+  relativePath: text('relative_path').notNull(),
+  content: text('content'),
+
+  createdAt: timestamp('created_at'),
+  updatedAt: timestamp('updated_at'),
+})
+
+export type File = typeof filesTable.$inferSelect
+export type NewFile = typeof filesTable.$inferInsert
+
+export const habitsTable = pgTable('habits', {
+  id: serial('id').primaryKey(),
+  importJobId: integer('import_job_id')
+    .references(() => importJobsTable.id)
+    .notNull(),
+  fileId: integer('file_id').references(() => filesTable.id),
+
+  key: text('key'),
+  value: jsonb('value'),
+  date: timestamp('date'),
+
+  createdAt: timestamp('created_at'),
+  updatedAt: timestamp('updated_at'),
+})
+
+export type Habit = typeof habitsTable.$inferSelect
+export type NewHabit = typeof habitsTable.$inferInsert
 
 export const dnsQueriesTable = pgTable('dns_queries', {
   id: integer('id'),
