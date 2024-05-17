@@ -8,7 +8,7 @@ import {
   text,
   timestamp,
 } from 'drizzle-orm/pg-core'
-import { geography } from './types'
+import { customJsonb, geography } from './types'
 
 export const batteryStatusEnum = pgEnum('battery_status', [
   'unknown',
@@ -47,7 +47,7 @@ export const importJobsTable = pgTable('import_jobs', {
   source: text('source').notNull(),
   importedCount: integer('imported_count').notNull(),
   logs: jsonb('logs').notNull(),
-  createdAt: timestamp('created_at').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at'),
 })
 export type ImportJob = typeof importJobsTable.$inferSelect
@@ -89,9 +89,9 @@ export const locationsTable = pgTable('locations', {
     .references(() => importJobsTable.id)
     .notNull(),
 
-  messageCreatedAt: timestamp('message_created_at'),
+  messageCreatedAt: timestamp('message_created_at').defaultNow(),
   locationFix: timestamp('location_fix'),
-  createdAt: timestamp('created_at'),
+  createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at'),
 })
 
@@ -102,10 +102,10 @@ export const filesTable = pgTable('files', {
   id: serial('id').primaryKey(),
   source: filesSourceEnum('source').notNull(),
   contentType: filesContentTypeEnum('content_type').notNull(),
-  metadata: jsonb('metadata'),
+  metadata: customJsonb('metadata'),
   checksum: text('checksum'),
   tags: text('tags').array(),
-  fileCreatedAt: timestamp('file_created_at').notNull(),
+  fileCreatedAt: timestamp('file_created_at').defaultNow().notNull(),
   fileUpdatedAt: timestamp('file_updated_at'),
   importJobId: integer('import_job_id')
     .references(() => importJobsTable.id)
@@ -116,7 +116,7 @@ export const filesTable = pgTable('files', {
   relativePath: text('relative_path').notNull(),
   content: text('content'),
 
-  createdAt: timestamp('created_at'),
+  createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at'),
 })
 
@@ -131,10 +131,10 @@ export const habitsTable = pgTable('habits', {
   fileId: integer('file_id').references(() => filesTable.id),
 
   key: text('key'),
-  value: jsonb('value'),
+  value: customJsonb('value'),
   date: timestamp('date'),
 
-  createdAt: timestamp('created_at'),
+  createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at'),
 })
 

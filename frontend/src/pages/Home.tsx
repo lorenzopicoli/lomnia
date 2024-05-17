@@ -1,12 +1,14 @@
-import { Fragment, type ReactElement } from 'react'
+import { Fragment, type ReactElement, useState } from 'react'
 import classes from './Home.module.css'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { Allotment } from 'allotment'
 import HeatmapContainer from '../containers/HeatmapContainer'
 import 'allotment/dist/style.css'
 import {
+  ActionIcon,
   AppShell,
   AspectRatio,
+  Button,
   Center,
   Code,
   Container,
@@ -18,6 +20,8 @@ import {
 import {
   IconChevronLeft,
   IconChevronRight,
+  IconEye,
+  IconEyeOff,
   IconSearch,
 } from '@tabler/icons-react'
 import { addDays } from 'date-fns/addDays'
@@ -32,19 +36,8 @@ import {
   useNavigate,
   useSearchParams,
 } from 'react-router-dom'
+import DiaryEntryContainer from '../containers/DiaryEntryContainer'
 
-const NewLineToBr = ({ children = '' }) =>
-  children.split('\n').reduce(
-    (arr, line, index) =>
-      arr.concat(
-        // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-        <Fragment key={index}>
-          {line}
-          <br />
-        </Fragment>
-      ),
-    [] as ReactElement[]
-  )
 function Home() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
@@ -53,6 +46,7 @@ function Home() {
   const day = daySearchParam
     ? startOfDay(parse(daySearchParam, urlDayFormat, new Date()))
     : startOfDay(new Date())
+  const [privacyMode, setPrivacyMode] = useState(false)
 
   const dayAfter = format(addDays(day, 1), urlDayFormat)
   const dayBefore = format(subDays(day, 1), urlDayFormat)
@@ -101,7 +95,7 @@ function Home() {
               </UnstyledButton>
             )}
           </Flex>
-          <div>
+          <Flex align={'center'} gap="md">
             <Input
               radius={10}
               placeholder="Search..."
@@ -109,7 +103,16 @@ function Home() {
               rightSection={<Code>⌘ + K</Code>}
               rightSectionWidth={80}
             />
-          </div>
+            <ActionIcon
+              variant={!privacyMode ? 'light' : 'filled'}
+              //   color="white"
+              size="lg"
+              //   style={{ width: '40px' }}
+              onClick={() => setPrivacyMode(!privacyMode)}
+            >
+              {!privacyMode ? <IconEye /> : <IconEyeOff />}
+            </ActionIcon>
+          </Flex>
         </Flex>
       </AppShell.Header>
       <AppShell.Main>
@@ -117,11 +120,11 @@ function Home() {
           <Allotment className={classes.splitPane}>
             <Allotment.Pane preferredSize={'75%'}>
               <Container className={classes.diaryEntry} pt={'md'}>
-                <NewLineToBr>{text}</NewLineToBr>
+                <DiaryEntryContainer privacyMode={privacyMode} date={day} />
               </Container>
             </Allotment.Pane>
             <Allotment.Pane preferredSize={'25%'}>
-              <Container fluid h={'100vh'} pt={'md'}>
+              <Container fluid h={'100vh'} pt={'md'} pr={0}>
                 <AspectRatio ratio={1} className={classes.map}>
                   <HeatmapContainer
                     startDate={startOfDay(day)}

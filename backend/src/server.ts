@@ -1,6 +1,7 @@
 import 'dotenv/config'
 import cors from '@fastify/cors'
 import Fastify, { type FastifyInstance } from 'fastify'
+import diaryRoutes from './routes/diaryEntries'
 import locationsRoutes from './routes/locations'
 
 const fastify = Fastify({
@@ -10,11 +11,15 @@ const fastify = Fastify({
 type RouteRegister = (fastify: FastifyInstance) => void
 
 export class Server {
-  routes: RouteRegister[] = [locationsRoutes]
+  routes: RouteRegister[] = [locationsRoutes, diaryRoutes]
 
   public async listen() {
     await fastify.register(cors, {
       origin: (origin, cb) => {
+        if (!origin) {
+          cb(null, true)
+          return
+        }
         const hostname = new URL(origin ?? '').hostname
         if (hostname === 'localhost') {
           //  Request from localhost will pass

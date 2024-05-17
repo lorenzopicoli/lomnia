@@ -42,8 +42,10 @@
     "front-matter": "^4.0.2",
     "glob": "^10.3.15",
     "lodash": "^4.17.21",
+    "lorem-ipsum": "^2.0.8",
     "node-ssh": "^13.2.0",
     "postgres": "^3.4.4",
+    "react-markdown": "^9.0.1",
     "typescript": "^5.4.5",
     "wkx": "^0.5.0",
     "zod": "^3.23.8"

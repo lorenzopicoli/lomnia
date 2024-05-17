@@ -1,4 +1,4 @@
-import type { ExtractTablesWithRelations } from 'drizzle-orm'
+import { type ExtractTablesWithRelations, sql } from 'drizzle-orm'
 import { customType } from 'drizzle-orm/pg-core'
 import type { PgTransaction } from 'drizzle-orm/pg-core'
 import type { PostgresJsQueryResultHKT } from 'drizzle-orm/postgres-js'
@@ -35,3 +35,21 @@ export type DBTransaction = PgTransaction<
   typeof schema,
   ExtractTablesWithRelations<typeof schema>
 >
+
+/**
+ * Replaces the default jsonb type. Needed because of a drizzle bug:
+ * https://github.com/drizzle-team/drizzle-orm/pull/666
+ * https://github.com/drizzle-team/drizzle-orm/pull/1641
+ */
+export const customJsonb = <TData>(name: string) =>
+  customType<{ data: TData; driverData: TData }>({
+    dataType() {
+      return 'jsonb'
+    },
+    toDriver(val: TData) {
+      return sql`(((${JSON.stringify(val)})::jsonb)#>> '{}')::jsonb`
+    },
+    fromDriver(value): TData {
+      return value as TData
+    },
+  })(name)
