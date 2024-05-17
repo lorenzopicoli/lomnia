@@ -1,7 +1,7 @@
 import { useDebouncedState } from '@mantine/hooks'
 import { useEffect, useState } from 'react'
 import { useHeatmapApi } from '../api'
-import Heatmap from '../components/Heatmap'
+import Heatmap from '../components/Heatmap/Heatmap'
 import type MapViewParams from '../types/MapViewParams'
 
 type HeatmapContainerProps = {

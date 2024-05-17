@@ -1,6 +1,6 @@
 import { format } from 'date-fns/format'
 import { useDiaryEntryApi } from '../api'
-import DiaryEntry from '../components/DiaryEntry'
+import DiaryEntry from '../components/DiaryEntry/DiaryEntry'
 
 type DiaryEntryContainer = {
   date: Date

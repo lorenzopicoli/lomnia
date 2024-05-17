@@ -15,14 +15,10 @@ function isUpperCase(char: string) {
   return char === char.toUpperCase() && char !== char.toLowerCase()
 }
 
-function removeDataviewBlocks(markdownText: string): string {
-  const pattern: RegExp = /```dataview[\s\S]*?```/g
-
-  const cleanedText: string = markdownText.replace(pattern, '')
-
-  return cleanedText
-    .replace('#### Today\n\n\n\n#### Coming up\n\n\n\n', '')
-    .replace('## Birthdays\n\n', '')
+function removeUnwantedContent(markdownText: string): string {
+  // Remove everything after ## Birthdays. That's where I keep some dataview blocks in my
+  // personal notes
+  return markdownText.split('## Birthdays')[0]
 }
 
 export async function getDiaryEntries(params: GetDiaryQueryParams) {
@@ -45,7 +41,7 @@ export async function getDiaryEntries(params: GetDiaryQueryParams) {
     return
   }
 
-  const cleanContent = removeDataviewBlocks(entry.content ?? '')
+  const cleanContent = removeUnwantedContent(entry.content ?? '')
   let privateContent = ''
 
   if (isHidden) {

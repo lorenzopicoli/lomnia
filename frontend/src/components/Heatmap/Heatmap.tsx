@@ -6,7 +6,7 @@ import DeckGL, {
 import { Map as MapLibre } from 'react-map-gl/maplibre'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { memo } from 'react'
-import type MapViewParams from '../types/MapViewParams'
+import type MapViewParams from '../../types/MapViewParams'
 
 type DataPoint = [longitude: number, latitude: number, count: number]
 export type HeatmapProps = {

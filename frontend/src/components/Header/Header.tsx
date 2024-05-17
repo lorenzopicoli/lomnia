@@ -1,0 +1,85 @@
+import {
+  ActionIcon,
+  Button,
+  Center,
+  Code,
+  Container,
+  Flex,
+  Input,
+  UnstyledButton,
+  useMantineTheme,
+} from '@mantine/core'
+import {
+  IconChevronLeft,
+  IconChevronRight,
+  IconEye,
+  IconEyeOff,
+  IconSearch,
+} from '@tabler/icons-react'
+import { format } from 'date-fns/format'
+import { isToday } from 'date-fns/isToday'
+
+type HeaderProps = {
+  onPreviousDay: () => void
+  onNextDay: () => void
+  onSearch: (query: string) => void
+  onChangePrivacyMode: (privacyMode: boolean) => void
+  currentDate: Date
+  privacyMode: boolean
+}
+
+function Header(props: HeaderProps) {
+  const formattedDate = format(props.currentDate, 'MMMM do, yyyy')
+  const theme = useMantineTheme()
+
+  const handlePrivacyModeChange = () => {
+    props.onChangePrivacyMode(!props.privacyMode)
+  }
+
+  return (
+    <Flex
+      component={Container}
+      fluid
+      justify={'space-between'}
+      align={'center'}
+      bg={theme.colors.dark[9]}
+      h={'100%'}
+    >
+      <Button variant="subtle">Explore data</Button>
+
+      <Flex component={'h2'} gap={'lg'} align={'center'}>
+        <UnstyledButton onClick={props.onPreviousDay}>
+          <Center>
+            <IconChevronLeft />
+          </Center>
+        </UnstyledButton>
+        {formattedDate}
+        {isToday(props.currentDate) ? null : (
+          <UnstyledButton onClick={props.onNextDay}>
+            <Center>
+              <IconChevronRight />
+            </Center>
+          </UnstyledButton>
+        )}
+      </Flex>
+      <Flex align={'center'} gap="md">
+        <Input
+          radius={10}
+          placeholder="Search..."
+          leftSection={<IconSearch size={16} />}
+          rightSection={<Code>⌘ + K</Code>}
+          rightSectionWidth={80}
+        />
+        <ActionIcon
+          variant={!props.privacyMode ? 'light' : 'light'}
+          size="lg"
+          onClick={handlePrivacyModeChange}
+        >
+          {!props.privacyMode ? <IconEye /> : <IconEyeOff />}
+        </ActionIcon>
+      </Flex>
+    </Flex>
+  )
+}
+
+export default Header
