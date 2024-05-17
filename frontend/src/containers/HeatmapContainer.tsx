@@ -50,8 +50,11 @@ export default function HeatmapContainer(props: HeatmapContainerProps) {
     setMapViewParams(params)
   }
 
-  if (!isFirstFetch || !data) {
+  if (!isFirstFetch) {
     return 'Loading...'
+  }
+  if (!data || data.points?.length === 0) {
+    return null
   }
 
   return (

@@ -1,14 +1,14 @@
-import { useState } from 'react'
-import classes from './Home.module.css'
-import 'maplibre-gl/dist/maplibre-gl.css'
 import { Allotment } from 'allotment'
+import { useState } from 'react'
 import HeatmapContainer from '../containers/HeatmapContainer'
+import classes from './Home.module.css'
 import 'allotment/dist/style.css'
 import {
   AppShell,
   AspectRatio,
   Container,
   Paper,
+  ScrollArea,
   useMantineTheme,
 } from '@mantine/core'
 import { addDays } from 'date-fns/addDays'
@@ -60,7 +60,7 @@ function Home() {
 
   const theme = useMantineTheme()
   return (
-    <AppShell header={{ height: 60 }} withBorder={true}>
+    <AppShell header={{ height: 60, offset: true }} withBorder={true}>
       <AppShell.Header>
         <Header
           onChangePrivacyMode={handleChangePrivacyMode}
@@ -80,9 +80,14 @@ function Home() {
         >
           <Allotment className={classes.splitPane}>
             <Allotment.Pane preferredSize={'75%'}>
-              <Container className={classes.diaryEntry} pt={'md'}>
-                <DiaryEntryContainer privacyMode={privacyMode} date={day} />
-              </Container>
+              <ScrollArea
+                h="calc(100vh - var(--app-shell-header-height, 0px) - var(--app-shell-footer-height, 0px))"
+                type="never"
+              >
+                <Container className={classes.diaryEntry} pt={'md'} pb={'md'}>
+                  <DiaryEntryContainer privacyMode={privacyMode} date={day} />
+                </Container>
+              </ScrollArea>
             </Allotment.Pane>
             <Allotment.Pane preferredSize={'25%'}>
               <Container fluid h={'100vh'} pt={'md'} pr={0}>

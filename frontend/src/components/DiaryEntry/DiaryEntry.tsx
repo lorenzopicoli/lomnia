@@ -1,4 +1,4 @@
-import { Anchor } from '@mantine/core'
+import { Anchor, Chip, Group, Text } from '@mantine/core'
 import cs from 'classnames'
 import Markdown from 'react-markdown'
 import wikiLinkPlugin from 'remark-wiki-link'
@@ -14,24 +14,39 @@ export type DiaryEntryProps = {
 
 function DiaryEntry(props: DiaryEntryProps) {
   return (
-    <div className={cs({ [styles.textHidden]: props.privacyMode })}>
-      <Markdown
-        remarkPlugins={[wikiLinkPlugin]}
-        components={{
-          a({ children: aChildren, ...aProps }) {
-            return (
-              <Anchor
-                c={props.privacyMode ? 'transparent' : 'primary'}
-                href={aProps.href}
-              >
-                {aChildren}
-              </Anchor>
-            )
-          },
-        }}
-      >
-        {props.content}
-      </Markdown>
+    <div>
+      <div className={cs({ [styles.textHidden]: props.privacyMode })}>
+        <Markdown
+          remarkPlugins={[wikiLinkPlugin]}
+          components={{
+            a({ children: aChildren, ...aProps }) {
+              return (
+                <Anchor
+                  c={props.privacyMode ? 'transparent' : 'primary'}
+                  href={aProps.href}
+                >
+                  {aChildren}
+                </Anchor>
+              )
+            },
+          }}
+        >
+          {props.content}
+        </Markdown>
+      </div>
+      <Group>
+        {props.tags.map((tag) => (
+          <Chip
+            icon={<Text size="lg">#</Text>}
+            key={tag}
+            checked
+            variant="light"
+            radius={'lg'}
+          >
+            {tag}
+          </Chip>
+        ))}
+      </Group>
     </div>
   )
 }

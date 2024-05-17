@@ -10,3 +10,6 @@
 .splitPane {
   --focus-border: var(--mantine-color-gray-6);
 }
+.splitPaneContainer {
+  height: 100vh;
+}

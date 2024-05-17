@@ -6,6 +6,9 @@ import '@mantine/core/styles.css'
 import '@mantine/dates/styles.css'
 import '@mantine/code-highlight/styles.css'
 import '@mantine/spotlight/styles.css'
+
+import 'maplibre-gl/dist/maplibre-gl.css'
+import 'allotment/dist/style.css'
 import { MantineProvider, createTheme, rem } from '@mantine/core'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 
