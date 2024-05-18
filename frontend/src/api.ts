@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import axios from 'axios'
 import { z } from 'zod'
+import { useConfig } from './utils/useConfig'
 
 const BASE_URL = 'http://localhost:3010'
 
@@ -53,7 +54,7 @@ export function useHeatmapApi(query: Partial<HeatmapApiQuery>) {
 const DiaryEntryApiQueryParams = z
   .object({
     date: z.string().date(),
-    isHidden: z.boolean(),
+    privateMode: z.boolean(),
   })
   .partial()
   .required({ date: true })
@@ -61,11 +62,48 @@ const DiaryEntryApiQueryParams = z
 export type DiaryEntryQuery = z.infer<typeof DiaryEntryApiQueryParams>
 
 export function useDiaryEntryApi(query: Partial<DiaryEntryQuery>) {
+  const config = useConfig()
   const path = '/diary-entries'
   return useQuery({
-    queryKey: [path, query],
+    queryKey: [path, query, config.privateMode],
     queryFn: () => {
-      const { data, success } = DiaryEntryApiQueryParams.safeParse(query)
+      const { data, success } = DiaryEntryApiQueryParams.safeParse({
+        ...query,
+        privateMode: config.privateMode,
+      })
+      if (!data || !success) {
+        return null
+      }
+      return api
+        .get(path, {
+          params: data,
+        })
+        .then((d) => d.data)
+    },
+  })
+}
+
+const HabitEntriesApiQueryParams = z
+  .object({
+    startDate: z.string().date(),
+    endDate: z.string().date(),
+    privateMode: z.boolean(),
+  })
+  .partial()
+  .required({ startDate: true, endDate: true })
+
+export type HabitEntriesQuery = z.infer<typeof HabitEntriesApiQueryParams>
+
+export function useHabitEntriesApi(query: Partial<HabitEntriesQuery>) {
+  const path = '/habit-entries'
+  const config = useConfig()
+  return useQuery({
+    queryKey: [path, query, config.privateMode],
+    queryFn: () => {
+      const { data, success } = HabitEntriesApiQueryParams.safeParse({
+        ...query,
+        privateMode: config.privateMode,
+      })
       if (!data || !success) {
         return null
       }

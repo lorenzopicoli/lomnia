@@ -1,19 +1,8 @@
 import { isValid, parse } from 'date-fns'
 import { sql } from 'drizzle-orm'
 import { db } from '../db/connection'
-import type { GetDiaryQueryParams } from '../routes/diary'
-
-function getRandomLetter(upper: boolean): string {
-  const alphabet = upper
-    ? 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-    : 'abcdefghijklmnopqrstuvwxyz'
-  const randomIndex = Math.floor(Math.random() * alphabet.length)
-  return alphabet[randomIndex]
-}
-
-function isUpperCase(char: string) {
-  return char === char.toUpperCase() && char !== char.toLowerCase()
-}
+import { anonymize } from '../helpers/anonymize'
+import type { GetDiaryQueryParams } from '../routes/diaryEntries'
 
 function removeUnwantedContent(markdownText: string): string {
   // Remove everything after ## Birthdays. That's where I keep some dataview blocks in my
@@ -22,7 +11,7 @@ function removeUnwantedContent(markdownText: string): string {
 }
 
 export async function getDiaryEntries(params: GetDiaryQueryParams) {
-  const { date, isHidden } = params
+  const { date, privateMode } = params
   if (!isValid(parse(date, 'yyyy-MM-dd', new Date()))) {
     throw new Error('Invalid date')
   }
@@ -42,19 +31,8 @@ export async function getDiaryEntries(params: GetDiaryQueryParams) {
   }
 
   const cleanContent = removeUnwantedContent(entry.content ?? '')
-  let privateContent = ''
 
-  if (isHidden) {
-    for (const ch of cleanContent.split('')) {
-      if (/[a-zA-Z]/.test(ch)) {
-        privateContent += getRandomLetter(isUpperCase(ch))
-      } else {
-        privateContent += ch
-      }
-    }
-  }
-
-  const content = isHidden ? privateContent : cleanContent
+  const content = privateMode ? anonymize(cleanContent) : cleanContent
 
   return {
     ...entry,

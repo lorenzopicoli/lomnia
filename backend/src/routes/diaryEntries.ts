@@ -4,7 +4,7 @@ import { getDiaryEntries } from '../services/diaryEntries'
 
 const GetDiaryQueryParams = z.object({
   date: z.string().date(),
-  isHidden: z
+  privateMode: z
     .enum(['true', 'false'])
     .default('false')
     .transform((value) => value === 'true'),

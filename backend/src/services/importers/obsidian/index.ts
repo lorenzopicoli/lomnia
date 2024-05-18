@@ -11,7 +11,7 @@ import {
   isValid,
   parseISO,
 } from 'date-fns'
-import { eq } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import fm from 'front-matter'
 import { glob } from 'glob'
 import { uniq, update } from 'lodash'
@@ -190,6 +190,12 @@ export class ObsidianImporter {
       .returning({ id: importJobsTable.id })
       .then((r) => r[0])
 
+    // Reset tables
+    await tx
+      .delete(habitsTable)
+      .where(sql`file_id IN (SELECT id FROM files WHERE source='obsidian')`)
+    await tx.delete(filesTable).where(eq(filesTable.source, 'obsidian'))
+
     const mdFiles = await this.getFilePaths()
     for (const filePath of mdFiles) {
       const rawContent = await fs.readFile(filePath, 'utf8')
@@ -199,14 +205,14 @@ export class ObsidianImporter {
       }
       const file = await this.processFile(filePath, rawContent)
 
-      const fileExists = await db.query.filesTable.findFirst({
-        where: eq(filesTable.checksum, file.checksum),
-      })
+      //   const fileExists = await db.query.filesTable.findFirst({
+      //     where: eq(filesTable.checksum, file.checksum),
+      //   })
 
-      if (fileExists) {
-        console.log('Checksum match, skipping', filePath)
-        continue
-      }
+      //   if (fileExists) {
+      //     console.log('Checksum match, skipping', filePath)
+      //     continue
+      //   }
 
       const dbFile = await tx
         .insert(filesTable)

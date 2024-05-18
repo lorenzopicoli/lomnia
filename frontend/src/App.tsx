@@ -11,6 +11,7 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import 'allotment/dist/style.css'
 import { MantineProvider, createTheme, rem } from '@mantine/core'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
+import { ConfigProvider } from './containers/ConfigContext'
 
 const theme = createTheme({
   colors: {
@@ -77,11 +78,13 @@ function App() {
   const queryClient = new QueryClient()
   return (
     <>
-      <QueryClientProvider client={queryClient}>
-        <MantineProvider theme={theme} defaultColorScheme="dark">
-          <RouterProvider router={router} />
-        </MantineProvider>
-      </QueryClientProvider>
+      <ConfigProvider>
+        <QueryClientProvider client={queryClient}>
+          <MantineProvider theme={theme} defaultColorScheme="dark">
+            <RouterProvider router={router} />
+          </MantineProvider>
+        </QueryClientProvider>
+      </ConfigProvider>
     </>
   )
 }

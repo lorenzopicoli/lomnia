@@ -2,6 +2,7 @@ import 'dotenv/config'
 import cors from '@fastify/cors'
 import Fastify, { type FastifyInstance } from 'fastify'
 import diaryRoutes from './routes/diaryEntries'
+import habitRoutes from './routes/habits'
 import locationsRoutes from './routes/locations'
 
 const fastify = Fastify({
@@ -11,7 +12,7 @@ const fastify = Fastify({
 type RouteRegister = (fastify: FastifyInstance) => void
 
 export class Server {
-  routes: RouteRegister[] = [locationsRoutes, diaryRoutes]
+  routes: RouteRegister[] = [locationsRoutes, diaryRoutes, habitRoutes]
 
   public async listen() {
     await fastify.register(cors, {

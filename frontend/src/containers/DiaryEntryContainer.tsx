@@ -4,13 +4,11 @@ import DiaryEntry from '../components/DiaryEntry/DiaryEntry'
 
 type DiaryEntryContainer = {
   date: Date
-  privacyMode: boolean
 }
 
 export default function DiaryEntryContainer(props: DiaryEntryContainer) {
   const { data, isLoading } = useDiaryEntryApi({
     date: format(props.date, 'yyyy-MM-dd'),
-    isHidden: props.privacyMode,
   })
 
   if (isLoading) {
@@ -23,7 +21,6 @@ export default function DiaryEntryContainer(props: DiaryEntryContainer) {
 
   return (
     <DiaryEntry
-      privacyMode={props.privacyMode}
       content={data.content}
       tags={data.tags}
       relativePath={data.relativePath}

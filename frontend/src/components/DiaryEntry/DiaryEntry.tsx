@@ -1,31 +1,27 @@
 import { Anchor, Chip, Group, Text } from '@mantine/core'
-import cs from 'classnames'
 import Markdown from 'react-markdown'
 import wikiLinkPlugin from 'remark-wiki-link'
-import styles from './DiaryEntry.module.css'
+import { Anonymize } from '../Anonymize/Anonymize'
 
 export type DiaryEntryProps = {
   content: string
   tags: string[]
   relativePath: string
   source: string
-  privacyMode: boolean
 }
 
 function DiaryEntry(props: DiaryEntryProps) {
   return (
     <div>
-      <div className={cs({ [styles.textHidden]: props.privacyMode })}>
+      <Anonymize>
         <Markdown
           remarkPlugins={[wikiLinkPlugin]}
           components={{
+            // Override links with mantine Anchor
             a({ children: aChildren, ...aProps }) {
               return (
-                <Anchor
-                  c={props.privacyMode ? 'transparent' : 'primary'}
-                  href={aProps.href}
-                >
-                  {aChildren}
+                <Anchor c={'primary'} href={aProps.href}>
+                  <Anonymize>{aChildren}</Anonymize>
                 </Anchor>
               )
             },
@@ -33,7 +29,7 @@ function DiaryEntry(props: DiaryEntryProps) {
         >
           {props.content}
         </Markdown>
-      </div>
+      </Anonymize>
       <Group>
         {props.tags.map((tag) => (
           <Chip

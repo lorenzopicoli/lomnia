@@ -6,7 +6,6 @@ import {
   Container,
   Flex,
   Input,
-  UnstyledButton,
   useMantineTheme,
 } from '@mantine/core'
 import {
@@ -23,17 +22,17 @@ type HeaderProps = {
   onPreviousDay: () => void
   onNextDay: () => void
   onSearch: (query: string) => void
-  onChangePrivacyMode: (privacyMode: boolean) => void
+  onChangePrivateMode: (privateMode: boolean) => void
   currentDate: Date
-  privacyMode: boolean
+  privateMode: boolean
 }
 
 function Header(props: HeaderProps) {
   const formattedDate = format(props.currentDate, 'MMMM do, yyyy')
   const theme = useMantineTheme()
 
-  const handlePrivacyModeChange = () => {
-    props.onChangePrivacyMode(!props.privacyMode)
+  const handlePrivateModeChange = () => {
+    props.onChangePrivateMode(!props.privateMode)
   }
 
   return (
@@ -48,19 +47,21 @@ function Header(props: HeaderProps) {
       <Button variant="subtle">Explore data</Button>
 
       <Flex component={'h2'} gap={'lg'} align={'center'}>
-        <UnstyledButton onClick={props.onPreviousDay}>
+        <Button onClick={props.onPreviousDay} variant="subtle">
           <Center>
             <IconChevronLeft />
           </Center>
-        </UnstyledButton>
+        </Button>
         {formattedDate}
-        {isToday(props.currentDate) ? null : (
-          <UnstyledButton onClick={props.onNextDay}>
-            <Center>
-              <IconChevronRight />
-            </Center>
-          </UnstyledButton>
-        )}
+        <Button
+          onClick={props.onNextDay}
+          disabled={isToday(props.currentDate)}
+          variant="subtle"
+        >
+          <Center>
+            <IconChevronRight />
+          </Center>
+        </Button>
       </Flex>
       <Flex align={'center'} gap="md">
         <Input
@@ -71,11 +72,11 @@ function Header(props: HeaderProps) {
           rightSectionWidth={80}
         />
         <ActionIcon
-          variant={!props.privacyMode ? 'light' : 'light'}
+          variant={!props.privateMode ? 'light' : 'light'}
           size="lg"
-          onClick={handlePrivacyModeChange}
+          onClick={handlePrivateModeChange}
         >
-          {!props.privacyMode ? <IconEye /> : <IconEyeOff />}
+          {!props.privateMode ? <IconEye /> : <IconEyeOff />}
         </ActionIcon>
       </Flex>
     </Flex>
