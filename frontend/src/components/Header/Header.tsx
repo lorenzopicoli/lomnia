@@ -23,6 +23,7 @@ type HeaderProps = {
   onNextDay: () => void
   onSearch: (query: string) => void
   onChangePrivateMode: (privateMode: boolean) => void
+  onGoToExplore: () => void
   currentDate: Date
   privateMode: boolean
 }
@@ -44,7 +45,9 @@ function Header(props: HeaderProps) {
       bg={theme.colors.dark[9]}
       h={'100%'}
     >
-      <Button variant="subtle">Explore data</Button>
+      <Button variant="subtle" onClick={props.onGoToExplore}>
+        Explore data
+      </Button>
 
       <Flex component={'h2'} gap={'lg'} align={'center'}>
         <Button onClick={props.onPreviousDay} variant="subtle">
