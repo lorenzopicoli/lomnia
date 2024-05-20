@@ -1,4 +1,5 @@
 import {
+  date,
   integer,
   jsonb,
   pgEnum,
@@ -82,6 +83,7 @@ export const locationsTable = pgTable('locations', {
   trigger: locationTriggerEnum('trigger'),
 
   topic: text('topic'),
+  timezone: text('timezone').notNull(),
   wifiSSID: text('wifi_ssid'),
   rawData: jsonb('raw_data'),
 
@@ -91,6 +93,17 @@ export const locationsTable = pgTable('locations', {
 
   messageCreatedAt: timestamp('message_created_at').defaultNow(),
   locationFix: timestamp('location_fix'),
+
+  dailyWeatherId: integer('daily_weather_id').references(
+    () => dailyWeatherTable.id
+  ),
+  hourlyWeatherId: integer('hourly_weather_id').references(
+    () => hourlyWeatherTable.id
+  ),
+
+  dailyWeatherAttempts: integer('daily_weather_attempts'),
+  hourlyWeatherAttempts: integer('hourly_weather_attempts'),
+
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at'),
 })
@@ -132,7 +145,7 @@ export const habitsTable = pgTable('habits', {
 
   key: text('key'),
   value: customJsonb('value'),
-  date: timestamp('date'),
+  date: date('date'),
 
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at'),
@@ -220,3 +233,59 @@ export const dnsQueriesTable = pgTable('dns_queries', {
 
 export type DnsQuery = typeof dnsQueriesTable.$inferSelect
 export type NewDnsQuery = typeof dnsQueriesTable.$inferInsert
+
+export const hourlyWeatherTable = pgTable('hourly_weather', {
+  id: serial('id').primaryKey(),
+  importJobId: integer('import_job_id')
+    .references(() => importJobsTable.id)
+    .notNull(),
+  date: timestamp('date').notNull(),
+  timezone: text('timezone').notNull(),
+
+  temperature2m: real('temperature2m'),
+  relativeHumidity2m: real('relative_humidity2m'),
+  apparentTemperature: real('apparent_temperature'),
+  precipitation: real('precipitation'),
+  rain: real('rain'),
+  snowfall: real('snowfall'),
+  snowDepth: real('snow_depth'),
+  weatherCode: integer('weather_code'),
+  cloudCover: real('cloud_cover'),
+  windSpeed10m: real('wind_speed10m'),
+  windSpeed100m: real('wind_speed100m'),
+  location: geography('location').notNull(),
+
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+})
+
+export type HourlyWeather = typeof hourlyWeatherTable.$inferSelect
+export type NewHourlyWeather = typeof hourlyWeatherTable.$inferInsert
+
+export const dailyWeatherTable = pgTable('daily_weather', {
+  id: serial('id').primaryKey(),
+  importJobId: integer('import_job_id')
+    .references(() => importJobsTable.id)
+    .notNull(),
+  date: date('date').notNull(),
+
+  weatherCode: integer('weather_code'),
+  temperature2mMax: real('temperature2m_max'),
+  temperature2mMin: real('temperature2m_min'),
+  temperature2mMean: real('temperature2m_mean'),
+  apparentTemperatureMax: real('apparent_temperature_max'),
+  apparentTemperatureMin: real('apparent_temperature_min'),
+  sunrise: timestamp('sunrise'),
+  sunset: timestamp('sunset'),
+  daylightDuration: real('daylight_duration'),
+  sunshineDuration: real('sunshine_duration'),
+  rainSum: real('rain_sum'),
+  snowfallSum: real('snowfall_sum'),
+  location: geography('location').notNull(),
+
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+})
+
+export type DailyWeather = typeof dailyWeatherTable.$inferSelect
+export type NewDailyWeather = typeof dailyWeatherTable.$inferInsert

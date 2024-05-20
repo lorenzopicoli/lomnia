@@ -2,6 +2,7 @@ import Database from 'better-sqlite3'
 import { asc, desc, eq, getTableName, gt, sql } from 'drizzle-orm'
 import { type BetterSQLite3Database, drizzle } from 'drizzle-orm/better-sqlite3'
 import type { SQLiteSelectQueryBuilder } from 'drizzle-orm/sqlite-core'
+import { find } from 'geo-tz'
 import { db } from '../../../db/connection'
 import {
   type ImportJob,
@@ -281,6 +282,15 @@ export class ExternalLocationsImporter {
       ? triggerMap[importerData.triggerType] ?? null
       : null
 
+    const timezone =
+      find(importerData.latitude, importerData.longitude)[0] || null
+
+    if (!timezone) {
+      throw new Error(
+        `Failed to find timezone for ${JSON.stringify(importerData)}`
+      )
+    }
+
     return {
       externalId: importerData.id,
       accuracy: importerData.accuracy,
@@ -302,6 +312,10 @@ export class ExternalLocationsImporter {
 
       messageCreatedAt: importerData.messageCreationTime,
       locationFix: importerData[this.entryDateKey],
+
+      timezone,
+
+      createdAt: new Date(),
     }
   }
 }
