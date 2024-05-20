@@ -1,8 +1,8 @@
 import { eq } from 'drizzle-orm'
 import { DateTime } from 'luxon'
 import { db } from '../../db/connection'
-import { importJobsTable } from '../../db/schema'
 import type { DBTransaction } from '../../db/types'
+import { importJobsTable } from '../../models/ImportJob'
 
 export class BaseImporter {
   sourceId: string

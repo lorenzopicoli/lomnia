@@ -7,13 +7,6 @@ import { eq, sql } from 'drizzle-orm'
 import fm from 'front-matter'
 import { glob } from 'glob'
 import { db } from '../../../db/connection'
-import {
-  type ImportJob,
-  type NewHabit,
-  filesTable,
-  habitsTable,
-  importJobsTable,
-} from '../../../db/schema'
 import type { DBTransaction } from '../../../db/types'
 import {
   HabitKeys,
@@ -25,6 +18,9 @@ import {
 } from './personal'
 
 import { DateTime } from 'luxon'
+import { filesTable } from '../../../models/File'
+import { type NewHabit, habitsTable } from '../../../models/Habit'
+import { type ImportJob, importJobsTable } from '../../../models/ImportJob'
 
 export class ObsidianImporter {
   private obsidianFolderPath: string

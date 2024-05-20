@@ -1,6 +1,4 @@
 import 'dotenv/config'
-import { DateTime } from 'luxon'
-import * as wkx from 'wkx'
 import { ExternalDnsRequestImporter } from './services/importers/dnsQueries'
 import { ExternalLocationsImporter } from './services/importers/locations'
 import { ObsidianImporter } from './services/importers/obsidian'
@@ -25,11 +23,11 @@ const importOpenMeteoData = async () => {
 }
 const main = async () => {
   console.log('================== LOCATIONS IMPORT ================== ')
-  //   await importLocations()
+  await importLocations()
   console.log('================= DNS QUERIES IMPORT ================= ')
-  //   await importDnsQueries()
+  await importDnsQueries()
   console.log('================= OBSIDIAN IMPORT ================= ')
-  //   await importObsidianFiles()
+  await importObsidianFiles()
   console.log('================= OPEN METEO IMPORT ================= ')
   await importOpenMeteoData()
 }

@@ -4,15 +4,11 @@ import { type BetterSQLite3Database, drizzle } from 'drizzle-orm/better-sqlite3'
 import type { SQLiteSelectQueryBuilder } from 'drizzle-orm/sqlite-core'
 import { find } from 'geo-tz'
 import { db } from '../../../db/connection'
-import {
-  type ImportJob,
-  type NewLocation,
-  importJobsTable,
-  locationsTable,
-} from '../../../db/schema'
 import type { DBTransaction } from '../../../db/types'
 import { MissingFieldError, UnexpectedValueError } from '../../../errors'
 import ProgressLogger from '../../../helpers/ProgressLogger'
+import { type ImportJob, importJobsTable } from '../../../models/ImportJob'
+import { type NewLocation, locationsTable } from '../../../models/Location'
 import { newSSHConnection, safeDownloadFile } from '../ssh'
 import externalLocationSchema from './schema/externalLocationSchema'
 import { type ExternalLocation, externalLocationsTable } from './schema/tables'

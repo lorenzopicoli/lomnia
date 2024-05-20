@@ -1,20 +1,18 @@
-import { daysToWeeks, format } from 'date-fns'
-import { and, asc, desc, inArray, isNull, sql } from 'drizzle-orm'
+import { sql } from 'drizzle-orm'
 import { fetchWeatherApi } from 'openmeteo'
-import {
-  type NewDailyWeather,
-  type NewHourlyWeather,
-  dailyWeatherTable,
-  hourlyWeatherTable,
-  locationsTable,
-} from '../../../db/schema'
 import type { DBTransaction, Point } from '../../../db/types'
 import { BaseImporter } from '../BaseImporter'
 
 import { chunk } from 'lodash'
 import { DateTime } from 'luxon'
-import { db } from '../../../db/connection'
 import { delay } from '../../../helpers/delay'
+import { locationsTable } from '../../../models/Location'
+import {
+  type NewDailyWeather,
+  type NewHourlyWeather,
+  dailyWeatherTable,
+  hourlyWeatherTable,
+} from '../../../models/Weather'
 
 export class OpenMeteoImport extends BaseImporter {
   override sourceId = 'openmeteo-v1'
@@ -358,12 +356,8 @@ export class OpenMeteoImport extends BaseImporter {
           temperature2mMean: dailyTemperature2mMean[j],
           apparentTemperatureMax: dailyApparentTemperatureMax[j],
           apparentTemperatureMin: dailyApparentTemperatureMin[j],
-          sunrise: new Date(
-            (Number(dailySunrise?.valuesInt64(j)) + utcOffsetSeconds) * 1000
-          ),
-          sunset: new Date(
-            (Number(dailySunset?.valuesInt64(j)) + utcOffsetSeconds) * 1000
-          ),
+          sunrise: new Date(Number(dailySunrise?.valuesInt64(j)) * 1000),
+          sunset: new Date(Number(dailySunset?.valuesInt64(j)) * 1000),
 
           daylightDuration: dailyDaylightDuration[j],
           sunshineDuration: dailySunshineDuration[j],
