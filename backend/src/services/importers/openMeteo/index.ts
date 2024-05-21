@@ -1,10 +1,11 @@
-import { sql } from 'drizzle-orm'
+import { isNull, or, sql } from 'drizzle-orm'
 import { fetchWeatherApi } from 'openmeteo'
 import type { DBTransaction, Point } from '../../../db/types'
 import { BaseImporter } from '../BaseImporter'
 
 import { chunk } from 'lodash'
 import { DateTime } from 'luxon'
+import { db } from '../../../db/connection'
 import { delay } from '../../../helpers/delay'
 import { locationsTable } from '../../../models/Location'
 import {
@@ -16,49 +17,60 @@ import {
 
 export class OpenMeteoImport extends BaseImporter {
   override sourceId = 'openmeteo-v1'
-  override destinationTable = 'weather'
+  override destinationTable = 'daily_weather/hourly_weather'
   override entryDateKey = 'date'
+  // Need to keep this somewhat low to avoid query params limits
+  // Can improve performance by increasing this and then chunking the requests
+  // since the main query is somewhat slow to run
   private importBatchSize = 50
+
+  // Needs to be a valid postgres interval
+  private dataAvailabilityDelay = '4 days'
+
+  // Defines how precise or close to each other the points are. The lower the number, the more api calls we'll
+  // do and the more granularity we'll have.
+  // Keep in mind that the weather models usually have a bigger area than this already so there shouldn't be
+  // any need to change this
+  // I also believe that changing this would trigger a refetch of effectively all the locations in the database
+  // since the location/date pairs wouldn't match the exisiting weather entries anymore
+  private gridPrecision = '0.01'
 
   public async sourceHasNewData(): Promise<{
     result: boolean
     from?: Date
     totalEstimate?: number
   }> {
-    return { result: true }
+    const count = await db
+      .select({
+        count: sql`COUNT(id)`.mapWith(Number),
+      })
+      .from(locationsTable).where(sql`
+        (
+        ${locationsTable.dailyWeatherId} IS NULL
+        OR ${locationsTable.dailyWeatherId} IS NULL
+        )
+        AND
+        ${locationsTable.locationFix} < NOW() - INTERVAL '${sql.raw(
+      this.dataAvailabilityDelay
+    )}'
+    `)
+
+    const value = count[0].count ?? 0
+    return { result: value > 0, totalEstimate: value }
   }
 
-  private getDateSteps(params: {
-    startDateInUTC: DateTime
-    endDateInUTC: DateTime
-    step: { day?: number; hour?: number }
-    timezone: string
-  }) {
-    const { startDateInUTC, endDateInUTC, step, timezone } = params
-    console.log('Start and end date are', startDateInUTC, endDateInUTC)
-
-    const goalEnd = endDateInUTC
-    let currentDateTime = startDateInUTC
-    const myRange: DateTime[] = []
-    while (goalEnd.diff(currentDateTime, 'seconds').seconds > 0) {
-      console.log(
-        'Adding',
-        currentDateTime,
-        'which is equivalent to',
-        currentDateTime.setZone(timezone)
-      )
-      myRange.push(currentDateTime)
-      currentDateTime = currentDateTime.plus(step)
-    }
-
-    return myRange
-  }
-
-  private getLocationAndDate(tx: DBTransaction, offset: number) {
+  /**
+   * Fetches a list of location, date and timezones.
+   * Locations are grid positions that encapsulates all the nearby location entries
+   * Date (day_string) are dates in the format 'YYYY-MM-DD'. They are in the user timezone
+   */
+  private getLocationAndDate(tx: DBTransaction) {
     const griddedPoints = tx.$with('locations_with_grid').as((cte) =>
       cte
         .select({
-          grid: sql`ST_SnapToGrid(location::geometry, 0.01)`
+          grid: sql`ST_SnapToGrid(location::geometry, ${sql.raw(
+            this.gridPrecision
+          )})`
             .mapWith(locationsTable.location)
             .as('grid'),
           accuracy: locationsTable.accuracy,
@@ -76,28 +88,31 @@ export class OpenMeteoImport extends BaseImporter {
                 ${locationsTable.dailyWeatherId} IS NULL
                 OR ${locationsTable.hourlyWeatherId} IS NULL
             )
-           AND ${locationsTable.locationFix} < NOW() - INTERVAL '4 days'
+            ${locationsTable.locationFix} < NOW() - INTERVAL '${sql.raw(
+            this.dataAvailabilityDelay
+          )}'
         `
         )
     )
 
-    return tx
-      .with(griddedPoints)
-      .select({
-        location: griddedPoints.grid,
-        dayString: griddedPoints.dayString,
-        timezone: griddedPoints.timezone,
-        // id: griddedPoints.id,
-      })
-      .from(griddedPoints)
-      .groupBy(
-        sql`${griddedPoints.grid}, ${griddedPoints.dayString}, ${griddedPoints.timezone}`
-      )
-      .orderBy(
-        sql`${griddedPoints.dayString} ASC, ${griddedPoints.timezone} ASC, ${griddedPoints.grid} ASC`
-      )
-      .limit(this.importBatchSize)
-    //   .offset(offset)
+    return (
+      tx
+        .with(griddedPoints)
+        .select({
+          location: griddedPoints.grid,
+          dayString: griddedPoints.dayString,
+          timezone: griddedPoints.timezone,
+        })
+        .from(griddedPoints)
+        .groupBy(
+          sql`${griddedPoints.grid}, ${griddedPoints.dayString}, ${griddedPoints.timezone}`
+        )
+        // Careful changing this since other functions make assumptions about the ordering
+        .orderBy(
+          sql`${griddedPoints.dayString} ASC, ${griddedPoints.timezone} ASC, ${griddedPoints.grid} ASC`
+        )
+        .limit(this.importBatchSize)
+    )
   }
 
   private async callApi(
@@ -162,54 +177,11 @@ export class OpenMeteoImport extends BaseImporter {
 
     const responses = await fetchWeatherApi(url, meteoParams)
 
-    // if (responses.length !== locations.length) {
-    //   throw new Error(
-    //     'Responses from OpenMeteo have a different length than the location date pairs'
-    //   )
-    // }
-    // const hourlyStepsLookingFor = this.getDateSteps({
-    //   // The hourly portion of the api response is interpreted in UTC
-    //   // This makes it easier to handle timezones and daylight saving changes
-    //   // I've found open meteo's api to not be very reliable for these.
-    //   // So what I do here is I assume that they'll return 24 results even for
-    //   // 25h or 23h days. So I completely ignore the timezone here and simply convert
-    //   // it to utc and get steps of 1h in UTC
-    //   startDateInUTC: DateTime.fromSQL(dayLookingFor, {
-    //     zone: meteoParams.timezone,
-    //     numberingSystem: '',
-    //     outputCalendar: '',
-    //   }).setZone('UTC'),
-    //   endDateInUTC: DateTime.fromSQL(dayLookingFor, {
-    //     zone: meteoParams.timezone,
-    //     numberingSystem: '',
-    //     outputCalendar: '',
-    //   })
-    //     .endOf('day', {})
-    //     .setZone('UTC'),
-    //   step: { hour: 1 },
-    //   timezone: 'UTC',
-    // })
-
-    // const dailyStepsLookingFor = this.getDateSteps({
-    //   // The daily portion of the response is as experienced from a given timezone.
-    //   // So the value we pass to the step creation function are in the user's timezone
-    //   // This is because 2024-01-10 23:00 EST is 2024-01-11 UTC. In this case we don't want
-    //   // to store 2024-01-11 in the DB, we want 2024-01-10
-    //   startDateInUTC: DateTime.fromSQL(dayString, {
-    //     zone: meteoParams.timezone,
-    //     numberingSystem: '',
-    //     outputCalendar: '',
-    //   }).startOf('day', {}),
-    //   //   .setZone(timezone),
-    //   endDateInUTC: DateTime.fromSQL(dayString, {
-    //     zone: meteoParams.timezone,
-    //     numberingSystem: '',
-    //     outputCalendar: '',
-    //   }).endOf('day', {}),
-    //   //   .setZone(timezone),
-    //   step: { day: 1 },
-    //   timezone: meteoParams.timezone,
-    // })
+    if (responses.length !== locations.length) {
+      throw new Error(
+        'Responses from OpenMeteo have a different length than the location date pairs'
+      )
+    }
 
     for (let i = 0; i < locations.length; i++) {
       const responseForPair = responses[i]
@@ -224,21 +196,19 @@ export class OpenMeteoImport extends BaseImporter {
         throw new Error(`Missing daily ${JSON.stringify(locations[i])}`)
       }
 
-      //   if (hourlySteps.length !== hourly.variables(0)?.valuesLength()) {
-      //     console.log('Dates', hourlySteps)
-      //     console.log('Vars', hourly.variables(0)?.valuesArray())
-      //     throw new Error(
-      //       `Discrepancy in hourly steps length and variables length ${
-      //         hourlySteps.length
-      //       } ${hourly.variables(0)?.valuesLength()}`
-      //     )
-      //   }
-
       const responseIntendedHours = range(
         Number(hourly.time()),
         Number(hourly.timeEnd()),
         hourly.interval()
       ).map((t) => new Date(t * 1000))
+
+      if (hourlySteps.length !== hourly.variables(0)?.valuesLength()) {
+        throw new Error(
+          `Discrepancy in hourly steps length and variables length ${
+            hourlySteps.length
+          } ${hourly.variables(0)?.valuesLength()}`
+        )
+      }
 
       const temperature2m = hourly.variables(0)?.valuesArray() ?? []
       const relativeHumidity2m = hourly.variables(1)?.valuesArray() ?? []
@@ -253,30 +223,9 @@ export class OpenMeteoImport extends BaseImporter {
       const windSpeed100m = hourly.variables(10)?.valuesArray() ?? []
       for (let j = 0; j < responseIntendedHours.length; j++) {
         const intendedHour = responseIntendedHours[j]
-        // const match = hourlyStepsLookingFor.find(
-        //   (lookingFor) =>
-        //     DateTime.fromJSDate(intendedHour).diff(lookingFor, 'minute')
-        //       .minutes === 0
-        // )
-        // if (match) {
-        //   console.log(
-        //     'I think that, the resopnse hour',
-        //     intendedHour,
-        //     "matches the hour I'm looking for",
-        //     match
-        //   )
-        // } else {
-        //   console.log(
-        //     'I think that, the resopnse hour',
-        //     intendedHour,
-        //     'doesnt match any of the hours Im looking for'
-        //   )
-        // }
         hourlyResult.push({
           importJobId: 1,
           date: intendedHour,
-          //Weird calculation
-          //   date: hourDate,
 
           timezone: meteoParams.timezone,
 
@@ -298,35 +247,18 @@ export class OpenMeteoImport extends BaseImporter {
         })
       }
 
-      //   console.log(
-      //     'The DAILY steps are',
-      //     meteoParams.timezone,
-      //     dailySteps.map((s) => s)
-      //   )
-      //   console.log(
-      //     'The HOURLY steps are',
-      //     meteoParams.timezone,
-      //     hourlySteps.map((s) => s),
-      //     'THe intended start/end',
-      //     new Date(Number(hourly.time()) * 1000),
-      //     new Date(Number(hourly.timeEnd()) * 1000)
-      //   )
-
-      //   if (hourlySteps) {
-      //     throw new Error('test')
-      //   }
       const responseIntendedDays = range(
         Number(daily.time()),
         Number(daily.timeEnd()),
         daily.interval()
       ).map((t) => new Date((t + utcOffsetSeconds) * 1000))
-      //   if (dailySteps.length !== daily.variables(0)?.valuesLength()) {
-      //     throw new Error(
-      //       `Discrepancy in daily steps length and variables length ${
-      //         dailySteps.length
-      //       } ${daily.variables(0)?.valuesLength()}`
-      //     )
-      //   }
+      if (dailySteps.length !== daily.variables(0)?.valuesLength()) {
+        throw new Error(
+          `Discrepancy in daily steps length and variables length ${
+            dailySteps.length
+          } ${daily.variables(0)?.valuesLength()}`
+        )
+      }
       const dailyWeatherCode = daily.variables(0)?.valuesArray() ?? []
       const dailyTemperature2mMax = daily.variables(1)?.valuesArray() ?? []
       const dailyTemperature2mMin = daily.variables(2)?.valuesArray() ?? []
@@ -368,53 +300,49 @@ export class OpenMeteoImport extends BaseImporter {
           createdAt: new Date(),
         })
       }
-      // console.log('I was looking for entries on the date of (EST):', dayString)
-      //   console.log(
-      //     'For that I called the API with (EST) for the following days:',
-      //     meteoParams.start_date,
-      //     meteoParams.end_date
-      //   )
-      //   console.log('From that I got hourly entries:')
-      //   hourlyResult.map((h) => {
-      //     console.log('JS Date', h.date)
-      //     console.log('DateTime.fromISO', DateTime.fromISO(h.date.toISOString()))
-      //     console.log(
-      //       'DateTime.fromISO set zone',
-      //       DateTime.fromISO(h.date.toISOString()).setZone(meteoParams.timezone)
-      //     )
-      //   })
-      //   console.log('From that I got daily entries:')
-      //   dailyResult.map((h) => {
-      //     console.log('JS Date', h.date)
-      //     console.log('DateTime.fromISO', DateTime.fromSQL(h.date))
-      //     console.log(
-      //       'DateTime.fromISO set zone',
-      //       DateTime.fromISO(h.date).setZone(meteoParams.timezone)
-      //     )
-      //   })
-
-      //   if (dailyResult) {
-      //     throw new Error('aaa')
-      //   }
     }
 
     return { daily: dailyResult, hourly: hourlyResult }
   }
 
-  private async linkLocationsToWeatherData(
+  /**
+   * This function will look for all weather information that links up to locations in the database
+   * and properly link them up.
+   * It lives in this importer since there's currently no other weather importers, but it could be made
+   * reusable in the future.
+   *
+   * To find matches we have to find location/date pairs between the locations table and the weather table
+   * Since this is a very costy operation this function takes optionally two arguments to bound
+   * the update between two dates. These two dates are not important for any operation other than
+   * helping narrow down the update. Because of the stated and the fact that I've had bugs around this
+   * it adds a "buffer" on the interval
+   *
+   * This is a good place to start improving the performance of this importer
+   */
+  private async linkLocationsToWeather(
     tx: DBTransaction,
-    // in UTC
+    /**
+     * In UTC
+     */
     startDate?: DateTime,
-    // in UTC
+    /**
+     * In UTC
+     */
     endDate?: DateTime
   ) {
+    const buffer = '2 days'
+
     await tx.update(locationsTable).set({
       hourlyWeatherId: sql`(
         SELECT id
         FROM hourly_weather
-        WHERE hourly_weather.location = ST_SnapToGrid(${locationsTable.location}::geometry, 0.01)
+        WHERE hourly_weather.location = ST_SnapToGrid(${
+          locationsTable.location
+        }::geometry, ${sql.raw(this.gridPrecision)})
         AND ${locationsTable.locationFix} >= hourly_weather.date
-        AND ${locationsTable.locationFix} < hourly_weather.date + interval '1 hour'
+        AND ${
+          locationsTable.locationFix
+        } < hourly_weather.date + interval '1 hour'
         LIMIT 1
         )`,
     }).where(sql`
@@ -423,14 +351,18 @@ export class OpenMeteoImport extends BaseImporter {
               startDate
                 ? sql`AND ${
                     locationsTable.locationFix
-                  }::date >= (${startDate.toISO()}::timestamp - interval '2 days')::date`
+                  }::date >= (${startDate.toISO()}::timestamp - interval '${sql.raw(
+                    buffer
+                  )}')::date`
                 : sql``
             }
             ${
               endDate
                 ? sql`AND ${
                     locationsTable.locationFix
-                  }::date <= (${endDate.toISO()}::timestamp + interval '2 days')::date`
+                  }::date <= (${endDate.toISO()}::timestamp + interval '${sql.raw(
+                    buffer
+                  )}')::date`
                 : sql``
             }
       `)
@@ -438,8 +370,12 @@ export class OpenMeteoImport extends BaseImporter {
       dailyWeatherId: sql`(
         SELECT id
         FROM daily_weather
-        WHERE daily_weather.location = ST_SnapToGrid(${locationsTable.location}::geometry, 0.01)
-        AND (${locationsTable.locationFix} AT TIME ZONE locations.timezone)::date = daily_weather.date
+        WHERE daily_weather.location = ST_SnapToGrid(${
+          locationsTable.location
+        }::geometry, ${sql.raw(this.gridPrecision)})
+        AND (${
+          locationsTable.locationFix
+        } AT TIME ZONE locations.timezone)::date = daily_weather.date
         LIMIT 1
         )`,
     }).where(sql`
@@ -448,18 +384,31 @@ export class OpenMeteoImport extends BaseImporter {
               startDate
                 ? sql`AND ${
                     locationsTable.locationFix
-                  }::date >= (${startDate.toISO()}::timestamp - interval '2 days')::date`
+                  }::date >= (${startDate.toISO()}::timestamp - interval '${sql.raw(
+                    buffer
+                  )}')::date`
                 : sql``
             }
             ${
               endDate
                 ? sql`AND ${
                     locationsTable.locationFix
-                  }::date <= (${endDate.toISO()}::timestamp + interval '2 days')::date`
+                  }::date <= (${endDate.toISO()}::timestamp + interval '${sql.raw(
+                    buffer
+                  )}')::date`
                 : sql``
             }
       `)
+  }
 
+  /**
+   * Because of the way that OpenMeteo (fails) to handle daylight savings I've decided to add 2 days of padding
+   * to every API call. This means we end up with a lot of entries that are useless. It's simpler to just add
+   * them all to the database and then delete the dangling ones after we've linked all of them.
+   * It's definitely not very resource efficient, but it does the job.
+   * This functions cleans up the DB
+   */
+  private async cleanUpDanglingWeatherEntries(tx: DBTransaction) {
     await tx.delete(dailyWeatherTable).where(sql`
         ${dailyWeatherTable.id} NOT IN (select ${locationsTable.dailyWeatherId} from locations where ${locationsTable.dailyWeatherId} IS NOT NULL)
       `)
@@ -468,6 +417,9 @@ export class OpenMeteoImport extends BaseImporter {
       `)
   }
 
+  /**
+   * This function assumes that the pairs array is sorted from earliest to latest
+   */
   private findEarliestAndLatest(
     pairs: { location: Point; dayString: string; timezone: string }[],
     currentFirst: DateTime | undefined,
@@ -508,8 +460,6 @@ export class OpenMeteoImport extends BaseImporter {
 
     let currentOffset = 0
     let importedCount = 0
-    const apiLimitPerDay = 10_000
-    const secondsInDay = 24 * 60 * 60
 
     let firstDate: DateTime | undefined
     let lastDate: DateTime | undefined
@@ -518,17 +468,9 @@ export class OpenMeteoImport extends BaseImporter {
     // console.log('Initial link call')
     // await this.linkLocationsToWeatherData(params.tx)
 
-    // Calculates how fast we're fetching the api. To avoid going over the rate limit
-    const calculateSpeed = () =>
-      apiCallsCount /
-      (DateTime.now().diff(this.jobStart, 'seconds').seconds || 1)
-
     // Capping the import count to 2000 so it doesn't hang for too long on a single run
     while (locationDatePairs?.length !== 0) {
-      locationDatePairs = await this.getLocationAndDate(
-        params.tx,
-        currentOffset
-      )
+      locationDatePairs = await this.getLocationAndDate(params.tx)
       //   console.log('point', locationDatePairs)
       //   if (calculateSpeed) {
       //     throw new Error('test')
@@ -617,11 +559,13 @@ export class OpenMeteoImport extends BaseImporter {
       // Link, but only based on the dates that we have seen already. This could be better since this will only increase
       // as we go. But in the function we also check for null daily_weather_id and hourly_weather_id so hopefuly it doesn't
       // make a big impact. This is just a workaround for now
-      await this.linkLocationsToWeatherData(
+      await this.linkLocationsToWeather(
         params.tx,
         firstAndLatest.first,
         firstAndLatest.last
       )
+
+      await this.cleanUpDanglingWeatherEntries(params.tx)
 
       //   const errs = await params.tx.query.locationsTable.findMany({
       //     where: sql`(${locationsTable.hourlyWeatherId} IS NULL AND ${locationsTable.dailyWeatherId} IS NOT NULL)
@@ -635,7 +579,8 @@ export class OpenMeteoImport extends BaseImporter {
     }
 
     console.log('Final link call')
-    await this.linkLocationsToWeatherData(params.tx)
+    await this.linkLocationsToWeather(params.tx)
+    await this.cleanUpDanglingWeatherEntries(params.tx)
     console.log('Done importing weather information')
     return {
       importedCount,
