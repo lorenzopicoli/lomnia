@@ -4,6 +4,7 @@ import Fastify, { type FastifyInstance } from 'fastify'
 import diaryRoutes from './routes/diaryEntries'
 import habitRoutes from './routes/habits'
 import locationsRoutes from './routes/locations'
+import weatherRoutes from './routes/weather'
 
 const fastify = Fastify({
   logger: true,
@@ -12,7 +13,12 @@ const fastify = Fastify({
 type RouteRegister = (fastify: FastifyInstance) => void
 
 export class Server {
-  routes: RouteRegister[] = [locationsRoutes, diaryRoutes, habitRoutes]
+  routes: RouteRegister[] = [
+    locationsRoutes,
+    diaryRoutes,
+    habitRoutes,
+    weatherRoutes,
+  ]
 
   public async listen() {
     await fastify.register(cors, {

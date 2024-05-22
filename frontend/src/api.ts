@@ -115,3 +115,31 @@ export function useHabitEntriesApi(query: Partial<HabitEntriesQuery>) {
     },
   })
 }
+
+const WeatherApiQueryParams = z
+  .object({
+    date: z.string().date(),
+  })
+  .required()
+
+export type WeatherApiQueryParams = z.infer<typeof WeatherApiQueryParams>
+
+export function useWeatherApi(query: Partial<WeatherApiQueryParams>) {
+  const path = '/weather'
+  return useQuery({
+    queryKey: [path, query],
+    queryFn: () => {
+      const { data, success } = WeatherApiQueryParams.safeParse({
+        ...query,
+      })
+      if (!data || !success) {
+        return null
+      }
+      return api
+        .get(path, {
+          params: data,
+        })
+        .then((d) => d.data)
+    },
+  })
+}

@@ -1,8 +1,8 @@
 import { sql } from 'drizzle-orm'
 import type { PgSelectHKT, PgSelectQueryBuilder } from 'drizzle-orm/pg-core'
 import { db } from '../db/connection'
-import { locationsTable } from '../db/schema'
 import type { Point } from '../db/types'
+import { locationsTable } from '../models'
 import type { GetHeatmapQueryParams } from '../routes/locations'
 
 function withPointFilters<
