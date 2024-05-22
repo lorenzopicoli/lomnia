@@ -9,7 +9,10 @@ import '@mantine/spotlight/styles.css'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import 'allotment/dist/style.css'
 import { MantineProvider, createTheme, rem } from '@mantine/core'
+import { httpBatchLink } from '@trpc/react-query'
+import { useState } from 'react'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
+import { trpc } from './api/trpc'
 import { ConfigProvider } from './containers/ConfigContext'
 import Layout from './pages/Layout'
 
@@ -63,18 +66,30 @@ const router = createBrowserRouter([
 ])
 
 function App() {
+  const [trpcClient] = useState(() =>
+    trpc.createClient({
+      links: [
+        httpBatchLink({
+          url: 'http://localhost:3010/trpc',
+          async headers() {
+            return {}
+          },
+        }),
+      ],
+    })
+  )
   const queryClient = new QueryClient()
   return (
     <>
-      {/* <BrowserRouter basename="/"> */}
-      <ConfigProvider>
-        <QueryClientProvider client={queryClient}>
-          <MantineProvider theme={theme} defaultColorScheme="dark">
-            <RouterProvider router={router} />
-          </MantineProvider>
-        </QueryClientProvider>
-      </ConfigProvider>
-      {/* </BrowserRouter> */}
+      <trpc.Provider client={trpcClient} queryClient={queryClient}>
+        <ConfigProvider>
+          <QueryClientProvider client={queryClient}>
+            <MantineProvider theme={theme} defaultColorScheme="dark">
+              <RouterProvider router={router} />
+            </MantineProvider>
+          </QueryClientProvider>
+        </ConfigProvider>
+      </trpc.Provider>
     </>
   )
 }

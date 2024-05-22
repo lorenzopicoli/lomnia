@@ -4,15 +4,11 @@ import { type BetterSQLite3Database, drizzle } from 'drizzle-orm/better-sqlite3'
 import type { SQLiteSelectQueryBuilder } from 'drizzle-orm/sqlite-core'
 import { isNil } from 'lodash'
 import { db } from '../../../db/connection'
-import {
-  type ImportJob,
-  type NewDnsQuery,
-  dnsQueriesTable,
-  importJobsTable,
-} from '../../../db/schema'
 import type { DBTransaction } from '../../../db/types'
 import { MissingFieldError } from '../../../errors'
 import ProgressLogger from '../../../helpers/ProgressLogger'
+import { type NewDnsQuery, dnsQueriesTable } from '../../../models/DnsQuery'
+import { type ImportJob, importJobsTable } from '../../../models/ImportJob'
 import { newSSHConnection, safeDownloadFile } from '../ssh'
 import externalDnsQueriesSchema from './schema/externalDnsQueriesSchema'
 import { type ExternalDnsQuery, externalDnsQueriesTable } from './schema/tables'

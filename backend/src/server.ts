@@ -1,19 +1,25 @@
 import 'dotenv/config'
 import cors from '@fastify/cors'
+import {
+  type CreateFastifyContextOptions,
+  type FastifyTRPCPluginOptions,
+  fastifyTRPCPlugin,
+} from '@trpc/server/adapters/fastify'
 import Fastify, { type FastifyInstance } from 'fastify'
-import diaryRoutes from './routes/diaryEntries'
-import habitRoutes from './routes/habits'
-import locationsRoutes from './routes/locations'
+import { type AppRouter, appRouter } from './trpcRouter'
+
+export function createContext({ req, res }: CreateFastifyContextOptions) {
+  const user = { name: req.headers.username ?? 'anonymous' }
+  return { req, res, user }
+}
+export type Context = Awaited<ReturnType<typeof createContext>>
 
 const fastify = Fastify({
   logger: true,
+  maxParamLength: 5000,
 })
 
-type RouteRegister = (fastify: FastifyInstance) => void
-
 export class Server {
-  routes: RouteRegister[] = [locationsRoutes, diaryRoutes, habitRoutes]
-
   public async listen() {
     await fastify.register(cors, {
       origin: (origin, cb) => {
@@ -32,9 +38,16 @@ export class Server {
       },
     })
 
-    for (const route of this.routes) {
-      route(fastify)
-    }
+    fastify.register(fastifyTRPCPlugin, {
+      prefix: '/trpc',
+      trpcOptions: {
+        router: appRouter,
+        createContext,
+        onError({ path, error }) {
+          console.error(`Error in tRPC handler on path '${path}':`, error)
+        },
+      } satisfies FastifyTRPCPluginOptions<AppRouter>['trpcOptions'],
+    })
 
     fastify.listen({ host: '0.0.0.0', port: 3010 }, async (err) => {
       if (err) {

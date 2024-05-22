@@ -2,39 +2,25 @@ import crypto from 'node:crypto'
 import * as fsSync from 'node:fs'
 import * as fs from 'node:fs/promises'
 import path from 'node:path'
-import {
-  addHours,
-  differenceInHours,
-  format,
-  isAfter,
-  isBefore,
-  isValid,
-  parseISO,
-} from 'date-fns'
+import { isAfter, isBefore, isValid, parseISO } from 'date-fns'
 import { eq, sql } from 'drizzle-orm'
 import fm from 'front-matter'
 import { glob } from 'glob'
-import { uniq, update } from 'lodash'
 import { db } from '../../../db/connection'
-import {
-  type ImportJob,
-  type NewFile,
-  type NewHabit,
-  filesTable,
-  habitsTable,
-  importJobsTable,
-} from '../../../db/schema'
 import type { DBTransaction } from '../../../db/types'
 import {
   HabitKeys,
   type ObsidianFileMetadata,
   type ObsidianMetadataKey,
-  ObsidianOtherMetadata,
   diaryEntryValidation,
   knownObsidianMetadataKeyToEnumMap,
-  obsidianMetadataUnusedKeys,
   obsidianMetadataValidationSchema,
 } from './personal'
+
+import { DateTime } from 'luxon'
+import { filesTable } from '../../../models/File'
+import { type NewHabit, habitsTable } from '../../../models/Habit'
+import { type ImportJob, importJobsTable } from '../../../models/ImportJob'
 
 export class ObsidianImporter {
   private obsidianFolderPath: string
@@ -216,7 +202,11 @@ export class ObsidianImporter {
 
       const dbFile = await tx
         .insert(filesTable)
-        .values({ ...file, importJobId: placeholderJob.id })
+        .values({
+          ...file,
+          importJobId: placeholderJob.id,
+          createdAt: new Date(),
+        })
         .returning({ id: filesTable.id })
         .then((r) => r[0])
 
@@ -247,15 +237,16 @@ export class ObsidianImporter {
 
         if (habitKeys.includes(key)) {
           // Cases where date is null should already be covered in the validation above
-          const date = parseISO(file.metadata.date as string)
+          const date = DateTime.fromISO(file.metadata.date as string)
 
           importedCount++
           updateEntryDates(file.fileCreatedAt)
 
           habitsForFile.push({
+            createdAt: new Date(),
             fileId: dbFile.id,
             importJobId: placeholderJob.id,
-            date,
+            date: date.toSQLDate(),
             key,
             value: file.metadata[key],
           })

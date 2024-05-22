@@ -12,6 +12,7 @@ import { parse } from 'date-fns/parse'
 import { startOfDay } from 'date-fns/startOfDay'
 import { useSearchParams } from 'react-router-dom'
 import DailyHabitEntries from '../../containers/DailyHabitEntries'
+import DailyWeatherOverviewContainer from '../../containers/DailyWeatherOverviewContainer'
 import DiaryEntryContainer from '../../containers/DiaryEntryContainer'
 import HeatmapContainer from '../../containers/HeatmapContainer'
 import classes from './Home.module.css'
@@ -43,6 +44,9 @@ function Home() {
             h="calc(100vh - var(--app-shell-header-height, 0px) - var(--app-shell-footer-height, 0px))"
             type="never"
           >
+            <Container h={200} fluid>
+              <DailyWeatherOverviewContainer date={day} />
+            </Container>
             <Container fluid pt={'md'} pr={0}>
               <AspectRatio ratio={1} className={classes.map}>
                 <HeatmapContainer
