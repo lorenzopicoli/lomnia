@@ -1,15 +1,8 @@
-import { Center, Flex, Space } from '@mantine/core'
 import { ResponsiveLine } from '@nivo/line'
-import {
-  IconSunrise,
-  IconSunset,
-  IconTemperatureMinus,
-  IconTemperaturePlus,
-} from '@tabler/icons-react'
 import { format } from 'date-fns/format'
 import { parseISO } from 'date-fns/parseISO'
 import { startOfDay } from 'date-fns/startOfDay'
-import { useWeatherApi } from '../api'
+import { trpc } from '../api/trpc'
 
 export type DailyWeatherOverviewContainerProps = {
   date: Date
@@ -18,8 +11,8 @@ export type DailyWeatherOverviewContainerProps = {
 export default function DailyWeatherOverviewContainer(
   props: DailyWeatherOverviewContainerProps
 ) {
-  const { data, isLoading } = useWeatherApi({
-    date: format(startOfDay(props.date), 'yyyy-MM-dd'),
+  const { data, isLoading } = trpc.getWeatherByDay.useQuery({
+    day: format(startOfDay(props.date), 'yyyy-MM-dd'),
   })
 
   if (isLoading) {
@@ -31,7 +24,7 @@ export default function DailyWeatherOverviewContainer(
   }
 
   const lineData = data.hourly.reduce(
-    (acc: any, curr: any) => {
+    (acc, curr) => {
       acc[0].data.push({
         x: format(parseISO(curr.date), 'HH:mm'),
         y: curr.apparentTemperature,
@@ -42,7 +35,7 @@ export default function DailyWeatherOverviewContainer(
       {
         id: 'apparentTemperature',
         color: 'hsl(291, 70%, 50%)',
-        data: [],
+        data: [] as Array<{ x: string; y: number | null }>,
       },
     ]
   )

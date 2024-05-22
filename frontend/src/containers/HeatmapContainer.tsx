@@ -1,6 +1,6 @@
 import { useDebouncedState } from '@mantine/hooks'
 import { useEffect, useState } from 'react'
-import { useHeatmapApi } from '../api'
+import { trpc } from '../api/trpc'
 import Heatmap from '../components/Heatmap/Heatmap'
 import type MapViewParams from '../types/MapViewParams'
 
@@ -12,9 +12,7 @@ type HeatmapContainerProps = {
 export default function HeatmapContainer(props: HeatmapContainerProps) {
   const [isFirstFetch, setIsFirstFetch] = useState(false)
   const [fitToBounds, setFitToBounds] = useState(true)
-  const [mapViewParams, setMapViewParams] = useDebouncedState<
-    MapViewParams | undefined
-  >(
+  const [mapViewParams, setMapViewParams] = useDebouncedState<MapViewParams>(
     {
       // There are PostGIS limitations. Ideally I'd like to check lng 180 to -180
       // I should just accept null for the first call maybe
@@ -35,11 +33,17 @@ export default function HeatmapContainer(props: HeatmapContainerProps) {
     setIsFirstFetch(false)
   }, [props.startDate, props.endDate])
 
-  const { data } = useHeatmapApi({
-    ...mapViewParams,
-    startDate,
-    endDate,
-  })
+  const { data } = trpc.getHeatmap.useQuery(
+    {
+      ...mapViewParams,
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+    },
+    {
+      // Makes sure that data isn't undefined while new request is loading
+      placeholderData: (prev) => prev,
+    }
+  )
 
   if (data && !isFirstFetch) {
     setIsFirstFetch(true)
@@ -53,14 +57,14 @@ export default function HeatmapContainer(props: HeatmapContainerProps) {
   if (!isFirstFetch) {
     return 'Loading...'
   }
-  if (!data || data.points?.length === 0) {
+  if (!data || data.length === 0) {
     return null
   }
 
   return (
     <Heatmap
       fitToBounds={fitToBounds}
-      points={data.points}
+      points={data}
       onViewChange={handleViewChange}
     />
   )

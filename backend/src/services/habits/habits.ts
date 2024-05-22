@@ -3,7 +3,6 @@ import { sql } from 'drizzle-orm'
 import { db } from '../../db/connection'
 import { anonymize } from '../../helpers/anonymize'
 import type { Habit } from '../../models/Habit'
-import type { GetHabitEntriesParams } from '../../routes/habits'
 import type { HabitKeys } from '../importers/obsidian/personal'
 import { habitLabel, habitTransformers } from './personal'
 
@@ -28,19 +27,14 @@ export const formatHabitResponse = (
     })
 }
 
-export async function getHabits(params: GetHabitEntriesParams) {
-  const { startDate, endDate, privateMode } = params
-  if (!isValid(parse(startDate, 'yyyy-MM-dd', new Date()))) {
-    throw new Error('Invalid startDate')
-  }
-  if (!isValid(parse(endDate, 'yyyy-MM-dd', new Date()))) {
-    throw new Error('Invalid endDate')
+export async function getHabits(params: { day: string; privateMode: boolean }) {
+  const { day, privateMode } = params
+  if (!isValid(parse(day, 'yyyy-MM-dd', new Date()))) {
+    throw new Error('Invalid day')
   }
   const entries = await db.query.habitsTable.findMany({
-    where: sql`date::date >= ${startDate} AND date::date <= ${endDate}`,
+    where: sql`date::date = ${day}`,
   })
 
-  return {
-    habitEntries: formatHabitResponse(entries, privateMode),
-  }
+  return formatHabitResponse(entries, privateMode)
 }

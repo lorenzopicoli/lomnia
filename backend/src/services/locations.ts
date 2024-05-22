@@ -3,7 +3,6 @@ import type { PgSelectHKT, PgSelectQueryBuilder } from 'drizzle-orm/pg-core'
 import { db } from '../db/connection'
 import type { Point } from '../db/types'
 import { locationsTable } from '../models'
-import type { GetHeatmapQueryParams } from '../routes/locations'
 
 function withPointFilters<
   T extends PgSelectQueryBuilder<PgSelectHKT, typeof locationsTable._.name>
@@ -50,14 +49,19 @@ function withPointFilters<
   )
 }
 
-export async function getHeatmapPoints(params: GetHeatmapQueryParams) {
+export async function getHeatmapPoints(params: {
+  zoom: number
+  startDate: Date
+  endDate: Date
+
+  topLeftLat: number
+  topLeftLng: number
+  bottomRightLat: number
+  bottomRightLng: number
+}) {
   const { zoom, ...filterData } = params
   const filters = {
     ...filterData,
-    startDate: filterData.startDate
-      ? new Date(filterData.startDate)
-      : undefined,
-    endDate: filterData.endDate ? new Date(filterData.endDate) : undefined,
   }
   const zoomToGrid = (zoom: number) => {
     if (zoom <= 10.1) {

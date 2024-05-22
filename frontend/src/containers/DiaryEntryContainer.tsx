@@ -1,14 +1,17 @@
 import { format } from 'date-fns/format'
-import { useDiaryEntryApi } from '../api'
+import { trpc } from '../api/trpc'
 import DiaryEntry from '../components/DiaryEntry/DiaryEntry'
+import { useConfig } from '../utils/useConfig'
 
 type DiaryEntryContainer = {
   date: Date
 }
 
 export default function DiaryEntryContainer(props: DiaryEntryContainer) {
-  const { data, isLoading } = useDiaryEntryApi({
-    date: format(props.date, 'yyyy-MM-dd'),
+  const config = useConfig()
+  const { data, isLoading } = trpc.getDiaryEntriesByDay.useQuery({
+    day: format(props.date, 'yyyy-MM-dd'),
+    privateMode: config.privateMode,
   })
 
   if (isLoading) {
@@ -22,7 +25,7 @@ export default function DiaryEntryContainer(props: DiaryEntryContainer) {
   return (
     <DiaryEntry
       content={data.content}
-      tags={data.tags}
+      tags={data.tags ?? []}
       relativePath={data.relativePath}
       source={data.source}
     />

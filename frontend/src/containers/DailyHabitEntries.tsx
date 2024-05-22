@@ -1,10 +1,9 @@
 import { Flex, Grid, ThemeIcon, rem } from '@mantine/core'
-import { endOfDay } from 'date-fns/endOfDay'
 import { format } from 'date-fns/format'
-import { startOfDay } from 'date-fns/startOfDay'
-import { useHabitEntriesApi } from '../api'
+import { trpc } from '../api/trpc'
 import { Anonymize } from '../components/Anonymize/Anonymize'
 import { iconForKey } from '../utils/personal'
+import { useConfig } from '../utils/useConfig'
 
 type DailyHabitEntriesProps = {
   date: Date
@@ -21,9 +20,10 @@ const getRandomColor = () => {
 export default function DailyHabitEntriesContainer(
   props: DailyHabitEntriesProps
 ) {
-  const { data, isLoading } = useHabitEntriesApi({
-    startDate: format(startOfDay(props.date), 'yyyy-MM-dd'),
-    endDate: format(endOfDay(props.date), 'yyyy-MM-dd'),
+  const config = useConfig()
+  const { data, isLoading } = trpc.getHabitsByDay.useQuery({
+    day: format(props.date, 'yyyy-MM-dd'),
+    privateMode: config.privateMode,
   })
 
   if (isLoading) {
@@ -37,11 +37,11 @@ export default function DailyHabitEntriesContainer(
   return (
     <>
       <Grid gutter={'md'}>
-        {data.habitEntries.map((h: Record<string, string>) => (
+        {data.map((h) => (
           <Grid.Col key={h.key} span={6}>
             <Flex key={h.key} gap={'sm'}>
               <ThemeIcon size={24} radius="xl" color={getRandomColor()}>
-                {iconForKey(h.key, {
+                {iconForKey(h.key ?? '', {
                   style: { width: rem(16), height: rem(16) },
                 })}
               </ThemeIcon>
