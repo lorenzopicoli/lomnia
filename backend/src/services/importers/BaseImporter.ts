@@ -8,6 +8,7 @@ export class BaseImporter {
   sourceId: string
   destinationTable: string
   entryDateKey: string
+  apiVersion: string
   placeholderDate = new Date(1997, 6, 6)
 
   jobStart = DateTime.now()
@@ -68,6 +69,8 @@ export class BaseImporter {
             jobEnd: new Date(),
             firstEntryDate: result.firstEntryDate,
             lastEntryDate: result.lastEntryDate,
+            apiCallsCount: result.apiCallsCount,
+            apiVersion: this.apiVersion,
 
             importedCount: result.importedCount,
             logs: [],
@@ -85,6 +88,7 @@ export class BaseImporter {
     importedCount: number
     firstEntryDate: Date
     lastEntryDate: Date
+    apiCallsCount?: number
     logs: string[]
   }> {
     throw new Error('Import not implemented')

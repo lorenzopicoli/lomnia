@@ -1,4 +1,4 @@
-import { isNull, or, sql } from 'drizzle-orm'
+import { sql } from 'drizzle-orm'
 import { fetchWeatherApi } from 'openmeteo'
 import type { DBTransaction, Point } from '../../../db/types'
 import { BaseImporter } from '../BaseImporter'
@@ -17,6 +17,7 @@ import {
 
 export class OpenMeteoImport extends BaseImporter {
   override sourceId = 'openmeteo-v1'
+  override apiVersion = 'https://archive-api.open-meteo.com/v1/archive'
   override destinationTable = 'daily_weather/hourly_weather'
   override entryDateKey = 'date'
   // Need to keep this somewhat low to avoid query params limits
@@ -25,7 +26,15 @@ export class OpenMeteoImport extends BaseImporter {
   private importBatchSize = 50
 
   // Needs to be a valid postgres interval
+  // The API seems to have a delay of 2 days
+  // Since we add a padding of 1 day to the API call (so if we're fetching for the 8th, we call from 7th to 9th)
+  // because of daylight saving issues, this number - apiDayPadding should be >= 3
   private dataAvailabilityDelay = '4 days'
+
+  // Calls OpenMeteos API for the dates we want to get data for +- this padding
+  // This padding is because of issues of daylight savings in OpenMeteo's side
+  // https://github.com/open-meteo/open-meteo/issues/488
+  private apiDayPadding = 1
 
   // Defines how precise or close to each other the points are. The lower the number, the more api calls we'll
   // do and the more granularity we'll have.
@@ -34,6 +43,44 @@ export class OpenMeteoImport extends BaseImporter {
   // I also believe that changing this would trigger a refetch of effectively all the locations in the database
   // since the location/date pairs wouldn't match the exisiting weather entries anymore
   private gridPrecision = '0.01'
+
+  // This should be better calculated so this importer can run as fast as possible. In reality I couldn't find
+  // any proper documentation on their API rate limits. On the website it says fewer than 10k calls per day,
+  // but I know there are also daily/minute rates. I found a PR with some description and that's what I used
+  // to very roughly calculate a number that would be very safe (I rather it to be slow than failing consistently)
+  // In ms
+  private apiCallsDelay = 10000
+
+  private apiUrl = 'https://archive-api.open-meteo.com/v1/archive'
+  private apiParams = {
+    hourly: [
+      'temperature_2m',
+      'relative_humidity_2m',
+      'apparent_temperature',
+      'precipitation',
+      'rain',
+      'snowfall',
+      'snow_depth',
+      'weather_code',
+      'cloud_cover',
+      'wind_speed_10m',
+      'wind_speed_100m',
+    ],
+    daily: [
+      'weather_code',
+      'temperature_2m_max',
+      'temperature_2m_min',
+      'temperature_2m_mean',
+      'apparent_temperature_max',
+      'apparent_temperature_min',
+      'sunrise',
+      'sunset',
+      'daylight_duration',
+      'sunshine_duration',
+      'rain_sum',
+      'snowfall_sum',
+    ],
+  }
 
   public async sourceHasNewData(): Promise<{
     result: boolean
@@ -47,7 +94,7 @@ export class OpenMeteoImport extends BaseImporter {
       .from(locationsTable).where(sql`
         (
         ${locationsTable.dailyWeatherId} IS NULL
-        OR ${locationsTable.dailyWeatherId} IS NULL
+        OR ${locationsTable.hourlyWeatherId} IS NULL
         )
         AND
         ${locationsTable.locationFix} < NOW() - INTERVAL '${sql.raw(
@@ -88,6 +135,7 @@ export class OpenMeteoImport extends BaseImporter {
                 ${locationsTable.dailyWeatherId} IS NULL
                 OR ${locationsTable.hourlyWeatherId} IS NULL
             )
+            AND
             ${locationsTable.locationFix} < NOW() - INTERVAL '${sql.raw(
             this.dataAvailabilityDelay
           )}'
@@ -115,67 +163,70 @@ export class OpenMeteoImport extends BaseImporter {
     )
   }
 
+  /**
+   *
+   * @param start Unix timestamp in seconds
+   * @param stop Unix timestamp in seconds
+   * @param step In seconds
+   */
+  private generateDatesFromRange(
+    start: number,
+    stop: number,
+    step: number,
+    utcOffsetInSeconds?: number
+  ) {
+    return Array.from(
+      { length: (stop - start) / step },
+      (_, i) => start + i * step
+    ).map((r) => new Date((r + (utcOffsetInSeconds ?? 0)) * 1000))
+  }
+
   private async callApi(
     locations: Point[],
     startDayString: string,
     endDayString: string,
     timezone: string
   ): Promise<{ hourly: NewHourlyWeather[]; daily: NewDailyWeather[] }> {
-    const range = (start: number, stop: number, step: number) =>
-      Array.from({ length: (stop - start) / step }, (_, i) => start + i * step)
-
     const hourlyResult: NewHourlyWeather[] = []
     const dailyResult: NewDailyWeather[] = []
 
-    const url = 'https://archive-api.open-meteo.com/v1/archive'
-    const st = DateTime.fromSQL(startDayString, {
+    const paddedStartDate = DateTime.fromSQL(startDayString, {
+      // The startDayString comes from the DB in the correct timezone already (following
+      // the "timezone" parameter). So here we set UTC to stop Luxon from making any time
+      // conversions here
       zone: 'UTC',
       outputCalendar: '',
       numberingSystem: '',
     })
-    const et = DateTime.fromSQL(endDayString, {
+      .minus({ days: this.apiDayPadding })
+      .toSQLDate()
+
+    const paddedEndDate = DateTime.fromSQL(endDayString, {
+      // The endDayString comes from the DB in the correct timezone already (following
+      // the "timezone" parameter). So here we set UTC to stop Luxon from making any time
+      // conversions here
       zone: 'UTC',
       outputCalendar: '',
       numberingSystem: '',
     })
+      .plus({ days: this.apiDayPadding })
+      .toSQLDate()
+
     const meteoParams = {
       latitude: locations.map((p) => p.lat),
       longitude: locations.map((p) => p.lng),
       timezone: timezone,
-      start_date: st.minus({ days: 1 }).toSQLDate(),
-      end_date: et.plus({ days: 1 }).toSQLDate(),
-
-      hourly: [
-        'temperature_2m',
-        'relative_humidity_2m',
-        'apparent_temperature',
-        'precipitation',
-        'rain',
-        'snowfall',
-        'snow_depth',
-        'weather_code',
-        'cloud_cover',
-        'wind_speed_10m',
-        'wind_speed_100m',
-      ],
-      daily: [
-        'weather_code',
-        'temperature_2m_max',
-        'temperature_2m_min',
-        'temperature_2m_mean',
-        'apparent_temperature_max',
-        'apparent_temperature_min',
-        'sunrise',
-        'sunset',
-        'daylight_duration',
-        'sunshine_duration',
-        'rain_sum',
-        'snowfall_sum',
-      ],
+      start_date: paddedStartDate,
+      end_date: paddedEndDate,
+      ...this.apiParams,
     }
-    console.log('PARAMS', JSON.stringify(meteoParams))
 
-    const responses = await fetchWeatherApi(url, meteoParams)
+    console.log(
+      'Calling OpenMeteo with the following parameters',
+      JSON.stringify(meteoParams)
+    )
+
+    const responses = await fetchWeatherApi(this.apiUrl, meteoParams)
 
     if (responses.length !== locations.length) {
       throw new Error(
@@ -196,16 +247,17 @@ export class OpenMeteoImport extends BaseImporter {
         throw new Error(`Missing daily ${JSON.stringify(locations[i])}`)
       }
 
-      const responseIntendedHours = range(
+      // Notice no UTC offset is passed so the generated dates are in UTC
+      const hourlyDates = this.generateDatesFromRange(
         Number(hourly.time()),
         Number(hourly.timeEnd()),
         hourly.interval()
-      ).map((t) => new Date(t * 1000))
+      )
 
-      if (hourlySteps.length !== hourly.variables(0)?.valuesLength()) {
+      if (hourlyDates.length !== hourly.variables(0)?.valuesLength()) {
         throw new Error(
           `Discrepancy in hourly steps length and variables length ${
-            hourlySteps.length
+            hourlyDates.length
           } ${hourly.variables(0)?.valuesLength()}`
         )
       }
@@ -221,11 +273,10 @@ export class OpenMeteoImport extends BaseImporter {
       const cloudCover = hourly.variables(8)?.valuesArray() ?? []
       const windSpeed10m = hourly.variables(9)?.valuesArray() ?? []
       const windSpeed100m = hourly.variables(10)?.valuesArray() ?? []
-      for (let j = 0; j < responseIntendedHours.length; j++) {
-        const intendedHour = responseIntendedHours[j]
+      for (let j = 0; j < hourlyDates.length; j++) {
         hourlyResult.push({
           importJobId: 1,
-          date: intendedHour,
+          date: hourlyDates[j],
 
           timezone: meteoParams.timezone,
 
@@ -247,15 +298,19 @@ export class OpenMeteoImport extends BaseImporter {
         })
       }
 
-      const responseIntendedDays = range(
+      // We pass the UTC offset to the function so when we convert the date back to string we get the right date
+      // in the "timezone"
+      const dailyHours = this.generateDatesFromRange(
         Number(daily.time()),
         Number(daily.timeEnd()),
-        daily.interval()
-      ).map((t) => new Date((t + utcOffsetSeconds) * 1000))
-      if (dailySteps.length !== daily.variables(0)?.valuesLength()) {
+        daily.interval(),
+        utcOffsetSeconds
+      )
+
+      if (dailyHours.length !== daily.variables(0)?.valuesLength()) {
         throw new Error(
           `Discrepancy in daily steps length and variables length ${
-            dailySteps.length
+            dailyHours.length
           } ${daily.variables(0)?.valuesLength()}`
         )
       }
@@ -273,14 +328,15 @@ export class OpenMeteoImport extends BaseImporter {
       const dailySunshineDuration = daily.variables(9)?.valuesArray() ?? []
       const dailyRainSum = daily.variables(10)?.valuesArray() ?? []
       const dailySnowfallSum = daily.variables(11)?.valuesArray() ?? []
-      for (let j = 0; j < responseIntendedDays.length; j++) {
+      for (let j = 0; j < dailyHours.length; j++) {
         dailyResult.push({
           importJobId: 1,
-          date: DateTime.fromJSDate(responseIntendedDays[j], {
+          date: DateTime.fromJSDate(dailyHours[j], {
+            // Pass UTC here since the JS Date object already accounts from the utcOffset in the call to this.generateDatesFromRange
+            // I've tried converting to the timezone here, but the problem is that open meteo doesn't handle daylight savings too well
+            // so it's easier to save in the database whatever open meteo INTENDED for the time to be rather than making assumptions here
             zone: 'UTC',
           }).toSQLDate(),
-          // .toUTC()
-          // .toSQLDate(),
 
           weatherCode: dailyWeatherCode[j],
           temperature2mMax: dailyTemperature2mMax[j],
@@ -288,7 +344,9 @@ export class OpenMeteoImport extends BaseImporter {
           temperature2mMean: dailyTemperature2mMean[j],
           apparentTemperatureMax: dailyApparentTemperatureMax[j],
           apparentTemperatureMin: dailyApparentTemperatureMin[j],
+          // Saved in UTC
           sunrise: new Date(Number(dailySunrise?.valuesInt64(j)) * 1000),
+          // Saved in UTC
           sunset: new Date(Number(dailySunset?.valuesInt64(j)) * 1000),
 
           daylightDuration: dailyDaylightDuration[j],
@@ -330,8 +388,11 @@ export class OpenMeteoImport extends BaseImporter {
      */
     endDate?: DateTime
   ) {
-    const buffer = '2 days'
+    const buffer = `${this.apiDayPadding + 1} days`
 
+    console.log(
+      'Linking locations to weather info. This might take a while if there are a lot of loactions missing weather information'
+    )
     await tx.update(locationsTable).set({
       hourlyWeatherId: sql`(
         SELECT id
@@ -421,28 +482,25 @@ export class OpenMeteoImport extends BaseImporter {
    * This function assumes that the pairs array is sorted from earliest to latest
    */
   private findEarliestAndLatest(
-    pairs: { location: Point; dayString: string; timezone: string }[],
+    entries: NewHourlyWeather[],
     currentFirst: DateTime | undefined,
     currentLast: DateTime | undefined
   ) {
-    const result = { first: currentFirst, last: currentFirst }
-    const firstDt = DateTime.fromSQL(pairs[0].dayString)
-      .setZone(pairs[0].timezone, { keepLocalTime: true })
-      .toUTC()
+    let first = currentFirst
+    let last = currentLast
+    const firstDt = DateTime.fromJSDate(entries[0].date, { zone: 'UTC' })
     if (!currentFirst || currentFirst.diff(firstDt).milliseconds > 0) {
-      result.first = firstDt
+      first = firstDt
     }
 
-    const lastDt = DateTime.fromSQL(pairs[pairs.length - 1].dayString)
-      .setZone(pairs[pairs.length - 1].timezone, {
-        keepLocalTime: true,
-      })
-      .toUTC()
+    const lastDt = DateTime.fromJSDate(entries[entries.length - 1].date, {
+      zone: 'UTC',
+    })
     if (!currentLast || currentLast.diff(lastDt).milliseconds < 0) {
-      result.last = lastDt
+      last = lastDt
     }
 
-    return result
+    return { first, last }
   }
 
   public async import(params: {
@@ -452,81 +510,54 @@ export class OpenMeteoImport extends BaseImporter {
     importedCount: number
     firstEntryDate: Date
     lastEntryDate: Date
+    apiCallsCount?: number
     logs: string[]
   }> {
     let locationDatePairs:
       | { location: Point; dayString: string; timezone: string }[]
       | undefined
 
-    let currentOffset = 0
     let importedCount = 0
 
     let firstDate: DateTime | undefined
     let lastDate: DateTime | undefined
 
     let apiCallsCount = 0
-    // console.log('Initial link call')
-    // await this.linkLocationsToWeatherData(params.tx)
 
-    // Capping the import count to 2000 so it doesn't hang for too long on a single run
     while (locationDatePairs?.length !== 0) {
       locationDatePairs = await this.getLocationAndDate(params.tx)
-      //   console.log('point', locationDatePairs)
-      //   if (calculateSpeed) {
-      //     throw new Error('test')
-      //   }
-      currentOffset += this.importBatchSize
 
       if (locationDatePairs.length === 0) {
         break
       }
 
-      const firstAndLatest = this.findEarliestAndLatest(
-        locationDatePairs,
-        firstDate,
-        lastDate
-      )
-      firstDate = firstAndLatest.first
-      lastDate = firstAndLatest.last
-
-      // Group by timezone since API needs one timezone per call
+      // When this was done I didn't know you could pass a list of timezones to the API call
       const byTimezone: Record<string, typeof locationDatePairs> =
         locationDatePairs.reduce((acc, curr) => {
           acc[curr.timezone] = [...(acc[curr.timezone] ?? []), curr]
           return acc
         }, {})
 
-      // Calling API for days 2024-02-19 - 2024-02-27 and timezone America/Toronto
       for (const timezone of Object.keys(byTimezone)) {
         const sameTimezonePairs = byTimezone[timezone]
         const earliestDay = sameTimezonePairs[0].dayString
         const latestDay =
           sameTimezonePairs[sameTimezonePairs.length - 1].dayString
 
-        // Group by days since the api will return data for every day for every point. We only want to store
-        // weather information for locations and days where we have data for.
-        // Example:
-        // Point A on 2024-01-01
-        // Point B on 2024-02-02
-        // API will reply with 2024-02-01 at Point A and Point B
-        //
-        // This approach increases the amount of API calls, but it's easier to implement right now.
-        // const byDay: Record<string, typeof locationDatePairs> =
-        //   sameTimezonePairs.reduce((acc, curr) => {
-        //     acc[curr.dayString] = [...(acc[curr.dayString] ?? []), curr]
-        //     return acc
-        //   }, {})
-
-        // for (const day of Object.keys(byDay)) {
-        console.log('Waiting before calling again based on speed')
-        await delay(10000)
-        // while (calculateSpeed() > apiLimitPerDay / secondsInDay) {
-        //   await delay(1000)
-        // }
+        console.log('Waiting before calling API again')
+        await delay(this.apiCallsDelay)
         console.log(
           `Calling API for days ${earliestDay} - ${latestDay} and timezone ${timezone}`
         )
         apiCallsCount += 1
+
+        // The API calls are really wasteful here. If there are 2 points: Point A and Point B
+        // They are in completly different locations and were recorded in completely different
+        // days we call the API with both of the points for both days, so in this scenario we get
+        // duplicated data. This is something that can improve in the implementation
+        // It was initially done like this to avoid doing too many API calls, but I've recently discovered
+        // that they weight API calls by how many days/points are being requested so the initial
+        // assumption doesn't make sense anymore
         const result = await this.callApi(
           sameTimezonePairs.map((l) => l.location),
           earliestDay,
@@ -534,6 +565,15 @@ export class OpenMeteoImport extends BaseImporter {
           timezone
         )
 
+        const firstAndLatest = this.findEarliestAndLatest(
+          result.hourly,
+          firstDate,
+          lastDate
+        )
+        firstDate = firstAndLatest.first
+        lastDate = firstAndLatest.last
+
+        // Chunk to avoid from exceeding postgres' parameter count limit
         const hourlyChunks = chunk(result.hourly, 200)
         for (const chunk of hourlyChunks) {
           await params.tx
@@ -548,42 +588,23 @@ export class OpenMeteoImport extends BaseImporter {
             .values(chunk)
             .onConflictDoNothing()
         }
-        console.log(
-          'Linking locations to weather info. This might take a while if there are a lot of loactions missing weather information'
-        )
         importedCount += result.daily.length + result.hourly.length
-        console.log(`Already imported ${importedCount} rows`)
-        //   await params.tx.insert(hourlyWeatherTable).values(result.hourly)
-        // }
       }
       // Link, but only based on the dates that we have seen already. This could be better since this will only increase
       // as we go. But in the function we also check for null daily_weather_id and hourly_weather_id so hopefuly it doesn't
       // make a big impact. This is just a workaround for now
-      await this.linkLocationsToWeather(
-        params.tx,
-        firstAndLatest.first,
-        firstAndLatest.last
-      )
+      await this.linkLocationsToWeather(params.tx, firstDate, lastDate)
 
       await this.cleanUpDanglingWeatherEntries(params.tx)
-
-      //   const errs = await params.tx.query.locationsTable.findMany({
-      //     where: sql`(${locationsTable.hourlyWeatherId} IS NULL AND ${locationsTable.dailyWeatherId} IS NOT NULL)
-      //     OR (${locationsTable.hourlyWeatherId} IS NOT NULL AND ${locationsTable.dailyWeatherId} IS NULL)`,
-      //   })
-
-      //   if (errs.length > 0) {
-      // console.log('FOUND PROBLEMS', errs)
-      // throw new Error('')
-      //   }
     }
 
-    console.log('Final link call')
     await this.linkLocationsToWeather(params.tx)
     await this.cleanUpDanglingWeatherEntries(params.tx)
+
     console.log('Done importing weather information')
     return {
       importedCount,
+      apiCallsCount,
       lastEntryDate: lastDate?.toJSDate() ?? this.placeholderDate,
       firstEntryDate: firstDate?.toJSDate() ?? this.placeholderDate,
       logs: [],

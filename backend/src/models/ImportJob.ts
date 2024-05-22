@@ -54,6 +54,14 @@ export const importJobsTable = pgTable('import_jobs', {
    */
   importedCount: integer('imported_count').notNull(),
   /**
+   * The number of API calls done by a job, if it performs API calls
+   */
+  apiCallsCount: integer('api_calls_count'),
+  /**
+   * The version of the api used to make the requests
+   */
+  apiVersion: text('api_version'),
+  /**
    * Useful logs for debugging. Be careful to not fill this up too much and take too much disk space
    */
   logs: jsonb('logs').notNull(),
