@@ -56,6 +56,9 @@ function Home() {
               </AspectRatio>
               <Divider my="md" />
               <DailyHabitEntries date={day} />
+              <Container pl={0} pt={'xl'} fluid>
+                <DailyWeatherOverviewContainer date={day} />
+              </Container>
             </Container>
           </ScrollArea>
         </Allotment.Pane>
