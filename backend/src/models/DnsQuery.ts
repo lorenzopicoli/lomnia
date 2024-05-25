@@ -29,7 +29,7 @@ export const dnsQueriesTable = pgTable('dns_queries', {
    */
   forward: text('forward'),
   /**
-   * In seconds
+   * In milliseconds
    */
   replyTime: integer('reply_time'),
   /**
