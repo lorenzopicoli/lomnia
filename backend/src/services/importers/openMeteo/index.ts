@@ -331,12 +331,13 @@ export class OpenMeteoImport extends BaseImporter {
       for (let j = 0; j < dailyHours.length; j++) {
         dailyResult.push({
           importJobId: 1,
-          date: DateTime.fromJSDate(dailyHours[j], {
-            // Pass UTC here since the JS Date object already accounts from the utcOffset in the call to this.generateDatesFromRange
-            // I've tried converting to the timezone here, but the problem is that open meteo doesn't handle daylight savings too well
-            // so it's easier to save in the database whatever open meteo INTENDED for the time to be rather than making assumptions here
-            zone: 'UTC',
-          }).toSQLDate(),
+          date:
+            DateTime.fromJSDate(dailyHours[j], {
+              // Pass UTC here since the JS Date object already accounts from the utcOffset in the call to this.generateDatesFromRange
+              // I've tried converting to the timezone here, but the problem is that open meteo doesn't handle daylight savings too well
+              // so it's easier to save in the database whatever open meteo INTENDED for the time to be rather than making assumptions here
+              zone: 'UTC',
+            }).toSQLDate() ?? '',
 
           weatherCode: dailyWeatherCode[j],
           temperature2mMax: dailyTemperature2mMax[j],
@@ -532,11 +533,11 @@ export class OpenMeteoImport extends BaseImporter {
       }
 
       // When this was done I didn't know you could pass a list of timezones to the API call
-      const byTimezone: Record<string, typeof locationDatePairs> =
+      const byTimezone  =
         locationDatePairs.reduce((acc, curr) => {
           acc[curr.timezone] = [...(acc[curr.timezone] ?? []), curr]
           return acc
-        }, {})
+        }, {} as Record<string, typeof locationDatePairs>)
 
       for (const timezone of Object.keys(byTimezone)) {
         const sameTimezonePairs = byTimezone[timezone]

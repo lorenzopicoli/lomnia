@@ -5,8 +5,8 @@ import {
   type FastifyTRPCPluginOptions,
   fastifyTRPCPlugin,
 } from '@trpc/server/adapters/fastify'
-import Fastify, { type FastifyInstance } from 'fastify'
-import { type AppRouter, appRouter } from './trpcRouter'
+import Fastify from 'fastify'
+import { type AppRouter, appRouter } from './routes/trpcRouter'
 
 export function createContext({ req, res }: CreateFastifyContextOptions) {
   const user = { name: req.headers.username ?? 'anonymous' }

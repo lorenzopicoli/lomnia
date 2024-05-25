@@ -3,7 +3,7 @@ import { customType } from 'drizzle-orm/pg-core'
 import type { PgTransaction } from 'drizzle-orm/pg-core'
 import type { PostgresJsQueryResultHKT } from 'drizzle-orm/postgres-js'
 import * as wkx from 'wkx'
-import type * as schema from './schema'
+import type * as schema from '../models'
 
 export interface Point {
   lat: number

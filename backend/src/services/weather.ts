@@ -1,7 +1,12 @@
 import { isValid, parse } from 'date-fns'
-import { sql } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
+import type { DateTime } from 'luxon'
 import { db } from '../db/connection'
-import { dailyWeatherTable, hourlyWeatherTable } from '../models'
+import {
+  dailyWeatherTable,
+  hourlyWeatherTable,
+  locationsTable,
+} from '../models'
 
 export async function getWeatherInformation(params: { day: string }) {
   const { day } = params
@@ -20,4 +25,45 @@ export async function getWeatherInformation(params: { day: string }) {
     hourly,
     daily,
   }
+}
+
+export async function getWeatherAnalytics(params: {
+  startDate: DateTime
+  endDate: DateTime
+}) {
+  const grouppedLocations = db.$with('groupped_locations').as((cte) =>
+    cte
+      .select({
+        hourlyWeatherId: sql`MAX(${locationsTable.hourlyWeatherId})`
+          .mapWith(locationsTable.hourlyWeatherId)
+          .as('hourly_weather_id'),
+        date: sql`to_timestamp(floor((extract('epoch' from location_fix) / 3600 )) * 3600)`
+          .mapWith(locationsTable.locationFix)
+          .as('groupped_date'),
+      })
+      .from(locationsTable)
+      .where(
+        sql`
+      ${locationsTable.locationFix} >= ${params.startDate.toISO()} 
+      AND ${locationsTable.locationFix} <= ${params.endDate.toISO()}`
+      )
+      .groupBy(
+        sql`to_timestamp(floor((extract('epoch' from location_fix) / 3600 )) * 3600)`
+      )
+  )
+
+  const data = db
+    .with(grouppedLocations)
+    .select({
+      date: grouppedLocations.date,
+      weather: hourlyWeatherTable,
+    })
+    .from(grouppedLocations)
+    .innerJoin(
+      hourlyWeatherTable,
+      eq(grouppedLocations.hourlyWeatherId, hourlyWeatherTable.id)
+    )
+    .orderBy(grouppedLocations.date)
+
+  return data
 }

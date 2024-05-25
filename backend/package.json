@@ -19,13 +19,13 @@
   "devDependencies": {
     "@biomejs/biome": "^1.7.3",
     "@types/cli-progress": "^3.11.5",
+    "@types/luxon": "^3.4.2",
     "@types/node": "^20.12.8",
     "drizzle-kit": "^0.20.17",
     "knex": "^3.1.0",
     "pg": "^8.11.5",
     "pino-pretty": "^11.0.0",
     "rimraf": "^5.0.5",
-    "ts-node": "^10.9.2",
     "tsx": "^4.9.3"
   },
   "dependencies": {

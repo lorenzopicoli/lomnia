@@ -1,10 +1,12 @@
 import { initTRPC } from '@trpc/server'
-import { parseISO } from 'date-fns'
+// import { parseISO } from 'date-fns'
+import { DateTime } from 'luxon'
 import { z } from 'zod'
-import { getDiaryEntries } from './services/diaryEntries'
-import { getHabits } from './services/habits/habits'
-import { getHeatmapPoints } from './services/locations'
-import { getWeatherInformation } from './services/weather'
+import { getDiaryEntries } from '../services/diaryEntries'
+import { getHabits } from '../services/habits/habits'
+import { getHeatmapPoints } from '../services/locations'
+import { getWeatherAnalytics, getWeatherInformation } from '../services/weather'
+import { parseISO } from 'date-fns'
 
 export const t = initTRPC.create()
 
@@ -80,6 +82,35 @@ export const appRouter = t.router({
         (r) =>
           [r.location.lng, r.location.lat, r.weight] as [number, number, number]
       )
+    }),
+
+  getHottestDay: loggedProcedure
+    .input(
+      z.object({
+        startDate: z.string().datetime(),
+        endDate: z.string().datetime(),
+      })
+    )
+    .query(() => {
+      return {
+        date: new Date(),
+        temperature: 40,
+        location: { x: 0, y: 0 },
+      }
+    }),
+
+  getWeatherAnalytics: loggedProcedure
+    .input(
+      z.object({
+        startDate: z.string().datetime(),
+        endDate: z.string().datetime(),
+      })
+    )
+    .query((opts) => {
+      return getWeatherAnalytics({
+        startDate: DateTime.fromISO(opts.input.startDate, { zone: 'UTC' }),
+        endDate: DateTime.fromISO(opts.input.endDate, { zone: 'UTC' }),
+      })
     }),
 })
 
