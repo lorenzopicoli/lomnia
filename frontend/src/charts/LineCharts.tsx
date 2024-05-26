@@ -51,41 +51,17 @@ function SingleSourceLineChartInternal<T extends object>(
 
   return (
     <XYChart margin={margin} height={totalHeight} width={totalWidth}>
-      <defs>
-        <filter id="neon">
-          <feFlood
-            result="flood"
-            flood-color="rgb(162, 114, 222)"
-            flood-opacity="1"
-          ></feFlood>
-          <feComposite
-            in="flood"
-            result="mask"
-            in2="SourceAlpha"
-            operator="in"
-          ></feComposite>
-          <feGaussianBlur
-            in="mask"
-            stdDeviation="1"
-            result="blurred"
-          ></feGaussianBlur>
-          <feMerge>
-            <feMergeNode in="blurred"></feMergeNode>
-            <feMergeNode in="SourceGraphic"></feMergeNode>
-          </feMerge>
-        </filter>
-      </defs>
-      {/* <rect
+      <rect
         width={totalWidth}
         height={totalHeight}
-        fill="#efefef"
-        rx={14}
-        ry={14}
+        fill={theme.colors.dark[8]}
+        rx={4}
+        ry={4}
         // onMouseMove={handleMouseMove}
         // onMouseLeave={handleMouseLeave}
         // onTouchMove={handleMouseMove}
         // onTouchEnd={handleMouseLeave}
-      /> */}
+      />
 
       {lines.map((lineData, i) => {
         return (

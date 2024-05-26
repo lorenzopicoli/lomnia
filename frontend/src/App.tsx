@@ -6,6 +6,9 @@ import '@mantine/dates/styles.css'
 import '@mantine/code-highlight/styles.css'
 import '@mantine/spotlight/styles.css'
 
+import 'react-grid-layout/css/styles.css'
+import 'react-resizable/css/styles.css'
+
 import 'maplibre-gl/dist/maplibre-gl.css'
 import 'allotment/dist/style.css'
 import { MantineProvider, createTheme, rem } from '@mantine/core'

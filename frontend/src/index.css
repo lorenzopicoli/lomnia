@@ -23,3 +23,18 @@ body {
   min-height: 100vh;
   overflow: hidden;
 }
+
+/* Hides the lib resize icon */
+.react-grid-item > .react-resizable-handle::after {
+  content: none;
+  height: 0px;
+  width: 0px;
+  background-image: none;
+}
+
+.react-resizable-handle {
+  content: none;
+  height: 0px;
+  width: 0px;
+  background-image: none;
+}
