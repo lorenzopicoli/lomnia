@@ -1,22 +1,40 @@
-import { Group } from '@visx/group'
 import { ParentSize } from '@visx/responsive'
-import { scaleLinear, scaleTime } from '@visx/scale'
-import { LinePath } from '@visx/shape'
+// import { scaleLinear, scaleTime } from '@visx/scale'
 import * as allCurves from '@visx/curve'
-import { useRef } from 'react'
-import { GridColumns, GridRows } from '@visx/grid'
+import { Annotation, Axis, LineSeries, Tooltip, XYChart } from '@visx/xychart'
+import { format } from 'date-fns/format'
+import { CircleSubject, Connector, Label } from '@visx/annotation'
+import { useMantineTheme } from '@mantine/core'
 
-type SupportedScales =
-  | ReturnType<typeof scaleTime<number>>
-  | ReturnType<typeof scaleLinear<number>>
+// type SupportedScales =
+//   | ReturnType<typeof scaleTime<number>>
+//   | ReturnType<typeof scaleLinear<number>>
 
 export type SingleSourceLineChartProps<T> = {
-  xScale: SupportedScales
-  yScale: SupportedScales
   data: T[]
   lines: {
+    id: string
     getX: (data: T) => Date
     getY: (data: T) => number
+    max: T
+    min: T
+    showMinLabel: boolean
+    showMaxLabel: boolean
+    labels: {
+      maxLabel: (
+        data: T,
+        unit: string,
+        getX: (data: T) => Date,
+        getY: (data: T) => number
+      ) => string
+      minLabel: (
+        data: T,
+        unit: string,
+        getX: (data: T) => Date,
+        getY: (data: T) => number
+      ) => string
+      unit: string
+    }
   }[]
 }
 
@@ -24,43 +42,40 @@ type InternalSingleSourceLineChartsProps<T> = SingleSourceLineChartProps<T> & {
   width: number
   height: number
 }
-function SingleSourceLineChartInternal<T>(
+function SingleSourceLineChartInternal<T extends object>(
   props: InternalSingleSourceLineChartsProps<T>
 ) {
-  const {
-    data,
-    lines,
-    xScale,
-    yScale,
-    // getX,
-    // getY,
-    width: totalWidth,
-    height: totalHeight,
-  } = props
+  const { data, lines, width: totalWidth, height: totalHeight } = props
+  const theme = useMantineTheme()
   const margin = { top: 40, right: 30, bottom: 50, left: 40 }
-  const innerWidth = totalWidth - margin.left - margin.right
-  const innerHeight = totalHeight - margin.top - margin.bottom
-  //   const heightPerLine = innerHeight / lines.length
-
-  const svgRef = useRef<SVGSVGElement>(null)
-
-  //   const {
-  //     tooltipData,
-  //     tooltipLeft,
-  //     tooltipTop,
-  //     tooltipOpen,
-  //     showTooltip,
-  //     hideTooltip,
-  //   } = useTooltip<T>()
-
-  // update scale output ranges
-  xScale.range([0, innerWidth])
-  yScale.range([innerHeight, 0])
 
   return (
-    <svg width={totalWidth} height={totalHeight} ref={svgRef}>
-      {/* Background rect */}
-      <rect
+    <XYChart margin={margin} height={totalHeight} width={totalWidth}>
+      <defs>
+        <filter id="neon">
+          <feFlood
+            result="flood"
+            flood-color="rgb(162, 114, 222)"
+            flood-opacity="1"
+          ></feFlood>
+          <feComposite
+            in="flood"
+            result="mask"
+            in2="SourceAlpha"
+            operator="in"
+          ></feComposite>
+          <feGaussianBlur
+            in="mask"
+            stdDeviation="1"
+            result="blurred"
+          ></feGaussianBlur>
+          <feMerge>
+            <feMergeNode in="blurred"></feMergeNode>
+            <feMergeNode in="SourceGraphic"></feMergeNode>
+          </feMerge>
+        </filter>
+      </defs>
+      {/* <rect
         width={totalWidth}
         height={totalHeight}
         fill="#efefef"
@@ -70,61 +85,122 @@ function SingleSourceLineChartInternal<T>(
         // onMouseLeave={handleMouseLeave}
         // onTouchMove={handleMouseMove}
         // onTouchEnd={handleMouseLeave}
-      />
-      <Group pointerEvents="none" left={margin.left} top={margin.top}>
-        <GridRows
-          scale={yScale}
-          width={innerWidth}
-          height={innerHeight}
-          stroke="#e0e0e0"
-        />
-        <GridColumns
-          scale={xScale}
-          width={innerWidth}
-          height={innerHeight}
-          stroke="#e0e0e0"
-        />
-      </Group>
+      /> */}
+
       {lines.map((lineData, i) => {
-        const even = i % 2 === 0
         return (
-          <Group
-            key={`lines-${i}`}
-            pointerEvents="none"
-            left={margin.left}
-            top={margin.top}
-          >
-            {data.map((d, j) => (
-              <circle
-                key={i + j}
-                r={3}
-                cx={xScale(lineData.getX(d))}
-                cy={yScale(lineData.getY(d))}
-                stroke="rgba(33,33,33,0.5)"
-                fill="transparent"
-                onFocus={() => true}
-                onBlur={() => true}
-              />
-            ))}
-            <LinePath<T>
-              curve={allCurves.curveMonotoneX}
+          <>
+            <LineSeries
+              dataKey={lineData.id}
               data={data}
-              x={(d) => xScale(lineData.getX(d)) ?? 0}
-              y={(d) => yScale(lineData.getY(d)) ?? 0}
-              stroke="#333"
-              strokeWidth={even ? 2 : 1}
-              strokeOpacity={even ? 0.6 : 1}
-              shapeRendering="geometricPrecision"
-              markerMid="url(#marker-circle)"
+              xAccessor={lineData.getX}
+              yAccessor={lineData.getY}
+              curve={allCurves.curveMonotoneX}
+              stroke={theme.colors.violet[4]}
+              filter="url(#neon)"
             />
-          </Group>
+            <Tooltip<T>
+              offsetTop={i * 50}
+              showVerticalCrosshair
+              snapTooltipToDatumX
+              snapTooltipToDatumY
+              renderTooltip={({ tooltipData }) => (
+                <>
+                  <div style={{ color: '#000' }}>{lineData.id}</div>
+                  <br />
+                  {format(
+                    lineData.getX(tooltipData!.datumByKey[lineData.id].datum),
+                    'PP p'
+                  )}
+                  :{' '}
+                  {lineData
+                    .getY(tooltipData!.datumByKey[lineData.id].datum)
+                    .toFixed(2)}
+                  {lineData.labels.unit}
+                </>
+              )}
+            />
+          </>
         )
       })}
-    </svg>
+
+      {lines.map((lineData, i) => {
+        return (
+          <>
+            {lineData.showMaxLabel ? (
+              <Annotation
+                dx={i % 2 === 0 ? 100 : -100}
+                dy={i * 50}
+                dataKey={lineData.id}
+                datum={lineData.max}
+              >
+                <Connector stroke="#efefef" type="elbow" />
+                <CircleSubject stroke="#efefef" radius={10} />
+                <Label
+                  maxWidth={200}
+                  backgroundFill="#efefef"
+                  subtitleProps={{ width: 240 }}
+                  subtitle={lineData.labels.maxLabel(
+                    lineData.max,
+                    lineData.labels.unit,
+                    lineData.getX,
+                    lineData.getY
+                  )}
+                />
+              </Annotation>
+            ) : null}
+            {lineData.showMinLabel ? (
+              <Annotation
+                dx={i === 0 ? 100 : 50}
+                dy={(i + 1) * 100}
+                dataKey={lineData.id}
+                datum={lineData.min}
+              >
+                <Connector stroke="#efefef" type="elbow" />
+                <CircleSubject stroke="#efefef" radius={10} />
+                <Label
+                  backgroundFill="#efefef"
+                  maxWidth={200}
+                  subtitleProps={{ width: 240 }}
+                  subtitle={lineData.labels.minLabel(
+                    lineData.min,
+                    lineData.labels.unit,
+                    lineData.getX,
+                    lineData.getY
+                  )}
+                />
+              </Annotation>
+            ) : null}
+          </>
+        )
+      })}
+      <Axis
+        tickLabelProps={{
+          fill: '#fff',
+          stroke: '#fff',
+          fontFamily: theme.fontFamily,
+        }}
+        stroke="#fff"
+        orientation="left"
+        numTicks={10}
+      />
+      <Axis
+        stroke="#fff"
+        tickLabelProps={{
+          fill: '#fff',
+          stroke: '#fff',
+          fontFamily: theme.fontFamily,
+        }}
+        orientation="bottom"
+        numTicks={10}
+      />
+    </XYChart>
   )
 }
 
-export function SingleSourceLineChart<T>(props: SingleSourceLineChartProps<T>) {
+export function SingleSourceLineChart<T extends object>(
+  props: SingleSourceLineChartProps<T>
+) {
   return (
     <ParentSize debounceTime={10}>
       {({ width, height }) => (
