@@ -5,37 +5,17 @@ import { Annotation, Axis, LineSeries, Tooltip, XYChart } from '@visx/xychart'
 import { format } from 'date-fns/format'
 import { CircleSubject, Connector, Label } from '@visx/annotation'
 import { useMantineTheme } from '@mantine/core'
+import { unitToLabel, type LineData } from './charts'
+import styles from './LineChart.module.css'
 
 // type SupportedScales =
 //   | ReturnType<typeof scaleTime<number>>
 //   | ReturnType<typeof scaleLinear<number>>
 
 export type SingleSourceLineChartProps<T> = {
+  heightOffset?: number
   data: T[]
-  lines: {
-    id: string
-    getX: (data: T) => Date
-    getY: (data: T) => number
-    max: T
-    min: T
-    showMinLabel: boolean
-    showMaxLabel: boolean
-    labels: {
-      maxLabel: (
-        data: T,
-        unit: string,
-        getX: (data: T) => Date,
-        getY: (data: T) => number
-      ) => string
-      minLabel: (
-        data: T,
-        unit: string,
-        getX: (data: T) => Date,
-        getY: (data: T) => number
-      ) => string
-      unit: string
-    }
-  }[]
+  lines: LineData<T>[]
 }
 
 type InternalSingleSourceLineChartsProps<T> = SingleSourceLineChartProps<T> & {
@@ -63,90 +43,18 @@ function SingleSourceLineChartInternal<T extends object>(
         // onTouchEnd={handleMouseLeave}
       />
 
-      {lines.map((lineData, i) => {
+      {lines.map((lineData) => {
         return (
           <>
             <LineSeries
               dataKey={lineData.id}
               data={data}
-              xAccessor={lineData.getX}
-              yAccessor={lineData.getY}
+              xAccessor={lineData.accessors.getX}
+              yAccessor={lineData.accessors.getY}
               curve={allCurves.curveMonotoneX}
-              stroke={theme.colors.violet[4]}
-              filter="url(#neon)"
+              stroke={'rgba(123, 46, 218)'}
+              className={styles.bla}
             />
-            <Tooltip<T>
-              offsetTop={i * 50}
-              showVerticalCrosshair
-              snapTooltipToDatumX
-              snapTooltipToDatumY
-              renderTooltip={({ tooltipData }) => (
-                <>
-                  <div style={{ color: '#000' }}>{lineData.id}</div>
-                  <br />
-                  {format(
-                    lineData.getX(tooltipData!.datumByKey[lineData.id].datum),
-                    'PP p'
-                  )}
-                  :{' '}
-                  {lineData
-                    .getY(tooltipData!.datumByKey[lineData.id].datum)
-                    .toFixed(2)}
-                  {lineData.labels.unit}
-                </>
-              )}
-            />
-          </>
-        )
-      })}
-
-      {lines.map((lineData, i) => {
-        return (
-          <>
-            {lineData.showMaxLabel ? (
-              <Annotation
-                dx={i % 2 === 0 ? 100 : -100}
-                dy={i * 50}
-                dataKey={lineData.id}
-                datum={lineData.max}
-              >
-                <Connector stroke="#efefef" type="elbow" />
-                <CircleSubject stroke="#efefef" radius={10} />
-                <Label
-                  maxWidth={200}
-                  backgroundFill="#efefef"
-                  subtitleProps={{ width: 240 }}
-                  subtitle={lineData.labels.maxLabel(
-                    lineData.max,
-                    lineData.labels.unit,
-                    lineData.getX,
-                    lineData.getY
-                  )}
-                />
-              </Annotation>
-            ) : null}
-            {lineData.showMinLabel ? (
-              <Annotation
-                dx={i === 0 ? 100 : 50}
-                dy={(i + 1) * 100}
-                dataKey={lineData.id}
-                datum={lineData.min}
-              >
-                <Connector stroke="#efefef" type="elbow" />
-                <CircleSubject stroke="#efefef" radius={10} />
-                <Label
-                  backgroundFill="#efefef"
-                  maxWidth={200}
-                  subtitleProps={{ width: 240 }}
-                  subtitle={lineData.labels.minLabel(
-                    lineData.min,
-                    lineData.labels.unit,
-                    lineData.getX,
-                    lineData.getY
-                  )}
-                />
-              </Annotation>
-            ) : null}
           </>
         )
       })}
@@ -170,6 +78,74 @@ function SingleSourceLineChartInternal<T extends object>(
         orientation="bottom"
         numTicks={10}
       />
+
+      {lines.map((lineData, i) => {
+        return (
+          <>
+            <Tooltip<T>
+              offsetTop={i * 50}
+              showVerticalCrosshair
+              snapTooltipToDatumX
+              snapTooltipToDatumY
+              renderTooltip={({ tooltipData }) => (
+                <>
+                  {format(
+                    lineData.accessors.getX(
+                      tooltipData!.datumByKey[lineData.id].datum
+                    ),
+                    'PP p'
+                  )}
+                  :{' '}
+                  {lineData.accessors
+                    .getY(tooltipData!.datumByKey[lineData.id].datum)
+                    .toFixed(2)}
+                  {unitToLabel(lineData.labels.unit)}
+                </>
+              )}
+            />
+            {lineData.labels.showMaxLabel ? (
+              <Annotation
+                dx={i % 2 === 0 ? 100 : -100}
+                dy={i * 50}
+                dataKey={lineData.id}
+                datum={lineData.max}
+              >
+                <Connector stroke="#efefef" type="elbow" />
+                <CircleSubject stroke="#efefef" radius={10} />
+                <Label
+                  maxWidth={200}
+                  backgroundFill="#efefef"
+                  subtitleProps={{ width: 240 }}
+                  subtitle={lineData.labels.maxLabel(
+                    lineData.accessors.getY(lineData.max),
+                    lineData.labels.unit
+                  )}
+                />
+              </Annotation>
+            ) : null}
+            {lineData.labels.showMinLabel ? (
+              <Annotation
+                dx={i === 0 ? 100 : 50}
+                dy={(i + 1) * 100}
+                dataKey={lineData.id}
+                datum={lineData.min}
+              >
+                <Connector stroke="#efefef" type="elbow" />
+                <CircleSubject stroke="#efefef" radius={10} />
+                <Label
+                  backgroundFill="#efefef"
+                  maxWidth={200}
+                  subtitleProps={{ width: 240 }}
+                  subtitle={lineData.labels.minLabel(
+                    lineData.accessors.getY(lineData.min),
+                    lineData.labels.unit
+                  )}
+                />
+              </Annotation>
+            ) : null}
+          </>
+        )
+      })}
     </XYChart>
   )
 }
@@ -182,7 +158,7 @@ export function SingleSourceLineChart<T extends object>(
       {({ width, height }) => (
         <SingleSourceLineChartInternal
           {...props}
-          height={height}
+          height={height - (props.heightOffset ?? 0)}
           width={width}
         />
       )}

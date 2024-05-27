@@ -38,6 +38,7 @@ export class Server {
       },
     })
 
+
     fastify.register(fastifyTRPCPlugin, {
       prefix: '/trpc',
       trpcOptions: {
