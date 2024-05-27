@@ -1,61 +1,95 @@
-import { Container, Paper, ScrollArea, useMantineTheme } from '@mantine/core'
-import { DatePicker } from '@mantine/dates'
+import {
+  ActionIcon,
+  Container,
+  Flex,
+  Modal,
+  Paper,
+  ScrollArea,
+  useMantineTheme,
+} from '@mantine/core'
 import { endOfMonth } from 'date-fns/endOfMonth'
 import { startOfMonth } from 'date-fns/startOfMonth'
 import { useMemo, useState } from 'react'
 import { trpc } from '../../api/trpc'
-import { SingleSourceLineChart } from '../../components/charts/LineCharts'
+import { SingleSourceLineChart } from '../../components/SingleSourceLineChart/SingleSourceLineCharts'
 import { DataProvider, EventEmitterProvider } from '@visx/xychart'
 import { getMinMax } from '../../utils/getMinMax'
 import { ResizableGrid } from '../../components/ResizableGrid/ResizableGrid'
 import {
   WEATHER_PLOTTABLE_FIELDS,
-  getLineData,
+  isWeatherChart,
   weatherLineCharts,
   type PlottableWeatherAnalytics,
   type WeatherAnalytics,
-} from '../../components/charts/charts'
+} from '../../charts/weatherCharts'
+import {
+  ChartSource,
+  ChartType,
+  getLineData,
+  type Chart,
+} from '../../charts/charts'
+import { useDisclosure } from '@mantine/hooks'
+import { ExploreSettings } from '../../components/ExploreSettings/ExploreSettings'
+import { removeNills } from '../../utils/removeNils'
+import { IconFilter } from '@tabler/icons-react'
 
 export function Explore() {
   const theme = useMantineTheme()
-  const [value, setValue] = useState<[Date | null, Date | null]>([
+  const [dateRange, setDateRange] = useState<[Date, Date]>([
     startOfMonth(new Date()),
     endOfMonth(new Date()),
   ])
-  const { data } = trpc.getWeatherAnalytics.useQuery(
+  const [chartsToShow, setChartsToShow] = useState<Chart[]>([])
+  const [opened, { open, close }] = useDisclosure(false)
+  const handleSettingsChange = (
+    charts: Chart[],
+    newDateRange: [Date, Date]
+  ) => {
+    setChartsToShow(charts)
+    setDateRange(newDateRange)
+    close()
+  }
+  const { data: weatherData } = trpc.getWeatherAnalytics.useQuery(
     {
-      startDate: value[0]?.toISOString() ?? '',
-      endDate: value[1]?.toISOString() ?? '',
+      startDate: dateRange[0].toISOString() ?? '',
+      endDate: dateRange[1].toISOString() ?? '',
     },
     {
       initialData: [],
-      enabled: !!(value[0] && value[1]),
     }
   )
+  const { data: habitsKeys } = trpc.getHabitAnalyticsKeys.useQuery(undefined, {
+    initialData: [],
+  })
+
   const charts = useMemo(() => {
-    if (!data || data.length === 0) {
+    if (!weatherData || weatherData.length === 0) {
       return []
     }
     const minMax = getMinMax<WeatherAnalytics, PlottableWeatherAnalytics>(
-      data,
+      weatherData,
       'weather',
       [...WEATHER_PLOTTABLE_FIELDS]
     )
 
-    return WEATHER_PLOTTABLE_FIELDS.map((key) => {
-      return {
-        data,
-        lines: [
-          getLineData({
-            staticLine: weatherLineCharts[key],
-            id: key,
-            min: minMax.min[key].entry,
-            max: minMax.max[key].entry,
-          }),
-        ],
-      }
-    })
-  }, [data])
+    return chartsToShow
+      .map((chart) => {
+        if (isWeatherChart(chart)) {
+          return {
+            weatherData,
+            lines: [
+              getLineData({
+                staticLine: weatherLineCharts[chart.id],
+                id: chart.id,
+                min: minMax.min[chart.id].entry,
+                max: minMax.max[chart.id].entry,
+              }),
+            ],
+          }
+        }
+      })
+      .filter(removeNills)
+  }, [weatherData, chartsToShow])
 
   const layout = charts.map((_c, i) => {
     const isEven = i % 2 === 0
@@ -75,8 +109,56 @@ export function Explore() {
           m={0}
           style={{ position: 'relative' }}
         >
-          <DatePicker type="range" value={value} onChange={setValue} />
-          {data && data.length > 0 ? (
+          <Modal
+            opened={opened}
+            onClose={close}
+            title="Analytics Settings"
+            size={'auto'}
+          >
+            <ExploreSettings
+              chartOptions={[
+                {
+                  group: 'Weather',
+                  items: Object.keys(weatherLineCharts).map((k) => {
+                    const value =
+                      weatherLineCharts[k as keyof typeof weatherLineCharts]
+                    return {
+                      value: k,
+                      label: value.labels.description ?? '',
+                      data: {
+                        id: k,
+
+                        source: ChartSource.Weather,
+                        type: ChartType.LineChart,
+                      },
+                    }
+                  }),
+                },
+                {
+                  group: 'Habits',
+                  items: habitsKeys.map((k) => ({
+                    value: k,
+                    label: k,
+                    type: ChartType.LineChart,
+                    data: {
+                      id: k,
+
+                      source: ChartSource.Weather,
+                      type: ChartType.LineChart,
+                    },
+                  })),
+                },
+              ]}
+              opened={opened}
+              onSave={handleSettingsChange}
+            />
+          </Modal>
+          <Flex justify={'flex-end'}>
+            <ActionIcon onClick={open} variant="light" size={'lg'}>
+              <IconFilter />
+            </ActionIcon>
+          </Flex>
+          {weatherData && weatherData.length > 0 ? (
             <EventEmitterProvider>
               <ResizableGrid layout={layout} rowHeight={500}>
                 {charts.map((chart, i) => (
@@ -87,7 +169,7 @@ export function Explore() {
                       yScale={{ type: 'linear' }}
                     >
                       <SingleSourceLineChart<WeatherAnalytics>
-                        data={chart.data}
+                        data={chart.weatherData}
                         lines={chart.lines}
                         heightOffset={20}
                       />

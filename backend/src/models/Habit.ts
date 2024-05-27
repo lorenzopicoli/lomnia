@@ -20,7 +20,7 @@ export const habitsTable = pgTable('habits', {
   /**
    * It's expected to be of the type HabitsKey
    */
-  key: text('key'),
+  key: text('key').notNull(),
   /**
    * Code that relies on this should support:
    * - dates

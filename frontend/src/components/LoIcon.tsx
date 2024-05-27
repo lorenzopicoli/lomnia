@@ -1,6 +1,5 @@
 import { type MantineColor, ThemeIcon, rem } from '@mantine/core'
 import type { Icon, IconProps } from '@tabler/icons-react'
-import type React from 'react'
 import type {
   ComponentType,
   ForwardRefExoticComponent,

@@ -1,10 +1,11 @@
 import { isValid, parse } from 'date-fns'
-import { sql } from 'drizzle-orm'
+import { isNotNull, sql } from 'drizzle-orm'
 import { db } from '../../db/connection'
 import { anonymize } from '../../helpers/anonymize'
-import type { Habit } from '../../models/Habit'
+import { habitsTable, type Habit } from '../../models/Habit'
 import type { HabitKeys } from '../importers/obsidian/personal'
 import { habitLabel, habitTransformers } from './personal'
+import type { DateTime } from 'luxon'
 
 export const formatHabitResponse = (
   habits: Habit[],
@@ -37,4 +38,40 @@ export async function getHabits(params: { day: string; privateMode: boolean }) {
   })
 
   return formatHabitResponse(entries, privateMode)
+}
+
+export async function getHabitsAnalyticsKeys() {
+  const keys = await db
+    .select({
+      key: habitsTable.key,
+    })
+    .from(habitsTable)
+    .where(isNotNull(habitsTable.key))
+    .groupBy(habitsTable.key)
+  console.log('keys', keys)
+
+  return keys.map((k) => k.key)
+}
+export async function getHabitsAnalytics(params: {
+  startDate: DateTime
+  endDate: DateTime
+  key: string
+}) {
+  const data = await db
+    .select()
+    .from(habitsTable)
+    .where(
+      sql`
+      ${habitsTable.key} = ${params.key}
+      AND
+      ${
+        habitsTable.date
+      } >= (${params.startDate.toISO()} AT TIME ZONE 'America/Toronto')::date 
+      AND ${
+        habitsTable.date
+      } <= (${params.endDate.toISO()} AT TIME ZONE 'America/Toronto')::date`
+    )
+    .orderBy(habitsTable.date)
+
+  return data
 }

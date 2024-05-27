@@ -3,7 +3,11 @@ import { initTRPC } from '@trpc/server'
 import { DateTime } from 'luxon'
 import { z } from 'zod'
 import { getDiaryEntries } from '../services/diaryEntries'
-import { getHabits } from '../services/habits/habits'
+import {
+  getHabits,
+  getHabitsAnalytics,
+  getHabitsAnalyticsKeys,
+} from '../services/habits/habits'
 import { getHeatmapPoints } from '../services/locations'
 import { getWeatherAnalytics, getWeatherInformation } from '../services/weather'
 import { parseISO } from 'date-fns'
@@ -112,6 +116,25 @@ export const appRouter = t.router({
         endDate: DateTime.fromISO(opts.input.endDate, { zone: 'UTC' }),
       })
     }),
+
+  getHabitAnalytics: loggedProcedure
+    .input(
+      z.object({
+        startDate: z.string().datetime(),
+        endDate: z.string().datetime(),
+        key: z.string(),
+      })
+    )
+    .query((opts) => {
+      return getHabitsAnalytics({
+        startDate: DateTime.fromISO(opts.input.startDate, { zone: 'UTC' }),
+        endDate: DateTime.fromISO(opts.input.endDate, { zone: 'UTC' }),
+        key: opts.input.key,
+      })
+    }),
+  getHabitAnalyticsKeys: loggedProcedure.query((opts) => {
+    return getHabitsAnalyticsKeys()
+  }),
 })
 
 export type AppRouter = typeof appRouter

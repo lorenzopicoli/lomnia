@@ -1,84 +1,14 @@
-import type { RouterOutputs } from '../../api/trpc'
+import type { RouterOutputs } from '../api/trpc'
+import {
+  ChartSource,
+  unitToLabel,
+  type Chart,
+  type StaticLineData,
+} from './charts'
 
-export enum ChartType {
-  LineChart,
+export type WeatherChart = Chart & {
+  id: WeatherPlottableField
 }
-
-export enum ChartSource {
-  Weather,
-}
-
-export type StaticLineData<T> = {
-  accessors: {
-    getX: (data: T) => Date
-    getY: (data: T) => number
-  }
-  config: {
-    hasMaxLabel: boolean
-    hasMinLabel: boolean
-  }
-  labels: {
-    description?: string
-    maxLabel: (value: number, unit: string) => string
-    minLabel: (value: number, unit: string) => string
-    unit: string
-  }
-}
-
-export type LineData<T> = {
-  id: string
-  max: T
-  min: T
-  accessors: {
-    getX: (data: T) => Date
-    getY: (data: T) => number
-  }
-  config: {
-    hasMaxLabel: boolean
-    hasMinLabel: boolean
-  }
-  labels: {
-    description?: string
-    showMaxLabel: boolean
-    showMinLabel: boolean
-    maxLabel: (value: number, unit: string) => string
-    minLabel: (value: number, unit: string) => string
-    unit: string
-  }
-}
-
-export const unitToLabel = (unit: string) => {
-  const known: Record<string, string | undefined> = {
-    celsius: '°C',
-    percentage: '%',
-    centimeters: 'cm',
-    millimeter: 'mm',
-    kmph: 'km/h',
-    meters: 'm',
-  }
-  return known[unit] ?? ''
-}
-
-export function getLineData<T>(params: {
-  staticLine: StaticLineData<T>
-  id: string
-  min: T
-  max: T
-}): LineData<T> {
-  const { staticLine, id, max, min } = params
-  return {
-    ...staticLine,
-    id,
-    max,
-    min,
-    labels: {
-      ...staticLine.labels,
-      showMaxLabel: true,
-      showMinLabel: true,
-    },
-  }
-}
-
 // Weather
 export type WeatherAnalytics = RouterOutputs['getWeatherAnalytics'][number]
 export const WEATHER_PLOTTABLE_FIELDS = [
@@ -95,13 +25,22 @@ export const WEATHER_PLOTTABLE_FIELDS = [
   'cloudCover',
 ] as const
 
+export type WeatherPlottableField = (typeof WEATHER_PLOTTABLE_FIELDS)[number]
+
 export type PlottableWeatherAnalytics = Pick<
   WeatherAnalytics['weather'],
-  (typeof WEATHER_PLOTTABLE_FIELDS)[number]
+  WeatherPlottableField
 >
 
+export function isWeatherChart(chart: Chart): chart is WeatherChart {
+  return (
+    chart.source === ChartSource.Weather &&
+    WEATHER_PLOTTABLE_FIELDS.includes(chart.id as WeatherPlottableField)
+  )
+}
+
 export const weatherGetYs: Record<
-  (typeof WEATHER_PLOTTABLE_FIELDS)[number],
+  WeatherPlottableField,
   (data: Required<WeatherAnalytics>) => number
 > = {
   apparentTemperature: (data) => data.weather.apparentTemperature ?? 0,
@@ -118,7 +57,7 @@ export const weatherGetYs: Record<
 }
 
 export const weatherGetXs: Record<
-  (typeof WEATHER_PLOTTABLE_FIELDS)[number],
+  WeatherPlottableField,
   (data: Required<WeatherAnalytics>) => Date
 > = {
   apparentTemperature: (data) => new Date(data.date),
@@ -164,7 +103,7 @@ const cloudCoverLabel = (value: number, unit: string) =>
   `Cloud Cover: ${value.toFixed(1)}${unitToLabel(unit)}`
 
 export const weatherLineCharts: Record<
-  (typeof WEATHER_PLOTTABLE_FIELDS)[number],
+  WeatherPlottableField,
   StaticLineData<WeatherAnalytics>
 > = {
   apparentTemperature: {
@@ -193,7 +132,7 @@ export const weatherLineCharts: Record<
       hasMinLabel: true,
     },
     labels: {
-      description: 'Temperature at 2m',
+      description: 'Temperature',
       maxLabel: highestTempLabel,
       minLabel: lowestTempLabel,
       unit: 'celsius',
@@ -273,7 +212,7 @@ export const weatherLineCharts: Record<
       hasMinLabel: true,
     },
     labels: {
-      description: 'Relative Humidity at 2m',
+      description: 'Relative Humidity',
       maxLabel: relativeHumidityLabel,
       minLabel: relativeHumidityLabel,
       unit: 'percentage',

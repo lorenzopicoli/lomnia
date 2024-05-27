@@ -5,8 +5,9 @@ import { Annotation, Axis, LineSeries, Tooltip, XYChart } from '@visx/xychart'
 import { format } from 'date-fns/format'
 import { CircleSubject, Connector, Label } from '@visx/annotation'
 import { useMantineTheme } from '@mantine/core'
-import { unitToLabel, type LineData } from './charts'
-import styles from './LineChart.module.css'
+// import styles from './LineChart.module.css'
+import { unitToLabel, type LineData } from '../../charts/charts'
+import { Group } from '@visx/group'
 
 // type SupportedScales =
 //   | ReturnType<typeof scaleTime<number>>
@@ -37,15 +38,11 @@ function SingleSourceLineChartInternal<T extends object>(
         fill={theme.colors.dark[8]}
         rx={4}
         ry={4}
-        // onMouseMove={handleMouseMove}
-        // onMouseLeave={handleMouseLeave}
-        // onTouchMove={handleMouseMove}
-        // onTouchEnd={handleMouseLeave}
       />
 
-      {lines.map((lineData) => {
+      {lines.map((lineData, i) => {
         return (
-          <>
+          <Group key={i}>
             <LineSeries
               dataKey={lineData.id}
               data={data}
@@ -53,9 +50,8 @@ function SingleSourceLineChartInternal<T extends object>(
               yAccessor={lineData.accessors.getY}
               curve={allCurves.curveMonotoneX}
               stroke={'rgba(123, 46, 218)'}
-              className={styles.bla}
             />
-          </>
+          </Group>
         )
       })}
       <Axis
@@ -81,7 +77,7 @@ function SingleSourceLineChartInternal<T extends object>(
 
       {lines.map((lineData, i) => {
         return (
-          <>
+          <Group key={i}>
             <Tooltip<T>
               offsetTop={i * 50}
               showVerticalCrosshair
@@ -125,8 +121,8 @@ function SingleSourceLineChartInternal<T extends object>(
             ) : null}
             {lineData.labels.showMinLabel ? (
               <Annotation
-                dx={i === 0 ? 100 : 50}
-                dy={(i + 1) * 100}
+                dx={i === 0 ? 100 : 40}
+                dy={(i + 1) * 80}
                 dataKey={lineData.id}
                 datum={lineData.min}
               >
@@ -143,7 +139,7 @@ function SingleSourceLineChartInternal<T extends object>(
                 />
               </Annotation>
             ) : null}
-          </>
+          </Group>
         )
       })}
     </XYChart>
