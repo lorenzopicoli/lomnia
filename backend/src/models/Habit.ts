@@ -37,7 +37,7 @@ export const habitsTable = pgTable('habits', {
    * Date in the user timezone of when this habit was recorded.
    * TODO: add a timezone column to this table
    */
-  date: date('date'),
+  date: date('date').notNull(),
 
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at'),

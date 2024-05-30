@@ -48,21 +48,23 @@ export async function getHabitsAnalyticsKeys() {
     .from(habitsTable)
     .where(isNotNull(habitsTable.key))
     .groupBy(habitsTable.key)
-  console.log('keys', keys)
 
-  return keys.map((k) => k.key)
+  return keys.map((k) => ({ key: k.key, description: k.key }))
 }
 export async function getHabitsAnalytics(params: {
   startDate: DateTime
   endDate: DateTime
-  key: string
+  keys: string[]
 }) {
   const data = await db
-    .select()
+    .select({
+      date: habitsTable.date,
+      entry: sql`jsonb_object_agg(${habitsTable.key}, ${habitsTable.value})`,
+    })
     .from(habitsTable)
     .where(
       sql`
-      ${habitsTable.key} = ${params.key}
+      ${habitsTable.key} IN ${params.keys}
       AND
       ${
         habitsTable.date
@@ -71,7 +73,7 @@ export async function getHabitsAnalytics(params: {
         habitsTable.date
       } <= (${params.endDate.toISO()} AT TIME ZONE 'America/Toronto')::date`
     )
-    .orderBy(habitsTable.date)
+    .groupBy(habitsTable.date)
 
-  return data
+  return data as { date: string; entry: Record<string, unknown> }[]
 }

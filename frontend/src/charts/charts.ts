@@ -1,3 +1,6 @@
+import type { HabitAnalytics } from './habitCharts'
+import type { WeatherAnalytics } from './weatherCharts'
+
 export enum ChartType {
   LineChart,
 }
@@ -11,7 +14,16 @@ export type Chart = {
   id: string
   source: ChartSource
   type: ChartType
+  title: string
 }
+
+export type ChartOption = {
+  data: Chart
+  value: Chart['id']
+  label: string
+}
+
+export type ChartsDataSources = WeatherAnalytics | HabitAnalytics
 
 export type StaticLineData<T> = {
   accessors: {
@@ -32,15 +44,11 @@ export type StaticLineData<T> = {
 
 export type LineData<T> = {
   id: string
-  max: T
-  min: T
+  max?: T
+  min?: T
   accessors: {
     getX: (data: T) => Date
     getY: (data: T) => number
-  }
-  config: {
-    hasMaxLabel: boolean
-    hasMinLabel: boolean
   }
   labels: {
     description?: string

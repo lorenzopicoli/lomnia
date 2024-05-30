@@ -10,6 +10,7 @@ import {
 } from 'drizzle-orm/pg-core'
 import { geography } from '../db/types'
 import { importJobsTable } from './ImportJob'
+import type { getTableColumns } from 'drizzle-orm'
 
 export const hourlyWeatherTable = pgTable('hourly_weather', {
   id: serial('id').primaryKey(),
@@ -114,6 +115,9 @@ export const hourlyWeatherTable = pgTable('hourly_weather', {
 
 export type HourlyWeather = typeof hourlyWeatherTable.$inferSelect
 export type NewHourlyWeather = typeof hourlyWeatherTable.$inferInsert
+export type HourlyWeatherColumns = keyof ReturnType<
+  typeof getTableColumns<typeof hourlyWeatherTable>
+>
 
 export const dailyWeatherTable = pgTable('daily_weather', {
   id: serial('id').primaryKey(),

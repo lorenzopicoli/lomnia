@@ -9,7 +9,11 @@ import {
   getHabitsAnalyticsKeys,
 } from '../services/habits/habits'
 import { getHeatmapPoints } from '../services/locations'
-import { getWeatherAnalytics, getWeatherInformation } from '../services/weather'
+import {
+  getWeatherAnalytics,
+  getWeatherAnalyticsLineCharts,
+  getWeatherInformation,
+} from '../services/weather'
 import { parseISO } from 'date-fns'
 
 export const t = initTRPC.create()
@@ -122,18 +126,21 @@ export const appRouter = t.router({
       z.object({
         startDate: z.string().datetime(),
         endDate: z.string().datetime(),
-        key: z.string(),
+        keys: z.array(z.string()),
       })
     )
     .query((opts) => {
       return getHabitsAnalytics({
         startDate: DateTime.fromISO(opts.input.startDate, { zone: 'UTC' }),
         endDate: DateTime.fromISO(opts.input.endDate, { zone: 'UTC' }),
-        key: opts.input.key,
+        keys: opts.input.keys,
       })
     }),
-  getHabitAnalyticsKeys: loggedProcedure.query((opts) => {
-    return getHabitsAnalyticsKeys()
+  getLineCharts: loggedProcedure.query(async (opts) => {
+    return {
+      weather: await getWeatherAnalyticsLineCharts(),
+      habits: await getHabitsAnalyticsKeys(),
+    }
   }),
 })
 

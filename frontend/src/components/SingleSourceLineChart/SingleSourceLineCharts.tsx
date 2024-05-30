@@ -8,6 +8,7 @@ import { useMantineTheme } from '@mantine/core'
 // import styles from './LineChart.module.css'
 import { unitToLabel, type LineData } from '../../charts/charts'
 import { Group } from '@visx/group'
+import { getRandomColor } from '../../utils/getRandomColor'
 
 // type SupportedScales =
 //   | ReturnType<typeof scaleTime<number>>
@@ -49,7 +50,7 @@ function SingleSourceLineChartInternal<T extends object>(
               xAccessor={lineData.accessors.getX}
               yAccessor={lineData.accessors.getY}
               curve={allCurves.curveMonotoneX}
-              stroke={'rgba(123, 46, 218)'}
+              stroke={getRandomColor()}
             />
           </Group>
         )
@@ -99,7 +100,7 @@ function SingleSourceLineChartInternal<T extends object>(
                 </>
               )}
             />
-            {lineData.labels.showMaxLabel ? (
+            {lineData.max && lineData.labels.showMaxLabel ? (
               <Annotation
                 dx={i % 2 === 0 ? 100 : -100}
                 dy={i * 50}
@@ -119,7 +120,7 @@ function SingleSourceLineChartInternal<T extends object>(
                 />
               </Annotation>
             ) : null}
-            {lineData.labels.showMinLabel ? (
+            {lineData.min && lineData.labels.showMinLabel ? (
               <Annotation
                 dx={i === 0 ? 100 : 40}
                 dy={(i + 1) * 80}

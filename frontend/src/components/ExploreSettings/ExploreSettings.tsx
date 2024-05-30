@@ -4,16 +4,9 @@ import { Button, Flex, MultiSelect, Space } from '@mantine/core'
 import { DatePicker } from '@mantine/dates'
 import { startOfMonth } from 'date-fns/startOfMonth'
 import { endOfMonth } from 'date-fns/endOfMonth'
+import { useAvailableCharts } from '../../charts/useAvailableCharts'
 
 export type ExploreSettingsProps = {
-  chartOptions: {
-    group: string
-    items: {
-      label: string
-      value: string
-      data: Chart
-    }[]
-  }[]
   opened: boolean
   onSave: (charts: Chart[], dateRange: [Date, Date]) => void
 }
@@ -24,14 +17,15 @@ export function ExploreSettings(props: ExploreSettingsProps) {
     startOfMonth(new Date()),
     endOfMonth(new Date()),
   ])
+  const availableCharts = useAvailableCharts()
   const chartsByValue = useMemo(() => {
-    return props.chartOptions.reduce((acc, curr) => {
+    return availableCharts.reduce((acc, curr) => {
       for (const item of curr.items) {
         acc[item.value] = item.data
       }
       return acc
     }, {} as Record<string, Chart>)
-  }, [props.chartOptions])
+  }, [availableCharts])
 
   const handleChartsSelectionChange = (values: string[]) => {
     setSelectedCharts(values.map((v) => chartsByValue[v]))
@@ -56,7 +50,7 @@ export function ExploreSettings(props: ExploreSettingsProps) {
             placeholder="Choose charts to show"
             w="300px"
             onChange={handleChartsSelectionChange}
-            data={props.chartOptions}
+            data={availableCharts}
           />
         </Flex>
       </Flex>

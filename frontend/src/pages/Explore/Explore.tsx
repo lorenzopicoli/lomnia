@@ -13,25 +13,14 @@ import { useMemo, useState } from 'react'
 import { trpc } from '../../api/trpc'
 import { SingleSourceLineChart } from '../../components/SingleSourceLineChart/SingleSourceLineCharts'
 import { DataProvider, EventEmitterProvider } from '@visx/xychart'
-import { getMinMax } from '../../utils/getMinMax'
 import { ResizableGrid } from '../../components/ResizableGrid/ResizableGrid'
-import {
-  WEATHER_PLOTTABLE_FIELDS,
-  isWeatherChart,
-  weatherLineCharts,
-  type PlottableWeatherAnalytics,
-  type WeatherAnalytics,
-} from '../../charts/weatherCharts'
-import {
-  ChartSource,
-  ChartType,
-  getLineData,
-  type Chart,
-} from '../../charts/charts'
+import { getWeatherChart, type WeatherChart } from '../../charts/weatherCharts'
+import { ChartSource, type Chart, type LineData } from '../../charts/charts'
 import { useDisclosure } from '@mantine/hooks'
 import { ExploreSettings } from '../../components/ExploreSettings/ExploreSettings'
 import { removeNills } from '../../utils/removeNils'
 import { IconFilter } from '@tabler/icons-react'
+import { getHabitLineChart } from '../../charts/habitCharts'
 
 export function Explore() {
   const theme = useMantineTheme()
@@ -51,45 +40,40 @@ export function Explore() {
   }
   const { data: weatherData } = trpc.getWeatherAnalytics.useQuery(
     {
-      startDate: dateRange[0].toISOString() ?? '',
-      endDate: dateRange[1].toISOString() ?? '',
+      startDate: dateRange[0].toISOString(),
+      endDate: dateRange[1].toISOString(),
     },
     {
+      enabled: chartsToShow.some((c) => c.source === ChartSource.Weather),
       initialData: [],
     }
   )
-  const { data: habitsKeys } = trpc.getHabitAnalyticsKeys.useQuery(undefined, {
-    initialData: [],
-  })
+  const { data: habitsData } = trpc.getHabitAnalytics.useQuery(
+    {
+      startDate: dateRange[0].toISOString(),
+      endDate: dateRange[1].toISOString(),
+      keys: chartsToShow
+        .filter((c) => c.source === ChartSource.Habit)
+        .map((c) => c.id),
+    },
+    {
+      enabled: chartsToShow.some((c) => c.source === ChartSource.Habit),
+      initialData: [],
+    }
+  )
 
   const charts = useMemo(() => {
-    if (!weatherData || weatherData.length === 0) {
-      return []
-    }
-    const minMax = getMinMax<WeatherAnalytics, PlottableWeatherAnalytics>(
-      weatherData,
-      'weather',
-      [...WEATHER_PLOTTABLE_FIELDS]
-    )
-
     return chartsToShow
       .map((chart) => {
-        if (isWeatherChart(chart)) {
-          return {
-            weatherData,
-            lines: [
-              getLineData({
-                staticLine: weatherLineCharts[chart.id],
-                id: chart.id,
-                min: minMax.min[chart.id].entry,
-                max: minMax.max[chart.id].entry,
-              }),
-            ],
-          }
+        switch (chart.source) {
+          case ChartSource.Habit:
+            return getHabitLineChart(habitsData, chart)
+          case ChartSource.Weather:
+            return getWeatherChart(weatherData, chart as WeatherChart)
         }
       })
-      .filter(removeNills)
-  }, [weatherData, chartsToShow])
+      .filter(removeNills) as { data: object[]; lines: LineData<object>[] }[]
+  }, [weatherData, chartsToShow, habitsData])
 
   const layout = charts.map((_c, i) => {
     const isEven = i % 2 === 0
@@ -115,50 +99,14 @@ export function Explore() {
             title="Analytics Settings"
             size={'auto'}
           >
-            <ExploreSettings
-              chartOptions={[
-                {
-                  group: 'Weather',
-                  items: Object.keys(weatherLineCharts).map((k) => {
-                    const value =
-                      weatherLineCharts[k as keyof typeof weatherLineCharts]
-                    return {
-                      value: k,
-                      label: value.labels.description ?? '',
-                      data: {
-                        id: k,
-
-                        source: ChartSource.Weather,
-                        type: ChartType.LineChart,
-                      },
-                    }
-                  }),
-                },
-                {
-                  group: 'Habits',
-                  items: habitsKeys.map((k) => ({
-                    value: k,
-                    label: k,
-                    type: ChartType.LineChart,
-                    data: {
-                      id: k,
-
-                      source: ChartSource.Weather,
-                      type: ChartType.LineChart,
-                    },
-                  })),
-                },
-              ]}
-              opened={opened}
-              onSave={handleSettingsChange}
-            />
+            <ExploreSettings opened={opened} onSave={handleSettingsChange} />
           </Modal>
           <Flex justify={'flex-end'}>
             <ActionIcon onClick={open} variant="light" size={'lg'}>
               <IconFilter />
             </ActionIcon>
           </Flex>
-          {weatherData && weatherData.length > 0 ? (
+          {charts.length > 0 ? (
             <EventEmitterProvider>
               <ResizableGrid layout={layout} rowHeight={500}>
                 {charts.map((chart, i) => (
@@ -168,8 +116,8 @@ export function Explore() {
                       xScale={{ type: 'time' }}
                       yScale={{ type: 'linear' }}
                     >
-                      <SingleSourceLineChart<WeatherAnalytics>
-                        data={chart.weatherData}
+                      <SingleSourceLineChart
+                        data={chart.data}
                         lines={chart.lines}
                         heightOffset={20}
                       />

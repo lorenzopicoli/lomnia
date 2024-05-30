@@ -1,11 +1,12 @@
 import { isValid, parse } from 'date-fns'
-import { eq, sql } from 'drizzle-orm'
+import { eq, sql, type getTableColumns } from 'drizzle-orm'
 import type { DateTime } from 'luxon'
 import { db } from '../db/connection'
 import {
   dailyWeatherTable,
   hourlyWeatherTable,
   locationsTable,
+  type HourlyWeatherColumns,
 } from '../models'
 
 export async function getWeatherInformation(params: { day: string }) {
@@ -25,6 +26,22 @@ export async function getWeatherInformation(params: { day: string }) {
     hourly,
     daily,
   }
+}
+
+export async function getWeatherAnalyticsLineCharts() {
+  return [
+    { key: 'apparentTemperature', description: 'Apparent Temperature' },
+    { key: 'temperature2m', description: 'Temperature at 2 meters' },
+    { key: 'snowfall', description: 'Snowfall' },
+    { key: 'snowDepth', description: 'Snow Depth' },
+    { key: 'windSpeed100m', description: 'Wind Speed at 100 meters' },
+    { key: 'windSpeed10m', description: 'Wind Speed at 10 meters' },
+    { key: 'relativeHumidity2m', description: 'Relative Humidity at 2 meters' },
+    { key: 'precipitation', description: 'Precipitation' },
+    { key: 'rain', description: 'Rain' },
+    { key: 'weatherCode', description: 'Weather Code' },
+    { key: 'cloudCover', description: 'Cloud Cover' },
+  ] as { key: HourlyWeatherColumns; description: string }[]
 }
 
 export async function getWeatherAnalytics(params: {
@@ -56,7 +73,19 @@ export async function getWeatherAnalytics(params: {
     .with(grouppedLocations)
     .select({
       date: grouppedLocations.date,
-      weather: hourlyWeatherTable,
+      entry: {
+        temperature2m: hourlyWeatherTable.temperature2m,
+        relativeHumidity2m: hourlyWeatherTable.relativeHumidity2m,
+        apparentTemperature: hourlyWeatherTable.apparentTemperature,
+        precipitation: hourlyWeatherTable.precipitation,
+        rain: hourlyWeatherTable.rain,
+        snowfall: hourlyWeatherTable.snowfall,
+        snowDepth: hourlyWeatherTable.snowDepth,
+        weatherCode: hourlyWeatherTable.weatherCode,
+        cloudCover: hourlyWeatherTable.cloudCover,
+        windSpeed10m: hourlyWeatherTable.windSpeed10m,
+        windSpeed100m: hourlyWeatherTable.windSpeed100m,
+      },
     })
     .from(grouppedLocations)
     .innerJoin(
