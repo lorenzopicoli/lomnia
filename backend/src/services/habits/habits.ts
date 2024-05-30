@@ -1,11 +1,12 @@
 import { isValid, parse } from 'date-fns'
-import { isNotNull, sql } from 'drizzle-orm'
+import { asc, isNotNull, sql } from 'drizzle-orm'
 import { db } from '../../db/connection'
 import { anonymize } from '../../helpers/anonymize'
 import { habitsTable, type Habit } from '../../models/Habit'
 import type { HabitKeys } from '../importers/obsidian/personal'
 import { habitLabel, habitTransformers } from './personal'
 import type { DateTime } from 'luxon'
+import { orderBy } from 'lodash'
 
 export const formatHabitResponse = (
   habits: Habit[],
@@ -49,7 +50,10 @@ export async function getHabitsAnalyticsKeys() {
     .where(isNotNull(habitsTable.key))
     .groupBy(habitsTable.key)
 
-  return keys.map((k) => ({ key: k.key, description: k.key }))
+  return keys.map((k) => ({
+    key: k.key,
+    description: habitLabel[k.key as HabitKeys],
+  }))
 }
 export async function getHabitsAnalytics(params: {
   startDate: DateTime
@@ -74,6 +78,7 @@ export async function getHabitsAnalytics(params: {
       } <= (${params.endDate.toISO()} AT TIME ZONE 'America/Toronto')::date`
     )
     .groupBy(habitsTable.date)
+    .orderBy(asc(habitsTable.date))
 
   return data as { date: string; entry: Record<string, unknown> }[]
 }

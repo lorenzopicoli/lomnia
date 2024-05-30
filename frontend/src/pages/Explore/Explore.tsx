@@ -1,7 +1,9 @@
 import {
   ActionIcon,
+  Button,
   Container,
   Flex,
+  Menu,
   Modal,
   Paper,
   ScrollArea,
@@ -21,6 +23,15 @@ import { ExploreSettings } from '../../components/ExploreSettings/ExploreSetting
 import { removeNills } from '../../utils/removeNils'
 import { IconFilter } from '@tabler/icons-react'
 import { getHabitLineChart } from '../../charts/habitCharts'
+import { endOfYear, format, startOfYear } from 'date-fns'
+import { DatePicker } from '@mantine/dates'
+import { startOfWeek } from 'date-fns/startOfWeek'
+import { subWeeks } from 'date-fns/subWeeks'
+import { endOfWeek } from 'date-fns/endOfWeek'
+import { sub } from 'date-fns/sub'
+import { subMonths } from 'date-fns/subMonths'
+import { subYears } from 'date-fns/subYears'
+import { subHours } from 'date-fns/subHours'
 
 export function Explore() {
   const theme = useMantineTheme()
@@ -28,6 +39,9 @@ export function Explore() {
     startOfMonth(new Date()),
     endOfMonth(new Date()),
   ])
+  const [partialDateRange, setPartialDateRange] = useState<
+    [Date | null, Date | null]
+  >([null, null])
   const [chartsToShow, setChartsToShow] = useState<Chart[]>([])
   const [opened, { open, close }] = useDisclosure(false)
   const handleSettingsChange = (
@@ -37,6 +51,45 @@ export function Explore() {
     setChartsToShow(charts)
     setDateRange(newDateRange)
     close()
+  }
+  const handleDateChange = (dates: [Date | null, Date | null]) => {
+    setPartialDateRange(dates as [Date, Date])
+    if (dates[0] && dates[1]) {
+      setDateRange(dates as [Date, Date])
+    }
+  }
+  const handleQuickDatesClick = (
+    id: 'week' | '24h' | 'month' | 'year' | 'all'
+  ) => {
+    let range: [Date, Date]
+    switch (id) {
+      case 'week':
+        range = [
+          startOfWeek(subWeeks(new Date(), 1)),
+          endOfWeek(subWeeks(new Date(), 1)),
+        ]
+        break
+      case 'month':
+        range = [
+          startOfMonth(subMonths(new Date(), 1)),
+          endOfMonth(subMonths(new Date(), 1)),
+        ]
+        break
+      case 'year':
+        range = [
+          startOfYear(subYears(new Date(), 1)),
+          endOfYear(subYears(new Date(), 1)),
+        ]
+        break
+      case '24h':
+        range = [subHours(new Date(), 24), new Date()]
+        break
+      case 'all':
+        range = [subYears(new Date(), 100), new Date()]
+        break
+    }
+    setDateRange(range)
+    setPartialDateRange(range)
   }
   const { data: weatherData } = trpc.getWeatherAnalytics.useQuery(
     {
@@ -93,6 +146,43 @@ export function Explore() {
           m={0}
           style={{ position: 'relative' }}
         >
+          <Menu shadow="md" width={200}>
+            <Menu.Target>
+              <Button variant="light">
+                {format(dateRange[0], 'dd/MM/yyyy HH:mm')} to{' '}
+                {format(dateRange[1], 'dd/MM/yyyy HH:mm')}
+              </Button>
+            </Menu.Target>
+            <Menu.Dropdown w={460}>
+              <Flex justify={'space-between'} p={'md'} gap={'md'}>
+                <div>
+                  <Menu.Item onClick={() => handleQuickDatesClick('24h')}>
+                    Last 24 hours
+                  </Menu.Item>
+                  <Menu.Item onClick={() => handleQuickDatesClick('week')}>
+                    Last week
+                  </Menu.Item>
+                  <Menu.Item onClick={() => handleQuickDatesClick('month')}>
+                    Last month
+                  </Menu.Item>
+                  <Menu.Item onClick={() => handleQuickDatesClick('year')}>
+                    Last year
+                  </Menu.Item>
+                  <Menu.Item
+                    onClick={() => handleQuickDatesClick('all')}
+                    color="red"
+                  >
+                    All
+                  </Menu.Item>
+                </div>
+                <DatePicker
+                  type="range"
+                  value={partialDateRange}
+                  onChange={handleDateChange}
+                />
+              </Flex>
+            </Menu.Dropdown>
+          </Menu>
           <Modal
             opened={opened}
             onClose={close}
