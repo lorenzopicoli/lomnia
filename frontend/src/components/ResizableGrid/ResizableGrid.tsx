@@ -5,7 +5,7 @@ import { forwardRef } from 'react'
 import {
   Responsive,
   WidthProvider,
-  type Layout,
+  type Layouts,
   type ResponsiveProps,
 } from 'react-grid-layout'
 
@@ -27,7 +27,7 @@ const ResizeHandle = forwardRef((props, ref) => {
 const ResponsiveGridLayout = WidthProvider(Responsive)
 
 export type ResizableGridProps = {
-  layout: Layout[]
+  layout: Layouts
   children: ReactNode
 } & ResponsiveProps
 
@@ -40,24 +40,17 @@ export function ResizableGrid(props: ResizableGridProps) {
     // To keep the sides aligned we add those 10px to the max width of the
     // container and add some negative margin on each side
     <Container
-      maw={`calc(100% + ${GRID_MARGIN * 2}px)`}
+      maw={`calc(100% - ${GRID_MARGIN * 2}px)`}
       m={0}
-      ml={-GRID_MARGIN}
-      mr={-GRID_MARGIN}
+      ml={GRID_MARGIN}
+      mr={GRID_MARGIN}
       p={0}
     >
       <ResponsiveGridLayout
         className="layout"
-        layouts={{
-          lg: layout,
-          md: layout,
-          sm: layout,
-          xs: layout,
-          xxs: layout,
-        }}
+        layouts={layout}
         breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
         cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
-        margin={[GRID_MARGIN, GRID_MARGIN]}
         isResizable={true}
         resizeHandles={['se']}
         resizeHandle={<ResizeHandle />}

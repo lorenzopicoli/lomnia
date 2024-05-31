@@ -78,6 +78,7 @@ function Header(props: HeaderProps) {
           variant={!props.privateMode ? 'light' : 'light'}
           size="lg"
           onClick={handlePrivateModeChange}
+          mr={'lg'}
         >
           {!props.privateMode ? <IconEye /> : <IconEyeOff />}
         </ActionIcon>

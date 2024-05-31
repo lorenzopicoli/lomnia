@@ -2,11 +2,11 @@ import type { HabitAnalytics } from './habitCharts'
 import type { WeatherAnalytics } from './weatherCharts'
 
 export enum ChartType {
-  LineChart,
+  LineChart = 0,
 }
 
 export enum ChartSource {
-  Weather,
+  Weather = 0,
   Habit,
 }
 

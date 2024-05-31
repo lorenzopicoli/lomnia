@@ -6,7 +6,6 @@ import { habitsTable, type Habit } from '../../models/Habit'
 import type { HabitKeys } from '../importers/obsidian/personal'
 import { habitLabel, habitTransformers } from './personal'
 import type { DateTime } from 'luxon'
-import { orderBy } from 'lodash'
 
 export const formatHabitResponse = (
   habits: Habit[],

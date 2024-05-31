@@ -8,7 +8,7 @@ export type HabitAnalytics = RouterOutputs['getHabitAnalytics'][number]
 export function getHabitLineChart(
   habitsData: HabitAnalytics[],
   chart: Chart
-): { data: HabitAnalytics[]; lines: LineData<HabitAnalytics>[] } {
+): { id: string; data: HabitAnalytics[]; lines: LineData<HabitAnalytics>[] } {
   const habitMinMax =
     habitsData && habitsData.length > 0
       ? getMinMax<HabitAnalytics, Record<string, number>>(
@@ -18,6 +18,7 @@ export function getHabitLineChart(
         )
       : null
   return {
+    id: chart.id,
     data: habitsData ?? [],
     lines: [
       {

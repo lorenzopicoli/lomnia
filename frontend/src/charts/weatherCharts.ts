@@ -43,7 +43,11 @@ export function isWeatherChart(chart: Chart): chart is WeatherChart {
 export function getWeatherChart(
   weatherData: WeatherAnalytics[],
   chart: WeatherChart
-): { data: WeatherAnalytics[]; lines: LineData<WeatherAnalytics>[] } {
+): {
+  id: string
+  data: WeatherAnalytics[]
+  lines: LineData<WeatherAnalytics>[]
+} {
   const weatherMinMax =
     weatherData && weatherData.length > 0
       ? getMinMax<WeatherAnalytics, WeatherAnalytics['entry']>(
@@ -53,6 +57,7 @@ export function getWeatherChart(
         )
       : null
   return {
+    id: chart.id,
     data: weatherData ?? [],
     lines: [
       {

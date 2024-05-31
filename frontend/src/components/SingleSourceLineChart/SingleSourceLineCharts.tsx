@@ -8,7 +8,7 @@ import { useMantineTheme } from '@mantine/core'
 // import styles from './LineChart.module.css'
 import { unitToLabel, type LineData } from '../../charts/charts'
 import { Group } from '@visx/group'
-import { getRandomColor } from '../../utils/getRandomColor'
+import { getRandomBrighterColor } from '../../utils/getRandomColor'
 
 // type SupportedScales =
 //   | ReturnType<typeof scaleTime<number>>
@@ -18,6 +18,8 @@ export type SingleSourceLineChartProps<T> = {
   heightOffset?: number
   data: T[]
   lines: LineData<T>[]
+  backgroundColor: string
+  margin: { top: number; right: number; bottom: number; left: number }
 }
 
 type InternalSingleSourceLineChartsProps<T> = SingleSourceLineChartProps<T> & {
@@ -29,14 +31,14 @@ function SingleSourceLineChartInternal<T extends object>(
 ) {
   const { data, lines, width: totalWidth, height: totalHeight } = props
   const theme = useMantineTheme()
-  const margin = { top: 40, right: 30, bottom: 50, left: 40 }
 
   return (
-    <XYChart margin={margin} height={totalHeight} width={totalWidth}>
+    <XYChart margin={props.margin} height={totalHeight} width={totalWidth}>
       <rect
         width={totalWidth}
         height={totalHeight}
-        fill={theme.colors.dark[8]}
+        // fill={theme.colors.dark[8]}
+        fill={props.backgroundColor}
         rx={4}
         ry={4}
       />
@@ -50,7 +52,7 @@ function SingleSourceLineChartInternal<T extends object>(
               xAccessor={lineData.accessors.getX}
               yAccessor={lineData.accessors.getY}
               curve={allCurves.curveMonotoneX}
-              stroke={getRandomColor()}
+              stroke={getRandomBrighterColor()}
             />
           </Group>
         )

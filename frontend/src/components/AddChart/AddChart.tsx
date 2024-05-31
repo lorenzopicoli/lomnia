@@ -1,23 +1,16 @@
 import { useMemo, useState } from 'react'
 import type { Chart } from '../../charts/charts'
-import { Button, Flex, MultiSelect, Space } from '@mantine/core'
-import { DatePicker } from '@mantine/dates'
-import { startOfMonth } from 'date-fns/startOfMonth'
-import { endOfMonth } from 'date-fns/endOfMonth'
+import { Button, Flex, MultiSelect } from '@mantine/core'
 import { useAvailableCharts } from '../../charts/useAvailableCharts'
 
-export type ExploreSettingsProps = {
+export type AddChartProps = {
   opened: boolean
-  onSave: (charts: Chart[], dateRange: [Date, Date]) => void
+  onSave: (charts: Chart[]) => void
 }
 
-export function ExploreSettings(props: ExploreSettingsProps) {
+export function AddChart(props: AddChartProps) {
   const [selectedCharts, setSelectedCharts] = useState<Chart[]>([])
-  const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([
-    startOfMonth(new Date()),
-    endOfMonth(new Date()),
-  ])
-  const availableCharts = useAvailableCharts()
+  const { availableCharts } = useAvailableCharts()
   const chartsByValue = useMemo(() => {
     return availableCharts.reduce((acc, curr) => {
       for (const item of curr.items) {
@@ -31,17 +24,12 @@ export function ExploreSettings(props: ExploreSettingsProps) {
     setSelectedCharts(values.map((v) => chartsByValue[v]))
   }
   const handleSave = () => {
-    if (dateRange[0] === null || dateRange[1] === null) {
-      return
-    }
-    props.onSave(selectedCharts, dateRange as [Date, Date])
+    props.onSave(selectedCharts)
   }
 
   return (
     <>
       <Flex direction={'row'} gap={'md'} p={'sm'}>
-        <DatePicker type="range" value={dateRange} onChange={setDateRange} />
-        <Space w={'10vh'} />
         <Flex direction={'column'} align={'flex-start'} justify={'flex-start'}>
           <MultiSelect
             searchable
