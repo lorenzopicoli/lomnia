@@ -1,5 +1,5 @@
 import 'dotenv/config'
-import { ExternalDnsRequestImporter } from './services/importers/dnsQueries'
+import { PiholeSchemaRequestImporter } from './services/importers/pihole'
 import { ExternalLocationsImporter } from './services/importers/locations'
 import { ObsidianImporter } from './services/importers/obsidian'
 import { OpenMeteoImport } from './services/importers/openMeteo'
@@ -9,9 +9,9 @@ const importLocations = async () => {
   await locationsImporter.import()
 }
 const importDnsQueries = async () => {
-  const dnsQueriesImporter = new ExternalDnsRequestImporter()
-  await dnsQueriesImporter.fetchDataForImport()
-  await dnsQueriesImporter.import()
+  const piholeImporter = new PiholeSchemaRequestImporter()
+  await piholeImporter.fetchDataForImport()
+  await piholeImporter.import()
 }
 const importObsidianFiles = async () => {
   const obsidianImporter = new ObsidianImporter()

@@ -10,11 +10,11 @@ import ProgressLogger from '../../../helpers/ProgressLogger'
 import { type NewDnsQuery, dnsQueriesTable } from '../../../models/DnsQuery'
 import { type ImportJob, importJobsTable } from '../../../models/ImportJob'
 import { newSSHConnection, safeDownloadFile } from '../ssh'
-import externalDnsQueriesSchema from './schema/externalDnsQueriesSchema'
-import { type ExternalDnsQuery, externalDnsQueriesTable } from './schema/tables'
+import piholeSchema from './schema/piholeSchema'
+import { type PiholeSchemaQuery, piholeQueriesTable } from './schema/tables'
 
-export class ExternalDnsRequestImporter {
-  private importDb: BetterSQLite3Database<typeof externalDnsQueriesSchema>
+export class PiholeSchemaRequestImporter {
+  private importDb: BetterSQLite3Database<typeof piholeSchema>
   private sourceId = 'sqlite-dns-requests-v1'
   private destinationTable = getTableName(dnsQueriesTable)
   private entryDateKey = 'timestamp' as const
@@ -34,7 +34,7 @@ export class ExternalDnsRequestImporter {
     const sqlite = new Database(this.localPath)
     this.importDb = drizzle(sqlite, {
       logger: false,
-      schema: externalDnsQueriesSchema,
+      schema: piholeSchema,
     })
   }
 
@@ -45,17 +45,17 @@ export class ExternalDnsRequestImporter {
     return qb
       .where(
         startDate
-          ? gt(externalDnsQueriesTable[this.entryDateKey], startDate)
+          ? gt(piholeQueriesTable[this.entryDateKey], startDate)
           : undefined
       )
-      .orderBy(asc(externalDnsQueriesTable[this.entryDateKey]))
+      .orderBy(asc(piholeQueriesTable[this.entryDateKey]))
   }
 
   private fetchFromSource(offset: number, startDate?: Date) {
-    const query = this.importDb.select().from(externalDnsQueriesTable)
+    const query = this.importDb.select().from(piholeQueriesTable)
 
     return this.withFilters(query.$dynamic(), startDate)
-      .orderBy(asc(externalDnsQueriesTable[this.entryDateKey]))
+      .orderBy(asc(piholeQueriesTable[this.entryDateKey]))
       .limit(this.importBatchSize)
       .offset(offset)
   }
@@ -117,7 +117,7 @@ export class ExternalDnsRequestImporter {
 
     const countQuery = this.importDb
       .select({ count: sql`count(*)`.mapWith(Number) })
-      .from(externalDnsQueriesTable)
+      .from(piholeQueriesTable)
 
     const count = await this.withFilters(countQuery.$dynamic(), startDate).then(
       (r) => r[0]?.count
@@ -140,7 +140,7 @@ export class ExternalDnsRequestImporter {
     let lastEntryDate: ImportJob['lastEntryDate'] | undefined
     let importedCount = 0
     let currentOffset = 0
-    let events: ExternalDnsQuery[] | undefined
+    let events: PiholeSchemaQuery[] | undefined
 
     const placeholderJob = await tx
       .insert(importJobsTable)
@@ -177,8 +177,8 @@ export class ExternalDnsRequestImporter {
           .insert(dnsQueriesTable)
           .values(events.map((e) => this.mapData(placeholderJob.id, e)))
 
-        const firstEntry: ExternalDnsQuery | undefined = events[0]
-        const lastEntry: ExternalDnsQuery | undefined =
+        const firstEntry: PiholeSchemaQuery | undefined = events[0]
+        const lastEntry: PiholeSchemaQuery | undefined =
           events[events.length - 1]
 
         if (!firstEntryDate && firstEntry?.[this.entryDateKey]) {
@@ -227,7 +227,7 @@ export class ExternalDnsRequestImporter {
       .catch((e) => console.log('NOTHING E', e))
   }
 
-  public mapData(jobId: number, importerData: ExternalDnsQuery): NewDnsQuery {
+  public mapData(jobId: number, importerData: PiholeSchemaQuery): NewDnsQuery {
     const {
       id,
       timestamp,
