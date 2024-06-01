@@ -6,7 +6,7 @@ import { getDiaryEntries } from '../services/diaryEntries'
 import {
   getHabits,
   getHabitsAnalytics,
-  getHabitsAnalyticsKeys,
+  getHabitsAnalyticsLineCharts,
 } from '../services/habits/habits'
 import { getHeatmapPoints } from '../services/locations'
 import {
@@ -139,7 +139,7 @@ export const appRouter = t.router({
   getLineCharts: loggedProcedure.query(async (opts) => {
     return {
       weather: await getWeatherAnalyticsLineCharts(),
-      habits: await getHabitsAnalyticsKeys(),
+      habits: await getHabitsAnalyticsLineCharts(),
     }
   }),
 })

@@ -39,7 +39,6 @@ export async function getWeatherAnalyticsLineCharts() {
     { key: 'relativeHumidity2m', description: 'Relative Humidity at 2 meters' },
     { key: 'precipitation', description: 'Precipitation' },
     { key: 'rain', description: 'Rain' },
-    { key: 'weatherCode', description: 'Weather Code' },
     { key: 'cloudCover', description: 'Cloud Cover' },
   ] as { key: HourlyWeatherColumns; description: string }[]
 }

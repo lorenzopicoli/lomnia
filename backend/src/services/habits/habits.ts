@@ -40,13 +40,15 @@ export async function getHabits(params: { day: string; privateMode: boolean }) {
   return formatHabitResponse(entries, privateMode)
 }
 
-export async function getHabitsAnalyticsKeys() {
+export async function getHabitsAnalyticsLineCharts() {
   const keys = await db
     .select({
       key: habitsTable.key,
     })
     .from(habitsTable)
-    .where(isNotNull(habitsTable.key))
+    .where(
+      sql`${habitsTable.key} IS NOT NULL AND jsonb_typeof(value) = 'number'`
+    )
     .groupBy(habitsTable.key)
 
   return keys.map((k) => ({
