@@ -71,13 +71,12 @@ export function ChartMenu(props: {
     <Menu shadow="md" width={200}>
       <Flex direction={'row'}>
         <Button onClick={props.onNewChart} variant={'subtle'}>
-          {/* <IconPlus /> */}
           Add chart
         </Button>
         <Menu.Target>
           <Button variant="subtle">
-            {format(props.currentRange[0], 'dd/MM/yyyy HH:mm')} to{' '}
-            {format(props.currentRange[1], 'dd/MM/yyyy HH:mm')}
+            {format(props.currentRange[0], 'MMMM do, yyyy HH:mm')} to{' '}
+            {format(props.currentRange[1], 'MMMM do, yyyy HH:mm')}
           </Button>
         </Menu.Target>
         <Pill.Group>

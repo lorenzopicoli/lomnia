@@ -5,8 +5,6 @@ import {
   ScrollArea,
   useMantineTheme,
 } from '@mantine/core'
-import { endOfMonth } from 'date-fns/endOfMonth'
-import { startOfMonth } from 'date-fns/startOfMonth'
 import { useMemo, useState } from 'react'
 import { trpc } from '../../api/trpc'
 import { SingleSourceLineChart } from '../../components/SingleSourceLineChart/SingleSourceLineCharts'
@@ -20,6 +18,7 @@ import { getHabitLineChart } from '../../charts/habitCharts'
 import { AddChart } from '../../components/AddChart/AddChart'
 import { useChartGridLayout } from '../../charts/useChartGridLayout'
 import { ChartMenu } from '../../components/ChartMenu/ChartMenu'
+import { subDays } from 'date-fns'
 
 const chartBgColor = 'rgb(0,0,0,0.3)'
 const chartMargin = { top: 40, right: 30, bottom: 50, left: 40 }
@@ -27,8 +26,8 @@ const chartMargin = { top: 40, right: 30, bottom: 50, left: 40 }
 export function Explore() {
   const theme = useMantineTheme()
   const [dateRange, setDateRange] = useState<[Date, Date]>([
-    startOfMonth(new Date()),
-    endOfMonth(new Date()),
+    subDays(new Date(), 30),
+    new Date(),
   ])
   const [opened, { open, close }] = useDisclosure(false)
   const {

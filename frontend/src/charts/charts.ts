@@ -15,6 +15,8 @@ export type Chart = {
   source: ChartSource
   type: ChartType
   title: string
+  // Chart might have a preferred color that was saved
+  color?: string
 }
 
 export type ChartOption = {
@@ -46,6 +48,7 @@ export type LineData<T> = {
   id: string
   max?: T
   min?: T
+  color: string
   accessors: {
     getX: (data: T) => Date
     getY: (data: T) => number
@@ -70,24 +73,4 @@ export const unitToLabel = (unit: string) => {
     meters: 'm',
   }
   return known[unit] ?? ''
-}
-
-export function getLineData<T>(params: {
-  staticLine: StaticLineData<T>
-  id: string
-  min: T
-  max: T
-}): LineData<T> {
-  const { staticLine, id, max, min } = params
-  return {
-    ...staticLine,
-    id,
-    max,
-    min,
-    labels: {
-      ...staticLine.labels,
-      showMaxLabel: true,
-      showMinLabel: true,
-    },
-  }
 }

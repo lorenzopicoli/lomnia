@@ -5,14 +5,8 @@ import { Annotation, Axis, LineSeries, Tooltip, XYChart } from '@visx/xychart'
 import { format } from 'date-fns/format'
 import { CircleSubject, Connector, Label } from '@visx/annotation'
 import { useMantineTheme } from '@mantine/core'
-// import styles from './LineChart.module.css'
 import { unitToLabel, type LineData } from '../../charts/charts'
 import { Group } from '@visx/group'
-import { getRandomBrighterColor } from '../../utils/getRandomColor'
-
-// type SupportedScales =
-//   | ReturnType<typeof scaleTime<number>>
-//   | ReturnType<typeof scaleLinear<number>>
 
 export type SingleSourceLineChartProps<T> = {
   heightOffset?: number
@@ -52,7 +46,7 @@ function SingleSourceLineChartInternal<T extends object>(
               xAccessor={lineData.accessors.getX}
               yAccessor={lineData.accessors.getY}
               curve={allCurves.curveMonotoneX}
-              stroke={getRandomBrighterColor()}
+              stroke={lineData.color}
             />
           </Group>
         )

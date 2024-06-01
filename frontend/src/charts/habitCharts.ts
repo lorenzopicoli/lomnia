@@ -1,6 +1,7 @@
 import type { RouterOutputs } from '../api/trpc'
 import { getKeys } from '../utils/getKeys'
 import { getMinMax } from '../utils/getMinMax'
+import { getRandomBrighterColor } from '../utils/getRandomColor'
 import type { Chart, LineData } from './charts'
 
 export type HabitAnalytics = RouterOutputs['getHabitAnalytics'][number]
@@ -30,6 +31,7 @@ export function getHabitLineChart(
           // TODO: Assuming number here
           getY: (data: HabitAnalytics) => data.entry[chart.id] as number,
         },
+        color: chart.color ?? getRandomBrighterColor(),
         labels: {
           description: chart.title,
           showMaxLabel: true,

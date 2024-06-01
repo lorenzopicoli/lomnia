@@ -1,17 +1,16 @@
 import type { RouterOutputs } from '../api/trpc'
 import { getKeys } from '../utils/getKeys'
 import { getMinMax } from '../utils/getMinMax'
-import { ChartSource, ChartType, type Chart, type LineData } from './charts'
+import { getRandomBrighterColor } from '../utils/getRandomColor'
+import { ChartSource, type Chart, type LineData } from './charts'
 
 // export type WeatherChart = Chart & {
 //   id: WeatherPlottableField
 // }
 
-export type WeatherChart = {
+export type WeatherChart = Chart & {
   id: keyof WeatherAnalytics['entry']
   source: ChartSource.Weather
-  type: ChartType
-  title: string
 }
 // Weather
 export type WeatherAnalytics = RouterOutputs['getWeatherAnalytics'][number]
@@ -64,6 +63,7 @@ export function getWeatherChart(
         id: chart.id,
         max: weatherMinMax?.max[chart.id].entry,
         min: weatherMinMax?.min[chart.id].entry,
+        color: chart.color ?? getRandomBrighterColor(),
         accessors: {
           getX: (data: WeatherAnalytics) => new Date(data.date),
           getY: (data: WeatherAnalytics) => data.entry[chart.id] ?? 0,
