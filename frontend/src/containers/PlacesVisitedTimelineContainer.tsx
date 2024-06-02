@@ -19,7 +19,7 @@ export default function PlacesVisitedTimelineContainer(
     startDate: startOfDay(props.date).toISOString(),
     endDate: endOfDay(props.date).toISOString(),
   })
-  const [activeIndex, setActiveIndex] = useState<number>(0)
+  const [activeIndex, setActiveIndex] = useState<number>()
 
   const handleItemHover = useCallback(
     (index: number) => {

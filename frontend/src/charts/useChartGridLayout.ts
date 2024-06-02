@@ -160,6 +160,18 @@ export function useChartGridLayout(gridId: string): {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(layout)])
 
+  const gridProps = useMemo(
+    () => ({
+      layout: gridLayout,
+      onLayoutChange,
+      onDragStart: handleStartGridChange,
+      onDragStop: handleStopGridChange,
+      onResizeStart: handleStartGridChange,
+      onResizeStop: handleStopGridChange,
+    }),
+    [gridLayout, handleStartGridChange, handleStopGridChange, onLayoutChange]
+  )
+
   return useMemo(
     () => ({
       isChangingLayout,
@@ -167,25 +179,15 @@ export function useChartGridLayout(gridId: string): {
       onRemoveChart,
       chartsBeingShown,
       layout,
-      gridProps: {
-        layout: gridLayout,
-        onLayoutChange,
-        onDragStart: handleStartGridChange,
-        onDragStop: handleStopGridChange,
-        onResizeStart: handleStartGridChange,
-        onResizeStop: handleStopGridChange,
-      },
+      gridProps,
     }),
     [
-      chartsBeingShown,
-      gridLayout,
-      onRemoveChart,
-      handleStartGridChange,
-      handleStopGridChange,
       isChangingLayout,
-      layout,
       onAddCharts,
-      onLayoutChange,
+      onRemoveChart,
+      chartsBeingShown,
+      layout,
+      gridProps,
     ]
   )
 }

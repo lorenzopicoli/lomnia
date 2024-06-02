@@ -12,7 +12,7 @@ import { startOfDay } from 'date-fns/startOfDay'
 import { useSearchParams } from 'react-router-dom'
 import DailyHabitEntries from '../../containers/DailyHabitEntries'
 import DailyWeatherOverviewContainer from '../../containers/DailyWeatherOverviewContainer'
-import DiaryEntryContainer from '../../containers/DiaryEntryContainer'
+import { DiaryEntryContainer } from '../../containers/DiaryEntryContainer'
 import HeatmapContainer from '../../containers/HeatmapContainer'
 import classes from './Home.module.css'
 import PlacesVisitedTimelineContainer from '../../containers/PlacesVisitedTimelineContainer'
@@ -38,12 +38,9 @@ function Home() {
     endDate: endOfDay(parsedDay),
   })
 
-  const handleMapFilterChange = useCallback(
-    (endDate: Date) => {
-      setMapFilter({ ...mapFilter, endDate })
-    },
-    [mapFilter]
-  )
+  const handleMapFilterChange = useCallback((endDate: Date) => {
+    setMapFilter((prev) => ({ ...prev, endDate }))
+  }, [])
 
   useEffect(() => {
     if (parsedDay) {
