@@ -10,13 +10,17 @@ export interface Point {
   lng: number
 }
 
+export function toPostgisGeoPoint(data: Point) {
+  return `SRID=4326;POINT(${data.lng} ${data.lat})`
+}
+
 export const geography = customType<{ data: Point }>({
   dataType() {
     return 'geography'
   },
 
   toDriver(data: Point) {
-    return `SRID=4326;POINT(${data.lng} ${data.lat})`
+    return toPostgisGeoPoint(data)
   },
 
   fromDriver(data: unknown) {

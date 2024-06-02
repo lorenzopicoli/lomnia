@@ -3,6 +3,7 @@ import { PiholeSchemaRequestImporter } from './services/importers/pihole'
 import { ExternalLocationsImporter } from './services/importers/locations'
 import { ObsidianImporter } from './services/importers/obsidian'
 import { OpenMeteoImport } from './services/importers/openMeteo'
+import { UserPointsOfInterestImporter } from './services/importers/userPOI'
 const importLocations = async () => {
   const locationsImporter = await new ExternalLocationsImporter()
   await locationsImporter.fetchDataForImport()
@@ -21,15 +22,22 @@ const importOpenMeteoData = async () => {
   const openMeteoImporter = new OpenMeteoImport()
   await openMeteoImporter.startJob()
 }
+const importUserPOIs = async () => {
+  const userPOI = new UserPointsOfInterestImporter()
+  await userPOI.startJob()
+}
 const main = async () => {
   console.log('================== LOCATIONS IMPORT ================== ')
-  await importLocations()
+  //   await importLocations()
   console.log('================= DNS QUERIES IMPORT ================= ')
-  await importDnsQueries()
+  //   await importDnsQueries()
   console.log('================= OBSIDIAN IMPORT ================= ')
-  await importObsidianFiles()
+  //   await importObsidianFiles()
   console.log('================= OPEN METEO IMPORT ================= ')
-  await importOpenMeteoData()
+  //   await importOpenMeteoData()
+  console.log('================= USERS POI IMPORT ================= ')
+  // Should always happen before other location imports
+  await importUserPOIs()
 }
 
 main()

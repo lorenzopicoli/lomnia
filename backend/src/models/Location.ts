@@ -10,6 +10,7 @@ import {
 import { geography } from '../db/types'
 import { importJobsTable } from './ImportJob'
 import { dailyWeatherTable, hourlyWeatherTable } from './Weather'
+import { locationDetailsTable } from './LocationDetails'
 
 export const batteryStatusEnum = pgEnum('battery_status', [
   'unknown',
@@ -87,6 +88,13 @@ export const locationsTable = pgTable('locations', {
    * The date at which the date was taken, in UTC time
    */
   locationFix: timestamp('location_fix'),
+
+  /**
+   * The details for this location entry
+   */
+  locationDetailsId: integer('location_details_id').references(
+    () => locationDetailsTable.id
+  ),
 
   /**
    * The daily weather entry that covers this location at the time that

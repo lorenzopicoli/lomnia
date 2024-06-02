@@ -5,10 +5,10 @@ import type { DBTransaction } from '../../db/types'
 import { importJobsTable } from '../../models/ImportJob'
 
 export class BaseImporter {
-  sourceId: string
-  destinationTable: string
-  entryDateKey: string
-  apiVersion: string
+  sourceId!: string
+  destinationTable!: string
+  entryDateKey!: string
+  apiVersion?: string
   placeholderDate = new Date(1997, 6, 6)
 
   jobStart = DateTime.now()
@@ -79,6 +79,8 @@ export class BaseImporter {
           .where(eq(importJobsTable.id, placeholderJobId.id))
       })
       .catch((e) => console.log('NOTHING E', e))
+
+    console.log('Done importing', this.sourceId)
   }
 
   public async import(_params: {
