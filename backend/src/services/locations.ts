@@ -146,12 +146,12 @@ export async function getHeatmapPoints(params: {
   }
   const zoomToGrid = (zoom: number) => {
     if (zoom <= 10.1) {
-      return '0.001'
-    }
-    if (zoom <= 12.5) {
       return '0.0001'
     }
-    return '0.00001'
+    if (zoom <= 12.5) {
+      return '0.00001'
+    }
+    return '0.000001'
   }
 
   const weightCap = 10
