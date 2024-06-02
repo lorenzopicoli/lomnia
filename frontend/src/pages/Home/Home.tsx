@@ -1,7 +1,6 @@
 import {
-  AspectRatio,
   Container,
-  Divider,
+  Flex,
   Paper,
   ScrollArea,
   useMantineTheme,
@@ -16,14 +15,44 @@ import DailyWeatherOverviewContainer from '../../containers/DailyWeatherOverview
 import DiaryEntryContainer from '../../containers/DiaryEntryContainer'
 import HeatmapContainer from '../../containers/HeatmapContainer'
 import classes from './Home.module.css'
+import PlacesVisitedTimelineContainer from '../../containers/PlacesVisitedTimelineContainer'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 function Home() {
   const [searchParams] = useSearchParams()
   const daySearchParam = searchParams.get('day')
   const urlDayFormat = 'yyyy-MM-dd'
-  const day = daySearchParam
-    ? startOfDay(parse(daySearchParam, urlDayFormat, new Date()))
-    : startOfDay(new Date())
+  const parsedDay = useMemo(
+    () =>
+      daySearchParam
+        ? parse(daySearchParam, urlDayFormat, new Date())
+        : new Date(),
+    [daySearchParam]
+  )
+  const day = daySearchParam ? startOfDay(parsedDay) : startOfDay(new Date())
+  const [mapFilter, setMapFilter] = useState<{
+    startDate: Date
+    endDate: Date
+  }>({
+    startDate: startOfDay(parsedDay),
+    endDate: endOfDay(parsedDay),
+  })
+
+  const handleMapFilterChange = useCallback(
+    (endDate: Date) => {
+      setMapFilter({ ...mapFilter, endDate })
+    },
+    [mapFilter]
+  )
+
+  useEffect(() => {
+    if (parsedDay) {
+      setMapFilter({
+        startDate: startOfDay(parsedDay),
+        endDate: endOfDay(parsedDay),
+      })
+    }
+  }, [parsedDay])
 
   const theme = useMantineTheme()
   return (
@@ -36,6 +65,23 @@ function Home() {
           >
             <Container className={classes.diaryEntry} pt={'md'} pb={'md'}>
               <DiaryEntryContainer date={day} />
+              <Flex direction={'row'} pt={100}>
+                <Container pb={'xl'} pl={0} fluid>
+                  <PlacesVisitedTimelineContainer
+                    date={day}
+                    onFilterChange={handleMapFilterChange}
+                  />
+                </Container>
+
+                <Container fluid h={500} flex={'1'}>
+                  {/* <AspectRatio ratio={1} className={classes.map}> */}
+                  <HeatmapContainer
+                    startDate={mapFilter.startDate}
+                    endDate={mapFilter.endDate}
+                  />
+                  {/* </AspectRatio> */}
+                </Container>
+              </Flex>
             </Container>
           </ScrollArea>
         </Allotment.Pane>
@@ -45,13 +91,16 @@ function Home() {
             type="never"
           >
             <Container fluid pt={'md'} pr={0}>
+              {/* <Container pb={'xl'} pl={0} pt={'xl'} fluid>
+                <PlacesVisitedTimelineContainer date={day} />
+              </Container>
               <AspectRatio ratio={1} className={classes.map}>
                 <HeatmapContainer
                   startDate={startOfDay(day)}
                   endDate={endOfDay(day)}
                 />
               </AspectRatio>
-              <Divider my="md" />
+              <Divider my="md" /> */}
               <DailyHabitEntries date={day} />
               <Container pl={0} pt={'xl'} fluid>
                 <DailyWeatherOverviewContainer date={day} />

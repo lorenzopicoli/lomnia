@@ -31,7 +31,7 @@ export default function HeatmapContainer(props: HeatmapContainerProps) {
   useEffect(() => {
     setFitToBounds(true)
     setIsFirstFetch(false)
-  }, [props.startDate, props.endDate])
+  }, [props.startDate])
 
   const { data } = trpc.getHeatmap.useQuery(
     {
