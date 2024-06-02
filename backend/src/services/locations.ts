@@ -115,10 +115,7 @@ export async function getVisitedPlaces(params: {
     .select({
       startDate: min(locationsCte.date),
       endDate: max(locationsCte.date),
-      ah: sql`(${locationsCte.seqnum} - ${locationsCte.setqnumI})`,
-      //   placeOfInterest: locationDetailsTable,
-      placeOfInterest: locationDetailsTable.name,
-      placeOfInterestId: locationsCte.locationDetailsId,
+      placeOfInterest: locationDetailsTable,
     })
     .from(locationsCte)
     .innerJoin(
@@ -126,7 +123,7 @@ export async function getVisitedPlaces(params: {
       eq(locationDetailsTable.id, locationsCte.locationDetailsId)
     )
     .groupBy(
-      sql`${locationsCte.locationDetailsId}, ${locationDetailsTable.name}, (${locationsCte.seqnum} - ${locationsCte.setqnumI})`
+      sql`${locationDetailsTable.id},  (${locationsCte.seqnum} - ${locationsCte.setqnumI})`
     )
     .orderBy(min(locationsCte.date))
 
