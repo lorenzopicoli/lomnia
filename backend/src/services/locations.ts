@@ -1,20 +1,24 @@
-import { sql } from 'drizzle-orm'
+import { sql, eq, asc, avg, min, max } from 'drizzle-orm'
 import type { PgSelectHKT, PgSelectQueryBuilder } from 'drizzle-orm/pg-core'
 import { db } from '../db/connection'
 import type { Point } from '../db/types'
 import { locationsTable } from '../models'
+import { locationDetailsTable } from '../models/LocationDetails'
+import type { DateTime } from 'luxon'
+import { isNumber } from '../helpers/isNumber'
+import { orderBy } from 'lodash'
 
 function withPointFilters<
   T extends PgSelectQueryBuilder<PgSelectHKT, typeof locationsTable._.name>
 >(
   qb: T,
   filters: {
-    topLeftLat: number
-    topLeftLng: number
-    bottomRightLat: number
-    bottomRightLng: number
-    startDate?: Date
-    endDate?: Date
+    topLeftLat?: number
+    topLeftLng?: number
+    bottomRightLat?: number
+    bottomRightLng?: number
+    startDate?: DateTime
+    endDate?: DateTime
   }
 ) {
   const {
@@ -27,32 +31,112 @@ function withPointFilters<
   } = filters
   return qb.where(
     sql`
-            ST_Intersects(
-                locations.location,
-                ST_MakeEnvelope(
-                    ${topLeftLng}, ${topLeftLat}, 
-                    ${bottomRightLng}, ${bottomRightLat}, 
-                    4326
-                )
-            ) 
+            ${
+              isNumber(topLeftLat) &&
+              isNumber(topLeftLng) &&
+              isNumber(bottomRightLat) &&
+              isNumber(bottomRightLng)
+                ? sql`
+                    ST_Intersects(
+                        ${locationsTable.location},
+                        ST_MakeEnvelope(
+                            ${topLeftLng}, ${topLeftLat}, 
+                            ${bottomRightLng}, ${bottomRightLat}, 
+                            4326
+                        )
+                    ) 
+            `
+                : sql.raw('1=1')
+            }
             ${
               startDate
-                ? sql`AND location_fix >= ${startDate.toISOString()}`
+                ? sql`AND ${locationsTable.locationFix} >= ${startDate.toISO()}`
                 : sql``
             }
             ${
               endDate
-                ? sql`AND location_fix <= ${endDate.toISOString()}`
+                ? sql`AND  ${locationsTable.locationFix} <= ${endDate.toISO()}`
                 : sql``
             }
           `
   )
 }
 
+export async function getVisitedPlaces(params: {
+  startDate: DateTime
+  endDate: DateTime
+}) {
+  // Gap and Islands https://stackoverflow.com/questions/55654156/group-consecutive-rows-based-on-one-column
+  const locationsCte = db.$with('locations_cte').as((cte) =>
+    cte
+      .select({
+        date: locationsTable.locationFix,
+        locationDetailsId: locationsTable.locationDetailsId,
+        seqnum:
+          // Very important to use the id as a tie break since location fix can have duplicates
+          // https://stackoverflow.com/questions/30877926/how-to-group-following-rows-by-not-unique-value/30880137#30880137
+          sql`row_number() over (order by ${locationsTable.locationFix} asc, ${locationsTable.id} asc)`
+            .mapWith(Number)
+            .as('seqnum'),
+        setqnumI:
+          // Very important to use the id as a tie break since location fix can have duplicates
+          // https://stackoverflow.com/questions/30877926/how-to-group-following-rows-by-not-unique-value/30880137#30880137
+          sql`row_number() over (partition by ${locationsTable.locationDetailsId} order by ${locationsTable.locationFix} asc, ${locationsTable.id} asc)`
+            .mapWith(Number)
+            .as('seqnum_i'),
+      })
+      .from(locationsTable)
+      .where(
+        sql`
+            ${locationsTable.locationDetailsId} IS NOT NULL
+            ${
+              params.startDate
+                ? sql`AND ${
+                    locationsTable.locationFix
+                  } >= ${params.startDate.toISO()}`
+                : sql``
+            }
+            ${
+              params.endDate
+                ? sql`AND  ${
+                    locationsTable.locationFix
+                  } <= ${params.endDate.toISO()}`
+                : sql``
+            }
+
+      `
+      )
+      .orderBy(asc(locationsTable.locationFix))
+  )
+  // .groupBy(locationDetailsTable.id)
+
+  const results = await db
+    .with(locationsCte)
+    .select({
+      startDate: min(locationsCte.date),
+      endDate: max(locationsCte.date),
+      ah: sql`(${locationsCte.seqnum} - ${locationsCte.setqnumI})`,
+      //   placeOfInterest: locationDetailsTable,
+      placeOfInterest: locationDetailsTable.name,
+      placeOfInterestId: locationsCte.locationDetailsId,
+    })
+    .from(locationsCte)
+    .innerJoin(
+      locationDetailsTable,
+      eq(locationDetailsTable.id, locationsCte.locationDetailsId)
+    )
+    .groupBy(
+      sql`${locationsCte.locationDetailsId}, ${locationDetailsTable.name}, (${locationsCte.seqnum} - ${locationsCte.setqnumI})`
+    )
+    .orderBy(min(locationsCte.date))
+
+  return results
+}
+
 export async function getHeatmapPoints(params: {
   zoom: number
-  startDate: Date
-  endDate: Date
+  startDate: DateTime
+  endDate: DateTime
 
   topLeftLat: number
   topLeftLng: number

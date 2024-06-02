@@ -191,15 +191,6 @@ export class ObsidianImporter {
       }
       const file = await this.processFile(filePath, rawContent)
 
-      //   const fileExists = await db.query.filesTable.findFirst({
-      //     where: eq(filesTable.checksum, file.checksum),
-      //   })
-
-      //   if (fileExists) {
-      //     console.log('Checksum match, skipping', filePath)
-      //     continue
-      //   }
-
       const dbFile = await tx
         .insert(filesTable)
         .values({
@@ -213,6 +204,17 @@ export class ObsidianImporter {
       importedCount++
       updateEntryDates(file.fileCreatedAt)
       const isDiary = file.tags.includes('diary/personal')
+
+      if (
+        filePath.indexOf('02-Diary') > -1 &&
+        !file.tags.some((t) => t.indexOf('diary/') > -1)
+      ) {
+        console.log(
+          'Detected file inside diary folder not tagged with diary tag',
+          filePath,
+          file.metadata.tags
+        )
+      }
 
       if (!isDiary) {
         continue
@@ -246,7 +248,7 @@ export class ObsidianImporter {
             createdAt: new Date(),
             fileId: dbFile.id,
             importJobId: placeholderJob.id,
-            date: date.toSQLDate(),
+            date: date.toSQLDate() as string,
             key,
             value: file.metadata[key],
           })
