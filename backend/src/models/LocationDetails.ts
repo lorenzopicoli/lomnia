@@ -6,6 +6,7 @@ import {
   integer,
   boolean,
   pgEnum,
+  jsonb,
 } from 'drizzle-orm/pg-core'
 import { geography } from '../db/types'
 import { importJobsTable } from './ImportJob'
@@ -42,6 +43,8 @@ export const locationDetailsTable = pgTable('location_details', {
   importance: decimal('importance'),
   addressType: text('address_type'),
   displayName: text('display_name'),
+  extraTags: jsonb('extra_tags'),
+  nameDetails: jsonb('name_details'),
   name: text('name'),
 
   houseNumber: text('house_number'),
@@ -57,3 +60,6 @@ export const locationDetailsTable = pgTable('location_details', {
   country: text('country'),
   countryCode: text('country_code'),
 })
+
+export type LocationDetails = typeof locationDetailsTable.$inferSelect
+export type NewLocationDetails = typeof locationDetailsTable.$inferInsert

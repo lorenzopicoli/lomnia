@@ -4,6 +4,7 @@ import { ExternalLocationsImporter } from './services/importers/locations'
 import { ObsidianImporter } from './services/importers/obsidian'
 import { OpenMeteoImport } from './services/importers/openMeteo'
 import { UserPointsOfInterestImporter } from './services/importers/userPOI'
+import { NominatimImport } from './services/importers/nominatim'
 const importLocations = async () => {
   const locationsImporter = await new ExternalLocationsImporter()
   await locationsImporter.fetchDataForImport()
@@ -26,18 +27,24 @@ const importUserPOIs = async () => {
   const userPOI = new UserPointsOfInterestImporter()
   await userPOI.startJob()
 }
+const nominatim = async () => {
+  const nominatim = new NominatimImport()
+  await nominatim.startJob()
+}
 const main = async () => {
   console.log('================== LOCATIONS IMPORT ================== ')
-  //   await importLocations()
+  await importLocations()
   console.log('================= DNS QUERIES IMPORT ================= ')
-  //   await importDnsQueries()
+  await importDnsQueries()
   console.log('================= OBSIDIAN IMPORT ================= ')
-  //   await importObsidianFiles()
+  await importObsidianFiles()
   console.log('================= OPEN METEO IMPORT ================= ')
-  //   await importOpenMeteoData()
+  await importOpenMeteoData()
   console.log('================= USERS POI IMPORT ================= ')
   // Should always happen before other location imports
   await importUserPOIs()
+  console.log('================= NOMINATIM IMPORT ================= ')
+  await nominatim()
 }
 
 main()

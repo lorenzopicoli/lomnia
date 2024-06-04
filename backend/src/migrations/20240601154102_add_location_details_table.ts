@@ -30,6 +30,8 @@ export async function up(knex: Knex): Promise<void> {
     table.text('iso3166_2_lvl4')
     table.text('country')
     table.text('country_code')
+    table.jsonb('extra_tags')
+    table.jsonb('name_details')
 
     table.enum('source', ['userPOIJson', 'external']).notNullable().index()
     table

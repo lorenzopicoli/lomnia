@@ -10,6 +10,8 @@ export class BaseImporter {
   entryDateKey!: string
   apiVersion?: string
   placeholderDate = new Date(1997, 6, 6)
+  firstEntry: Date | undefined
+  lastEntry: Date | undefined
 
   jobStart = DateTime.now()
 
@@ -19,6 +21,19 @@ export class BaseImporter {
     totalEstimate?: number
   }> {
     throw new Error('sourceHasNewData not implemented')
+  }
+
+  public updateFirstAndLastEntry(d: Date | undefined | null) {
+    if (!d) {
+      return
+    }
+    if (!this.firstEntry || d < this.firstEntry) {
+      this.firstEntry = d
+    }
+
+    if (!this.lastEntry || d > this.lastEntry) {
+      this.lastEntry = d
+    }
   }
 
   public async startJob() {
@@ -67,8 +82,8 @@ export class BaseImporter {
           .update(importJobsTable)
           .set({
             jobEnd: new Date(),
-            firstEntryDate: result.firstEntryDate,
-            lastEntryDate: result.lastEntryDate,
+            firstEntryDate: result.firstEntryDate ?? this.firstEntry,
+            lastEntryDate: result.lastEntryDate ?? this.lastEntry,
             apiCallsCount: result.apiCallsCount,
             apiVersion: this.apiVersion,
 
@@ -88,8 +103,8 @@ export class BaseImporter {
     placeholderJobId: number
   }): Promise<{
     importedCount: number
-    firstEntryDate: Date
-    lastEntryDate: Date
+    firstEntryDate?: Date
+    lastEntryDate?: Date
     apiCallsCount?: number
     logs: string[]
   }> {
