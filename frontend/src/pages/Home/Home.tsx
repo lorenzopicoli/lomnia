@@ -63,7 +63,7 @@ function Home() {
             <Container className={classes.diaryEntry} pt={'md'} pb={'md'}>
               <DiaryEntryContainer date={day} />
               <Flex direction={'row'} pt={100}>
-                <Container pb={'xl'} pl={0} fluid>
+                <Container pb={'xl'} pl={0} fluid maw={'50%'}>
                   <PlacesVisitedTimelineContainer
                     date={day}
                     onFilterChange={handleMapFilterChange}

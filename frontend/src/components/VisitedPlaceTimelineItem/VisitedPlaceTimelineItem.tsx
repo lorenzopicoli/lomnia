@@ -23,7 +23,7 @@ export function VisitedPlaceTimelineItem(props: {
   return (
     <div ref={ref}>
       <Text c="dimmed" size="sm">
-        {place.placeOfInterest.source === 'userPOIJson'
+        {place.placeOfInterest?.source === 'userPOIJson'
           ? 'Place of interest'
           : 'External'}
       </Text>
@@ -35,6 +35,11 @@ export function VisitedPlaceTimelineItem(props: {
           })
         )}
       </Text>
+      {place.mode ? (
+        <Text size="xs" mt={4}>
+          {place.mode} ({place.velocity.toFixed(2)}km/h)
+        </Text>
+      ) : null}
     </div>
   )
 }

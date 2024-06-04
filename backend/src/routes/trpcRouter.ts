@@ -8,7 +8,7 @@ import {
   getHabitsAnalytics,
   getHabitsAnalyticsLineCharts,
 } from '../services/habits/habits'
-import { getHeatmapPoints, getVisitedPlaces } from '../services/locations'
+import { getHeatmapPoints, getLocationsTimeline } from '../services/locations'
 import {
   getWeatherAnalytics,
   getWeatherAnalyticsLineCharts,
@@ -128,7 +128,7 @@ export const appRouter = t.router({
       })
     )
     .query((opts) => {
-      return getVisitedPlaces({
+      return getLocationsTimeline({
         startDate: DateTime.fromISO(opts.input.startDate, { zone: 'UTC' }),
         endDate: DateTime.fromISO(opts.input.endDate, { zone: 'UTC' }),
       })

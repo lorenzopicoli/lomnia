@@ -3,8 +3,7 @@ import { startOfDay } from 'date-fns/startOfDay'
 import { endOfDay } from 'date-fns/endOfDay'
 import { Timeline } from '@mantine/core'
 import { IconLocation } from '@tabler/icons-react'
-import { useCallback, useState } from 'react'
-import { isNumber } from '../utils/isNumber'
+import { useCallback, useEffect, useState } from 'react'
 import { VisitedPlaceTimelineItem } from '../components/VisitedPlaceTimelineItem/VisitedPlaceTimelineItem'
 
 type PlacesVisitedTimelineContainerProps = {
@@ -20,6 +19,12 @@ export default function PlacesVisitedTimelineContainer(
     endDate: endOfDay(props.date).toISOString(),
   })
   const [activeIndex, setActiveIndex] = useState<number>()
+
+  useEffect(() => {
+    if (data) {
+      setActiveIndex(data.length - 1)
+    }
+  }, [data])
 
   const handleItemHover = useCallback(
     (index: number) => {
@@ -42,16 +47,12 @@ export default function PlacesVisitedTimelineContainer(
   }
 
   return (
-    <Timeline
-      active={isNumber(activeIndex) ? activeIndex : data.length - 1}
-      bulletSize={24}
-      lineWidth={2}
-    >
+    <Timeline active={activeIndex} bulletSize={24} lineWidth={2}>
       {data.map((place, i) => (
         <Timeline.Item
           key={i}
           bullet={<IconLocation size={12} />}
-          title={place.placeOfInterest.displayName}
+          title={place.placeOfInterest?.displayName ?? 'Moving'}
         >
           <VisitedPlaceTimelineItem
             index={i}

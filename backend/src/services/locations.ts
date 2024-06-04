@@ -62,33 +62,36 @@ function withPointFilters<
   )
 }
 
-export async function getVisitedPlaces(params: {
+export async function getLocationsTimeline(params: {
   startDate: DateTime
   endDate: DateTime
 }) {
+  const accuracyFilter = 30
+  const activityDurationFilter = 10
+
+  // Prepare the locations table to be groupped in gaps/islands. Also applies base filters
   // Gap and Islands https://stackoverflow.com/questions/55654156/group-consecutive-rows-based-on-one-column
-  const locationsCte = db.$with('locations_cte').as((cte) =>
+  const baseLocations = db.$with('base_locations').as((cte) =>
     cte
       .select({
-        date: locationsTable.locationFix,
+        id: locationsTable.id,
+        locationFix: locationsTable.locationFix,
+        velocity: locationsTable.velocity,
         locationDetailsId: locationsTable.locationDetailsId,
-        seqnum:
-          // Very important to use the id as a tie break since location fix can have duplicates
-          // https://stackoverflow.com/questions/30877926/how-to-group-following-rows-by-not-unique-value/30880137#30880137
-          sql`row_number() over (order by ${locationsTable.locationFix} asc, ${locationsTable.id} asc)`
-            .mapWith(Number)
-            .as('seqnum'),
-        setqnumI:
-          // Very important to use the id as a tie break since location fix can have duplicates
-          // https://stackoverflow.com/questions/30877926/how-to-group-following-rows-by-not-unique-value/30880137#30880137
-          sql`row_number() over (partition by ${locationsTable.locationDetailsId} order by ${locationsTable.locationFix} asc, ${locationsTable.id} asc)`
-            .mapWith(Number)
-            .as('seqnum_i'),
+        totalSeq: sql`
+        --   // Very important to use the id as a tie break since location fix can have duplicates
+        --   // https://stackoverflow.com/questions/30877926/how-to-group-following-rows-by-not-unique-value/30880137#30880137
+            row_number() over (order by ${locationsTable.locationFix} asc, ${locationsTable.id} asc)
+        `.as('total_seq'),
+        partitionSeq: sql`
+            row_number() over (partition by ${locationsTable.locationDetailsId} order by ${locationsTable.locationFix} asc, ${locationsTable.id} asc)
+        `.as('parition_seq'),
       })
       .from(locationsTable)
       .where(
         sql`
             ${locationsTable.locationDetailsId} IS NOT NULL
+            AND ${locationsTable.accuracy} < ${accuracyFilter}
             ${
               params.startDate
                 ? sql`AND ${
@@ -103,31 +106,111 @@ export async function getVisitedPlaces(params: {
                   } <= ${params.endDate.toISO()}`
                 : sql``
             }
-
       `
       )
-      .orderBy(asc(locationsTable.locationFix))
   )
-  // .groupBy(locationDetailsTable.id)
+  // Groups the gaps and islands
+  const baseActivitiesIslands = db.$with('activities_islands').as((cte) =>
+    cte
+      .with(baseLocations)
+      .select({
+        startDate: min(baseLocations.locationFix).as('ai_start_date'),
+        endDate: max(baseLocations.locationFix).as('ai_end_date'),
+        duration: sql`EXTRACT(EPOCH FROM (
+                ${max(baseLocations.locationFix)} - 
+                ${min(baseLocations.locationFix)})
+            )`.as('ai_duration'),
+        velocity: avg(baseLocations.velocity).mapWith(Number).as('ai_velocity'),
+        locationDetailsId: baseLocations.locationDetailsId,
+      })
+      .from(baseLocations)
+      .orderBy(asc(min(baseLocations.locationFix)))
+      .groupBy(
+        sql`${baseLocations.locationDetailsId},  (${baseLocations.totalSeq} - ${baseLocations.partitionSeq})`
+      )
+  )
 
-  const results = await db
-    .with(locationsCte)
+  // Now prepare to generate gaps and islands based on the duration of each activity
+  // Short duration locations detials are groupped together as "in transit". The locations details
+  // are really precise so every few meters they'll change. We want to group them and find the ones
+  // that are repeated for some time which means that the user stopped moving in a single location
+  const activitiesIslands = db.$with('durations_islands').as((cte) =>
+    cte
+      .with(baseActivitiesIslands)
+      .select({
+        startDate: baseActivitiesIslands.startDate,
+        endDate: baseActivitiesIslands.endDate,
+        duration: baseActivitiesIslands.duration,
+        velocity: baseActivitiesIslands.velocity,
+        locationDetailsId: baseActivitiesIslands.locationDetailsId,
+        totalSeq: sql`
+            row_number() over (
+                order by ${baseActivitiesIslands.startDate} asc, 
+                ${baseActivitiesIslands.locationDetailsId} asc
+            )
+        `.as('di_total_seq'),
+        partitionSeq: sql`
+            row_number() over (
+                partition by ${baseActivitiesIslands.duration} > (60 * ${activityDurationFilter})
+                order by ${baseActivitiesIslands.startDate} asc, 
+                ${baseActivitiesIslands.locationDetailsId} asc
+            )
+        `.as('di_partition_seq'),
+      })
+      .from(baseActivitiesIslands)
+  )
+  const durationIslands = db.$with('durations_islands').as((cte) =>
+    cte
+      .with(activitiesIslands)
+      .select({
+        startDate: min(activitiesIslands.startDate).as('di_start_date'),
+        endDate: max(activitiesIslands.endDate).as('di_end_date'),
+        velocity: avg(activitiesIslands.velocity)
+          .mapWith(Number)
+          .as('di_velocity'),
+        locationDetailsId: sql`
+            CASE 
+                WHEN POSITION(',' IN string_agg(${activitiesIslands.locationDetailsId}::text, ',')) > 0 THEN NULL
+                ELSE string_agg(${activitiesIslands.locationDetailsId}::text, ',')::integer
+            END 
+        `.as('di_location_details_id'),
+        duration: sql`
+        EXTRACT(EPOCH FROM (
+            ${max(activitiesIslands.endDate)} - 
+            ${min(activitiesIslands.startDate)})
+        )`.as('di_duration'),
+      })
+      .from(activitiesIslands)
+      .groupBy(
+        sql`(${activitiesIslands.totalSeq} - ${activitiesIslands.partitionSeq})`
+      )
+      .orderBy(min(activitiesIslands.startDate))
+  )
+
+  return db
+    .with(durationIslands)
     .select({
-      startDate: min(locationsCte.date),
-      endDate: max(locationsCte.date),
+      startDate: durationIslands.startDate,
+      endDate: durationIslands.endDate,
+      velocity: durationIslands.velocity,
+      duration: durationIslands.duration,
       placeOfInterest: locationDetailsTable,
+      mode: sql`
+        CASE
+            WHEN ${durationIslands.locationDetailsId} IS NOT NULL THEN 'still'
+            WHEN ${durationIslands.velocity} < 5 THEN 'walking'
+            WHEN ${durationIslands.velocity} < 25 THEN 'biking'
+            WHEN ${durationIslands.velocity} < 27 THEN 'metro'
+            ELSE 'driving'
+        END
+      `.mapWith(String),
     })
-    .from(locationsCte)
-    .innerJoin(
+    .from(durationIslands)
+    .leftJoin(
       locationDetailsTable,
-      eq(locationDetailsTable.id, locationsCte.locationDetailsId)
+      eq(locationDetailsTable.id, durationIslands.locationDetailsId)
     )
-    .groupBy(
-      sql`${locationDetailsTable.id},  (${locationsCte.seqnum} - ${locationsCte.setqnumI})`
-    )
-    .orderBy(min(locationsCte.date))
-
-  return results
+    .orderBy(durationIslands.startDate)
 }
 
 export async function getHeatmapPoints(params: {
