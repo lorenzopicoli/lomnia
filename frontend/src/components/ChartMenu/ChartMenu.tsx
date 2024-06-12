@@ -1,24 +1,18 @@
 import { Button, Flex, Menu, Pill } from '@mantine/core'
 import { DatePicker } from '@mantine/dates'
-import { endOfMonth } from 'date-fns/endOfMonth'
-import { endOfWeek } from 'date-fns/endOfWeek'
-import { endOfYear } from 'date-fns/endOfYear'
 import { format } from 'date-fns/format'
-import { startOfMonth } from 'date-fns/startOfMonth'
-import { startOfWeek } from 'date-fns/startOfWeek'
-import { startOfYear } from 'date-fns/startOfYear'
 import { subHours } from 'date-fns/subHours'
 import { subMonths } from 'date-fns/subMonths'
 import { subWeeks } from 'date-fns/subWeeks'
 import { subYears } from 'date-fns/subYears'
 import { useEffect, useState } from 'react'
-import type { Chart } from '../../charts/charts'
+import type { ChartAreaConfig } from '../../charts/charts'
 
 export function ChartMenu(props: {
-  selectedCharts: Chart[]
+  selectedCharts: ChartAreaConfig[]
   currentRange: [Date, Date]
   onDateChange: (range: [Date, Date]) => void
-  onRemoveChart: (chart: Chart) => void
+  onRemoveChart: (chartId: string) => void
   onNewChart: () => void
 }) {
   const [partialDateRange, setPartialDateRange] = useState<
@@ -33,22 +27,13 @@ export function ChartMenu(props: {
     let range: [Date, Date]
     switch (id) {
       case 'week':
-        range = [
-          startOfWeek(subWeeks(new Date(), 1)),
-          endOfWeek(subWeeks(new Date(), 1)),
-        ]
+        range = [subWeeks(new Date(), 1), new Date()]
         break
       case 'month':
-        range = [
-          startOfMonth(subMonths(new Date(), 1)),
-          endOfMonth(subMonths(new Date(), 1)),
-        ]
+        range = [subMonths(new Date(), 1), new Date()]
         break
       case 'year':
-        range = [
-          startOfYear(subYears(new Date(), 1)),
-          endOfYear(subYears(new Date(), 1)),
-        ]
+        range = [subYears(new Date(), 1), new Date()]
         break
       case '24h':
         range = [subHours(new Date(), 24), new Date()]
@@ -59,8 +44,8 @@ export function ChartMenu(props: {
     }
     setPartialDateRange(range)
   }
-  const handleRemove = (chart: Chart) => () => {
-    props.onRemoveChart(chart)
+  const handleRemove = (chart: ChartAreaConfig) => () => {
+    props.onRemoveChart(chart.id)
   }
   useEffect(() => {
     if (partialDateRange[0] && partialDateRange[1]) {
@@ -97,16 +82,16 @@ export function ChartMenu(props: {
         <Flex justify={'space-between'} p={'md'} gap={'md'}>
           <div>
             <Menu.Item onClick={() => handleQuickDatesClick('24h')}>
-              Last 24 hours
+              Past 24 hours
             </Menu.Item>
             <Menu.Item onClick={() => handleQuickDatesClick('week')}>
-              Last week
+              Past week
             </Menu.Item>
             <Menu.Item onClick={() => handleQuickDatesClick('month')}>
-              Last month
+              Past month
             </Menu.Item>
             <Menu.Item onClick={() => handleQuickDatesClick('year')}>
-              Last year
+              Past year
             </Menu.Item>
             <Menu.Item onClick={() => handleQuickDatesClick('all')} color="red">
               All

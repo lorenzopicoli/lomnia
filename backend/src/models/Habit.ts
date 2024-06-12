@@ -9,6 +9,7 @@ import {
 import { customJsonb } from '../db/types'
 import { filesTable } from './File'
 import { importJobsTable } from './ImportJob'
+import type { getTableColumns } from 'drizzle-orm'
 
 export const habitsTable = pgTable('habits', {
   id: serial('id').primaryKey(),
@@ -45,3 +46,7 @@ export const habitsTable = pgTable('habits', {
 
 export type Habit = typeof habitsTable.$inferSelect
 export type NewHabit = typeof habitsTable.$inferInsert
+
+export type HabitColumns = keyof ReturnType<
+  typeof getTableColumns<typeof habitsTable>
+>

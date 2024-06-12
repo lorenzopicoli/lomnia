@@ -6,25 +6,19 @@ import {
   useMantineTheme,
 } from '@mantine/core'
 import { useMemo, useState } from 'react'
-import { trpc } from '../../api/trpc'
-import { SingleSourceLineChart } from '../../components/SingleSourceLineChart/SingleSourceLineCharts'
-import { DataProvider, EventEmitterProvider } from '@visx/xychart'
 import { ResizableGrid } from '../../components/ResizableGrid/ResizableGrid'
-import { getWeatherChart, type WeatherChart } from '../../charts/weatherCharts'
-import { ChartSource, type Chart, type LineData } from '../../charts/charts'
 import { useDisclosure } from '@mantine/hooks'
 import { removeNills } from '../../utils/removeNils'
-import { getHabitLineChart } from '../../charts/habitCharts'
 import { AddChart } from '../../components/AddChart/AddChart'
 import { useChartGridLayout } from '../../charts/useChartGridLayout'
 import { ChartMenu } from '../../components/ChartMenu/ChartMenu'
 import { subDays } from 'date-fns'
-
-const chartBgColor = 'rgb(0,0,0,0.3)'
-const chartMargin = { top: 40, right: 30, bottom: 50, left: 40 }
+import { GenericChartContainer } from '../../components/SimpleChart/GenericChartContainer'
+import type { ChartAreaConfig } from '../../charts/charts'
 
 export function Explore() {
   const theme = useMantineTheme()
+
   const [dateRange, setDateRange] = useState<[Date, Date]>([
     subDays(new Date(), 30),
     new Date(),
@@ -37,51 +31,13 @@ export function Explore() {
     isChangingLayout,
     gridProps,
   } = useChartGridLayout('explore')
-  const handleAddChart = (charts: Chart[]) => {
-    onAddCharts(charts)
+  const handleAddChart = (chart: ChartAreaConfig) => {
+    onAddCharts([chart])
     close()
   }
-  const { data: weatherData } = trpc.getWeatherAnalytics.useQuery(
-    {
-      startDate: dateRange[0].toISOString(),
-      endDate: dateRange[1].toISOString(),
-    },
-    {
-      enabled: chartsBeingShown.some((c) => c.source === ChartSource.Weather),
-      initialData: [],
-    }
-  )
-  const { data: habitsData } = trpc.getHabitAnalytics.useQuery(
-    {
-      startDate: dateRange[0].toISOString(),
-      endDate: dateRange[1].toISOString(),
-      keys: chartsBeingShown
-        .filter((c) => c.source === ChartSource.Habit)
-        .map((c) => c.id),
-    },
-    {
-      enabled: chartsBeingShown.some((c) => c.source === ChartSource.Habit),
-      initialData: [],
-    }
-  )
-
   const charts = useMemo(() => {
-    return chartsBeingShown
-      .map((chart) => {
-        switch (chart.source) {
-          case ChartSource.Habit:
-            return getHabitLineChart(habitsData, chart)
-          case ChartSource.Weather:
-            return getWeatherChart(weatherData, chart as WeatherChart)
-        }
-      })
-      .filter(removeNills) as {
-      id: string
-      data: object[]
-      lines: LineData<object>[]
-    }[]
-  }, [chartsBeingShown, habitsData, weatherData])
-
+    return Object.values(chartsBeingShown).filter(removeNills)
+  }, [chartsBeingShown])
   return (
     <Paper component={Container} fluid h={'100vh'} bg={theme.colors.dark[9]}>
       <ScrollArea
@@ -99,52 +55,42 @@ export function Explore() {
           <Modal
             opened={opened}
             onClose={close}
-            title="Analytics Settings"
-            size={'auto'}
+            title="Add a new chart"
+            size={'xl'}
+            bg={theme.colors.dark[9]}
+            style={{ backgroundColor: theme.colors.dark[9] }}
           >
             <AddChart opened={opened} onSave={handleAddChart} />
           </Modal>
           <ChartMenu
-            selectedCharts={chartsBeingShown}
+            selectedCharts={charts}
             onRemoveChart={onRemoveChart}
             currentRange={dateRange}
             onDateChange={setDateRange}
             onNewChart={() => open()}
           />
-          <EventEmitterProvider>
+          {charts.length > 0 ? (
             <ResizableGrid {...gridProps} rowHeight={500}>
-              {charts.length > 0
-                ? charts.map((chart) => (
-                    <div key={chart.id}>
-                      {isChangingLayout ? (
-                        <Container
-                          fluid
-                          h={'100%'}
-                          p={0}
-                          bg={theme.colors.dark[8]}
-                        >
-                          {chart.lines[0].labels.description}
-                        </Container>
-                      ) : (
-                        <DataProvider
-                          xScale={{ type: 'time' }}
-                          yScale={{ type: 'linear' }}
-                        >
-                          {chart.lines[0].labels.description}
-                          <SingleSourceLineChart
-                            data={chart.data}
-                            lines={chart.lines}
-                            heightOffset={20}
-                            backgroundColor={chartBgColor}
-                            margin={chartMargin}
-                          />
-                        </DataProvider>
-                      )}
-                    </div>
-                  ))
-                : null}
+              {charts.map((chart) => (
+                <div key={chart.id}>
+                  {isChangingLayout ? (
+                    <Container
+                      fluid
+                      h={'100%'}
+                      p={0}
+                      bg={theme.colors.dark[8]}
+                    />
+                  ) : (
+                    <GenericChartContainer
+                      chart={chart}
+                      startDate={dateRange[0]}
+                      endDate={dateRange[1]}
+                    />
+                  )}
+                </div>
+              ))}
             </ResizableGrid>
-          </EventEmitterProvider>
+          ) : null}
         </Container>
       </ScrollArea>
     </Paper>

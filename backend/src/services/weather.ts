@@ -1,13 +1,18 @@
 import { isValid, parse } from 'date-fns'
-import { eq, sql, type getTableColumns } from 'drizzle-orm'
-import type { DateTime } from 'luxon'
+import { asc, sql, type SQL } from 'drizzle-orm'
 import { db } from '../db/connection'
 import {
   dailyWeatherTable,
   hourlyWeatherTable,
-  locationsTable,
   type HourlyWeatherColumns,
 } from '../models'
+import type { ChartServiceParams, ChartServiceReturn } from './charts/types'
+import { getKeys } from '../helpers/getKeys'
+import {
+  getAggregatedXColumn,
+  getAggregatedYColumn,
+  getMinMaxChart,
+} from './charts/charts'
 
 export async function getWeatherInformation(params: { day: string }) {
   const { day } = params
@@ -27,71 +32,71 @@ export async function getWeatherInformation(params: { day: string }) {
     daily,
   }
 }
-
-export async function getWeatherAnalyticsLineCharts() {
-  return [
-    { key: 'apparentTemperature', description: 'Apparent Temperature' },
-    { key: 'temperature2m', description: 'Temperature at 2 meters' },
-    { key: 'snowfall', description: 'Snowfall' },
-    { key: 'snowDepth', description: 'Snow Depth' },
-    { key: 'windSpeed100m', description: 'Wind Speed at 100 meters' },
-    { key: 'windSpeed10m', description: 'Wind Speed at 10 meters' },
-    { key: 'relativeHumidity2m', description: 'Relative Humidity at 2 meters' },
-    { key: 'precipitation', description: 'Precipitation' },
-    { key: 'rain', description: 'Rain' },
-    { key: 'cloudCover', description: 'Cloud Cover' },
-  ] as { key: HourlyWeatherColumns; description: string }[]
-}
-
-export async function getWeatherAnalytics(params: {
-  startDate: DateTime
-  endDate: DateTime
-}) {
-  const grouppedLocations = db.$with('groupped_locations').as((cte) =>
-    cte
-      .select({
-        hourlyWeatherId: sql`MAX(${locationsTable.hourlyWeatherId})`
-          .mapWith(locationsTable.hourlyWeatherId)
-          .as('hourly_weather_id'),
-        date: sql`to_timestamp(floor((extract('epoch' from location_fix) / 3600 )) * 3600)`
-          .mapWith(locationsTable.locationFix)
-          .as('groupped_date'),
-      })
-      .from(locationsTable)
-      .where(
-        sql`
-      ${locationsTable.locationFix} >= ${params.startDate.toISO()} 
-      AND ${locationsTable.locationFix} <= ${params.endDate.toISO()}`
-      )
-      .groupBy(
-        sql`to_timestamp(floor((extract('epoch' from location_fix) / 3600 )) * 3600)`
-      )
+export const getWeatherCharts = async (
+  params: ChartServiceParams
+): ChartServiceReturn => {
+  const { yKeys, xKey, filters, aggregation } = params
+  const columns = getKeys(hourlyWeatherTable)
+  const isSafeXKey = columns.includes(xKey as (typeof columns)[number])
+  const isSafeYKeys = yKeys.every((yKey) =>
+    columns.includes(yKey as (typeof columns)[number])
   )
 
-  const data = db
-    .with(grouppedLocations)
-    .select({
-      date: grouppedLocations.date,
-      entry: {
-        temperature2m: hourlyWeatherTable.temperature2m,
-        relativeHumidity2m: hourlyWeatherTable.relativeHumidity2m,
-        apparentTemperature: hourlyWeatherTable.apparentTemperature,
-        precipitation: hourlyWeatherTable.precipitation,
-        rain: hourlyWeatherTable.rain,
-        snowfall: hourlyWeatherTable.snowfall,
-        snowDepth: hourlyWeatherTable.snowDepth,
-        weatherCode: hourlyWeatherTable.weatherCode,
-        cloudCover: hourlyWeatherTable.cloudCover,
-        windSpeed10m: hourlyWeatherTable.windSpeed10m,
-        windSpeed100m: hourlyWeatherTable.windSpeed100m,
-      },
-    })
-    .from(grouppedLocations)
-    .innerJoin(
-      hourlyWeatherTable,
-      eq(grouppedLocations.hourlyWeatherId, hourlyWeatherTable.id)
-    )
-    .orderBy(grouppedLocations.date)
+  if (!isSafeXKey || !isSafeYKeys) {
+    console.log('X', isSafeXKey, 'Y', isSafeYKeys)
+    console.log('X', xKey, 'Y', yKeys)
+    throw new Error('Invalid keys')
+  }
+  const xKeyTyped = xKey as HourlyWeatherColumns
+  const yKeysTyped = yKeys as HourlyWeatherColumns[]
+  const xCol = getAggregatedXColumn(hourlyWeatherTable[xKeyTyped], aggregation)
+  const yCols = yKeysTyped.reduce((acc, curr) => {
+    acc[curr] = getAggregatedYColumn(
+      hourlyWeatherTable[curr],
+      aggregation
+    ).mapWith(Number)
+    return acc
+  }, {} as Record<HourlyWeatherColumns, SQL>)
 
-  return data
+  const data = db
+    .select({
+      ...yCols,
+      [xKey]: xCol,
+    })
+    .from(hourlyWeatherTable)
+    .where(
+      sql`
+      ${
+        hourlyWeatherTable.date
+      } >= (${filters.startDate.toISO()} AT TIME ZONE 'America/Toronto')::date 
+      AND ${
+        hourlyWeatherTable.date
+      } <= (${filters.endDate.toISO()} AT TIME ZONE 'America/Toronto')::date`
+    )
+    .$dynamic()
+
+  if (aggregation) {
+    data.groupBy(sql`${xCol}`)
+  }
+
+  data.orderBy(asc(xCol))
+  const result = await data
+  const formatted: Record<string, { x: number | Date | string; y: number }[]> =
+    {}
+
+  // Slow!
+  for (const entry of result) {
+    const x = entry[xKeyTyped] as string | number
+    for (const key of getKeys(entry)) {
+      if (key === xKeyTyped) {
+        continue
+      }
+      if (!formatted[key]) {
+        formatted[key] = []
+      }
+      formatted[key].push({ x, y: entry[key] as number })
+    }
+  }
+
+  return getMinMaxChart(formatted)
 }

@@ -4,12 +4,12 @@ import {
   text,
   decimal,
   integer,
-  boolean,
   pgEnum,
   jsonb,
 } from 'drizzle-orm/pg-core'
 import { geography } from '../db/types'
 import { importJobsTable } from './ImportJob'
+import type { getTableColumns } from 'drizzle-orm'
 
 export const locationDetailsSource = pgEnum('locations_details_source', [
   'external',
@@ -63,3 +63,7 @@ export const locationDetailsTable = pgTable('location_details', {
 
 export type LocationDetails = typeof locationDetailsTable.$inferSelect
 export type NewLocationDetails = typeof locationDetailsTable.$inferInsert
+
+export type LocationDetailsColumns = keyof ReturnType<
+  typeof getTableColumns<typeof locationDetailsTable>
+>

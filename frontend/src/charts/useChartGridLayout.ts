@@ -1,24 +1,37 @@
 import type { Layout, Layouts } from 'react-grid-layout'
-import type { Chart } from './charts'
+import type { ChartAreaConfig } from './charts'
 import { useLocalStorage } from '@mantine/hooks'
 import { useCallback, useMemo, useState } from 'react'
 import { useAvailableCharts } from './useAvailableCharts'
 import type { ResizableGridProps } from '../components/ResizableGrid/ResizableGrid'
-
-type ChartLayoutItem = {
-  chart: Chart
-  placement: Layout
-}
+import { omitBy } from 'lodash'
 
 type ChartLayout = {
-  [breakpoint: string]: ChartLayoutItem[]
+  [breakpoint: string]: Layout[]
 }
+/**
+ *
+ * Manages and persists the chart grid and configuration
+ *
+ * @param gridId A unique identifier to make sure that the stored layout doesn´t conflict
+ * @returns isChangingLayout - true if the user is in the process of moving or resizing tiles
+ * @returns onAddcharts - function to be called to add charts to the grid. It'll automatically
+ * add them to the bottom of the gird
+ * @returns onRemoveChart - function to be called to remove a chart. Use the same id used to add it
+ * @returns chartsBeingShow - an object of { chartId: ChartConfig }. This can be used to see what charts
+ * are currently in the grid and also to actually get the config necessary to display them
+ * @returns layout - exposes the object that gets saved in the local storage
+ * @returns gridProps - props that should be passed as is to the underlying react-grid-layout
+ */
 export function useChartGridLayout(gridId: string): {
   isChangingLayout: boolean
-  onAddCharts: (charts: Chart[]) => void
-  onRemoveChart: (chart: Chart) => void
-  chartsBeingShown: Chart[]
-  layout: ChartLayout
+  onAddCharts: (charts: ChartAreaConfig[]) => void
+  onRemoveChart: (chartId: string) => void
+  chartsBeingShown: { [key: string]: ChartAreaConfig }
+  layout: {
+    idToChart: { [key: string]: ChartAreaConfig }
+    placement: ChartLayout
+  }
   gridProps: Pick<
     ResizableGridProps,
     | 'layout'
@@ -31,115 +44,95 @@ export function useChartGridLayout(gridId: string): {
 } {
   const [layout, setLayout] = useLocalStorage({
     key: gridId + '-layout',
-    defaultValue: { lg: [], md: [], sm: [], xs: [], xxs: [] } as ChartLayout,
+    defaultValue: {
+      idToChart: {} as { [key: string]: ChartAreaConfig },
+      placement: { lg: [], md: [], sm: [], xs: [], xxs: [] } as ChartLayout,
+    },
   })
   const [isChangingLayout, setIsChangingLayout] = useState<boolean>(false)
-  const { chartsById, isLoading: isLoadingAvailableCharts } =
-    useAvailableCharts()
-
-  // Assumes all breakpoints have the same charts
-  const chartsBeingShown = useMemo(() => {
-    return (
-      Object.values(layout)[0]
-        ?.sort((a, b) =>
-          a.placement.y === b.placement.y
-            ? a.placement.x - b.placement.x
-            : a.placement.y - b.placement.y
-        )
-        .map((l) => l.chart) ?? []
-    )
-  }, [layout])
+  const { isLoading: isLoadingAvailableCharts } = useAvailableCharts()
 
   const onLayoutChange: ResizableGridProps['onLayoutChange'] = useCallback(
     (_currentLayout: Layout[], newLayout: Layouts) => {
       if (isLoadingAvailableCharts) {
         return
       }
-      const formattedNewLayout = Object.keys(newLayout).reduce((acc, curr) => {
-        acc[curr] = newLayout[curr].map((c) => ({
-          placement: c,
-          chart: chartsById[c.i],
-        }))
-        return acc
-      }, {} as ChartLayout)
-      setLayout(formattedNewLayout)
+      setLayout({ idToChart: layout.idToChart, placement: newLayout })
     },
-    [chartsById, isLoadingAvailableCharts, setLayout]
+    [isLoadingAvailableCharts, layout.idToChart, setLayout]
   )
   const handleStopGridChange = useCallback(() => setIsChangingLayout(false), [])
   const handleStartGridChange = useCallback(() => setIsChangingLayout(true), [])
   const onRemoveChart = useCallback(
-    (chart: Chart) => {
+    (chartId: string) => {
       const newLayout: ChartLayout = {}
-      for (const bp of Object.keys(layout)) {
-        for (const l of layout[bp]) {
+      for (const bp of Object.keys(layout.placement)) {
+        for (const l of layout.placement[bp]) {
           if (!newLayout[bp]) {
             newLayout[bp] = []
           }
-          if (l.chart.id === chart.id) {
+          if (l.i === chartId) {
             continue
           }
           newLayout[bp] = [...newLayout[bp], l]
         }
       }
 
-      setLayout(newLayout)
+      setLayout({
+        idToChart: omitBy(layout.idToChart, (o) => o.id === chartId),
+        placement: newLayout,
+      })
     },
     [layout, setLayout]
   )
   const onAddCharts = useCallback(
-    (charts: Chart[]) => {
-      const newCharts = charts.filter(
-        (item) => !chartsBeingShown.some((c) => item.id === c.id)
-      )
+    (charts: ChartAreaConfig[]) => {
+      //   const newCharts = charts.filter(
+      //     (item) => !chartsBeingShown.some((c) => item.id === c.id)
+      //   )
+      const newIdToCharts = { ...layout.idToChart }
+      for (const chart of charts) {
+        if (newIdToCharts[chart.id]) {
+          throw new Error('Detected duplicated chart id')
+        }
+        newIdToCharts[chart.id] = chart
+      }
       const newLayout: ChartLayout = {}
-      console.log('layout', newLayout)
-      for (const bp of Object.keys(layout)) {
+      for (const bp of Object.keys(layout.placement)) {
         let lastElement =
-          layout[bp].length > 0
-            ? layout[bp].reduce((last, curr) => {
-                if (curr.placement.y > last.placement.y) {
+          layout.placement[bp].length > 0
+            ? layout.placement[bp].reduce((last, curr) => {
+                if (curr.y > last.y) {
                   return curr
                 }
-                if (curr.placement.y === last.placement.y) {
-                  return curr.placement.x > last.placement.x ? curr : last
+                if (curr.y === last.y) {
+                  return curr.x > last.x ? curr : last
                 }
                 return last
               })
             : undefined
 
-        newLayout[bp] = [...(layout[bp] ?? [])]
+        newLayout[bp] = [...(layout.placement[bp] ?? [])]
 
-        for (const newChart of newCharts) {
+        for (const newChart of charts) {
           const defaultWidth = 6
-          let newPane: ChartLayoutItem = {
-            chart: chartsById[newChart.id],
-            placement: {
-              i: newChart.id,
-              x: 0,
-              y: 0,
-              w: defaultWidth,
-              h: 1,
-            },
+          let newPane: Layout = {
+            i: newChart.id,
+            x: 0,
+            y: 0,
+            w: defaultWidth,
+            h: 1,
           }
 
           if (lastElement) {
-            const spaceLeftInRow =
-              12 - lastElement.placement.x - lastElement.placement.w
+            const spaceLeftInRow = 12 - lastElement.x - lastElement.w
             const shouldTakeNewRow = defaultWidth > spaceLeftInRow
             newPane = {
-              chart: chartsById[newChart.id],
-              placement: {
-                i: newChart.id,
-                x: shouldTakeNewRow
-                  ? 0
-                  : lastElement.placement.x + lastElement.placement.w,
-                y: shouldTakeNewRow
-                  ? lastElement.placement.y + 1
-                  : lastElement.placement.y,
-                w: defaultWidth,
-                h: 1,
-              },
+              i: newChart.id,
+              x: shouldTakeNewRow ? 0 : lastElement.x + lastElement.w,
+              y: shouldTakeNewRow ? lastElement.y + 1 : lastElement.y,
+              w: defaultWidth,
+              h: 1,
             }
           }
 
@@ -148,15 +141,17 @@ export function useChartGridLayout(gridId: string): {
         }
       }
 
-      setLayout(newLayout)
+      setLayout({ idToChart: newIdToCharts, placement: newLayout })
     },
-    [chartsBeingShown, chartsById, layout, setLayout]
+    [layout, setLayout]
   )
   const gridLayout = useMemo(() => {
-    return Object.keys(layout).reduce((acc, curr) => {
-      acc[curr] = layout[curr].map((c) => c.placement)
-      return acc
-    }, {} as Layouts)
+    return layout.placement
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(layout)])
+
+  const chartsBeingShown = useMemo(() => {
+    return layout.idToChart
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(layout)])
 

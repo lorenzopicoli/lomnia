@@ -6,7 +6,6 @@ import { locationsTable } from '../models'
 import { locationDetailsTable } from '../models/LocationDetails'
 import type { DateTime } from 'luxon'
 import { isNumber } from '../helpers/isNumber'
-import { orderBy } from 'lodash'
 
 function withPointFilters<
   T extends PgSelectQueryBuilder<PgSelectHKT, typeof locationsTable._.name>

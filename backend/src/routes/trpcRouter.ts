@@ -1,19 +1,16 @@
 import { initTRPC } from '@trpc/server'
-// import { parseISO } from 'date-fns'
 import { DateTime } from 'luxon'
 import { z } from 'zod'
 import { getDiaryEntries } from '../services/diaryEntries'
-import {
-  getHabits,
-  getHabitsAnalytics,
-  getHabitsAnalyticsLineCharts,
-} from '../services/habits/habits'
+import { getHabits, getHabitsCharts } from '../services/habits/habits'
 import { getHeatmapPoints, getLocationsTimeline } from '../services/locations'
+import { getWeatherCharts, getWeatherInformation } from '../services/weather'
 import {
-  getWeatherAnalytics,
-  getWeatherAnalyticsLineCharts,
-  getWeatherInformation,
-} from '../services/weather'
+  habitsNumericKeys,
+  habitsPrimitiveKeys,
+  weatherNumericKeys,
+  weatherPrimitiveKeys,
+} from '../services/charts/chartOptions'
 
 export const t = initTRPC.create()
 
@@ -91,35 +88,6 @@ export const appRouter = t.router({
       )
     }),
 
-  getHottestDay: loggedProcedure
-    .input(
-      z.object({
-        startDate: z.string().datetime(),
-        endDate: z.string().datetime(),
-      })
-    )
-    .query(() => {
-      return {
-        date: new Date(),
-        temperature: 40,
-        location: { x: 0, y: 0 },
-      }
-    }),
-
-  getWeatherAnalytics: loggedProcedure
-    .input(
-      z.object({
-        startDate: z.string().datetime(),
-        endDate: z.string().datetime(),
-      })
-    )
-    .query((opts) => {
-      return getWeatherAnalytics({
-        startDate: DateTime.fromISO(opts.input.startDate, { zone: 'UTC' }),
-        endDate: DateTime.fromISO(opts.input.endDate, { zone: 'UTC' }),
-      })
-    }),
-
   getVisitedPlaces: loggedProcedure
     .input(
       z.object({
@@ -133,25 +101,94 @@ export const appRouter = t.router({
         endDate: DateTime.fromISO(opts.input.endDate, { zone: 'UTC' }),
       })
     }),
-  getHabitAnalytics: loggedProcedure
+  getWeatherCharts: loggedProcedure
     .input(
-      z.object({
-        startDate: z.string().datetime(),
-        endDate: z.string().datetime(),
-        keys: z.array(z.string()),
-      })
+      z
+        .object({
+          startDate: z.string().datetime(),
+          endDate: z.string().datetime(),
+          xKey: z.string(),
+          yKeys: z.array(z.string()),
+          aggregation: z.object({
+            fun: z
+              .literal('avg')
+              .or(z.literal('median'))
+              .or(z.literal('max'))
+              .or(z.literal('min')),
+            period: z
+              .literal('month')
+              .or(z.literal('week'))
+              .or(z.literal('day')),
+          }),
+        })
+        .partial()
+        .required({
+          xKey: true,
+          yKeys: true,
+          startDate: true,
+          endDate: true,
+        })
     )
     .query((opts) => {
-      return getHabitsAnalytics({
-        startDate: DateTime.fromISO(opts.input.startDate, { zone: 'UTC' }),
-        endDate: DateTime.fromISO(opts.input.endDate, { zone: 'UTC' }),
-        keys: opts.input.keys,
+      return getWeatherCharts({
+        xKey: opts.input.xKey,
+        yKeys: opts.input.yKeys,
+        filters: {
+          startDate: DateTime.fromISO(opts.input.startDate, { zone: 'UTC' }),
+          endDate: DateTime.fromISO(opts.input.endDate, { zone: 'UTC' }),
+        },
+        aggregation: opts.input.aggregation,
       })
     }),
-  getLineCharts: loggedProcedure.query(async (opts) => {
+  getHabitsCharts: loggedProcedure
+    .input(
+      z
+        .object({
+          startDate: z.string().datetime(),
+          endDate: z.string().datetime(),
+          xKey: z.string(),
+          yKeys: z.array(z.string()),
+          aggregation: z.object({
+            fun: z
+              .literal('avg')
+              .or(z.literal('median'))
+              .or(z.literal('max'))
+              .or(z.literal('min')),
+            period: z
+              .literal('month')
+              .or(z.literal('week'))
+              .or(z.literal('day')),
+          }),
+        })
+        .partial()
+        .required({
+          xKey: true,
+          yKeys: true,
+          startDate: true,
+          endDate: true,
+        })
+    )
+    .query((opts) => {
+      return getHabitsCharts({
+        xKey: opts.input.xKey,
+        yKeys: opts.input.yKeys,
+        filters: {
+          startDate: DateTime.fromISO(opts.input.startDate, { zone: 'UTC' }),
+          endDate: DateTime.fromISO(opts.input.endDate, { zone: 'UTC' }),
+        },
+        aggregation: opts.input.aggregation,
+      })
+    }),
+  getAvailableKeys: loggedProcedure.query(async () => {
     return {
-      weather: await getWeatherAnalyticsLineCharts(),
-      habits: await getHabitsAnalyticsLineCharts(),
+      xKeys: {
+        weather: weatherPrimitiveKeys,
+        habit: await habitsPrimitiveKeys(),
+      },
+      yKeys: {
+        weather: weatherNumericKeys,
+        habit: await habitsNumericKeys(),
+      },
     }
   }),
 })

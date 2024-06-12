@@ -1,66 +1,68 @@
-import type { HabitAnalytics } from './habitCharts'
-import type { WeatherAnalytics } from './weatherCharts'
-
 export enum ChartType {
-  LineChart = 0,
+  LineChart = 'line',
+  BarChart = 'bar',
+  AreaChart = 'area',
 }
 
 export enum ChartSource {
-  Weather = 0,
-  Habit,
+  Weather = 'weather',
+  Habit = 'habit',
 }
 
-export type Chart = {
-  id: string
-  source: ChartSource
-  type: ChartType
+export function stringToChartSource(str: string) {
+  switch (str) {
+    case 'weather':
+      return ChartSource.Weather
+    case 'habit':
+      return ChartSource.Habit
+    default:
+      throw new Error(`Unknown chart source: ${str}`)
+  }
+}
+
+export function chartSourceTitleAndDescription(source: ChartSource): {
   title: string
-  // Chart might have a preferred color that was saved
-  color?: string
+  description: string
+} {
+  switch (source) {
+    case ChartSource.Weather:
+      return {
+        title: 'Weather',
+        description: 'Weather data of the location of the user',
+      }
+    case ChartSource.Habit:
+      return {
+        title: 'Habit',
+        description: 'Habit data manually tracked by the user',
+      }
+  }
+}
+
+export const aggregationPeriods = ['month', 'day', 'week'] as const
+export const aggregationFunctions = ['avg', 'max', 'min', 'median'] as const
+
+export type ChartAreaConfig = {
+  id: string
+  xKey: string
+  aggregation?: {
+    period: (typeof aggregationPeriods)[number]
+    fun: (typeof aggregationFunctions)[number]
+  }
+  shapes: {
+    id: string
+    isMain: boolean
+    source: ChartSource
+    yKey: string
+    type: ChartType
+  }[]
+  // Used to display in the UI
+  title: string
 }
 
 export type ChartOption = {
-  data: Chart
-  value: Chart['id']
+  data: ChartAreaConfig
+  value: ChartAreaConfig['id']
   label: string
-}
-
-export type ChartsDataSources = WeatherAnalytics | HabitAnalytics
-
-export type StaticLineData<T> = {
-  accessors: {
-    getX: (data: T) => Date
-    getY: (data: T) => number
-  }
-  config: {
-    hasMaxLabel: boolean
-    hasMinLabel: boolean
-  }
-  labels: {
-    description?: string
-    maxLabel: (value: number, unit: string) => string
-    minLabel: (value: number, unit: string) => string
-    unit: string
-  }
-}
-
-export type LineData<T> = {
-  id: string
-  max?: T
-  min?: T
-  color: string
-  accessors: {
-    getX: (data: T) => Date
-    getY: (data: T) => number
-  }
-  labels: {
-    description?: string
-    showMaxLabel: boolean
-    showMinLabel: boolean
-    maxLabel: (value: number, unit: string) => string
-    minLabel: (value: number, unit: string) => string
-    unit: string
-  }
 }
 
 export const unitToLabel = (unit: string) => {

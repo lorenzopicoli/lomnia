@@ -10,11 +10,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@mantine/code-highlight": "^7.9.1",
-    "@mantine/core": "^7.9.1",
-    "@mantine/dates": "^7.9.1",
-    "@mantine/hooks": "^7.9.1",
-    "@mantine/spotlight": "^7.9.1",
+    "@mantine/code-highlight": "^7.10.0",
+    "@mantine/core": "^7.10.0",
+    "@mantine/dates": "^7.10.0",
+    "@mantine/form": "^7.10.1",
+    "@mantine/hooks": "^7.10.0",
+    "@mantine/spotlight": "^7.10.0",
     "@nivo/core": "^0.87.0",
     "@nivo/line": "^0.87.0",
     "@nivo/stream": "^0.87.0",

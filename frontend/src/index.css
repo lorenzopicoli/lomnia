@@ -23,6 +23,9 @@ body {
   min-height: 100vh;
   overflow: hidden;
 }
+:root[data-mantine-color-scheme='dark'] {
+  --mantine-color-body: rgb(20, 20, 20) !important;
+}
 
 /* Hides the lib resize icon */
 .react-grid-item > .react-resizable-handle::after {

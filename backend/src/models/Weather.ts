@@ -1,7 +1,6 @@
 import {
   date,
   integer,
-  jsonb,
   pgTable,
   real,
   serial,
