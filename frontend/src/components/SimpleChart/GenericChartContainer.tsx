@@ -1,3 +1,4 @@
+import { useInViewport } from '@mantine/hooks'
 import type { ChartAreaConfig } from '../../charts/charts'
 import { useChartData } from '../../charts/useChartData'
 import { GenericChartArea } from './GenericChartArea'
@@ -11,6 +12,7 @@ export function GenericChartContainer(props: {
   startDate: Date
   endDate: Date
 }) {
+  const { ref, inViewport } = useInViewport()
   const { mainChart, secondaryCharts, isLoading } = useChartData(
     {
       id: props.chart.id,
@@ -24,7 +26,7 @@ export function GenericChartContainer(props: {
         shapes: props.chart.shapes,
       },
     },
-    true
+    inViewport
   )
 
   if (isLoading || isNil(mainChart) || isNil(secondaryCharts)) {
@@ -32,6 +34,12 @@ export function GenericChartContainer(props: {
   }
 
   return (
-    <GenericChartArea mainChart={mainChart} secondaryCharts={secondaryCharts} />
+    <>
+      <div ref={ref} />
+      <GenericChartArea
+        mainChart={mainChart}
+        secondaryCharts={secondaryCharts}
+      />
+    </>
   )
 }

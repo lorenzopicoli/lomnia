@@ -1,4 +1,4 @@
-import { createContext, useState, type ReactNode } from 'react'
+import { createContext, useMemo, useState, type ReactNode } from 'react'
 import { useEventHandlers } from './useEventHandlers'
 
 export type SynchronizedContextType = {
@@ -21,12 +21,20 @@ export const SynchronizedProvider: React.FC<{ children: ReactNode }> = ({
     x: string | number | Date
     y: number
   }>()
+  const values = useMemo(
+    () => ({
+      isHovering,
+      setIsHovering,
+      currentDatum,
+      setCurrentDatum,
+    }),
+    [isHovering, currentDatum]
+  )
 
   useEventHandlers('synchronized', setCurrentDatum)
+
   return (
-    <SynchronizedContext.Provider
-      value={{ isHovering, setIsHovering, currentDatum, setCurrentDatum }}
-    >
+    <SynchronizedContext.Provider value={values}>
       {children}
     </SynchronizedContext.Provider>
   )

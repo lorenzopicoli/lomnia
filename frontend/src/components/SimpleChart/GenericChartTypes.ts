@@ -45,6 +45,7 @@ export type InternalGenericChartProps<T> = GenericChartProps<T> & {
 }
 
 export type InternalGenericChartAreaProps<T> = GenericChartAreaProps<T> & {
+  bgRef: React.LegacyRef<SVGSVGElement>
   width: number
   height: number
 }
