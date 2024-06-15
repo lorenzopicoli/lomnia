@@ -114,7 +114,11 @@ export function GenericChart<T extends object>(
           return barHeight > 0 ? (
             <>
               {barGradient()}
-              <path fill="url(#gradient)" d={rectPath} />
+              <path
+                key={'bar-chart' + barX + barY}
+                fill="url(#gradient)"
+                d={rectPath}
+              />
             </>
           ) : null
         })}

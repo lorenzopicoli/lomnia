@@ -1,22 +1,19 @@
 import { useInViewport } from '@mantine/hooks'
 import { ParentSize } from '@visx/responsive'
-import { ChartType, unitToLabel } from '../../charts/charts'
-import { format } from 'date-fns/format'
-import { isDate } from 'lodash'
-import { AxisBottom, AxisLeft } from '@visx/axis'
-import { scaleBand, scaleLinear, scalePoint, scaleUtc } from '@visx/scale'
-import { isNumber } from '../../utils/isNumber'
-import { useMemo } from 'react'
+import { ChartType } from '../../charts/charts'
+import { useCallback, useMemo } from 'react'
 import type {
   GenericChartAreaProps,
   InternalGenericChartAreaProps,
 } from './GenericChartTypes'
-import { getMaxDomains } from './utils'
+import { getMaxDomains, useChartScales } from './utils'
 import { GenericChart } from './GenericChart'
-import { isDateLike } from '../../utils/isDateLike'
 import { useMantineTheme } from '@mantine/core'
-import type { AxisProps } from '@visx/axis/lib/axis/Axis'
-import { GridColumns, GridRows } from '@visx/grid'
+import useEventEmitters from '../../charts/useEventEmitters'
+import { useEventHandlers } from '../../charts/useEventHandlers'
+import type { localPoint } from '@visx/event'
+import { GenericChartGrids } from './GenericChartGrids'
+import { GenericChartAxis } from './GenericChartAxis'
 
 // The order at which the charts are rendered. Later charts will be drawn on top of previous charts
 const order: Record<ChartType, number> = {
@@ -53,6 +50,22 @@ function GenericChartAreaInternal<T extends object>(
   props: InternalGenericChartAreaProps<T>
 ) {
   const { height, width, mainChart, secondaryCharts } = props
+  const getNearestDatum = useCallback(
+    (_svgPoint: ReturnType<typeof localPoint>) => {
+      return {
+        x: mainChart.accessors.getX(mainChart.data[0]),
+        y: mainChart.accessors.getY(mainChart.data[0]),
+      }
+    },
+    [mainChart.accessors, mainChart.data]
+  )
+  const chartId = mainChart.id + secondaryCharts.map((c) => c.id).join('')
+  const eventEmitters = useEventEmitters({
+    chartId,
+    getNearestDatum,
+  })
+  useEventHandlers(chartId)
+
   const orderedCharts = useMemo(() => {
     const ordered = secondaryCharts
       .concat(mainChart)
@@ -60,48 +73,24 @@ function GenericChartAreaInternal<T extends object>(
     return ordered
   }, [mainChart, secondaryCharts])
 
-  const domains = getMaxDomains(orderedCharts)
-  const margin = props.margin
-    ? props.margin
-    : { top: 0, left: 50, right: 0, bottom: 30 }
+  const domains = useMemo(() => getMaxDomains(orderedCharts), [orderedCharts])
+  const margin = useMemo(
+    () =>
+      props.margin ? props.margin : { top: 0, left: 50, right: 0, bottom: 30 },
+    [props.margin]
+  )
 
-  const yScale = scaleLinear({
-    domain: [domains.minY, domains.maxY],
-    range: [height - margin.bottom - margin.top, 0],
+  const { xScale, yScale } = useChartScales<T>({
+    mainChart,
+    height,
+    width,
+    margin,
+    domains,
   })
-
-  // Tries to find the right scale given the data type of the x axis. Might want more control over
-  // this in the future
-  const xScale = isDateLike(domains.minX)
-    ? scaleUtc({
-        domain: [new Date(domains.minX), new Date(domains.maxX)],
-        range: [margin.left, width - margin.right],
-      })
-    : isNumber(domains.maxX) && isNumber(domains.minX)
-    ? scaleLinear({
-        domain: [domains.minX, domains.maxX],
-        range: [margin.left, width - margin.right],
-      })
-    : mainChart.type === ChartType.BarChart
-    ? scaleBand({
-        domain: mainChart.data.map(mainChart.accessors.getX),
-        padding: 0.2,
-        range: [margin.left, outerWidth - margin.right],
-      })
-    : scalePoint({
-        domain: mainChart.data.map(mainChart.accessors.getX),
-        range: [margin.left, width - margin.right],
-      })
 
   const theme = useMantineTheme()
 
   const backgroundColor = theme.colors.dark[9]
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const tickProps: AxisProps<any>['tickLabelProps'] = {
-    fill: theme.colors.dark[0],
-    fontSize: 13,
-  }
-  const axisColor = theme.colors.dark[0]
 
   return (
     <svg height={height} width={width} overflow="visible">
@@ -114,22 +103,13 @@ function GenericChartAreaInternal<T extends object>(
         fill={backgroundColor}
         rx={14}
       />
-      <GridRows
-        scale={yScale}
-        left={margin.left}
-        width={width - margin.left - margin.right}
-        height={height - margin.top - margin.bottom}
-        stroke="#e0e0e0"
-        opacity={0.1}
+      <GenericChartGrids
+        xScale={xScale}
+        yScale={yScale}
+        width={width}
+        height={height}
+        margin={margin}
       />
-      <GridColumns
-        scale={xScale}
-        width={width - margin.left - margin.right}
-        height={height - margin.top - margin.bottom}
-        stroke="#e0e0e0"
-        opacity={0.1}
-      />
-
       {orderedCharts.map((chart) => {
         return (
           <GenericChart
@@ -143,33 +123,21 @@ function GenericChartAreaInternal<T extends object>(
           />
         )
       })}
-
-      <AxisBottom
-        top={height - margin.top - margin.bottom}
-        scale={xScale}
-        stroke={axisColor}
-        tickLabelProps={tickProps}
-        tickFormat={(v) => {
-          const unit = unitToLabel(mainChart.axis.x.unit)
-          if (isNumber(v)) {
-            return `${v.toFixed(2)}${unit ? ' ' : ''}${unit}`
-          }
-          if (isDate(v)) {
-            return format(v, 'MMM dd')
-          }
-          console.log('Non number/date value in AxisBottom')
-          return ''
-        }}
+      <GenericChartAxis
+        xScale={xScale}
+        yScale={yScale}
+        height={height}
+        margin={margin}
+        mainChart={mainChart}
       />
-      <AxisLeft
-        tickFormat={(v) => {
-          const unit = unitToLabel(mainChart.axis.y.unit)
-          return `${v}${unit ? ' ' : ''}${unit}`
-        }}
-        stroke={axisColor}
-        tickLabelProps={tickProps}
-        left={margin.left}
-        scale={yScale}
+      {/* Event capture rect */}
+      <rect
+        x={0}
+        y={0}
+        width={width}
+        height={height}
+        fill={'transparent'}
+        {...eventEmitters}
       />
     </svg>
   )
