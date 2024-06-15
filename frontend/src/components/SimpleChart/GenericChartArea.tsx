@@ -1,19 +1,22 @@
 import { useInViewport } from '@mantine/hooks'
 import { ParentSize } from '@visx/responsive'
 import { ChartType } from '../../charts/charts'
-import { useCallback, useMemo } from 'react'
+import { useCallback, useContext, useMemo } from 'react'
 import type {
   GenericChartAreaProps,
   InternalGenericChartAreaProps,
 } from './GenericChartTypes'
-import { getMaxDomains, useChartScales } from './utils'
+import { getMaxDomains } from './utils'
 import { GenericChart } from './GenericChart'
 import { useMantineTheme } from '@mantine/core'
 import useEventEmitters from '../../charts/useEventEmitters'
-import { useEventHandlers } from '../../charts/useEventHandlers'
 import type { localPoint } from '@visx/event'
 import { GenericChartGrids } from './GenericChartGrids'
 import { GenericChartAxis } from './GenericChartAxis'
+import { SynchronizedContext } from '../../charts/SynchronizedContext'
+import { useChartScales } from '../../charts/useChartScales'
+import { isScaleLinear, isScaleUtc } from '../../charts/types'
+import { useTooltipInPortal } from '@visx/tooltip'
 
 // The order at which the charts are rendered. Later charts will be drawn on top of previous charts
 const order: Record<ChartType, number> = {
@@ -50,36 +53,24 @@ function GenericChartAreaInternal<T extends object>(
   props: InternalGenericChartAreaProps<T>
 ) {
   const { height, width, mainChart, secondaryCharts } = props
-  const getNearestDatum = useCallback(
-    (_svgPoint: ReturnType<typeof localPoint>) => {
-      return {
-        x: mainChart.accessors.getX(mainChart.data[0]),
-        y: mainChart.accessors.getY(mainChart.data[0]),
-      }
-    },
-    [mainChart.accessors, mainChart.data]
-  )
-  const chartId = mainChart.id + secondaryCharts.map((c) => c.id).join('')
-  const eventEmitters = useEventEmitters({
-    chartId,
-    getNearestDatum,
-  })
-  useEventHandlers(chartId)
-
+  const theme = useMantineTheme()
+  const backgroundColor = theme.colors.dark[9]
   const orderedCharts = useMemo(() => {
     const ordered = secondaryCharts
       .concat(mainChart)
       .sort((a, b) => order[a.type] - order[b.type])
     return ordered
   }, [mainChart, secondaryCharts])
-
   const domains = useMemo(() => getMaxDomains(orderedCharts), [orderedCharts])
   const margin = useMemo(
     () =>
       props.margin ? props.margin : { top: 0, left: 50, right: 0, bottom: 30 },
     [props.margin]
   )
-
+  const chartId = useMemo(
+    () => mainChart.id + secondaryCharts.map((c) => c.id).join(''),
+    [mainChart.id, secondaryCharts]
+  )
   const { xScale, yScale } = useChartScales<T>({
     mainChart,
     height,
@@ -87,13 +78,109 @@ function GenericChartAreaInternal<T extends object>(
     margin,
     domains,
   })
+  // ------------
 
-  const theme = useMantineTheme()
+  const getNearestDatum = useCallback(
+    (svgPoint: ReturnType<typeof localPoint>) => {
+      if (!svgPoint) {
+        return { x: -1, y: -1 }
+      }
 
-  const backgroundColor = theme.colors.dark[9]
+      if (!isScaleLinear(xScale) && !isScaleUtc(xScale)) {
+        return { x: -2, y: -2 }
+      }
 
+      const x = +xScale.scale.invert(svgPoint.x)
+      const data = mainChart.data
+      const nearest = data.reduce(
+        (acc, curr) => {
+          const currX = +mainChart.accessors.getX(curr)
+          const currDistance = Math.sqrt((currX - x) ** 2)
+          if (acc.distance > currDistance) {
+            return { distance: currDistance, datum: curr }
+          }
+          return acc
+        },
+        { distance: Infinity, datum: null } as {
+          distance: number
+          datum: T | null
+        }
+      )
+
+      if (!nearest.datum) {
+        return { x: -4, y: -4 }
+      }
+
+      return {
+        x: mainChart.accessors.getX(nearest.datum),
+        y: mainChart.accessors.getY(nearest.datum),
+      }
+    },
+    [mainChart.accessors, mainChart.data, xScale]
+  )
+  const { containerRef, TooltipInPortal } = useTooltipInPortal({
+    // use TooltipWithBounds
+    detectBounds: true,
+    // when tooltip containers are scrolled, this will correctly update the Tooltip position
+    scroll: true,
+  })
+
+  const getNearestDatumToXY = useCallback(
+    (x: string | number | Date, y: number) => {
+      const data = mainChart.data
+      if (typeof x === 'string') {
+        return { x: -1, y: -1 }
+      }
+      const nearest = data.reduce(
+        (acc, curr) => {
+          const currX = +mainChart.accessors.getX(curr)
+          const currDistance = Math.sqrt((currX - +x) ** 2)
+          if (acc.distance > currDistance) {
+            return { distance: currDistance, datum: curr }
+          }
+          return acc
+        },
+        { distance: Infinity, datum: null } as {
+          distance: number
+          datum: T | null
+        }
+      )
+
+      if (!nearest.datum) {
+        return { x: -4, y: -4 }
+      }
+
+      return {
+        x: mainChart.accessors.getX(nearest.datum),
+        y: mainChart.accessors.getY(nearest.datum),
+      }
+    },
+    [mainChart.accessors, mainChart.data]
+  )
+
+  // ---------
+  const synchronizedContext = useContext(SynchronizedContext)
+  const eventEmitters = useEventEmitters({
+    chartId,
+    getNearestDatum,
+  })
+
+  const nearestDatum = synchronizedContext?.currentDatum
+    ? getNearestDatumToXY(
+        synchronizedContext?.currentDatum.x,
+        synchronizedContext?.currentDatum.y
+      )
+    : { x: -5, y: -5 }
+  //   console.log('I see a little something', synchronizedContext?.currentDatum)
+  //   if (synchronizedContext?.currentDatum) {
+  //     console.log(
+  //       'And I think that little something corresponds to',
+  //       nearestDatum
+  //     )
+  //   }
+  console.log('render')
   return (
-    <svg height={height} width={width} overflow="visible">
+    <svg height={height} ref={containerRef} width={width} overflow="visible">
       {/* Background */}
       <rect
         x={0}
@@ -130,6 +217,28 @@ function GenericChartAreaInternal<T extends object>(
         margin={margin}
         mainChart={mainChart}
       />
+      <TooltipInPortal
+        // set this to random so it correctly updates with parent bounds
+        key={Math.random()}
+        top={yScale.scale(nearestDatum.y)}
+        left={xScale.scale(nearestDatum.x) ?? 1}
+      >
+        Data value{' '}
+        <strong>
+          {JSON.stringify(synchronizedContext?.currentDatum, null, 2)}
+        </strong>
+      </TooltipInPortal>
+
+      {/* <circle
+        cx={xScale.scale(nearestDatum.x) ?? 1}
+        cy={yScale.scale(nearestDatum.y)}
+        r={5}
+        fill="pink"
+        stroke="pink"
+        strokeOpacity={0.1}
+        strokeWidth={10}
+        pointerEvents="none"
+      /> */}
       {/* Event capture rect */}
       <rect
         x={0}

@@ -1,9 +1,9 @@
 import { GridColumns, GridRows } from '@visx/grid'
-import type { AnyD3Scale } from '@visx/scale'
+import type { ChartScale } from '../../charts/types'
 
 export type GenericChartGridsProps = {
-  xScale: AnyD3Scale
-  yScale: AnyD3Scale
+  xScale: ChartScale
+  yScale: ChartScale
   width: number
   height: number
   margin: { top: number; right: number; bottom: number; left: number }
@@ -18,7 +18,7 @@ export function GenericChartGrids({
   return (
     <>
       <GridRows
-        scale={yScale}
+        scale={yScale.scale}
         left={margin.left}
         width={width - margin.left - margin.right}
         height={height - margin.top - margin.bottom}
@@ -26,7 +26,7 @@ export function GenericChartGrids({
         opacity={0.1}
       />
       <GridColumns
-        scale={xScale}
+        scale={xScale.scale}
         width={width - margin.left - margin.right}
         height={height - margin.top - margin.bottom}
         stroke="#e0e0e0"
