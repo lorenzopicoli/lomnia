@@ -4,7 +4,7 @@ import { ChartType, unitToLabel } from '../../charts/charts'
 import { format } from 'date-fns/format'
 import { isDate } from 'lodash'
 import { AxisBottom, AxisLeft } from '@visx/axis'
-import { scaleBand, scaleLinear, scalePoint, scaleTime } from '@visx/scale'
+import { scaleBand, scaleLinear, scalePoint, scaleUtc } from '@visx/scale'
 import { isNumber } from '../../utils/isNumber'
 import { useMemo } from 'react'
 import type {
@@ -14,6 +14,9 @@ import type {
 import { getMaxDomains } from './utils'
 import { GenericChart } from './GenericChart'
 import { isDateLike } from '../../utils/isDateLike'
+import { useMantineTheme } from '@mantine/core'
+import type { AxisProps } from '@visx/axis/lib/axis/Axis'
+import { GridColumns, GridRows } from '@visx/grid'
 
 // The order at which the charts are rendered. Later charts will be drawn on top of previous charts
 const order: Record<ChartType, number> = {
@@ -70,7 +73,7 @@ function GenericChartAreaInternal<T extends object>(
   // Tries to find the right scale given the data type of the x axis. Might want more control over
   // this in the future
   const xScale = isDateLike(domains.minX)
-    ? scaleTime({
+    ? scaleUtc({
         domain: [new Date(domains.minX), new Date(domains.maxX)],
         range: [margin.left, width - margin.right],
       })
@@ -90,10 +93,42 @@ function GenericChartAreaInternal<T extends object>(
         range: [margin.left, width - margin.right],
       })
 
+  const theme = useMantineTheme()
+
+  const backgroundColor = theme.colors.dark[9]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const tickProps: AxisProps<any>['tickLabelProps'] = {
+    fill: theme.colors.dark[0],
+    fontSize: 13,
+  }
+  const axisColor = theme.colors.dark[0]
+
   return (
-    <svg height={height} width={width}>
+    <svg height={height} width={width} overflow="visible">
       {/* Background */}
-      <rect x={0} y={0} width={width} height={height} fill={'gray'} rx={14} />
+      <rect
+        x={0}
+        y={0}
+        width={width}
+        height={height}
+        fill={backgroundColor}
+        rx={14}
+      />
+      <GridRows
+        scale={yScale}
+        left={margin.left}
+        width={width - margin.left - margin.right}
+        height={height - margin.top - margin.bottom}
+        stroke="#e0e0e0"
+        opacity={0.1}
+      />
+      <GridColumns
+        scale={xScale}
+        width={width - margin.left - margin.right}
+        height={height - margin.top - margin.bottom}
+        stroke="#e0e0e0"
+        opacity={0.1}
+      />
 
       {orderedCharts.map((chart) => {
         return (
@@ -112,26 +147,28 @@ function GenericChartAreaInternal<T extends object>(
       <AxisBottom
         top={height - margin.top - margin.bottom}
         scale={xScale}
+        stroke={axisColor}
+        tickLabelProps={tickProps}
         tickFormat={(v) => {
           const unit = unitToLabel(mainChart.axis.x.unit)
           if (isNumber(v)) {
             return `${v.toFixed(2)}${unit ? ' ' : ''}${unit}`
           }
           if (isDate(v)) {
-            return format(v, 'yyyy-MM-dd')
+            return format(v, 'MMM dd')
           }
           console.log('Non number/date value in AxisBottom')
           return ''
         }}
-        numTicks={10}
       />
       <AxisLeft
         tickFormat={(v) => {
           const unit = unitToLabel(mainChart.axis.y.unit)
           return `${v}${unit ? ' ' : ''}${unit}`
         }}
+        stroke={axisColor}
+        tickLabelProps={tickProps}
         left={margin.left}
-        numTicks={10}
         scale={yScale}
       />
     </svg>

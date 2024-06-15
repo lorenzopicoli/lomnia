@@ -3,6 +3,7 @@ import {
   Modal,
   Paper,
   ScrollArea,
+  Space,
   useMantineTheme,
 } from '@mantine/core'
 import { useMemo, useState } from 'react'
@@ -69,6 +70,7 @@ export function Explore() {
             onDateChange={setDateRange}
             onNewChart={() => open()}
           />
+          <Space h={50} />
           {charts.length > 0 ? (
             <ResizableGrid {...gridProps} rowHeight={500}>
               {charts.map((chart) => (

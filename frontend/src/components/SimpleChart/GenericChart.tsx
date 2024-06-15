@@ -1,11 +1,13 @@
 import { ChartType } from '../../charts/charts'
 import { curveMonotoneX } from '@visx/curve'
-import { Area, Bar, LinePath } from '@visx/shape'
+import { Area, LinePath } from '@visx/shape'
 import { scaleBand } from '@visx/scale'
 import type { InternalGenericChartProps } from './GenericChartTypes'
 import { isNumber } from '../../utils/isNumber'
 import { useCallback } from 'react'
 import { isDate } from 'lodash'
+import { useMantineTheme } from '@mantine/core'
+import { LinearGradient } from '@visx/gradient'
 
 /**
  * Responsible for displaying a single shape (the component name should be changed)
@@ -39,16 +41,45 @@ export function GenericChart<T extends object>(
     },
     [getX, xBandScale, xNumericScale]
   )
+  const theme = useMantineTheme()
+
+  const barGradient = () => (
+    <LinearGradient
+      id="gradient"
+      from={theme.colors.violet[2]}
+      to={theme.colors.violet[3]}
+      rotate="-45"
+    />
+  )
+
+  const areaStroke = ' rgba(55, 57, 120, 1)'
+  const areaGradient = () => (
+    <LinearGradient
+      id="gradient-area"
+      from="#D3A4FF"
+      to="#9B9DDC"
+      rotate="-45"
+    />
+  )
+
+  const lineChartGradient = () => (
+    <LinearGradient id="gradient-line" from="#FFD700" to="#FF8C42" rotate="0" />
+  )
 
   if (type === ChartType.LineChart) {
     return (
-      <LinePath
-        data={chart.data}
-        x={(x) => xGetAndScale(x)}
-        y={(y) => yScale(getY(y))}
-        curve={curveMonotoneX}
-        stroke={'#fff'}
-      />
+      <>
+        {lineChartGradient()}
+        <LinePath
+          data={chart.data}
+          x={(x) => xGetAndScale(x)}
+          y={(y) => yScale(getY(y))}
+          curve={curveMonotoneX}
+          strokeWidth={2}
+          // stroke={lineChartColor}
+          stroke="url(#gradient-line)"
+        />
+      </>
     )
   }
   if (type === ChartType.BarChart) {
@@ -68,33 +99,43 @@ export function GenericChart<T extends object>(
           const x = chart.accessors.getX(barData)
           const barX = bandScale(x)
           const barY = yMax - barHeight
-          return (
+          const radius = 40
+
+          const rectPath = `
+            M${barX},${barY + radius}
+            q0,-${radius} ${radius},-${radius}
+            h${barWidth - radius * 2}
+            q${radius},0 ${radius},${radius}
+            v${barHeight - radius}
+            h-${barWidth}
+            v-(${barHeight - radius})
+            z
+          `
+          return barHeight > 0 ? (
             <>
-              <Bar
-                key={'bar' + x + barY}
-                x={barX}
-                y={barY}
-                width={barWidth}
-                height={barHeight}
-                fill="rgba(23, 233, 217, .5)"
-              />
+              {barGradient()}
+              <path fill="url(#gradient)" d={rectPath} />
             </>
-          )
+          ) : null
         })}
       </>
     )
   }
   if (type === ChartType.AreaChart) {
     return (
-      <Area
-        data={chart.data}
-        x={(x) => xGetAndScale(x)}
-        y={(y) => yScale(getY(y))}
-        y1={outerHeight - margin.bottom}
-        curve={curveMonotoneX}
-        fill="blue"
-        stroke={'#000'}
-      />
+      <>
+        {areaGradient()}
+        <Area
+          data={chart.data}
+          x={(x) => xGetAndScale(x)}
+          y={(y) => yScale(getY(y))}
+          y1={outerHeight - margin.bottom}
+          curve={curveMonotoneX}
+          strokeWidth={3}
+          fill="url(#gradient-area)"
+          stroke={areaStroke}
+        />
+      </>
     )
   }
   return null
