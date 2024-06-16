@@ -2,17 +2,16 @@ import { useCallback, useContext, useMemo } from 'react'
 import { getMaxDomains } from './utils'
 import { useChartScales } from '../../charts/useChartScales'
 import { SynchronizedContext } from '../../charts/SynchronizedContext'
-import type { TooltipInPortalProps } from '@visx/tooltip/lib/hooks/useTooltipInPortal'
 import type { GenericChartProps } from './GenericChartTypes'
 import { isDateLike } from '../../utils/isDateLike'
 import { format } from 'date-fns'
-import { useTooltip } from '@visx/tooltip'
+import { isScaleBand } from '../../charts/types'
+import { useMantineTheme } from '@mantine/core'
 export function GenericChartSynchronized<T>(props: {
   mainChart: GenericChartProps<T>
   secondaryCharts: GenericChartProps<T>[]
   width: number
   height: number
-  Tooltip: React.FC<TooltipInPortalProps>
 }) {
   const synchronizedContext = useContext(SynchronizedContext)
   const domains = useMemo(
@@ -27,6 +26,7 @@ export function GenericChartSynchronized<T>(props: {
     margin,
     domains,
   })
+  const theme = useMantineTheme()
 
   const getNearestDatumToXY = useCallback(
     (x: string | number | Date) => {
@@ -60,9 +60,13 @@ export function GenericChartSynchronized<T>(props: {
     },
     [props.mainChart.accessors, props.mainChart.data]
   )
-  const nearestDatum = synchronizedContext?.currentDatum
-    ? getNearestDatumToXY(synchronizedContext?.currentDatum.x)
-    : { x: -5, y: -5 }
+  const nearestDatum = useMemo(
+    () =>
+      synchronizedContext?.currentDatum
+        ? getNearestDatumToXY(synchronizedContext?.currentDatum.x)
+        : { x: -5, y: -5 },
+    [synchronizedContext?.currentDatum, getNearestDatumToXY]
+  )
 
   if (typeof nearestDatum.x === 'string') {
     return null
@@ -74,27 +78,74 @@ export function GenericChartSynchronized<T>(props: {
   const formattedOriginalX = isDateLike(synchronizedContext?.currentDatum?.x)
     ? format(synchronizedContext?.currentDatum?.x, 'dd/MM HH:mm')
     : synchronizedContext?.currentDatum?.x
+
+  const targetRadius = 5
+  //   console.log('the x pos', xScale.scale(nearestDatum.x), nearestDatum)
+  const offsetX = isScaleBand(xScale) ? xScale.scale.bandwidth() / 2 : 0
+  const pointX = (xScale.scale(nearestDatum.x) ?? 0) + offsetX
+  const pointY = yScale.scale(nearestDatum.y) ?? 0
   return (
-    <props.Tooltip
-      unstyled={true}
-      offsetLeft={0}
-      offsetTop={0}
-      applyPositionStyle={true}
-      // set this to random so it correctly updates with parent bounds
-      key={Math.random()}
-      top={yScale.scale(nearestDatum.y)}
-      left={xScale.scale(nearestDatum.x)}
+    // <props.Tooltip
+    //   unstyled={true}
+    //   offsetLeft={offsetX}
+    //   offsetTop={0}
+    //   applyPositionStyle={true}
+    //   // set this to random so it correctly updates with parent bounds
+    //   key={Math.random()}
+    //   top={yScale.scale(nearestDatum.y)}
+    //   left={xScale.scale(nearestDatum.x)}
+    // >
+    <div
+      style={{
+        position: 'absolute',
+        width: props.width,
+        height: props.height,
+        paddingLeft: margin.left,
+        paddingRight: margin.right,
+        paddingTop: margin.top,
+        paddingBottom: margin.bottom,
+        left: 0,
+        top: 0,
+        backgroundColor: 'transparent',
+        pointerEvents: 'none',
+      }}
     >
-      <svg
-        width="20"
-        height="20"
-        style={{ position: 'absolute', top: -10, left: -10 }}
+      <div style={{ backgroundColor: theme.colors.dark[9], width: 200 }}>
+        {formattedX}
+      </div>
+      <div
+        style={{
+          backgroundColor: theme.colors.dark[8],
+          position: 'absolute',
+          width: 100,
+          height: 25,
+          left: pointX + 10,
+          top: pointY - 35,
+        }}
       >
-        <circle cx="10" cy="10" r="10" fill="red" />
+        {nearestDatum.y}
+      </div>
+      <svg
+        overflow={'visible'}
+        width={targetRadius * 5}
+        height={targetRadius * 5}
+        style={{
+          position: 'absolute',
+          top: 0,
+          bottom: 0,
+          right: 0,
+          left: 0,
+        }}
+      >
+        <circle
+          cx={pointX}
+          cy={pointY}
+          r={targetRadius}
+          stroke={theme.colors.violet[9]}
+          fill={theme.colors.violet[5]}
+          strokeWidth="1px"
+        />
       </svg>
-      {/* {formattedOriginalX}, {synchronizedContext?.currentDatum?.y}
-      <br />
-      {formattedX}, {nearestDatum.y} */}
-    </props.Tooltip>
+    </div>
   )
 }

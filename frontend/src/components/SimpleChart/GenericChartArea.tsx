@@ -14,8 +14,12 @@ import type { localPoint } from '@visx/event'
 import { GenericChartGrids } from './GenericChartGrids'
 import { GenericChartAxis } from './GenericChartAxis'
 import { useChartScales } from '../../charts/useChartScales'
-import { isScaleLinear, isScaleUtc } from '../../charts/types'
-import { useTooltipInPortal } from '@visx/tooltip'
+import {
+  isScaleBand,
+  isScaleLinear,
+  isScaleUtc,
+  type ChartScaleBand,
+} from '../../charts/types'
 import { GenericChartSynchronized } from './GenericChartSynchronized'
 
 // The order at which the charts are rendered. Later charts will be drawn on top of previous charts
@@ -34,13 +38,6 @@ export function GenericChartArea<T extends object>(
 ) {
   const { ref, inViewport } = useInViewport()
 
-  const { containerRef, TooltipInPortal } = useTooltipInPortal({
-    // use TooltipWithBounds
-    detectBounds: true,
-    // when tooltip containers are scrolled, this will correctly update the Tooltip position
-    scroll: true,
-  })
-
   return (
     <>
       <ParentSize debounceTime={10}>
@@ -50,7 +47,6 @@ export function GenericChartArea<T extends object>(
               <>
                 <GenericChartAreaInternal
                   {...props}
-                  bgRef={containerRef}
                   height={height}
                   width={width}
                 />
@@ -59,7 +55,6 @@ export function GenericChartArea<T extends object>(
                   secondaryCharts={props.secondaryCharts}
                   width={width}
                   height={height}
-                  Tooltip={TooltipInPortal}
                 />
               </>
             ) : null}
@@ -72,7 +67,7 @@ export function GenericChartArea<T extends object>(
 function GenericChartAreaInternal<T extends object>(
   props: InternalGenericChartAreaProps<T>
 ) {
-  const { height, width, mainChart, secondaryCharts, bgRef } = props
+  const { height, width, mainChart, secondaryCharts } = props
   const theme = useMantineTheme()
   const backgroundColor = theme.colors.dark[9]
   const orderedCharts = useMemo(() => {
@@ -98,6 +93,16 @@ function GenericChartAreaInternal<T extends object>(
     margin,
     domains,
   })
+  const scaleBandInvert = (chartScale: ChartScaleBand) => {
+    const { scale } = chartScale
+    const domain = scale.domain()
+    const paddingOuter = scale(domain[0]) ?? 0
+    const eachBand = scale.step()
+    return function (value: number) {
+      const index = Math.floor((value - paddingOuter) / eachBand)
+      return domain[Math.max(0, Math.min(index, domain.length - 1))]
+    }
+  }
 
   const getNearestDatum = useCallback(
     (svgPoint: ReturnType<typeof localPoint>) => {
@@ -105,16 +110,21 @@ function GenericChartAreaInternal<T extends object>(
         return { x: -1, y: -1 }
       }
 
-      if (!isScaleLinear(xScale) && !isScaleUtc(xScale)) {
-        return { x: -2, y: -2 }
+      const x = isScaleBand(xScale)
+        ? scaleBandInvert(xScale)(svgPoint.x)
+        : isScaleLinear(xScale) || isScaleUtc(xScale)
+        ? +xScale.scale.invert(svgPoint.x)
+        : -1
+
+      if (x === -1) {
+        throw new Error('Could not find scale type for xScale')
       }
 
-      const x = +xScale.scale.invert(svgPoint.x)
       const data = mainChart.data
       const nearest = data.reduce(
         (acc, curr) => {
           const currX = +mainChart.accessors.getX(curr)
-          const currDistance = Math.sqrt((currX - x) ** 2)
+          const currDistance = Math.sqrt((currX - +x) ** 2)
           if (acc.distance > currDistance) {
             return { distance: currDistance, datum: curr }
           }
@@ -143,7 +153,7 @@ function GenericChartAreaInternal<T extends object>(
   })
   console.log('render')
   return (
-    <svg height={height} ref={bgRef} width={width} overflow="visible">
+    <svg height={height} width={width} overflow="visible">
       {/* Background */}
       <rect
         x={0}

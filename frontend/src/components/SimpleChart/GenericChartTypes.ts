@@ -39,13 +39,12 @@ export type InternalGenericChartProps<T> = GenericChartProps<T> & {
   outerHeight: number
   outerWidth: number
   margin: { left: number; right: number; top: number; bottom: number }
-  xScale?: ChartScale
+  xScale: ChartScale
   xBandScale?: ChartScaleBand
   yScale: ChartScaleLinear
 }
 
 export type InternalGenericChartAreaProps<T> = GenericChartAreaProps<T> & {
-  bgRef: React.LegacyRef<SVGSVGElement>
   width: number
   height: number
 }
