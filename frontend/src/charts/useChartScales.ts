@@ -5,6 +5,7 @@ import { isDateLike } from '../utils/isDateLike'
 import { isNumber } from '../utils/isNumber'
 import type { ChartScale, ChartScaleLinear } from './types'
 import { ChartType } from './charts'
+import { useMemo } from 'react'
 
 export function useChartScales<T>(params: {
   mainChart: GenericChartProps<T>
@@ -14,18 +15,21 @@ export function useChartScales<T>(params: {
   domains: ReturnType<typeof getMaxDomains>
 }): { xScale: ChartScale; yScale: ChartScaleLinear } {
   const { mainChart, height, width, margin, domains } = params
-  const yScale = {
-    type: 'linear' as const,
-    scale: scaleLinear({
-      domain: [domains.minY, domains.maxY],
-      range: [height - margin.bottom - margin.top, 0],
+  const yScale = useMemo(
+    () => ({
+      type: 'linear' as const,
+      scale: scaleLinear({
+        domain: [domains.minY, domains.maxY],
+        range: [height - margin.bottom - margin.top, 0],
+      }),
     }),
-  }
+    [domains.minY, domains.maxY, height, margin.bottom, margin.top]
+  )
 
   // Tries to find the right scale given the data type of the x axis. Might want more control over
   // this in the future
-  const xScale =
-    mainChart.type === ChartType.BarChart
+  const xScale = useMemo(() => {
+    return mainChart.type === ChartType.BarChart
       ? {
           type: 'band' as const,
           scale: scaleBand({
@@ -59,11 +63,24 @@ export function useChartScales<T>(params: {
             range: [margin.left, width - margin.right],
           }),
         }
-  // : scalePoint({
-  //     domain: mainChart.data.map(mainChart.accessors.getX),
-  //     range: [margin.left, width - margin.right],
-  //   })
+    // : scalePoint({
+    //     domain: mainChart.data.map(mainChart.accessors.getX),
+    //     range: [margin.left, width - margin.right],
+    //   })
+  }, [
+    domains.maxX,
+    domains.minX,
+    mainChart.accessors.getX,
+    mainChart.data,
+    mainChart.type,
+    margin.left,
+    margin.right,
+    width,
+  ])
 
-  // TODO: memoize
-  return { xScale, yScale }
+  const values = useMemo(() => {
+    return { xScale, yScale }
+  }, [xScale, yScale])
+
+  return values
 }
