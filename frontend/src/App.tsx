@@ -18,6 +18,7 @@ import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 import { trpc } from './api/trpc'
 import { ConfigProvider } from './containers/ConfigContext'
 import Layout from './pages/Layout'
+import { MemoizationProvider } from './charts/MemoizationContext'
 
 const theme = createTheme({
   colors: {
@@ -88,7 +89,9 @@ function App() {
         <ConfigProvider>
           <QueryClientProvider client={queryClient}>
             <MantineProvider theme={theme} defaultColorScheme="dark">
-              <RouterProvider router={router} />
+              <MemoizationProvider>
+                <RouterProvider router={router} />
+              </MemoizationProvider>
             </MantineProvider>
           </QueryClientProvider>
         </ConfigProvider>

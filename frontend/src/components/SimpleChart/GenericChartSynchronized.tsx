@@ -1,23 +1,28 @@
-import { useCallback, useContext, useMemo } from 'react'
+import { useContext, useMemo } from 'react'
 import { getMaxDomains } from './utils'
 import { useChartScales } from '../../charts/useChartScales'
 import { SynchronizedContext } from '../../charts/SynchronizedContext'
 import type { GenericChartProps } from './GenericChartTypes'
-import { isDateLike } from '../../utils/isDateLike'
-import { format } from 'date-fns'
 import { isScaleBand } from '../../charts/types'
 import { useMantineTheme } from '@mantine/core'
-export function GenericChartSynchronized<T>(props: {
+import { MemoizationContext } from '../../charts/MemoizationContext'
+import { isNil } from 'lodash'
+import objectHash from 'object-hash'
+import { isDateLike } from '../../utils/isDateLike'
+import { format } from 'date-fns'
+export function GenericChartSynchronized<T extends object>(props: {
   mainChart: GenericChartProps<T>
   secondaryCharts: GenericChartProps<T>[]
   width: number
   height: number
 }) {
   const synchronizedContext = useContext(SynchronizedContext)
+  const memoizationContext = useContext(MemoizationContext)
   const domains = useMemo(
     () => getMaxDomains(props.secondaryCharts.concat(props.mainChart)),
     [props.mainChart, props.secondaryCharts]
   )
+
   const margin = { top: 0, left: 50, right: 0, bottom: 30 }
   const { xScale, yScale } = useChartScales<T>({
     mainChart: props.mainChart,
@@ -28,73 +33,59 @@ export function GenericChartSynchronized<T>(props: {
   })
   const theme = useMantineTheme()
 
-  const getNearestDatumToXY = useCallback(
-    (x: string | number | Date) => {
-      const data = props.mainChart.data
-      if (typeof x === 'string') {
-        return { x: -1, y: -1 }
-      }
-      const nearest = data.reduce(
-        (acc, curr) => {
-          const currX = +props.mainChart.accessors.getX(curr)
-          const currDistance = Math.sqrt((currX - +x) ** 2)
-          if (acc.distance > currDistance) {
-            return { distance: currDistance, datum: curr }
-          }
-          return acc
-        },
-        { distance: Infinity, datum: null } as {
-          distance: number
-          datum: T | null
-        }
-      )
+  const dataHash = useMemo(() => {
+    return objectHash(props.mainChart.data)
+  }, [props.mainChart.data])
+  const nearestDatum =
+    synchronizedContext?.currentDatum && memoizationContext
+      ? memoizationContext?.memoizedGetNearestDatum({
+          data: props.mainChart.data as any,
+          dataHash: dataHash,
+          datumXAccessorKey: 'genericGetX',
+          datumYAccessorKey: 'genericGetY',
+          point: { x: synchronizedContext?.currentDatum.x },
+        })
+      : null
+  const datumX = useMemo(() => nearestDatum?.x, [nearestDatum])
+  const datumY = useMemo(() => nearestDatum?.y, [nearestDatum])
 
-      if (!nearest.datum) {
-        return { x: -4, y: -4 }
-      }
-
-      return {
-        x: props.mainChart.accessors.getX(nearest.datum),
-        y: props.mainChart.accessors.getY(nearest.datum),
-      }
-    },
-    [props.mainChart.accessors, props.mainChart.data]
-  )
-  const nearestDatum = useMemo(
-    () =>
-      synchronizedContext?.currentDatum
-        ? getNearestDatumToXY(synchronizedContext?.currentDatum.x)
-        : { x: -5, y: -5 },
-    [synchronizedContext?.currentDatum, getNearestDatumToXY]
+  const formattedX = useMemo(
+    () => (isDateLike(datumX) ? format(datumX, 'dd/MM HH:mm') : datumX),
+    [datumX]
   )
 
-  if (typeof nearestDatum.x === 'string') {
+  //   const formattedOriginalX = isDateLike(synchronizedContext?.currentDatum?.x)
+  //     ? format(synchronizedContext?.currentDatum?.x, 'dd/MM HH:mm')
+  //     : synchronizedContext?.currentDatum?.x
+
+  const targetRadius = 5
+  const offsetX = useMemo(
+    () => (isScaleBand(xScale) ? xScale.scale.bandwidth() / 2 : 0),
+    [xScale]
+  )
+  const pointX = useMemo(() => {
+    if (typeof datumX === 'string') {
+      return null
+    }
+    if (isNil(datumX)) {
+      return null
+    }
+    return (xScale.scale(datumX) ?? 0) + offsetX
+  }, [datumX, xScale, offsetX])
+
+  //   const pointY = yScale.scale(datumY) ?? 0
+  const pointY = useMemo(() => {
+    if (isNil(datumY)) {
+      return null
+    }
+    return yScale.scale(datumY) ?? 0
+  }, [datumY, yScale])
+
+  if (isNil(pointX) || isNil(pointY)) {
     return null
   }
 
-  const formattedX = isDateLike(nearestDatum.x)
-    ? format(nearestDatum.x, 'dd/MM HH:mm')
-    : nearestDatum.x
-  const formattedOriginalX = isDateLike(synchronizedContext?.currentDatum?.x)
-    ? format(synchronizedContext?.currentDatum?.x, 'dd/MM HH:mm')
-    : synchronizedContext?.currentDatum?.x
-
-  const targetRadius = 5
-  //   console.log('the x pos', xScale.scale(nearestDatum.x), nearestDatum)
-  const offsetX = isScaleBand(xScale) ? xScale.scale.bandwidth() / 2 : 0
-  const pointX = (xScale.scale(nearestDatum.x) ?? 0) + offsetX
-  const pointY = yScale.scale(nearestDatum.y) ?? 0
   return (
-    // <props.Tooltip
-    //   unstyled={true}
-    //   offsetLeft={offsetX}
-    //   offsetTop={0}
-    //   applyPositionStyle={true}
-    //   // set this to random so it correctly updates with parent bounds
-    //   key={Math.random()}
-    //   top={yScale.scale(nearestDatum.y)}
-    //   left={xScale.scale(nearestDatum.x)}
-    // >
     <div
       style={{
         position: 'absolute',
@@ -123,7 +114,7 @@ export function GenericChartSynchronized<T>(props: {
           top: pointY - 35,
         }}
       >
-        {nearestDatum.y}
+        {datumY}
       </div>
       <svg
         overflow={'visible'}
