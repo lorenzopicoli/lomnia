@@ -4,12 +4,15 @@ import { useChartScales } from '../../charts/useChartScales'
 import { SynchronizedContext } from '../../charts/SynchronizedContext'
 import type { GenericChartProps } from './GenericChartTypes'
 import { isScaleBand } from '../../charts/types'
-import { useMantineTheme } from '@mantine/core'
+import { Flex, useMantineTheme } from '@mantine/core'
 import { MemoizationContext } from '../../charts/MemoizationContext'
 import { isNil } from 'lodash'
 import objectHash from 'object-hash'
 import { isDateLike } from '../../utils/isDateLike'
 import { format } from 'date-fns'
+import { useElementSize } from '@mantine/hooks'
+import { ChartType } from '../../charts/charts'
+
 export function GenericChartSynchronized<T extends object>(props: {
   mainChart: GenericChartProps<T>
   secondaryCharts: GenericChartProps<T>[]
@@ -32,20 +35,87 @@ export function GenericChartSynchronized<T extends object>(props: {
     domains,
   })
   const theme = useMantineTheme()
+  const {
+    ref: tooltipRef,
+    width: tooltipWidth,
+    height: tooltipHeight,
+  } = useElementSize()
 
-  const dataHash = useMemo(() => {
-    return objectHash(props.mainChart.data)
-  }, [props.mainChart.data])
-  const nearestDatum =
-    synchronizedContext?.currentDatum && memoizationContext
-      ? memoizationContext?.memoizedGetNearestDatum({
-          data: props.mainChart.data as any,
-          dataHash: dataHash,
+  // TODO: objectHash is super slow, we should probably use a different approach
+  const hashByChartId = useMemo(() => {
+    const hash: Record<string, string> = {}
+    hash[props.mainChart.id] = JSON.stringify(props.mainChart.data)
+    props.secondaryCharts.forEach((chart) => {
+      hash[chart.id] = JSON.stringify(chart.data)
+    })
+    return hash
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    JSON.stringify(props.mainChart.data),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    JSON.stringify(props.secondaryCharts),
+    props.mainChart.id,
+  ])
+  const nearestDatum = useMemo(() => {
+    if (!memoizationContext) {
+      return null
+    }
+
+    if (!synchronizedContext?.currentDatum) {
+      return null
+    }
+
+    return memoizationContext?.memoizedGetNearestDatum({
+      // TODO: Temporary, this makes it so the "generic" type of chart props isn't really generic
+      data: props.mainChart.data as {
+        x: string | Date | number
+        y: number
+      }[],
+      dataHash: hashByChartId[props.mainChart.id],
+      datumXAccessorKey: 'genericGetX',
+      datumYAccessorKey: 'genericGetY',
+      point: { x: synchronizedContext?.currentDatum.x },
+    })
+  }, [
+    hashByChartId,
+    memoizationContext,
+    props.mainChart.data,
+    props.mainChart.id,
+    synchronizedContext?.currentDatum,
+  ])
+
+  const secondaryChartsDatums = useMemo(() => {
+    if (!memoizationContext) {
+      return null
+    }
+
+    const currentDatum = synchronizedContext?.currentDatum
+    if (!currentDatum) {
+      return null
+    }
+    return props.secondaryCharts.map((chart) => {
+      return {
+        chart,
+        datum: memoizationContext?.memoizedGetNearestDatum({
+          data: chart.data as {
+            x: string | Date | number
+            y: number
+          }[],
+          dataHash: hashByChartId[chart.id],
           datumXAccessorKey: 'genericGetX',
           datumYAccessorKey: 'genericGetY',
-          point: { x: synchronizedContext?.currentDatum.x },
-        })
-      : null
+          point: { x: currentDatum.x },
+        }),
+      }
+    })
+  }, [
+    hashByChartId,
+    memoizationContext,
+    props.secondaryCharts,
+    synchronizedContext?.currentDatum,
+  ])
+
   const datumX = useMemo(() => nearestDatum?.x, [nearestDatum])
   const datumY = useMemo(() => nearestDatum?.y, [nearestDatum])
 
@@ -53,10 +123,7 @@ export function GenericChartSynchronized<T extends object>(props: {
     () => (isDateLike(datumX) ? format(datumX, 'dd/MM HH:mm') : datumX),
     [datumX]
   )
-
-  //   const formattedOriginalX = isDateLike(synchronizedContext?.currentDatum?.x)
-  //     ? format(synchronizedContext?.currentDatum?.x, 'dd/MM HH:mm')
-  //     : synchronizedContext?.currentDatum?.x
+  const formattedY = useMemo(() => Number(datumY?.toFixed(2)), [datumY])
 
   const targetRadius = 5
   const offsetX = useMemo(
@@ -73,7 +140,6 @@ export function GenericChartSynchronized<T extends object>(props: {
     return (xScale.scale(datumX) ?? 0) + offsetX
   }, [datumX, xScale, offsetX])
 
-  //   const pointY = yScale.scale(datumY) ?? 0
   const pointY = useMemo(() => {
     if (isNil(datumY)) {
       return null
@@ -85,6 +151,18 @@ export function GenericChartSynchronized<T extends object>(props: {
     return null
   }
 
+  const tooltipPadding = 12
+
+  const isTooLow =
+    pointY + tooltipHeight > props.height - margin.top - margin.bottom
+  const isTooRight =
+    pointX + tooltipWidth > props.width - margin.left - margin.right
+  const tooltipTopOffset = isTooLow ? -tooltipHeight - tooltipPadding * 2 : 0
+
+  const tooltipLeftOffset = isTooRight ? -tooltipWidth - tooltipPadding * 2 : 0
+
+  const tooltipX = pointX + tooltipLeftOffset + 10
+  const tooltipY = pointY + tooltipTopOffset
   return (
     <div
       style={{
@@ -99,23 +177,25 @@ export function GenericChartSynchronized<T extends object>(props: {
         top: 0,
         backgroundColor: 'transparent',
         pointerEvents: 'none',
+        overflow: 'visible',
+        zIndex: 100,
       }}
     >
-      <div style={{ backgroundColor: theme.colors.dark[9], width: 200 }}>
-        {formattedX}
-      </div>
-      <div
+      <Flex
+        ref={tooltipRef}
+        direction={'column'}
+        p={tooltipPadding}
         style={{
+          borderRadius: theme.radius.sm,
           backgroundColor: theme.colors.dark[8],
           position: 'absolute',
-          width: 100,
-          height: 25,
-          left: pointX + 10,
-          top: pointY - 35,
+          left: tooltipX,
+          top: tooltipY,
         }}
       >
-        {datumY}
-      </div>
+        <span>{formattedY}</span>
+        <span>{formattedX}</span>
+      </Flex>
       <svg
         overflow={'visible'}
         width={targetRadius * 5}
@@ -128,6 +208,26 @@ export function GenericChartSynchronized<T extends object>(props: {
           left: 0,
         }}
       >
+        {(secondaryChartsDatums ?? []).map((chartDatum) => {
+          if (isNil(chartDatum.datum?.x) || isNil(chartDatum.datum?.y)) {
+            return null
+          }
+          const secondaryPointX =
+            (xScale.scale(+chartDatum.datum.x) ?? 0) +
+            (chartDatum.chart.type === ChartType.BarChart ? offsetX : 0)
+          const secondaryPointY = yScale.scale(chartDatum.datum.y)
+          return (
+            <circle
+              key={chartDatum.chart.id}
+              cx={secondaryPointX}
+              cy={secondaryPointY}
+              r={targetRadius}
+              stroke={theme.colors.violet[9]}
+              fill={theme.colors.violet[5]}
+              strokeWidth="1px"
+            />
+          )
+        })}
         <circle
           cx={pointX}
           cy={pointY}

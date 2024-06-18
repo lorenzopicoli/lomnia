@@ -1,7 +1,7 @@
 import { useInViewport } from '@mantine/hooks'
 import { ParentSize } from '@visx/responsive'
 import { ChartType } from '../../charts/charts'
-import { useCallback, useMemo } from 'react'
+import { useCallback, useDeferredValue, useMemo } from 'react'
 import type {
   GenericChartAreaProps,
   InternalGenericChartAreaProps,
@@ -37,7 +37,6 @@ export function GenericChartArea<T extends object>(
   props: GenericChartAreaProps<T>
 ) {
   const { ref, inViewport } = useInViewport()
-
   return (
     <>
       <ParentSize debounceTime={10}>
@@ -50,6 +49,7 @@ export function GenericChartArea<T extends object>(
                   height={height}
                   width={width}
                 />
+                {/* Maybe use deferred value for this?  */}
                 <GenericChartSynchronized
                   mainChart={props.mainChart}
                   secondaryCharts={props.secondaryCharts}
@@ -151,7 +151,6 @@ function GenericChartAreaInternal<T extends object>(
     chartId,
     getNearestDatum,
   })
-  console.log('render')
   return (
     <svg height={height} width={width} overflow="visible">
       {/* Background */}
