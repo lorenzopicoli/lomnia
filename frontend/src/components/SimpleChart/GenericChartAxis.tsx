@@ -1,15 +1,15 @@
 import { AxisBottom, AxisLeft } from '@visx/axis'
 import { unitToLabel } from '../../charts/charts'
-import type { AnyD3Scale } from '@visx/scale'
 import { useMantineTheme } from '@mantine/core'
 import type { GenericChartProps } from './GenericChartTypes'
 import type { AxisProps } from '@visx/axis/lib/axis/Axis'
 import { isNumber } from '../../utils/isNumber'
 import { format, isDate } from 'date-fns'
+import type { ChartScale } from '../../charts/types'
 
 export type GenericChartAxisProps = {
-  xScale: AnyD3Scale
-  yScale: AnyD3Scale
+  xScale: ChartScale
+  yScale: ChartScale
   height: number
   margin: { top: number; right: number; bottom: number; left: number }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -33,7 +33,7 @@ export function GenericChartAxis({
     <>
       <AxisBottom
         top={height - margin.top - margin.bottom}
-        scale={xScale}
+        scale={xScale.scale}
         stroke={axisColor}
         tickLabelProps={tickProps}
         tickFormat={(v) => {
@@ -56,7 +56,7 @@ export function GenericChartAxis({
         stroke={axisColor}
         tickLabelProps={tickProps}
         left={margin.left}
-        scale={yScale}
+        scale={yScale.scale}
       />
     </>
   )

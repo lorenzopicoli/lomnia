@@ -17,6 +17,7 @@ import { subDays } from 'date-fns'
 import { GenericChartContainer } from '../../components/SimpleChart/GenericChartContainer'
 import type { ChartAreaConfig } from '../../charts/charts'
 import { EventEmitterProvider } from '@visx/xychart'
+import { SynchronizedProvider } from '../../charts/SynchronizedContext'
 
 export function Explore() {
   const theme = useMantineTheme()
@@ -73,28 +74,30 @@ export function Explore() {
           />
           <Space h={50} />
           <EventEmitterProvider>
-            {charts.length > 0 ? (
-              <ResizableGrid {...gridProps} rowHeight={500}>
-                {charts.map((chart) => (
-                  <div key={chart.id}>
-                    {isChangingLayout ? (
-                      <Container
-                        fluid
-                        h={'100%'}
-                        p={0}
-                        bg={theme.colors.dark[8]}
-                      />
-                    ) : (
-                      <GenericChartContainer
-                        chart={chart}
-                        startDate={dateRange[0]}
-                        endDate={dateRange[1]}
-                      />
-                    )}
-                  </div>
-                ))}
-              </ResizableGrid>
-            ) : null}
+            <SynchronizedProvider>
+              {charts.length > 0 ? (
+                <ResizableGrid {...gridProps} rowHeight={500}>
+                  {charts.map((chart) => (
+                    <div key={chart.id}>
+                      {isChangingLayout ? (
+                        <Container
+                          fluid
+                          h={'100%'}
+                          p={0}
+                          bg={theme.colors.dark[8]}
+                        />
+                      ) : (
+                        <GenericChartContainer
+                          chart={chart}
+                          startDate={dateRange[0]}
+                          endDate={dateRange[1]}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </ResizableGrid>
+              ) : null}
+            </SynchronizedProvider>
           </EventEmitterProvider>
         </Container>
       </ScrollArea>

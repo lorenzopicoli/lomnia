@@ -1,6 +1,10 @@
-import type { AnyScaleBand } from '@visx/shape/lib/types'
 import { ChartType } from '../../charts/charts'
-import { type AnyD3Scale, type NumberLike } from '@visx/scale'
+import { type NumberLike } from '@visx/scale'
+import type {
+  ChartScale,
+  ChartScaleBand,
+  ChartScaleLinear,
+} from '../../charts/types'
 
 export type GenericChartAreaProps<T> = {
   mainChart: GenericChartProps<T>
@@ -35,9 +39,9 @@ export type InternalGenericChartProps<T> = GenericChartProps<T> & {
   outerHeight: number
   outerWidth: number
   margin: { left: number; right: number; top: number; bottom: number }
-  xScale?: AnyD3Scale
-  xBandScale?: AnyScaleBand
-  yScale: AnyD3Scale
+  xScale: ChartScale
+  xBandScale?: ChartScaleBand
+  yScale: ChartScaleLinear
 }
 
 export type InternalGenericChartAreaProps<T> = GenericChartAreaProps<T> & {

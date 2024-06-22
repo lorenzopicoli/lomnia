@@ -5,6 +5,16 @@ import type { GenericChartProps } from '../components/SimpleChart/GenericChartTy
 import { isNotNill } from '../utils/isNotNil'
 import { isDateLike } from '../utils/isDateLike'
 
+const genericXAccessor = (d: { x: string | Date | number }) =>
+  isDateLike(d.x) ? new Date(d.x) : d.x
+
+const genericYAccessor = (d: { y: number }) => d.y
+
+export const datumAccessors = {
+  genericGetX: genericXAccessor,
+  genericGetY: genericYAccessor,
+}
+
 /**
  * This hook is reponsible for providing data to charts
  */
@@ -86,8 +96,8 @@ export function useChartData(
     {
       id: mainShape.id,
       accessors: {
-        getX: (d) => (isDateLike(d.x) ? new Date(d.x) : d.x),
-        getY: (d) => d.y,
+        getX: datumAccessors.genericGetX,
+        getY: datumAccessors.genericGetY,
       },
       type: mainShape.type,
       data:
@@ -116,8 +126,8 @@ export function useChartData(
   }>[] = secondaryShapes.map((shape) => ({
     id: shape.id,
     accessors: {
-      getX: (d) => (isDateLike(d.x) ? new Date(d.x) : d.x),
-      getY: (d) => d.y,
+      getX: datumAccessors.genericGetX,
+      getY: datumAccessors.genericGetY,
     },
     type: shape.type,
     data: habitData?.data[shape.yKey] ?? weatherData?.data[shape.yKey] ?? [],

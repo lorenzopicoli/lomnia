@@ -1,19 +1,26 @@
 import { useInViewport } from '@mantine/hooks'
 import { ParentSize } from '@visx/responsive'
 import { ChartType } from '../../charts/charts'
-import { useCallback, useMemo } from 'react'
+import { useCallback, useDeferredValue, useMemo } from 'react'
 import type {
   GenericChartAreaProps,
   InternalGenericChartAreaProps,
 } from './GenericChartTypes'
-import { getMaxDomains, useChartScales } from './utils'
+import { getMaxDomains } from './utils'
 import { GenericChart } from './GenericChart'
 import { useMantineTheme } from '@mantine/core'
 import useEventEmitters from '../../charts/useEventEmitters'
-import { useEventHandlers } from '../../charts/useEventHandlers'
 import type { localPoint } from '@visx/event'
 import { GenericChartGrids } from './GenericChartGrids'
 import { GenericChartAxis } from './GenericChartAxis'
+import { useChartScales } from '../../charts/useChartScales'
+import {
+  isScaleBand,
+  isScaleLinear,
+  isScaleUtc,
+  type ChartScaleBand,
+} from '../../charts/types'
+import { GenericChartSynchronized } from './GenericChartSynchronized'
 
 // The order at which the charts are rendered. Later charts will be drawn on top of previous charts
 const order: Record<ChartType, number> = {
@@ -31,55 +38,54 @@ export function GenericChartArea<T extends object>(
 ) {
   const { ref, inViewport } = useInViewport()
   return (
-    <ParentSize debounceTime={10}>
-      {({ width, height }) => (
-        <div style={{ width: '100%', height: '100%' }} ref={ref}>
-          {inViewport ? (
-            <GenericChartAreaInternal
-              {...props}
-              height={height}
-              width={width}
-            />
-          ) : null}
-        </div>
-      )}
-    </ParentSize>
+    <>
+      <ParentSize debounceTime={10}>
+        {({ width, height }) => (
+          <div style={{ width: '100%', height: '100%' }} ref={ref}>
+            {inViewport ? (
+              <>
+                <GenericChartAreaInternal
+                  {...props}
+                  height={height}
+                  width={width}
+                />
+                {/* Maybe use deferred value for this?  */}
+                <GenericChartSynchronized
+                  mainChart={props.mainChart}
+                  secondaryCharts={props.secondaryCharts}
+                  width={width}
+                  height={height}
+                />
+              </>
+            ) : null}
+          </div>
+        )}
+      </ParentSize>
+    </>
   )
 }
 function GenericChartAreaInternal<T extends object>(
   props: InternalGenericChartAreaProps<T>
 ) {
   const { height, width, mainChart, secondaryCharts } = props
-  const getNearestDatum = useCallback(
-    (_svgPoint: ReturnType<typeof localPoint>) => {
-      return {
-        x: mainChart.accessors.getX(mainChart.data[0]),
-        y: mainChart.accessors.getY(mainChart.data[0]),
-      }
-    },
-    [mainChart.accessors, mainChart.data]
-  )
-  const chartId = mainChart.id + secondaryCharts.map((c) => c.id).join('')
-  const eventEmitters = useEventEmitters({
-    chartId,
-    getNearestDatum,
-  })
-  useEventHandlers(chartId)
-
+  const theme = useMantineTheme()
+  const backgroundColor = theme.colors.dark[9]
   const orderedCharts = useMemo(() => {
     const ordered = secondaryCharts
       .concat(mainChart)
       .sort((a, b) => order[a.type] - order[b.type])
     return ordered
   }, [mainChart, secondaryCharts])
-
   const domains = useMemo(() => getMaxDomains(orderedCharts), [orderedCharts])
   const margin = useMemo(
     () =>
       props.margin ? props.margin : { top: 0, left: 50, right: 0, bottom: 30 },
     [props.margin]
   )
-
+  const chartId = useMemo(
+    () => mainChart.id + secondaryCharts.map((c) => c.id).join(''),
+    [mainChart.id, secondaryCharts]
+  )
   const { xScale, yScale } = useChartScales<T>({
     mainChart,
     height,
@@ -87,11 +93,64 @@ function GenericChartAreaInternal<T extends object>(
     margin,
     domains,
   })
+  const scaleBandInvert = (chartScale: ChartScaleBand) => {
+    const { scale } = chartScale
+    const domain = scale.domain()
+    const paddingOuter = scale(domain[0]) ?? 0
+    const eachBand = scale.step()
+    return function (value: number) {
+      const index = Math.floor((value - paddingOuter) / eachBand)
+      return domain[Math.max(0, Math.min(index, domain.length - 1))]
+    }
+  }
 
-  const theme = useMantineTheme()
+  const getNearestDatum = useCallback(
+    (svgPoint: ReturnType<typeof localPoint>) => {
+      if (!svgPoint) {
+        return { x: -1, y: -1 }
+      }
 
-  const backgroundColor = theme.colors.dark[9]
+      const x = isScaleBand(xScale)
+        ? scaleBandInvert(xScale)(svgPoint.x)
+        : isScaleLinear(xScale) || isScaleUtc(xScale)
+        ? +xScale.scale.invert(svgPoint.x)
+        : -1
 
+      if (x === -1) {
+        throw new Error('Could not find scale type for xScale')
+      }
+
+      const data = mainChart.data
+      const nearest = data.reduce(
+        (acc, curr) => {
+          const currX = +mainChart.accessors.getX(curr)
+          const currDistance = Math.sqrt((currX - +x) ** 2)
+          if (acc.distance > currDistance) {
+            return { distance: currDistance, datum: curr }
+          }
+          return acc
+        },
+        { distance: Infinity, datum: null } as {
+          distance: number
+          datum: T | null
+        }
+      )
+
+      if (!nearest.datum) {
+        return { x: -4, y: -4 }
+      }
+
+      return {
+        x: mainChart.accessors.getX(nearest.datum),
+        y: mainChart.accessors.getY(nearest.datum),
+      }
+    },
+    [mainChart.accessors, mainChart.data, xScale]
+  )
+  const eventEmitters = useEventEmitters({
+    chartId,
+    getNearestDatum,
+  })
   return (
     <svg height={height} width={width} overflow="visible">
       {/* Background */}

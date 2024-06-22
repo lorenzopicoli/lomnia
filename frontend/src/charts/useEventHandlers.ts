@@ -1,95 +1,32 @@
 import { useCallback } from 'react'
 import useEventEmitter, { type HandlerParams } from './useEventEmitter'
 
-export function useEventHandlers(listenerChartId: string) {
-  const handlePointerMove = useCallback((params?: HandlerParams) => {
-    console.log(
-      `onPointerMove being handled by ${listenerChartId}. The data is`
-    )
-    console.log(`emitterChartId: ${params?.emitterChartId}`)
-    console.log(
-      `emitterNearestDatum: ${JSON.stringify(
-        params?.emitterNearestDatum,
-        null,
-        2
-      )}`
-    )
-  }, [])
-  const handlePointerUp = useCallback(
+export function useEventHandlers(
+  setCurrentDatum: (datum: { x: string | number | Date; y: number }) => void
+) {
+  const handlePointerMove = useCallback(
     (params?: HandlerParams) => {
-      console.log(
-        `onPointerUp being handled by ${listenerChartId}. The data is`
-      )
-      console.log(`emitterChartId: ${params?.emitterChartId}`)
-      console.log(
-        `emitterNearestDatum: ${JSON.stringify(
-          params?.emitterNearestDatum,
-          null,
-          2
-        )}`
-      )
+      setCurrentDatum(params?.emitterNearestDatum ?? { x: 0, y: 0 })
     },
-    [listenerChartId]
-  )
-  const handlePointerDown = useCallback(
-    (params?: HandlerParams) => {
-      console.log(
-        `onPointerDown being handled by ${listenerChartId}. The data is`
-      )
-      console.log(`emitterChartId: ${params?.emitterChartId}`)
-      console.log(
-        `emitterNearestDatum: ${JSON.stringify(
-          params?.emitterNearestDatum,
-          null,
-          2
-        )}`
-      )
-    },
-    [listenerChartId]
-  )
-  const handleFocus = useCallback(
-    (params?: HandlerParams) => {
-      console.log(`onFocus being handled by ${listenerChartId}. The data is`)
-      console.log(`emitterChartId: ${params?.emitterChartId}`)
-      console.log(
-        `emitterNearestDatum: ${JSON.stringify(
-          params?.emitterNearestDatum,
-          null,
-          2
-        )}`
-      )
-    },
-    [listenerChartId]
-  )
-  const handlePointerOut = useCallback(
-    (params?: HandlerParams) => {
-      console.log(
-        `onPointerOut being handled by ${listenerChartId}. The data is`
-      )
-      console.log(`emitterChartId: ${params?.emitterChartId}`)
-      console.log(
-        `emitterNearestDatum: ${JSON.stringify(
-          params?.emitterNearestDatum,
-          null,
-          2
-        )}`
-      )
-    },
-    [listenerChartId]
-  )
-  const handleBlur = useCallback(
-    (params?: HandlerParams) => {
-      console.log(`onBlur being handled by ${listenerChartId}. The data is`)
-      console.log(`emitterChartId: ${params?.emitterChartId}`)
-      console.log(`emitterNearestDatum: ${params?.emitterNearestDatum}`)
-    },
-    [listenerChartId]
+    [setCurrentDatum]
   )
 
   useEventEmitter({ eventType: 'pointermove', handler: handlePointerMove })
-  useEventEmitter({ eventType: 'pointerout', handler: handlePointerOut })
-  useEventEmitter({ eventType: 'pointerup', handler: handlePointerUp })
-  useEventEmitter({ eventType: 'pointerdown', handler: handlePointerDown })
-  useEventEmitter({ eventType: 'focus', handler: handleFocus })
-  useEventEmitter({ eventType: 'blur', handler: handleBlur })
+
+  //   const handlePointerUp = useCallback((params?: HandlerParams) => {
+  //   }, [])
+  //   const handlePointerDown = useCallback((params?: HandlerParams) => {
+  //   }, [])
+  //   const handleFocus = useCallback((params?: HandlerParams) => {
+  //   }, [])
+  //   const handlePointerOut = useCallback((params?: HandlerParams) => {
+  //   }, [])
+  //   const handleBlur = useCallback((params?: HandlerParams) => {
+  //   }, [])
+
+  //   useEventEmitter({ eventType: 'pointerout', handler: handlePointerOut })
+  //   useEventEmitter({ eventType: 'pointerup', handler: handlePointerUp })
+  //   useEventEmitter({ eventType: 'pointerdown', handler: handlePointerDown })
+  //   useEventEmitter({ eventType: 'focus', handler: handleFocus })
+  //   useEventEmitter({ eventType: 'blur', handler: handleBlur })
 }

@@ -8,6 +8,7 @@ import { useCallback } from 'react'
 import { isDate } from 'lodash'
 import { useMantineTheme } from '@mantine/core'
 import { LinearGradient } from '@visx/gradient'
+import { isScaleBand } from '../../charts/types'
 
 /**
  * Responsible for displaying a single shape (the component name should be changed)
@@ -17,8 +18,7 @@ export function GenericChart<T extends object>(
   chart: InternalGenericChartProps<T>
 ) {
   const {
-    xScale: xNumericScale,
-    xBandScale,
+    xScale,
     yScale,
     accessors: { getX, getY },
     type,
@@ -29,17 +29,30 @@ export function GenericChart<T extends object>(
   const xGetAndScale = useCallback(
     (datum: T) => {
       const x = getX(datum)
-      if (xNumericScale && (isNumber(x) || isDate(x))) {
-        return xNumericScale(x)
+      if (xScale && (isNumber(x) || isDate(x))) {
+        const value = xScale.scale(x)
+        if (value) {
+          return value
+        } else {
+          console.log('Numeric scale failed to scale x value')
+          return -1
+        }
       }
-      if (xBandScale) {
-        return xBandScale(x)
+      if (isScaleBand(xScale)) {
+        const value = xScale.scale(x)
+        if (value) {
+          return value
+        } else {
+          console.log('Band scale failed to scale x value')
+          return -1
+        }
       }
       console.log(
         `Missing a good xScale for chart. Maybe X isn't ${x} isn't date/numeric and you chose a date/numeric scale?`
       )
+      return -1
     },
-    [getX, xBandScale, xNumericScale]
+    [getX, xScale]
   )
   const theme = useMantineTheme()
 
@@ -73,7 +86,7 @@ export function GenericChart<T extends object>(
         <LinePath
           data={chart.data}
           x={(x) => xGetAndScale(x)}
-          y={(y) => yScale(getY(y))}
+          y={(y) => yScale.scale(getY(y))}
           curve={curveMonotoneX}
           strokeWidth={2}
           // stroke={lineChartColor}
@@ -83,23 +96,27 @@ export function GenericChart<T extends object>(
     )
   }
   if (type === ChartType.BarChart) {
-    const bandScale =
-      xBandScale ??
-      scaleBand({
-        domain: chart.data.map(getX),
-        padding: 0.2,
-        range: [margin.left, outerWidth - margin.right],
-      })
+    // If the original xScale is not a band scale, we have to create one to properly display the bars
+    const bandScale = isScaleBand(xScale)
+      ? xScale
+      : {
+          type: 'band' as const,
+          scale: scaleBand({
+            domain: chart.data.map(getX),
+            padding: 0.2,
+            range: [margin.left, outerWidth - margin.right],
+          }),
+        }
     return (
       <>
         {chart.data.map((barData) => {
           const yMax = outerHeight - margin.top - margin.bottom
-          const barWidth = bandScale.bandwidth()
-          const barHeight = yMax - (yScale(getY(barData) as number) ?? 0)
+          const barWidth = bandScale.scale.bandwidth()
+          const barHeight = yMax - (yScale.scale(getY(barData) as number) ?? 0)
           const x = chart.accessors.getX(barData)
-          const barX = bandScale(x)
+          const barX = bandScale.scale(x)
           const barY = yMax - barHeight
-          const radius = 40
+          const radius = 0
 
           const rectPath = `
             M${barX},${barY + radius}
@@ -132,7 +149,7 @@ export function GenericChart<T extends object>(
         <Area
           data={chart.data}
           x={(x) => xGetAndScale(x)}
-          y={(y) => yScale(getY(y))}
+          y={(y) => yScale.scale(getY(y))}
           y1={outerHeight - margin.bottom}
           curve={curveMonotoneX}
           strokeWidth={3}
