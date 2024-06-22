@@ -31,7 +31,7 @@ export const SynchronizedProvider: React.FC<{ children: ReactNode }> = ({
     [isHovering, currentDatum]
   )
 
-  useEventHandlers('synchronized', setCurrentDatum)
+  useEventHandlers(setCurrentDatum)
 
   return (
     <SynchronizedContext.Provider value={values}>
