@@ -1,7 +1,7 @@
 import { useInViewport } from '@mantine/hooks'
 import { ParentSize } from '@visx/responsive'
 import { ChartType } from '../../charts/charts'
-import { useCallback, useDeferredValue, useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import type {
   GenericChartAreaProps,
   InternalGenericChartAreaProps,
@@ -21,6 +21,7 @@ import {
   type ChartScaleBand,
 } from '../../charts/types'
 import { GenericChartSynchronized } from './GenericChartSynchronized'
+import { bisector } from '@visx/vendor/d3-array'
 
 // The order at which the charts are rendered. Later charts will be drawn on top of previous charts
 const order: Record<ChartType, number> = {
@@ -121,28 +122,16 @@ function GenericChartAreaInternal<T extends object>(
       }
 
       const data = mainChart.data
-      const nearest = data.reduce(
-        (acc, curr) => {
-          const currX = +mainChart.accessors.getX(curr)
-          const currDistance = Math.sqrt((currX - +x) ** 2)
-          if (acc.distance > currDistance) {
-            return { distance: currDistance, datum: curr }
-          }
-          return acc
-        },
-        { distance: Infinity, datum: null } as {
-          distance: number
-          datum: T | null
-        }
-      )
 
-      if (!nearest.datum) {
-        return { x: -4, y: -4 }
-      }
+      const bisect = bisector((v: T) =>
+        Number(mainChart.accessors.getX(v))
+      ).left
+      const index = bisect(data, x)
+      const nearestDatum = data[index]
 
       return {
-        x: mainChart.accessors.getX(nearest.datum),
-        y: mainChart.accessors.getY(nearest.datum),
+        x: mainChart.accessors.getX(nearestDatum),
+        y: mainChart.accessors.getY(nearestDatum),
       }
     },
     [mainChart.accessors, mainChart.data, xScale]

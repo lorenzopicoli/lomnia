@@ -7,7 +7,6 @@ import { isScaleBand } from '../../charts/types'
 import { Flex, useMantineTheme } from '@mantine/core'
 import { MemoizationContext } from '../../charts/MemoizationContext'
 import { isNil } from 'lodash'
-import objectHash from 'object-hash'
 import { isDateLike } from '../../utils/isDateLike'
 import { format } from 'date-fns'
 import { useElementSize } from '@mantine/hooks'
@@ -59,6 +58,7 @@ export function GenericChartSynchronized<T extends object>(props: {
   ])
   const nearestDatum = useMemo(() => {
     if (!memoizationContext) {
+      // if (memoizationContext) {
       return null
     }
 

@@ -1,5 +1,6 @@
 import { createContext, useCallback, useMemo, type ReactNode } from 'react'
 import { datumAccessors } from './useChartData'
+import { bisector } from '@visx/vendor/d3-array'
 
 export type MemoizedGetNearestDatumParams = {
   data: { x: string | Date | number; y: number }[]
@@ -42,19 +43,13 @@ export const MemoizationProvider: React.FC<{ children: ReactNode }> = ({
         return cache[key]
       }
 
-      let currentClosest = Infinity
-      let currentClosestDatum: { x: string | Date | number; y: number } | null =
-        null
       const { data, datumXAccessorKey, point, datumYAccessorKey } = params
       const getX = datumAccessors[datumXAccessorKey]
-      for (const d of data) {
-        const x = +getX(d)
-        const distance = Math.abs(x - +point.x)
-        if (distance < currentClosest) {
-          currentClosest = distance
-          currentClosestDatum = d
-        }
-      }
+      const bisect = bisector((v: { x: string | Date | number; y: number }) =>
+        Number(getX(v))
+      ).left
+      const index = bisect(data, point.x)
+      const currentClosestDatum = data[index]
       if (!currentClosestDatum) {
         return null
       }
