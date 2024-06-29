@@ -7,6 +7,7 @@ import {
   heartRateReadingsTable,
   type NewHeartRateReading,
 } from '../../../models/HeartRateReading'
+import { DateTime, FixedOffsetZone, IANAZone, Zone } from 'luxon'
 
 export class SamsungHealthHeartRateImport extends BaseImporter {
   override sourceId = 'samsung-health-export-hr-v1'
@@ -62,16 +63,24 @@ export class SamsungHealthHeartRateImport extends BaseImporter {
     }
 
     for await (const record of this.readCsvFile()) {
-      if (!record['com.samsung.health.heart_rate.binning_data']) {
-        throw new Error('Missing binning data')
+      const binnedData = record['com.samsung.health.heart_rate.binning_data']
+        ? this.getBinnedData(
+            record['com.samsung.health.heart_rate.binning_data']
+          )
+        : undefined
+      if (binnedData) {
+        continue
       }
-      const binnedData = this.getBinnedData(
-        record['com.samsung.health.heart_rate.binning_data']
-      )
-      const newEntries: NewHeartRateReading[] = binnedData.map((d: any) => ({
-        ...this.formatCsvRowToRecord(d),
+      const newEntries: NewHeartRateReading[] = binnedData?.map((d: any) => ({
+        ...this.formatCsvRowToRecord(record, d),
         importJobId: params.placeholderJobId,
-      }))
+      })) ?? [
+        {
+          ...this.formatCsvRowToRecord(record),
+          importJobId: params.placeholderJobId,
+        },
+      ]
+      console.log(newEntries)
       entriesToSave = entriesToSave.concat(newEntries)
 
       if (entriesToSave.length >= batchSize) {
@@ -81,15 +90,9 @@ export class SamsungHealthHeartRateImport extends BaseImporter {
       }
     }
 
-    if (entriesToSave.length >= batchSize) {
-      await params.tx.insert(heartRateReadingsTable).values(entriesToSave)
-      importedCount += entriesToSave.length
-      entriesToSave = []
-    }
-    if (isFinite(1)) {
-      throw new Error('rollback')
-    }
-    // this.updateFirstAndLastEntry(new Date())
+    await params.tx.insert(heartRateReadingsTable).values(entriesToSave)
+    importedCount += entriesToSave.length
+    entriesToSave = []
     return {
       importedCount,
       apiCallsCount: 0,
@@ -100,7 +103,7 @@ export class SamsungHealthHeartRateImport extends BaseImporter {
   private readCsvFile() {
     return fs
       .createReadStream(
-        `${process.env.SAMSUNG_HEALTH_FOLDER}/samsunghealth_lorenzopicoli_20240626170954/com.samsung.shealth.tracker.heart_rate.20240626170954.csv`
+        `${process.env.SAMSUNG_HEALTH_FOLDER}/samsunghealth_lorenzopicoli_20240627210308/com.samsung.shealth.tracker.heart_rate.20240627210308.csv`
       )
       .pipe(
         parse({
@@ -115,17 +118,43 @@ export class SamsungHealthHeartRateImport extends BaseImporter {
   }
 
   private formatCsvRowToRecord(
-    row: any
+    row: any,
+    binnedData?: any
   ): Omit<NewHeartRateReading, 'importJobId'> {
+    const timezoneRaw = row['com.samsung.health.heart_rate.time_offset']
+    const zone = FixedOffsetZone.parseSpecifier(timezoneRaw.slice(0, -2))
+    const timezone =
+      zone.name.indexOf('-') > -1
+        ? zone.name.replace('-', '+')
+        : zone.name.replace('+', '-')
+
+    if (!zone.isValid) {
+      throw new Error(
+        'Invalid timezone: ' + row['com.samsung.health.heart_rate.time_offset']
+      )
+    }
+
     return {
-      startTime: row['com.samsung.health.heart_rate.start_time'],
-      endTime: row['com.samsung.health.heart_rate.end_time'],
-      heartRate: row['com.samsung.health.heart_rate.heart_rate'],
-      heartRateMax: row['com.samsung.health.heart_rate.max'],
-      heartRateMin: row['com.samsung.health.heart_rate.min'],
-      timezone: row['com.samsung.health.heart_rate.timezone'],
+      startTime: binnedData
+        ? DateTime.fromMillis(binnedData.start_time).toJSDate()
+        : DateTime.fromSQL(
+            row['com.samsung.health.heart_rate.start_time']
+          ).toJSDate(),
+      endTime: binnedData
+        ? DateTime.fromMillis(binnedData.end_time).toJSDate()
+        : DateTime.fromSQL(
+            row['com.samsung.health.heart_rate.end_time']
+          ).toJSDate(),
+      heartRate:
+        binnedData?.heart_rate ??
+        row['com.samsung.health.heart_rate.heart_rate'],
+      heartRateMax:
+        binnedData?.heart_rate_max ?? row['com.samsung.health.heart_rate.max'],
+      heartRateMin:
+        binnedData?.heart_rate_min ?? row['com.samsung.health.heart_rate.min'],
+      timezone,
       comment: row['com.samsung.health.heart_rate.comment'],
-      binUuid: row['com.samsung.health.heart_rate.binning_data'],
+      binUuid: row['com.samsung.health.heart_rate.datauuid'],
       dataExportId: row['com.samsung.health.heart_rate.datauuid'],
     }
   }
@@ -133,7 +162,7 @@ export class SamsungHealthHeartRateImport extends BaseImporter {
   private getBinnedData(binFileName: string) {
     const fullPath = `${
       process.env.SAMSUNG_HEALTH_FOLDER
-    }/samsunghealth_lorenzopicoli_20240626170954/jsons/com.samsung.shealth.tracker.heart_rate/${binFileName.charAt(
+    }/samsunghealth_lorenzopicoli_20240627210308/jsons/com.samsung.shealth.tracker.heart_rate/${binFileName.charAt(
       0
     )}/${binFileName}`
 
