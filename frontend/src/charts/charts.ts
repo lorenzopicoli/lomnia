@@ -7,6 +7,7 @@ export enum ChartType {
 export enum ChartSource {
   Weather = 'weather',
   Habit = 'habit',
+  HeartRate = 'heartRate',
 }
 
 export function stringToChartSource(str: string) {
@@ -15,6 +16,8 @@ export function stringToChartSource(str: string) {
       return ChartSource.Weather
     case 'habit':
       return ChartSource.Habit
+    case 'heartRate':
+      return ChartSource.HeartRate
     default:
       throw new Error(`Unknown chart source: ${str}`)
   }
@@ -34,6 +37,11 @@ export function chartSourceTitleAndDescription(source: ChartSource): {
       return {
         title: 'Habit',
         description: 'Habit data manually tracked by the user',
+      }
+    case ChartSource.HeartRate:
+      return {
+        title: 'Heart Rate',
+        description: 'Heart rate data from the user',
       }
   }
 }

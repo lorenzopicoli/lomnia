@@ -63,6 +63,7 @@ export function AddChart(props: AddChartProps) {
       sources: {
         [ChartSource.Weather]: false,
         [ChartSource.Habit]: false,
+        [ChartSource.HeartRate]: false,
       },
       xKey: '',
       aggregation: {
