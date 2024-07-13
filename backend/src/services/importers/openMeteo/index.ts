@@ -533,11 +533,10 @@ export class OpenMeteoImport extends BaseImporter {
       }
 
       // When this was done I didn't know you could pass a list of timezones to the API call
-      const byTimezone  =
-        locationDatePairs.reduce((acc, curr) => {
-          acc[curr.timezone] = [...(acc[curr.timezone] ?? []), curr]
-          return acc
-        }, {} as Record<string, typeof locationDatePairs>)
+      const byTimezone = locationDatePairs.reduce((acc, curr) => {
+        acc[curr.timezone] = [...(acc[curr.timezone] ?? []), curr]
+        return acc
+      }, {} as Record<string, typeof locationDatePairs>)
 
       for (const timezone of Object.keys(byTimezone)) {
         const sameTimezonePairs = byTimezone[timezone]
@@ -596,7 +595,7 @@ export class OpenMeteoImport extends BaseImporter {
       // make a big impact. This is just a workaround for now
       await this.linkLocationsToWeather(params.tx, firstDate, lastDate)
 
-      await this.cleanUpDanglingWeatherEntries(params.tx)
+      //   await this.cleanUpDanglingWeatherEntries(params.tx)
     }
 
     await this.linkLocationsToWeather(params.tx)

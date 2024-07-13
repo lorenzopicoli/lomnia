@@ -8,10 +8,10 @@ import {
 } from '../../../models/HeartRateReading'
 import { DateTime, FixedOffsetZone } from 'luxon'
 
-export class SamsungHealthHeartRateImport extends BaseImporter {
-  override sourceId = 'samsung-health-export-hr-v1'
-  override destinationTable = 'heart_rate_readings'
-  override entryDateKey = 'com.samsung.health.heart_rate.create_time'
+export class SamsungHealthStepCountImport extends BaseImporter {
+  override sourceId = 'samsung-health-export-sc-v1'
+  override destinationTable = 'step_counts'
+  override entryDateKey = 'com.samsung.health.step_count.create_time'
 
   private headers = [
     'source',
@@ -62,9 +62,13 @@ export class SamsungHealthHeartRateImport extends BaseImporter {
     }
 
     for await (const record of this.readCsvFile()) {
-      const binnedData = record['com.samsung.health.heart_rate.binning_data']
+      console.log('record', record)
+      if (record) {
+        throw new Error('a')
+      }
+      const binnedData = record['com.samsung.health.step_count.binning_data']
         ? this.getBinnedData(
-            record['com.samsung.health.heart_rate.binning_data']
+            record['com.samsung.health.step_count.binning_data']
           )
         : undefined
       if (binnedData) {
@@ -102,7 +106,7 @@ export class SamsungHealthHeartRateImport extends BaseImporter {
   private readCsvFile() {
     return fs
       .createReadStream(
-        `${process.env.SAMSUNG_HEALTH_FOLDER}/samsunghealth_lorenzopicoli_20240627210308/com.samsung.shealth.tracker.heart_rate.20240627210308.csv`
+        `${process.env.SAMSUNG_HEALTH_FOLDER}/samsunghealth_lorenzopicoli_20240627210308/com.samsung.shealth.tracker.pedometer_step_count.20240627210308.csv`
       )
       .pipe(
         parse({
@@ -161,7 +165,7 @@ export class SamsungHealthHeartRateImport extends BaseImporter {
   private getBinnedData(binFileName: string) {
     const fullPath = `${
       process.env.SAMSUNG_HEALTH_FOLDER
-    }/samsunghealth_lorenzopicoli_20240627210308/jsons/com.samsung.shealth.tracker.heart_rate/${binFileName.charAt(
+    }/samsunghealth_lorenzopicoli_20240627210308/jsons/com.samsung.shealth.tracker.pedometer_step_count/${binFileName.charAt(
       0
     )}/${binFileName}`
 
