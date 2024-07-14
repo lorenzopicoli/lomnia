@@ -472,10 +472,10 @@ export class OpenMeteoImport extends BaseImporter {
    */
   private async cleanUpDanglingWeatherEntries(tx: DBTransaction) {
     await tx.delete(dailyWeatherTable).where(sql`
-        ${dailyWeatherTable.id} NOT IN (select ${locationsTable.dailyWeatherId} from locations where ${locationsTable.dailyWeatherId} IS NOT NULL)
+        NOT EXISTS (select 1 from locations where ${locationsTable.dailyWeatherId} = ${dailyWeatherTable.id})
       `)
     await tx.delete(hourlyWeatherTable).where(sql`
-        ${hourlyWeatherTable.id} NOT IN (select ${locationsTable.hourlyWeatherId} from locations where ${locationsTable.hourlyWeatherId} IS NOT NULL)
+        NOT EXISTS (select 1 from locations where ${locationsTable.hourlyWeatherId} = ${hourlyWeatherTable.id})
       `)
   }
 
