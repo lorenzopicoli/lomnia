@@ -144,7 +144,7 @@ export function useChartData(
         },
         y: {
           unit: '',
-          label: '',
+          label: mainShape.yKey,
         },
       },
     }
@@ -175,7 +175,7 @@ export function useChartData(
       },
       y: {
         unit: '',
-        label: '',
+        label: shape.yKey,
       },
     },
   }))

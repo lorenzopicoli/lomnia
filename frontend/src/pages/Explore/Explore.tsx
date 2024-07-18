@@ -5,6 +5,7 @@ import {
   ScrollArea,
   Space,
   useMantineTheme,
+  Text,
 } from '@mantine/core'
 import { useMemo, useState } from 'react'
 import { ResizableGrid } from '../../components/ResizableGrid/ResizableGrid'
@@ -41,6 +42,8 @@ export function Explore() {
   const charts = useMemo(() => {
     return Object.values(chartsBeingShown).filter(removeNills)
   }, [chartsBeingShown])
+
+  const chartAreaTopMargin = 40
   return (
     <Paper component={Container} fluid h={'100vh'} bg={theme.colors.dark[9]}>
       <ScrollArea
@@ -79,6 +82,18 @@ export function Explore() {
                 <ResizableGrid {...gridProps} rowHeight={500}>
                   {charts.map((chart) => (
                     <div key={chart.id}>
+                      <Container
+                        display={'flex'}
+                        p={0}
+                        pos={'absolute'}
+                        top={0}
+                        left={0}
+                      >
+                        <Text pr="sm">X: {chart.xKey}</Text>
+                        <Text>
+                          Y: {chart.shapes.map((s) => s.yKey).join(', ')}
+                        </Text>
+                      </Container>
                       {isChangingLayout ? (
                         <Container
                           fluid
@@ -87,11 +102,18 @@ export function Explore() {
                           bg={theme.colors.dark[8]}
                         />
                       ) : (
-                        <GenericChartContainer
-                          chart={chart}
-                          startDate={dateRange[0]}
-                          endDate={dateRange[1]}
-                        />
+                        <Container
+                          fluid
+                          h={`calc(100% - ${chartAreaTopMargin}px)`}
+                          mt={chartAreaTopMargin}
+                          p={0}
+                        >
+                          <GenericChartContainer
+                            chart={chart}
+                            startDate={dateRange[0]}
+                            endDate={dateRange[1]}
+                          />
+                        </Container>
                       )}
                     </div>
                   ))}
