@@ -1,174 +1,93 @@
-import type { DBTransaction } from '../../../db/types'
-import { BaseImporter } from '../BaseImporter'
-import { parse } from 'csv-parse'
-import * as fs from 'node:fs'
-import {
-  heartRateReadingsTable,
-  type NewHeartRateReading,
-} from '../../../models/HeartRateReading'
-import { DateTime, FixedOffsetZone } from 'luxon'
+import { DateTime } from 'luxon'
+import { BaseSamsungHealthImporter } from '.'
+import { stepCountTable, type NewStepCount } from '../../../models/StepCount'
+import { offsetToTimezone } from '../../../helpers/offsetToTimezone'
+import { isNumber } from '../../../helpers/isNumber'
 
-export class SamsungHealthStepCountImport extends BaseImporter {
+export class SamsungHealthStepCountImporter extends BaseSamsungHealthImporter<NewStepCount> {
   override sourceId = 'samsung-health-export-sc-v1'
   override destinationTable = 'step_counts'
   override entryDateKey = 'com.samsung.health.step_count.create_time'
 
-  private headers = [
-    'source',
-    'tag_id',
-    'com.samsung.health.heart_rate.create_sh_ver',
-    'com.samsung.health.heart_rate.heart_beat_count',
-    'com.samsung.health.heart_rate.start_time',
-    'com.samsung.health.heart_rate.custom',
-    'com.samsung.health.heart_rate.binning_data',
-    'com.samsung.health.heart_rate.modify_sh_ver',
-    'com.samsung.health.heart_rate.update_time',
-    'com.samsung.health.heart_rate.create_time',
-    'com.samsung.health.heart_rate.max',
-    'com.samsung.health.heart_rate.min',
-    'com.samsung.health.heart_rate.time_offset',
-    'com.samsung.health.heart_rate.deviceuuid',
-    'com.samsung.health.heart_rate.comment',
-    'com.samsung.health.heart_rate.pkg_name',
-    'com.samsung.health.heart_rate.end_time',
-    'com.samsung.health.heart_rate.datauuid',
-    'com.samsung.health.heart_rate.heart_rate',
-  ]
-
-  public async sourceHasNewData(): Promise<{
-    result: boolean
-    from?: Date
-    totalEstimate?: number
-  }> {
-    return { result: true }
-  }
-
-  override async import(params: {
-    tx: DBTransaction
-    placeholderJobId: number
-  }): Promise<{
-    importedCount: number
-    firstEntryDate?: Date
-    lastEntryDate?: Date
-    apiCallsCount?: number
-    logs: string[]
-  }> {
-    let importedCount = 0
-    const batchSize = 100
-    let entriesToSave: NewHeartRateReading[] = []
-
-    if (!process.env.SAMSUNG_HEALTH_FOLDER) {
-      throw new Error('Missing env var SAMSUNG_HEALTH_FOLDER')
+  constructor() {
+    const identifier = 'com.samsung.shealth.tracker.pedometer_step_count'
+    const csvColumnPrefix = 'com.samsung.health.step_count'
+    const headersMap = {
+      runStep: 'run_step',
+      walkStep: 'walk_step',
+      startTime: `${csvColumnPrefix}.start_time`,
+      endTime: `${csvColumnPrefix}.end_time`,
+      stepCount: `${csvColumnPrefix}.count`,
+      speed: `${csvColumnPrefix}.speed`,
+      distance: `${csvColumnPrefix}.distance`,
+      calories: `${csvColumnPrefix}.calorie`,
+      timeOffset: `${csvColumnPrefix}.time_offset`,
+      deviceUuid: `${csvColumnPrefix}.deviceuuid`,
+      dataUuid: `${csvColumnPrefix}.datauuid`,
     }
 
-    for await (const record of this.readCsvFile()) {
-      console.log('record', record)
-      if (record) {
-        throw new Error('a')
-      }
-      const binnedData = record['com.samsung.health.step_count.binning_data']
-        ? this.getBinnedData(
-            record['com.samsung.health.step_count.binning_data']
-          )
-        : undefined
-      if (binnedData) {
-        continue
-      }
-      const newEntries: NewHeartRateReading[] = binnedData?.map((d: any) => ({
-        ...this.formatCsvRowToRecord(record, d),
-        importJobId: params.placeholderJobId,
-      })) ?? [
-        {
-          ...this.formatCsvRowToRecord(record),
-          importJobId: params.placeholderJobId,
-        },
-      ]
-      console.log(newEntries)
-      entriesToSave = entriesToSave.concat(newEntries)
+    super({
+      recordsTable: stepCountTable,
+      headersMap,
+      identifier,
+      binnedDataColumn: undefined,
+      onNewBinnedData: (row: any, data: any, importJobId: number) => {
+        throw new Error('Step count data should not be binned')
+      },
+      onNewRow: (data: any, importJobId: number) => {
+        if (!data[headersMap.startTime]) {
+          throw new Error('Missing start time')
+        }
+        if (!data[headersMap.endTime]) {
+          throw new Error('Missing end time')
+        }
+        if (!isNumber(data[headersMap.walkStep])) {
+          throw new Error('Missing walk step')
+        }
+        if (!isNumber(data[headersMap.runStep])) {
+          throw new Error('Missing run step')
+        }
+        if (!isNumber(data[headersMap.stepCount])) {
+          throw new Error('Missing step count')
+        }
+        if (!data[headersMap.timeOffset]) {
+          throw new Error('Missing time offset')
+        }
+        if (!data[headersMap.dataUuid]) {
+          throw new Error('Missing data uuid')
+        }
+        const dateFormat = 'yyyy-MM-dd HH:mm:ss.SSS'
+        const startTime = DateTime.fromFormat(
+          data[headersMap.startTime],
+          dateFormat,
+          {
+            zone: 'UTC',
+          }
+        )
+        const endTime = DateTime.fromFormat(
+          data[headersMap.endTime],
+          dateFormat,
+          {
+            zone: 'UTC',
+          }
+        )
 
-      if (entriesToSave.length >= batchSize) {
-        await params.tx.insert(heartRateReadingsTable).values(entriesToSave)
-        importedCount += entriesToSave.length
-        entriesToSave = []
-      }
-    }
+        const dbEntry: NewStepCount = {
+          startTime: startTime.toJSDate(),
+          endTime: endTime.toJSDate(),
+          walkStep: data[headersMap.walkStep],
+          runStep: data[headersMap.runStep],
+          stepCount: data[headersMap.stepCount],
+          speed: data[headersMap.speed],
+          distance: data[headersMap.distance],
+          calories: data[headersMap.calories],
+          timezone: offsetToTimezone(data[headersMap.timeOffset]),
+          dataExportId: data[headersMap.dataUuid],
+          importJobId,
+        }
 
-    await params.tx.insert(heartRateReadingsTable).values(entriesToSave)
-    importedCount += entriesToSave.length
-    entriesToSave = []
-    return {
-      importedCount,
-      apiCallsCount: 0,
-      logs: [],
-    }
-  }
-
-  private readCsvFile() {
-    return fs
-      .createReadStream(
-        `${process.env.SAMSUNG_HEALTH_FOLDER}/samsunghealth_lorenzopicoli_20240627210308/com.samsung.shealth.tracker.pedometer_step_count.20240627210308.csv`
-      )
-      .pipe(
-        parse({
-          columns: true,
-          relaxColumnCount: true,
-          fromLine: 2,
-          skipEmptyLines: true,
-          cast: true,
-          castDate: false,
-        })
-      )
-  }
-
-  private formatCsvRowToRecord(
-    row: any,
-    binnedData?: any
-  ): Omit<NewHeartRateReading, 'importJobId'> {
-    const timezoneRaw = row['com.samsung.health.heart_rate.time_offset']
-    const zone = FixedOffsetZone.parseSpecifier(timezoneRaw.slice(0, -2))
-    const timezone =
-      zone.name.indexOf('-') > -1
-        ? zone.name.replace('-', '+')
-        : zone.name.replace('+', '-')
-
-    if (!zone.isValid) {
-      throw new Error(
-        'Invalid timezone: ' + row['com.samsung.health.heart_rate.time_offset']
-      )
-    }
-
-    return {
-      startTime: binnedData
-        ? DateTime.fromMillis(binnedData.start_time).toJSDate()
-        : DateTime.fromSQL(
-            row['com.samsung.health.heart_rate.start_time']
-          ).toJSDate(),
-      endTime: binnedData
-        ? DateTime.fromMillis(binnedData.end_time).toJSDate()
-        : DateTime.fromSQL(
-            row['com.samsung.health.heart_rate.end_time']
-          ).toJSDate(),
-      heartRate:
-        binnedData?.heart_rate ??
-        row['com.samsung.health.heart_rate.heart_rate'],
-      heartRateMax:
-        binnedData?.heart_rate_max ?? row['com.samsung.health.heart_rate.max'],
-      heartRateMin:
-        binnedData?.heart_rate_min ?? row['com.samsung.health.heart_rate.min'],
-      timezone,
-      comment: row['com.samsung.health.heart_rate.comment'],
-      binUuid: row['com.samsung.health.heart_rate.datauuid'],
-      dataExportId: row['com.samsung.health.heart_rate.datauuid'],
-    }
-  }
-
-  private getBinnedData(binFileName: string) {
-    const fullPath = `${
-      process.env.SAMSUNG_HEALTH_FOLDER
-    }/samsunghealth_lorenzopicoli_20240627210308/jsons/com.samsung.shealth.tracker.pedometer_step_count/${binFileName.charAt(
-      0
-    )}/${binFileName}`
-
-    return JSON.parse(fs.readFileSync(fullPath, 'utf8'))
+        return dbEntry
+      },
+    })
   }
 }

@@ -1,9 +1,6 @@
 import { asc, sql, type SQL } from 'drizzle-orm'
 import { getKeys } from '../helpers/getKeys'
-import {
-  heartRateReadingsTable,
-  type HeartRateReadingColumns,
-} from '../models/HeartRateReading'
+import { heartRateTable, type HeartRateColumns } from '../models/HeartRate'
 import {
   getAggregatedXColumn,
   getAggregatedYColumn,
@@ -16,7 +13,7 @@ export const getHeartRateCharts = async (
   params: ChartServiceParams
 ): ChartServiceReturn => {
   const { yKeys, xKey, filters, aggregation } = params
-  const columns = getKeys(heartRateReadingsTable)
+  const columns = getKeys(heartRateTable)
   const isSafeXKey = columns.includes(xKey as (typeof columns)[number])
   const isSafeYKeys = yKeys.every((yKey) =>
     columns.includes(yKey as (typeof columns)[number])
@@ -27,33 +24,29 @@ export const getHeartRateCharts = async (
     console.log('X', xKey, 'Y', yKeys)
     throw new Error('Invalid keys')
   }
-  const xKeyTyped = xKey as HeartRateReadingColumns
-  const yKeysTyped = yKeys as HeartRateReadingColumns[]
-  const xCol = getAggregatedXColumn(
-    heartRateReadingsTable[xKeyTyped],
-    aggregation
-  )
+  const xKeyTyped = xKey as HeartRateColumns
+  const yKeysTyped = yKeys as HeartRateColumns[]
+  const xCol = getAggregatedXColumn(heartRateTable[xKeyTyped], aggregation)
   const yCols = yKeysTyped.reduce((acc, curr) => {
-    acc[curr] = getAggregatedYColumn(
-      heartRateReadingsTable[curr],
-      aggregation
-    ).mapWith(Number)
+    acc[curr] = getAggregatedYColumn(heartRateTable[curr], aggregation).mapWith(
+      Number
+    )
     return acc
-  }, {} as Record<HeartRateReadingColumns, SQL>)
+  }, {} as Record<HeartRateColumns, SQL>)
 
   const data = db
     .select({
       ...yCols,
       [xKey]: xCol,
     })
-    .from(heartRateReadingsTable)
+    .from(heartRateTable)
     .where(
       sql`
       ${
-        heartRateReadingsTable.startTime
+        heartRateTable.startTime
       } >= (${filters.startDate.toISO()} AT TIME ZONE 'America/Toronto')::date 
       AND ${
-        heartRateReadingsTable.startTime
+        heartRateTable.startTime
       } <= (${filters.endDate.toISO()} AT TIME ZONE 'America/Toronto')::date`
     )
     .$dynamic()

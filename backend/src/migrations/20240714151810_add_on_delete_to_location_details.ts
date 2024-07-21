@@ -6,7 +6,6 @@ export async function up(knex: Knex): Promise<void> {
     table
       .integer('location_details_id')
       .references('location_details.id')
-      //   .index()
       .onDelete('SET NULL')
       .alter()
   })

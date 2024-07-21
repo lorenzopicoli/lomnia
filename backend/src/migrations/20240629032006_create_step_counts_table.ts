@@ -5,12 +5,13 @@ export async function up(knex: Knex): Promise<void> {
     table.increments()
     table.timestamp('start_time').notNullable().index()
     table.timestamp('end_time').notNullable().index()
-    table.integer('heart_rate').notNullable()
-    table.integer('heart_rate_max').notNullable()
-    table.integer('heart_rate_min').notNullable()
+    table.integer('walk_step').notNullable()
+    table.integer('run_step').notNullable()
+    table.integer('step_count').notNullable()
+    table.float('speed')
+    table.float('distance')
+    table.float('calories')
     table.string('timezone').notNullable()
-    table.string('comment')
-    table.uuid('bin_uuid').index()
 
     table.string('data_export_id').notNullable()
 
