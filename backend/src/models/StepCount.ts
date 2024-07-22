@@ -16,8 +16,17 @@ export const stepCountTable = pgTable('step_counts', {
   walkStep: integer('walk_step').notNull(),
   runStep: integer('run_step').notNull(),
   stepCount: integer('step_count').notNull(),
+  /**
+   * Speed in meters per second during the activity
+   */
   speed: real('speed'),
+  /**
+   * Distance in meters during the activity
+   */
   distance: real('distance'),
+  /**
+   * Burned calories in kilocalories during the activity
+   */
   calories: real('calories'),
   timezone: text('timezone').notNull(),
 

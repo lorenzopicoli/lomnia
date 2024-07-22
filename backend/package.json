@@ -6,6 +6,7 @@
   "scripts": {
     "ts:check": "tsc --noEmit",
     "dev:importer": "tsx watch --clear-screen=false src/importer.ts | pino-pretty",
+    "importer": "tsx src/importer.ts | pino-pretty",
     "dev:server": "tsx watch --clear-screen=false src/server.ts | pino-pretty",
     "build": "rimraf build && tsc && cp -r src/static build/static && cp -r src/db/migrations build/db/migrations",
     "start": "NODE_ENV=production npm run build && tsx build/src/index.js",
