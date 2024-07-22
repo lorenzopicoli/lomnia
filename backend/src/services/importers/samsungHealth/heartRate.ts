@@ -2,11 +2,16 @@ import { heartRateTable, type NewHeartRate } from '../../../models/HeartRate'
 import { DateTime } from 'luxon'
 import { BaseSamsungHealthImporter } from '.'
 import { offsetToTimezone } from '../../../helpers/offsetToTimezone'
+import { db } from '../../../db/connection'
+import { desc } from 'drizzle-orm'
+import type { DBTransaction } from '../../../db/types'
 
 export class SamsungHealthHeartRateImporter extends BaseSamsungHealthImporter<NewHeartRate> {
   override sourceId = 'samsung-health-export-hr-v1'
   override destinationTable = 'heart_rate_readings'
   override entryDateKey = 'com.samsung.health.heart_rate.start_time'
+
+  private fromDate: DateTime | null = null
 
   constructor() {
     const identifier = 'com.samsung.shealth.tracker.heart_rate'
@@ -40,8 +45,15 @@ export class SamsungHealthHeartRateImporter extends BaseSamsungHealthImporter<Ne
       identifier,
       binnedDataColumn: undefined,
       onNewBinnedData: (csvRow: any, binnedData: any, importJobId: number) => {
+        const startTime = DateTime.fromMillis(binnedData.start_time)
+        // Already imported
+        if (this.fromDate && startTime.diff(this.fromDate).milliseconds <= 0) {
+          return null
+        }
+        console.log('Importing bin', this.fromDate)
+        console.log('Importing bin', binnedData)
         return {
-          startTime: DateTime.fromMillis(binnedData.start_time).toJSDate(),
+          startTime: startTime.toJSDate(),
           endTime: DateTime.fromMillis(binnedData.end_time).toJSDate(),
           heartRate: binnedData.heart_rate,
           heartRateMax: binnedData.heart_rate_max,
@@ -54,8 +66,15 @@ export class SamsungHealthHeartRateImporter extends BaseSamsungHealthImporter<Ne
         }
       },
       onNewRow: (row: any, importJobId: number) => {
+        const startTime = DateTime.fromSQL(row[headersMap.startTime])
+        // Already imported
+        if (this.fromDate && startTime.diff(this.fromDate).milliseconds <= 0) {
+          return null
+        }
+        console.log('Importing row', this.fromDate)
+        console.log('Importing row', row)
         return {
-          startTime: DateTime.fromSQL(row[headersMap.startTime]).toJSDate(),
+          startTime: startTime.toJSDate(),
           endTime: DateTime.fromSQL(row[headersMap.endTime]).toJSDate(),
           heartRate: row[headersMap.heartRate],
           heartRateMax: row[headersMap.max],
@@ -68,5 +87,26 @@ export class SamsungHealthHeartRateImporter extends BaseSamsungHealthImporter<Ne
         }
       },
     })
+  }
+
+  override async import(params: {
+    tx: DBTransaction
+    placeholderJobId: number
+  }): Promise<{
+    importedCount: number
+    firstEntryDate?: Date
+    lastEntryDate?: Date
+    apiCallsCount?: number
+    logs: string[]
+  }> {
+    const fromDate = await db.query.heartRateTable.findFirst({
+      orderBy: desc(heartRateTable.startTime),
+    })
+
+    this.fromDate = fromDate
+      ? DateTime.fromJSDate(fromDate.startTime, { zone: 'UTC' })
+      : null
+
+    return super.import(params)
   }
 }

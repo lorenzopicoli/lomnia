@@ -3,11 +3,16 @@ import { BaseSamsungHealthImporter } from '.'
 import { stepCountTable, type NewStepCount } from '../../../models/StepCount'
 import { offsetToTimezone } from '../../../helpers/offsetToTimezone'
 import { isNumber } from '../../../helpers/isNumber'
+import { db } from '../../../db/connection'
+import { desc } from 'drizzle-orm'
+import type { DBTransaction } from '../../../db/types'
 
 export class SamsungHealthStepCountImporter extends BaseSamsungHealthImporter<NewStepCount> {
   override sourceId = 'samsung-health-export-sc-v1'
   override destinationTable = 'step_counts'
   override entryDateKey = 'com.samsung.health.step_count.create_time'
+
+  private fromDate: DateTime | null = null
 
   constructor() {
     const identifier = 'com.samsung.shealth.tracker.pedometer_step_count'
@@ -64,6 +69,12 @@ export class SamsungHealthStepCountImporter extends BaseSamsungHealthImporter<Ne
             zone: 'UTC',
           }
         )
+
+        // Already imported
+        if (this.fromDate && startTime.diff(this.fromDate).milliseconds <= 0) {
+          return null
+        }
+
         const endTime = DateTime.fromFormat(
           data[headersMap.endTime],
           dateFormat,
@@ -89,5 +100,26 @@ export class SamsungHealthStepCountImporter extends BaseSamsungHealthImporter<Ne
         return dbEntry
       },
     })
+  }
+
+  override async import(params: {
+    tx: DBTransaction
+    placeholderJobId: number
+  }): Promise<{
+    importedCount: number
+    firstEntryDate?: Date
+    lastEntryDate?: Date
+    apiCallsCount?: number
+    logs: string[]
+  }> {
+    const fromDate = await db.query.stepCountTable.findFirst({
+      orderBy: desc(stepCountTable.startTime),
+    })
+
+    this.fromDate = fromDate
+      ? DateTime.fromJSDate(fromDate.startTime, { zone: 'UTC' })
+      : null
+
+    return super.import(params)
   }
 }

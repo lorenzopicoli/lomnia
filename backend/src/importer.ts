@@ -37,7 +37,7 @@ const samsungData = async () => {
   const heartRate = new SamsungHealthHeartRateImporter()
   await heartRate.startJob()
   const stepCount = new SamsungHealthStepCountImporter()
-  //   await stepCount.startJob()
+  await stepCount.startJob()
 }
 const main = async () => {
   console.log('================== LOCATIONS IMPORT ================== ')

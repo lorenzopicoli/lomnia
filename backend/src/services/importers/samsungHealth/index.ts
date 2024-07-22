@@ -3,6 +3,7 @@ import { BaseImporter } from '../BaseImporter'
 import { parse } from 'csv-parse'
 import * as fs from 'node:fs'
 import type { PgTableWithColumns } from 'drizzle-orm/pg-core'
+import { isNotNill } from '../../../helpers/isNotNil'
 
 export class BaseSamsungHealthImporter<T> extends BaseImporter {
   private identifier: string
@@ -103,10 +104,10 @@ export class BaseSamsungHealthImporter<T> extends BaseImporter {
         this.binnedDataColumn && record[this.binnedDataColumn]
           ? this.getBinnedData(record[this.binnedDataColumn])
           : undefined
-      const newEntries: T = binnedData?.map((d: any) =>
+      const newEntries: (T | null)[] = binnedData?.map((d: any) =>
         this.onNewBinnedData(record, d, params.placeholderJobId)
       ) ?? [this.onNewRow(record, params.placeholderJobId)]
-      entriesToSave = entriesToSave.concat(newEntries)
+      entriesToSave = entriesToSave.concat(newEntries.filter(isNotNill))
 
       if (entriesToSave.length >= batchSize) {
         await params.tx.insert(this.recordsTable).values(entriesToSave)
@@ -115,7 +116,9 @@ export class BaseSamsungHealthImporter<T> extends BaseImporter {
       }
     }
 
-    await params.tx.insert(this.recordsTable).values(entriesToSave)
+    if (entriesToSave.length > 0) {
+      await params.tx.insert(this.recordsTable).values(entriesToSave)
+    }
     importedCount += entriesToSave.length
     entriesToSave = []
     return {
