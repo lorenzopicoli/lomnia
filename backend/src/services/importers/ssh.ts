@@ -5,7 +5,7 @@ export const newSSHConnection = async (host: string) => {
   return new NodeSSH().connect({
     host,
     username: 'lorenzo',
-    privateKeyPath: '/home/lorenzo/Downloads/id_rsa_no_pass',
+    privateKeyPath: process.env.PRIVATE_KEY_PATH,
   })
 }
 

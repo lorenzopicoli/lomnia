@@ -44,6 +44,7 @@ export class BaseImporter {
       return
     }
 
+    let successfullRollback = false
     await db
       .transaction(async (tx) => {
         const placeholderJobId = await tx
@@ -75,6 +76,8 @@ export class BaseImporter {
         })
 
         if (result.importedCount === 0) {
+          successfullRollback = true
+          console.log('No new data to import')
           return tx.rollback()
         }
 
@@ -93,7 +96,11 @@ export class BaseImporter {
           })
           .where(eq(importJobsTable.id, placeholderJobId.id))
       })
-      .catch((e) => console.log('NOTHING E', e))
+      .catch((e) => {
+        if (!successfullRollback) {
+          console.error('Error during import', e)
+        }
+      })
 
     console.log('Done importing', this.sourceId)
   }

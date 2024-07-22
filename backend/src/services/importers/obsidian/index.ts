@@ -239,7 +239,12 @@ export class ObsidianImporter {
 
         if (habitKeys.includes(key)) {
           // Cases where date is null should already be covered in the validation above
-          const date = DateTime.fromISO(file.metadata.date as string)
+          // The yaml reader formats the date in UTC, use setZone to force timezone to be UTC
+          // which will avoid conversions. Since we save in date format (not timestamp) we
+          // don't care about the timezone as long as the date is fine
+          const date = DateTime.fromISO(file.metadata.date as string, {
+            setZone: true,
+          })
 
           importedCount++
           updateEntryDates(file.fileCreatedAt)

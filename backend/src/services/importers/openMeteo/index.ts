@@ -472,10 +472,10 @@ export class OpenMeteoImport extends BaseImporter {
    */
   private async cleanUpDanglingWeatherEntries(tx: DBTransaction) {
     await tx.delete(dailyWeatherTable).where(sql`
-        ${dailyWeatherTable.id} NOT IN (select ${locationsTable.dailyWeatherId} from locations where ${locationsTable.dailyWeatherId} IS NOT NULL)
+        NOT EXISTS (select 1 from locations where ${locationsTable.dailyWeatherId} = ${dailyWeatherTable.id})
       `)
     await tx.delete(hourlyWeatherTable).where(sql`
-        ${hourlyWeatherTable.id} NOT IN (select ${locationsTable.hourlyWeatherId} from locations where ${locationsTable.hourlyWeatherId} IS NOT NULL)
+        NOT EXISTS (select 1 from locations where ${locationsTable.hourlyWeatherId} = ${hourlyWeatherTable.id})
       `)
   }
 
@@ -533,11 +533,10 @@ export class OpenMeteoImport extends BaseImporter {
       }
 
       // When this was done I didn't know you could pass a list of timezones to the API call
-      const byTimezone  =
-        locationDatePairs.reduce((acc, curr) => {
-          acc[curr.timezone] = [...(acc[curr.timezone] ?? []), curr]
-          return acc
-        }, {} as Record<string, typeof locationDatePairs>)
+      const byTimezone = locationDatePairs.reduce((acc, curr) => {
+        acc[curr.timezone] = [...(acc[curr.timezone] ?? []), curr]
+        return acc
+      }, {} as Record<string, typeof locationDatePairs>)
 
       for (const timezone of Object.keys(byTimezone)) {
         const sameTimezonePairs = byTimezone[timezone]
@@ -596,7 +595,7 @@ export class OpenMeteoImport extends BaseImporter {
       // make a big impact. This is just a workaround for now
       await this.linkLocationsToWeather(params.tx, firstDate, lastDate)
 
-      await this.cleanUpDanglingWeatherEntries(params.tx)
+      //   await this.cleanUpDanglingWeatherEntries(params.tx)
     }
 
     await this.linkLocationsToWeather(params.tx)

@@ -6,7 +6,6 @@ import { locationsTable } from '../../../models'
 import { eq, sql } from 'drizzle-orm'
 import { locationDetailsTable } from '../../../models/LocationDetails'
 
-console.log('data', data)
 export class UserPointsOfInterestImporter extends BaseImporter {
   override sourceId = 'userPOIJson'
   override destinationTable = 'location_details'
@@ -69,26 +68,8 @@ export class UserPointsOfInterestImporter extends BaseImporter {
 
     const userPOIs = this.jsonSchema.parse(data)
 
-    // Get all locations that had details sourced from the user point of interest json file
-    const poiLocations = tx
-      .select({
-        id: locationsTable.id,
-      })
-      .from(locationsTable)
-      .innerJoin(
-        locationDetailsTable,
-        eq(locationDetailsTable.id, locationsTable.locationDetailsId)
-      )
-      .where(eq(locationDetailsTable.source, 'userPOIJson'))
-
-    // Remove their relationship
-    await tx
-      //   .with(poiLocations)
-      .update(locationsTable)
-      .set({ locationDetailsId: null })
-      .where(sql`${locationsTable.id} IN (${poiLocations})`)
-
     // Delete all the user point of interests from the location details table
+    // This automatically sets locationDetailsId to null in locations
     await tx
       .delete(locationDetailsTable)
       .where(eq(locationDetailsTable.source, 'userPOIJson'))

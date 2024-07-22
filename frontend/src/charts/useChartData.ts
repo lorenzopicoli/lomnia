@@ -34,7 +34,7 @@ export function useChartData(
       shapes: {
         id: string
         isMain: boolean
-        source: 'weather' | 'habit'
+        source: 'weather' | 'habit' | 'heartRate'
         yKey: string
         type: ChartType
       }[]
@@ -57,6 +57,13 @@ export function useChartData(
     yKeys: sources.weather?.map((s) => s.yKey) ?? [],
     aggregation: chart.config.aggregation,
   }
+  const heartRatePayload = {
+    startDate: chart.filters.startDate.toISOString(),
+    endDate: chart.filters.endDate.toISOString(),
+    xKey: chart.config.xKey,
+    yKeys: sources.heartRate?.map((s) => s.yKey) ?? [],
+    aggregation: chart.config.aggregation,
+  }
   const { data: habitData, isLoading: habitLoading } =
     trpc.getHabitsCharts.useQuery(habitPayload, {
       enabled: enabled && habitPayload.yKeys.length > 0,
@@ -65,8 +72,13 @@ export function useChartData(
     trpc.getWeatherCharts.useQuery(weatherPayload, {
       enabled: enabled && weatherPayload.yKeys.length > 0,
     })
+  console.log(heartRatePayload)
+  const { data: heartRateData, isLoading: heartRateLoading } =
+    trpc.getHeartRateCharts.useQuery(heartRatePayload, {
+      enabled: enabled && heartRatePayload.yKeys.length > 0,
+    })
 
-  if (habitLoading || weatherLoading) {
+  if (habitLoading || weatherLoading || heartRateLoading) {
     return { isLoading: true }
   }
 
@@ -76,10 +88,26 @@ export function useChartData(
     throw new Error('Missing main shape')
   }
 
-  const minYs = [habitData?.minY, weatherData?.minY].filter(isNotNill)
-  const minXs = [habitData?.minX, weatherData?.minX].filter(isNotNill)
-  const maxYs = [habitData?.maxY, weatherData?.maxY].filter(isNotNill)
-  const maxXs = [habitData?.maxX, weatherData?.maxX].filter(isNotNill)
+  const minYs = [
+    habitData?.minY,
+    weatherData?.minY,
+    heartRateData?.minY,
+  ].filter(isNotNill)
+  const minXs = [
+    habitData?.minX,
+    weatherData?.minX,
+    heartRateData?.minX,
+  ].filter(isNotNill)
+  const maxYs = [
+    habitData?.maxY,
+    weatherData?.maxY,
+    heartRateData?.maxY,
+  ].filter(isNotNill)
+  const maxXs = [
+    habitData?.maxX,
+    weatherData?.maxX,
+    heartRateData?.maxX,
+  ].filter(isNotNill)
 
   const minY = Math.min(...minYs)
   const minX =
@@ -103,6 +131,7 @@ export function useChartData(
       data:
         habitData?.data[mainShape.yKey] ??
         weatherData?.data[mainShape.yKey] ??
+        heartRateData?.data[mainShape.yKey] ??
         [],
       minX,
       maxX,
@@ -115,7 +144,7 @@ export function useChartData(
         },
         y: {
           unit: '',
-          label: '',
+          label: mainShape.yKey,
         },
       },
     }
@@ -130,7 +159,11 @@ export function useChartData(
       getY: datumAccessors.genericGetY,
     },
     type: shape.type,
-    data: habitData?.data[shape.yKey] ?? weatherData?.data[shape.yKey] ?? [],
+    data:
+      habitData?.data[shape.yKey] ??
+      weatherData?.data[shape.yKey] ??
+      heartRateData?.data[shape.yKey] ??
+      [],
     minX,
     maxX,
     minY,
@@ -142,7 +175,7 @@ export function useChartData(
       },
       y: {
         unit: '',
-        label: '',
+        label: shape.yKey,
       },
     },
   }))

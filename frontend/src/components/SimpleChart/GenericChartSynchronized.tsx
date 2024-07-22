@@ -174,7 +174,7 @@ export function GenericChartSynchronized<T extends object>(props: {
         paddingTop: margin.top,
         paddingBottom: margin.bottom,
         left: 0,
-        top: 0,
+        bottom: 0,
         backgroundColor: 'transparent',
         pointerEvents: 'none',
         overflow: 'visible',

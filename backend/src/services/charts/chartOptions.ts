@@ -141,3 +141,50 @@ export const habitsPrimitiveKeys = async (): Promise<KeyOption[]> => {
 
   return otherKeys.concat(dbKeys)
 }
+
+export const heartRateNumericKeys: KeyOption[] = [
+  {
+    key: 'heartRate',
+    description: 'Heart rate',
+    label: 'Heart Rate',
+    unit: 'bpm',
+  },
+  {
+    key: 'heartRateMax',
+    description: 'Maximum heart rate',
+    label: 'Heart Rate Max',
+    unit: 'bpm',
+  },
+  {
+    key: 'heartRateMin',
+    description: 'Minimum heart rate',
+    label: 'Heart Rate Min',
+    unit: 'bpm',
+  },
+]
+
+export const heartRatePrimitiveKeys: KeyOption[] = [
+  {
+    key: 'startTime',
+    description: 'Start time of the record',
+    label: 'Start Time',
+    isDateColumn: true,
+  },
+  {
+    key: 'endTime',
+    description: 'End time of the record',
+    label: 'End Time',
+    isDateColumn: true,
+  },
+  ...heartRateNumericKeys,
+  {
+    key: 'timezone',
+    description: 'Timezone of the record',
+    label: 'Timezone',
+  },
+  {
+    key: 'binUuid',
+    description: 'Bin UUID',
+    label: 'Bin UUID',
+  },
+]

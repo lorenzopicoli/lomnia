@@ -8,9 +8,12 @@ import { getWeatherCharts, getWeatherInformation } from '../services/weather'
 import {
   habitsNumericKeys,
   habitsPrimitiveKeys,
+  heartRateNumericKeys,
+  heartRatePrimitiveKeys,
   weatherNumericKeys,
   weatherPrimitiveKeys,
 } from '../services/charts/chartOptions'
+import { getHeartRateCharts } from '../services/heartRates'
 
 export const t = initTRPC.create()
 
@@ -140,6 +143,45 @@ export const appRouter = t.router({
         aggregation: opts.input.aggregation,
       })
     }),
+  getHeartRateCharts: loggedProcedure
+    .input(
+      z
+        .object({
+          startDate: z.string().datetime(),
+          endDate: z.string().datetime(),
+          xKey: z.string(),
+          yKeys: z.array(z.string()),
+          aggregation: z.object({
+            fun: z
+              .literal('avg')
+              .or(z.literal('median'))
+              .or(z.literal('max'))
+              .or(z.literal('min')),
+            period: z
+              .literal('month')
+              .or(z.literal('week'))
+              .or(z.literal('day')),
+          }),
+        })
+        .partial()
+        .required({
+          xKey: true,
+          yKeys: true,
+          startDate: true,
+          endDate: true,
+        })
+    )
+    .query((opts) => {
+      return getHeartRateCharts({
+        xKey: opts.input.xKey,
+        yKeys: opts.input.yKeys,
+        filters: {
+          startDate: DateTime.fromISO(opts.input.startDate, { zone: 'UTC' }),
+          endDate: DateTime.fromISO(opts.input.endDate, { zone: 'UTC' }),
+        },
+        aggregation: opts.input.aggregation,
+      })
+    }),
   getHabitsCharts: loggedProcedure
     .input(
       z
@@ -184,10 +226,12 @@ export const appRouter = t.router({
       xKeys: {
         weather: weatherPrimitiveKeys,
         habit: await habitsPrimitiveKeys(),
+        heartRate: heartRatePrimitiveKeys,
       },
       yKeys: {
         weather: weatherNumericKeys,
         habit: await habitsNumericKeys(),
+        heartRate: heartRateNumericKeys,
       },
     }
   }),
