@@ -7,6 +7,7 @@ import { UserPointsOfInterestImporter } from './services/importers/userPOI'
 import { NominatimImport } from './services/importers/nominatim'
 import { SamsungHealthStepCountImporter } from './services/importers/samsungHealth/stepCount'
 import { SamsungHealthHeartRateImporter } from './services/importers/samsungHealth/heartRate'
+import { SamsungHealthSleepImporter } from './services/importers/samsungHealth/sleep'
 const importLocations = async () => {
   const locationsImporter = await new ExternalLocationsImporter()
   await locationsImporter.fetchDataForImport()
@@ -35,13 +36,15 @@ const nominatim = async () => {
 }
 const samsungData = async () => {
   const heartRate = new SamsungHealthHeartRateImporter()
-  await heartRate.startJob()
+  //   await heartRate.startJob()
   const stepCount = new SamsungHealthStepCountImporter()
-  await stepCount.startJob()
+  //   await stepCount.startJob()
+  const sleep = new SamsungHealthSleepImporter()
+  await sleep.startJob()
 }
 const main = async () => {
   console.log('================== LOCATIONS IMPORT ================== ')
-  // await importLocations()
+  //   await importLocations()
   console.log('================= DNS QUERIES IMPORT ================= ')
   //   await importDnsQueries()
   console.log('================= OBSIDIAN IMPORT ================= ')
@@ -52,11 +55,9 @@ const main = async () => {
   // Should always happen before other location imports
   //   await importUserPOIs()
   console.log('================= NOMINATIM IMPORT ================= ')
-  // await nominatim()
-  console.log('================= HEART DATA IMPORT ================= ')
+  //   await nominatim()
+  console.log('================= SAMSUNG HEALTH IMPORT ================= ')
   await samsungData()
-  console.log('================= STEP COUNT IMPORT ================= ')
-  //   await samsungStepCountData()
 }
 
 main()
