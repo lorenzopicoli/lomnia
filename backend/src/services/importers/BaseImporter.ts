@@ -91,7 +91,7 @@ export class BaseImporter {
             apiVersion: this.apiVersion,
 
             importedCount: result.importedCount,
-            logs: [],
+            logs: result.logs,
             createdAt: new Date(),
           })
           .where(eq(importJobsTable.id, placeholderJobId.id))

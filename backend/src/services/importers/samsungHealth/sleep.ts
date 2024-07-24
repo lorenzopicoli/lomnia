@@ -8,6 +8,7 @@ import {
   sleepRecordsTable,
   type NewSleepRecord,
 } from '../../../models/SleepRecord'
+import { isNumber } from '../../../helpers/isNumber'
 
 export class SamsungHealthSleepImporter extends BaseSamsungHealthImporter<NewSleepRecord> {
   override sourceId = 'samsung-health-export-sleep-v1'
@@ -30,6 +31,7 @@ export class SamsungHealthSleepImporter extends BaseSamsungHealthImporter<NewSle
       timeOffset: `${csvColumnPrefix}.time_offset`,
       comment: `${csvColumnPrefix}.comment`,
       dataUuid: `${csvColumnPrefix}.datauuid`,
+      deviceUuid: `${csvColumnPrefix}.deviceuuid`,
     }
 
     super({
@@ -37,10 +39,10 @@ export class SamsungHealthSleepImporter extends BaseSamsungHealthImporter<NewSle
       headersMap,
       identifier,
       binnedDataColumn: undefined,
-      onNewBinnedData: (row: any, data: any, importJobId: number) => {
+      onNewBinnedData: async (row: any, data: any, importJobId: number) => {
         throw new Error('Sleep data should not be binned')
       },
-      onNewRow: (data: any, importJobId: number) => {
+      onNewRow: async (data: any, importJobId: number) => {
         if (!data[headersMap.startTime]) {
           throw new Error('Missing start time')
         }
@@ -76,18 +78,28 @@ export class SamsungHealthSleepImporter extends BaseSamsungHealthImporter<NewSle
         )
 
         const dbEntry: NewSleepRecord = {
-          isSleepTimeManual: false,
+          isSleepTimeManual: data[headersMap.deviceUuid] === 'YONCTMRFDw',
           sleepScoreManual: null,
 
           bedTime: startTime.toJSDate(),
           awakeTime: endTime.toJSDate(),
           timezone: offsetToTimezone(data[headersMap.timeOffset]),
           source: 'samsung_health',
-          sleepScoreExternal: data[headersMap.sleepScore],
-          mentalRecovery: data[headersMap.mentalRecovery],
-          physicalRecovery: data[headersMap.physicalRecovery],
-          sleepCycles: data[headersMap.sleepCycles],
-          efficiency: data[headersMap.efficiency],
+          sleepScoreExternal: isNumber(+data[headersMap.sleepScore])
+            ? +data[headersMap.sleepScore]
+            : null,
+          mentalRecovery: isNumber(+data[headersMap.mentalRecovery])
+            ? +data[headersMap.mentalRecovery]
+            : null,
+          physicalRecovery: isNumber(+data[headersMap.physicalRecovery])
+            ? +data[headersMap.physicalRecovery]
+            : null,
+          sleepCycles: isNumber(+data[headersMap.sleepCycles])
+            ? +data[headersMap.sleepCycles]
+            : null,
+          efficiency: isNumber(+data[headersMap.efficiency])
+            ? +data[headersMap.efficiency]
+            : null,
           comment: data[headersMap.comment],
           samsungSleepId: data[headersMap.dataUuid],
 

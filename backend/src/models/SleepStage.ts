@@ -12,7 +12,8 @@ import { sleepRecordsTable } from './SleepRecord'
 import { importJobsTable } from './ImportJob'
 import type { getTableColumns } from 'drizzle-orm'
 
-const sleepStageEnum = pgEnum('sleep_stage', ['awake', 'light', 'deep', 'rem'])
+export const sleepStageEnumValues = ['awake', 'light', 'deep', 'rem'] as const
+export const sleepStageEnum = pgEnum('sleep_stage', sleepStageEnumValues)
 
 export const sleepStagesTable = pgTable('sleep_stages', {
   id: serial('id').primaryKey(),

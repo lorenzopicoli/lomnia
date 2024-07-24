@@ -44,7 +44,11 @@ export class SamsungHealthHeartRateImporter extends BaseSamsungHealthImporter<Ne
       headersMap,
       identifier,
       binnedDataColumn: undefined,
-      onNewBinnedData: (csvRow: any, binnedData: any, importJobId: number) => {
+      onNewBinnedData: async (
+        csvRow: any,
+        binnedData: any,
+        importJobId: number
+      ) => {
         const startTime = DateTime.fromMillis(binnedData.start_time)
         // Already imported
         if (this.fromDate && startTime.diff(this.fromDate).milliseconds <= 0) {
@@ -65,7 +69,7 @@ export class SamsungHealthHeartRateImporter extends BaseSamsungHealthImporter<Ne
           importJobId,
         }
       },
-      onNewRow: (row: any, importJobId: number) => {
+      onNewRow: async (row: any, importJobId: number) => {
         const startTime = DateTime.fromSQL(row[headersMap.startTime])
         // Already imported
         if (this.fromDate && startTime.diff(this.fromDate).milliseconds <= 0) {

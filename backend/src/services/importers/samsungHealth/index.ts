@@ -15,20 +15,22 @@ export class BaseSamsungHealthImporter<T> extends BaseImporter {
     row: any,
     data: any,
     importJobId: number
-  ) => T | null
-  private onNewRow: (data: any, importJobId: number) => T | null
+  ) => Promise<T | null>
+  private onNewRow: (data: any, importJobId: number) => Promise<T | null>
 
   private recordsTable: PgTableWithColumns<any>
 
   private binnedDataColumn?: string
+
+  public logs: string[] = []
 
   constructor(params: {
     onNewBinnedData: (
       csvRow: any,
       binnedData: any,
       importJobId: number
-    ) => T | null
-    onNewRow: (data: any, importJobId: number) => T | null
+    ) => Promise<T | null>
+    onNewRow: (data: any, importJobId: number) => Promise<T | null>
     recordsTable: PgTableWithColumns<any>
     headersMap: Record<string, string>
     identifier: string
@@ -104,9 +106,11 @@ export class BaseSamsungHealthImporter<T> extends BaseImporter {
         this.binnedDataColumn && record[this.binnedDataColumn]
           ? this.getBinnedData(record[this.binnedDataColumn])
           : undefined
-      const newEntries: (T | null)[] = binnedData?.map((d: any) =>
+      const newEntriesProm: Promise<T | null>[] = binnedData?.map((d: any) =>
         this.onNewBinnedData(record, d, params.placeholderJobId)
       ) ?? [this.onNewRow(record, params.placeholderJobId)]
+
+      const newEntries = await Promise.all(newEntriesProm)
       entriesToSave = entriesToSave.concat(newEntries.filter(isNotNill))
 
       if (entriesToSave.length >= batchSize) {
@@ -124,7 +128,7 @@ export class BaseSamsungHealthImporter<T> extends BaseImporter {
     return {
       importedCount,
       apiCallsCount: 0,
-      logs: [],
+      logs: this.logs,
     }
   }
 

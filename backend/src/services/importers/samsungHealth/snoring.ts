@@ -1,43 +1,35 @@
 import { DateTime } from 'luxon'
 import { BaseSamsungHealthImporter } from '.'
-import { stepCountTable, type NewStepCount } from '../../../models/StepCount'
 import { offsetToTimezone } from '../../../helpers/offsetToTimezone'
-import { isNumber } from '../../../helpers/isNumber'
 import { db } from '../../../db/connection'
-import { desc } from 'drizzle-orm'
+import { desc, sql } from 'drizzle-orm'
 import type { DBTransaction } from '../../../db/types'
+import { sleepRecordsTable } from '../../../models/SleepRecord'
+import { snoringRecordsTable, type NewSnoringRecord } from '../../../models'
 
-export class SamsungHealthStepCountImporter extends BaseSamsungHealthImporter<NewStepCount> {
-  override sourceId = 'samsung-health-export-sc-v1'
-  override destinationTable = 'step_counts'
-  override entryDateKey = 'com.samsung.health.step_count.create_time'
+export class SamsungHealthSnoringImporter extends BaseSamsungHealthImporter<NewSnoringRecord> {
+  override sourceId = 'samsung-health-export-snoring-v1'
+  override destinationTable = 'snoring_records'
+  override entryDateKey = 'start_time'
 
   private fromDate: DateTime | null = null
 
   constructor() {
-    const identifier = 'com.samsung.shealth.tracker.pedometer_step_count'
-    const csvColumnPrefix = 'com.samsung.health.step_count'
+    const identifier = 'com.samsung.shealth.sleep_snoring'
     const headersMap = {
-      runStep: 'run_step',
-      walkStep: 'walk_step',
-      startTime: `${csvColumnPrefix}.start_time`,
-      endTime: `${csvColumnPrefix}.end_time`,
-      stepCount: `${csvColumnPrefix}.count`,
-      speed: `${csvColumnPrefix}.speed`,
-      distance: `${csvColumnPrefix}.distance`,
-      calories: `${csvColumnPrefix}.calorie`,
-      timeOffset: `${csvColumnPrefix}.time_offset`,
-      deviceUuid: `${csvColumnPrefix}.deviceuuid`,
-      dataUuid: `${csvColumnPrefix}.datauuid`,
+      dataUuid: 'datauuid',
+      startTime: 'start_time',
+      endTime: 'end_time',
+      timeOffset: 'time_offset',
     }
 
     super({
-      recordsTable: stepCountTable,
+      recordsTable: snoringRecordsTable,
       headersMap,
       identifier,
       binnedDataColumn: undefined,
       onNewBinnedData: async (row: any, data: any, importJobId: number) => {
-        throw new Error('Step count data should not be binned')
+        throw new Error('Sleep data should not be binned')
       },
       onNewRow: async (data: any, importJobId: number) => {
         if (!data[headersMap.startTime]) {
@@ -45,15 +37,6 @@ export class SamsungHealthStepCountImporter extends BaseSamsungHealthImporter<Ne
         }
         if (!data[headersMap.endTime]) {
           throw new Error('Missing end time')
-        }
-        if (!isNumber(data[headersMap.walkStep])) {
-          throw new Error('Missing walk step')
-        }
-        if (!isNumber(data[headersMap.runStep])) {
-          throw new Error('Missing run step')
-        }
-        if (!isNumber(data[headersMap.stepCount])) {
-          throw new Error('Missing step count')
         }
         if (!data[headersMap.timeOffset]) {
           throw new Error('Missing time offset')
@@ -83,16 +66,27 @@ export class SamsungHealthStepCountImporter extends BaseSamsungHealthImporter<Ne
           }
         )
 
-        const dbEntry: NewStepCount = {
+        const sleepRecord = await db.query.sleepRecordsTable.findFirst({
+          where: sql`${sleepRecordsTable.bedTime} <= ${startTime.toISO()} AND ${
+            sleepRecordsTable.awakeTime
+          } >= ${endTime.toISO()}`,
+        })
+
+        if (!sleepRecord) {
+          this.logs.push(
+            `Sleep record not found for snoring record ${
+              data[headersMap.dataUuid]
+            }`
+          )
+          return null
+        }
+
+        const dbEntry: NewSnoringRecord = {
           startTime: startTime.toJSDate(),
           endTime: endTime.toJSDate(),
-          walkStep: data[headersMap.walkStep],
-          runStep: data[headersMap.runStep],
-          stepCount: data[headersMap.stepCount],
-          speed: data[headersMap.speed],
-          distance: data[headersMap.distance],
-          calories: data[headersMap.calories],
+          sleepRecordId: sleepRecord.id,
           timezone: offsetToTimezone(data[headersMap.timeOffset]),
+
           dataExportId: data[headersMap.dataUuid],
           importJobId,
         }
@@ -112,8 +106,8 @@ export class SamsungHealthStepCountImporter extends BaseSamsungHealthImporter<Ne
     apiCallsCount?: number
     logs: string[]
   }> {
-    const fromDate = await db.query.stepCountTable.findFirst({
-      orderBy: desc(stepCountTable.startTime),
+    const fromDate = await db.query.snoringRecordsTable.findFirst({
+      orderBy: desc(snoringRecordsTable.startTime),
     })
 
     this.fromDate = fromDate

@@ -8,6 +8,8 @@ import { NominatimImport } from './services/importers/nominatim'
 import { SamsungHealthStepCountImporter } from './services/importers/samsungHealth/stepCount'
 import { SamsungHealthHeartRateImporter } from './services/importers/samsungHealth/heartRate'
 import { SamsungHealthSleepImporter } from './services/importers/samsungHealth/sleep'
+import { SamsungHealthSleepStageImporter } from './services/importers/samsungHealth/sleepStage'
+import { SamsungHealthSnoringImporter } from './services/importers/samsungHealth/snoring'
 const importLocations = async () => {
   const locationsImporter = await new ExternalLocationsImporter()
   await locationsImporter.fetchDataForImport()
@@ -36,11 +38,15 @@ const nominatim = async () => {
 }
 const samsungData = async () => {
   const heartRate = new SamsungHealthHeartRateImporter()
-  //   await heartRate.startJob()
+  await heartRate.startJob()
   const stepCount = new SamsungHealthStepCountImporter()
-  //   await stepCount.startJob()
+  await stepCount.startJob()
   const sleep = new SamsungHealthSleepImporter()
   await sleep.startJob()
+  const sleepStage = new SamsungHealthSleepStageImporter()
+  await sleepStage.startJob()
+  const snoring = new SamsungHealthSnoringImporter()
+  await snoring.startJob()
 }
 const main = async () => {
   console.log('================== LOCATIONS IMPORT ================== ')
@@ -52,7 +58,7 @@ const main = async () => {
   console.log('================= OPEN METEO IMPORT ================= ')
   //   await importOpenMeteoData()
   console.log('================= USERS POI IMPORT ================= ')
-  // Should always happen before other location imports
+  // Should always happen before other location details imports
   //   await importUserPOIs()
   console.log('================= NOMINATIM IMPORT ================= ')
   //   await nominatim()
