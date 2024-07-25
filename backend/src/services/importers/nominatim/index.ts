@@ -20,6 +20,7 @@ export class NominatimImport extends BaseImporter {
   override destinationTable = 'location_details'
   override entryDateKey = 'date'
   private importBatchSize = 1
+  private logs: string[] = []
 
   private precisionRadiusInMeters = 20
 
@@ -50,7 +51,20 @@ export class NominatimImport extends BaseImporter {
     location: Point,
     placeholderJobId: number,
     apiResponse: any
-  ): NewLocationDetails {
+  ): NewLocationDetails | null {
+    if (!apiResponse.display_name) {
+      console.log(
+        `No name for location ${location}, api response: ${JSON.stringify(
+          apiResponse
+        )}`
+      )
+      this.logs.push(
+        `No name for location ${location}, api response: ${JSON.stringify(
+          apiResponse
+        )}`
+      )
+      return null
+    }
     return {
       source: 'external',
       location,
@@ -68,7 +82,7 @@ export class NominatimImport extends BaseImporter {
       displayName: apiResponse.display_name,
       extraTags: apiResponse.extratags,
       nameDetails: apiResponse.namedetails,
-      name: apiResponse.name,
+      name: apiResponse.name ?? '',
       houseNumber: apiResponse.address?.house_number,
       road: apiResponse.address?.road,
       suburb: apiResponse.address?.suburb,
@@ -83,22 +97,17 @@ export class NominatimImport extends BaseImporter {
     }
   }
 
-  private async getNextPage(params: {
-    tx: DBTransaction
-    currentOffset: number
-  }) {
+  private async getNextPage(params: { tx: DBTransaction }) {
     return await params.tx
       .select()
       .from(locationsTable)
       .where(
         sql`
-        (
         ${locationsTable.locationDetailsId} IS NULL
-        )
+        AND NOT ${locationsTable.failedToReverseGeocode}
     `
       )
-      .orderBy(desc(locationsTable.id))
-      .offset(this.importBatchSize * params.currentOffset)
+      .orderBy(desc(locationsTable.locationFix))
       .limit(this.importBatchSize)
   }
 
@@ -112,7 +121,6 @@ export class NominatimImport extends BaseImporter {
     apiCallsCount?: number
     logs: string[]
   }> {
-    let currentOffset = 0
     let importedCount = 0
     let apiCalls = 0
 
@@ -122,7 +130,7 @@ export class NominatimImport extends BaseImporter {
       headers: { 'User-Agent': 'lomnia' },
     })
 
-    let nextLocation = await this.getNextPage({ tx: params.tx, currentOffset })
+    let nextLocation = await this.getNextPage({ tx: params.tx })
 
     while (nextLocation[0]) {
       const location = nextLocation[0]
@@ -137,51 +145,61 @@ export class NominatimImport extends BaseImporter {
           lon: location.location.lng,
         },
       })
-
       const mappedResponse = this.mapApiResponseToDbSchema(
         location.location,
         params.placeholderJobId,
         response.data
       )
 
-      const existingDetails =
-        await params.tx.query.locationDetailsTable.findFirst({
-          where: sql`
+      if (mappedResponse) {
+        const existingDetails = mappedResponse.osmId
+          ? await params.tx.query.locationDetailsTable.findFirst({
+              where: sql`
             ${locationDetailsTable.osmId} = ${mappedResponse.osmId}
-            AND ${locationDetailsTable.displayName} = ${mappedResponse.displayName}
+            ${
+              mappedResponse.displayName
+                ? sql`AND ${locationDetailsTable.displayName} = ${mappedResponse.displayName}`
+                : sql``
+            }
           `,
-        })
+            })
+          : null
 
-      const savedLocationDetails = existingDetails
-        ? { id: existingDetails.id }
-        : await params.tx
-            .insert(locationDetailsTable)
-            .values(mappedResponse)
-            .returning({ id: locationDetailsTable.id })
-            .then((r) => r[0])
+        const savedLocationDetails = existingDetails
+          ? { id: existingDetails.id }
+          : await params.tx
+              .insert(locationDetailsTable)
+              .values(mappedResponse)
+              .returning({ id: locationDetailsTable.id })
+              .then((r) => r[0])
 
-      await params.tx
-        .update(locationsTable)
-        .set({ locationDetailsId: savedLocationDetails.id })
-        .where(
-          sql`
+        await params.tx
+          .update(locationsTable)
+          .set({ locationDetailsId: savedLocationDetails.id })
+          .where(
+            sql`
           ${locationsTable.locationDetailsId} IS NULL AND
           ST_DWithin(
             ${locationsTable.location},
             ${toPostgisGeoPoint(location.location)},
             ${this.precisionRadiusInMeters}
           )`
-        )
-
-      importedCount++
-      apiCalls++
+          )
+        importedCount++
+      } else {
+        await params.tx
+          .update(locationsTable)
+          .set({ failedToReverseGeocode: true })
+          .where(sql`${locationsTable.id} = ${location.id}`)
+      }
       this.updateFirstAndLastEntry(location.locationFix)
-      nextLocation = await this.getNextPage({ tx: params.tx, currentOffset })
+      apiCalls++
+      nextLocation = await this.getNextPage({ tx: params.tx })
     }
     return {
       importedCount,
       apiCallsCount: apiCalls,
-      logs: [],
+      logs: this.logs,
     }
   }
 }

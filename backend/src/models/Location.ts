@@ -1,4 +1,5 @@
 import {
+  boolean,
   integer,
   jsonb,
   pgEnum,
@@ -88,6 +89,11 @@ export const locationsTable = pgTable('locations', {
    * The date at which the date was taken, in UTC time
    */
   locationFix: timestamp('location_fix'),
+
+  /**
+   * If the call to the reverse geocoding API failed and we should not try again
+   */
+  failedToReverseGeocode: boolean('failed_to_reverse_geocode').default(false),
 
   /**
    * The details for this location entry
