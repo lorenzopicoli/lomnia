@@ -2,7 +2,7 @@ import { FixedOffsetZone } from 'luxon'
 
 /**
  *
- * @param offset offset in string format UTC-0400 or similar
+ * @param offset offset in string format UTC-0400
  */
 export const offsetToTimezone = (offset: string) => {
   const zone = FixedOffsetZone.parseSpecifier(offset.slice(0, -2))

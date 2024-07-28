@@ -17,7 +17,7 @@ export class ExternalLocationsImporter {
   private importDb: BetterSQLite3Database<typeof externalLocationSchema>
   private sourceId = 'sqlite-locations_events-v1'
   private destinationTable = getTableName(locationsTable)
-  private entryDateKey = 'timestamp'
+  private entryDateKey = 'timestamp' as const
   private importBatchSize = 3000
   private placeholderDate = new Date(1997, 6, 6)
   private localPath: string
@@ -136,11 +136,11 @@ export class ExternalLocationsImporter {
         const lastEntry: ExternalLocation | undefined =
           events[events.length - 1]
 
-        if (!firstEntryDate && firstEntry?.[this.entryDateKey]) {
-          firstEntryDate = firstEntry[this.entryDateKey]
+        if (!firstEntryDate && firstEntry[this.entryDateKey]) {
+          firstEntryDate = firstEntry[this.entryDateKey] ?? undefined
         }
         if (lastEntry?.[this.entryDateKey]) {
-          lastEntryDate = lastEntry[this.entryDateKey]
+          lastEntryDate = lastEntry[this.entryDateKey] ?? undefined
         }
 
         importedCount += events.length
@@ -297,6 +297,8 @@ export class ExternalLocationsImporter {
       batteryStatus,
       connectionStatus,
       location: { lat: importerData.latitude, lng: importerData.longitude },
+
+      source: 'sqlite_locations',
 
       trigger,
 

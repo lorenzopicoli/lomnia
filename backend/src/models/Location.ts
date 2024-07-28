@@ -33,9 +33,19 @@ export const locationTriggerEnum = pgEnum('trigger', [
   'manual',
 ])
 
+export const locationSourceEnum = pgEnum('source', [
+  'sqlite_locations',
+  'google',
+  'google_new',
+])
+
 export const locationsTable = pgTable('locations', {
   id: serial('id').primaryKey(),
-  externalId: integer('external_id').notNull(),
+  externalId: integer('external_id'),
+  /***
+   * The source used to get this location
+   */
+  source: locationSourceEnum('source').notNull(),
   /***
    * In meters
    */
@@ -56,7 +66,7 @@ export const locationsTable = pgTable('locations', {
    * In percent
    */
   battery: integer('battery'),
-  batteryStatus: batteryStatusEnum('battery_status').notNull(),
+  batteryStatus: batteryStatusEnum('battery_status'),
   connectionStatus: connectionStatusEnum('connection_status'),
 
   location: geography('location').notNull(),
