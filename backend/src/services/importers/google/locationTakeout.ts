@@ -274,7 +274,10 @@ export class GoogleTakeoutLocationsImporter extends BaseImporter {
 
       logs.push('Faulty locations found: ' + JSON.stringify(toDelete))
       deletedCount += faultyIds.length
-      await params.tx.delete(locationsTable).where(sql`id IN ${faultyIds}`)
+
+      if (faultyIds.length > 0) {
+        await params.tx.delete(locationsTable).where(sql`id IN ${faultyIds}`)
+      }
 
       currentOffset += batchSize
     } while (true)

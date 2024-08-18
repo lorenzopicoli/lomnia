@@ -22,7 +22,7 @@ const updateTimezones = async (knex: Knex) => {
     for (const row of rows) {
       const { id, latitude, longitude } = row
 
-      const timezone = await find(latitude, longitude)
+      const timezone = find(latitude, longitude)
 
       d[timezone[0]] = d[timezone[0]] ? [...d[timezone[0]], id] : [id]
     }
