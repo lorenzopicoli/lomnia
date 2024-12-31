@@ -10,6 +10,8 @@ import { SamsungHealthHeartRateImporter } from './services/importers/samsungHeal
 import { SamsungHealthSleepImporter } from './services/importers/samsungHealth/sleep'
 import { SamsungHealthSleepStageImporter } from './services/importers/samsungHealth/sleepStage'
 import { SamsungHealthSnoringImporter } from './services/importers/samsungHealth/snoring'
+import { GoogleLocationsTimelineImporter } from './services/importers/google/locationTimelineExport'
+import { GoogleTakeoutLocationsImporter } from './services/importers/google/locationTakeout'
 const importLocations = async () => {
   const locationsImporter = await new ExternalLocationsImporter()
   await locationsImporter.fetchDataForImport()
@@ -39,14 +41,20 @@ const nominatim = async () => {
 const samsungData = async () => {
   const heartRate = new SamsungHealthHeartRateImporter()
   await heartRate.startJob()
-  const stepCount = new SamsungHealthStepCountImporter()
-  await stepCount.startJob()
-  const sleep = new SamsungHealthSleepImporter()
-  await sleep.startJob()
-  const sleepStage = new SamsungHealthSleepStageImporter()
-  await sleepStage.startJob()
-  const snoring = new SamsungHealthSnoringImporter()
-  await snoring.startJob()
+  //   const stepCount = new SamsungHealthStepCountImporter()
+  //   await stepCount.startJob()
+  //   const sleep = new SamsungHealthSleepImporter()
+  //   await sleep.startJob()
+  //   const sleepStage = new SamsungHealthSleepStageImporter()
+  //   await sleepStage.startJob()
+  //   const snoring = new SamsungHealthSnoringImporter()
+  //   await snoring.startJob()
+}
+const google = async () => {
+  const googleLocation = new GoogleLocationsTimelineImporter()
+  await googleLocation.startJob()
+  const googleLocation2 = new GoogleTakeoutLocationsImporter()
+  //   await googleLocation2.startJob()
 }
 const main = async () => {
   console.log('================== LOCATIONS IMPORT ================== ')
@@ -61,9 +69,11 @@ const main = async () => {
   // Should always happen before other location details imports
   //   await importUserPOIs()
   console.log('================= NOMINATIM IMPORT ================= ')
-  //   await nominatim()
+  // await nominatim()
   console.log('================= SAMSUNG HEALTH IMPORT ================= ')
   await samsungData()
+  console.log('================= GOOGLE ================= ')
+  //   await google()
 }
 
 main()

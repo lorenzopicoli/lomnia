@@ -100,5 +100,6 @@ function Heatmap(props: HeatmapProps) {
   )
 }
 
-const MemoedHeatmap = memo(Heatmap)
-export default MemoedHeatmap
+// Memoing causes some crashes. I think related to https://github.com/visgl/deck.gl/issues/8841
+// const MemoedHeatmap = memo(Heatmap)
+export default Heatmap

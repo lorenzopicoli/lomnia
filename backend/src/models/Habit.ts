@@ -1,12 +1,12 @@
 import {
   date,
   integer,
+  jsonb,
   pgTable,
   serial,
   text,
   timestamp,
 } from 'drizzle-orm/pg-core'
-import { customJsonb } from '../db/types'
 import { filesTable } from './File'
 import { importJobsTable } from './ImportJob'
 import type { getTableColumns } from 'drizzle-orm'
@@ -32,7 +32,7 @@ export const habitsTable = pgTable('habits', {
    * This should not have any JSON shape. For example:
    * value: 1 instead of value: { "value": 1 }
    */
-  value: customJsonb('value'),
+  value: jsonb('value'),
 
   /**
    * Date in the user timezone of when this habit was recorded.

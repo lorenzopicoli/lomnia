@@ -59,7 +59,7 @@
     "allotment": "^1.20.2",
     "classnames": "^2.5.1",
     "date-fns": "^4.1.0",
-    "deck.gl": "^9.0.35",
+    "deck.gl": "^9.0.38",
     "lodash": "^4.17.21",
     "maplibre-gl": "^4.7.1",
     "object-hash": "^3.0.0",

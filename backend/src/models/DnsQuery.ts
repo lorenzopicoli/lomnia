@@ -1,5 +1,4 @@
-import { integer, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
-import { customJsonb } from '../db/types'
+import { integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 import { importJobsTable } from './ImportJob'
 
 export const dnsQueriesTable = pgTable('dns_queries', {
@@ -41,7 +40,7 @@ export const dnsQueriesTable = pgTable('dns_queries', {
    *
    * If a query was influenced by a black- or whitelist entry, this field contains the ID of the corresponding entry in the domainlist table.
    */
-  additionalInfo: customJsonb('additional_info'),
+  additionalInfo: jsonb('additional_info'),
   /**
    * 1  A
    *

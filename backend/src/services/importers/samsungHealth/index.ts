@@ -9,7 +9,7 @@ export class BaseSamsungHealthImporter<T> extends BaseImporter {
   private identifier: string
 
   private baseExportPath: string
-  private csvPath: string
+  public csvPath: string
 
   private onNewBinnedData: (
     row: any,

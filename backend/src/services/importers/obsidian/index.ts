@@ -21,6 +21,7 @@ import { DateTime } from 'luxon'
 import { filesTable } from '../../../models/File'
 import { type NewHabit, habitsTable } from '../../../models/Habit'
 import { type ImportJob, importJobsTable } from '../../../models/ImportJob'
+import { getKeys } from '../../../helpers/getKeys'
 
 export class ObsidianImporter {
   private obsidianFolderPath: string
@@ -78,7 +79,7 @@ export class ObsidianImporter {
   private mapFileMetadata(attributes: unknown): ObsidianFileMetadata | null {
     const typedAttributes = attributes as Record<string, unknown>
     const mappedMetadata: { [key in ObsidianMetadataKey]?: unknown } = {}
-    for (const key of Object.keys(typedAttributes)) {
+    for (const key of getKeys(typedAttributes)) {
       const mapped: ObsidianMetadataKey | undefined =
         knownObsidianMetadataKeyToEnumMap[key.toLowerCase()]
 
@@ -234,7 +235,7 @@ export class ObsidianImporter {
         continue
       }
       const habitsForFile: NewHabit[] = []
-      for (const key of Object.keys(file.metadata)) {
+      for (const key of getKeys(file.metadata)) {
         const habitKeys = Object.values(HabitKeys) as string[]
 
         if (habitKeys.includes(key)) {
@@ -248,6 +249,7 @@ export class ObsidianImporter {
 
           importedCount++
           updateEntryDates(file.fileCreatedAt)
+
 
           habitsForFile.push({
             createdAt: new Date(),

@@ -13,6 +13,17 @@ export class SamsungHealthHeartRateImporter extends BaseSamsungHealthImporter<Ne
 
   private fromDate: DateTime | null = null
 
+  // Due to what I can only assume is a bug in samsungs parts, I get these wrong timezones. I just throw away these entries
+  private invalidTimezones = [
+    'UTC+28550',
+    'UTC+28134',
+    'UTC+27718',
+    'UTC+28134',
+    'UTC+29006',
+    'UTC+30254',
+    'UTC+28550',
+  ]
+
   constructor() {
     const identifier = 'com.samsung.shealth.tracker.heart_rate'
     const csvColumnPrefix = 'com.samsung.health.heart_rate'
@@ -54,15 +65,25 @@ export class SamsungHealthHeartRateImporter extends BaseSamsungHealthImporter<Ne
         if (this.fromDate && startTime.diff(this.fromDate).milliseconds <= 0) {
           return null
         }
-        console.log('Importing bin', this.fromDate)
-        console.log('Importing bin', binnedData)
+
+        if (this.invalidTimezones.includes(csvRow[headersMap.timeOffset])) {
+          return null
+        }
+
+        // Due to what I can only assume to be Samsungs bug, some entries are 100 years in the future
+        if (startTime.diff(DateTime.now()).years > 1) {
+          return null
+        }
+
+        const tz = offsetToTimezone(csvRow[headersMap.timeOffset])
+
         return {
           startTime: startTime.toJSDate(),
           endTime: DateTime.fromMillis(binnedData.end_time).toJSDate(),
           heartRate: binnedData.heart_rate,
           heartRateMax: binnedData.heart_rate_max,
           heartRateMin: binnedData.heart_rate_min,
-          timezone: offsetToTimezone(csvRow[headersMap.timeOffset]),
+          timezone: tz,
           comment: csvRow[headersMap.comment],
           binUuid: csvRow[headersMap.dataUuid],
           dataExportId: csvRow[headersMap.dataUuid],
@@ -75,15 +96,22 @@ export class SamsungHealthHeartRateImporter extends BaseSamsungHealthImporter<Ne
         if (this.fromDate && startTime.diff(this.fromDate).milliseconds <= 0) {
           return null
         }
-        console.log('Importing row', this.fromDate)
-        console.log('Importing row', row)
+        if (this.invalidTimezones.includes(row[headersMap.timeOffset])) {
+          return null
+        }
+        // Due to what I can only assume to be Samsungs bug, some entries are 100 years in the future
+        if (startTime.diff(DateTime.now()).years > 1) {
+          return null
+        }
+
+        const tz = offsetToTimezone(row[headersMap.timeOffset])
         return {
           startTime: startTime.toJSDate(),
           endTime: DateTime.fromSQL(row[headersMap.endTime]).toJSDate(),
           heartRate: row[headersMap.heartRate],
           heartRateMax: row[headersMap.max],
           heartRateMin: row[headersMap.min],
-          timezone: offsetToTimezone(row[headersMap.timeOffset]),
+          timezone: tz,
           comment: row[headersMap.comment],
           binUuid: row[headersMap.dataUuid],
           dataExportId: row[headersMap.dataUuid],

@@ -1,12 +1,12 @@
 import {
   integer,
+  jsonb,
   pgEnum,
   pgTable,
   serial,
   text,
   timestamp,
 } from 'drizzle-orm/pg-core'
-import { customJsonb } from '../db/types'
 import { importJobsTable } from './ImportJob'
 
 export const filesSourceEnum = pgEnum('files_source', ['obsidian'])
@@ -23,7 +23,7 @@ export const filesTable = pgTable('files', {
    * Can be anything and has no required shape. It's expected that whatever code
    * relies on this, can properly handle malformated or missing data
    */
-  metadata: customJsonb('metadata'),
+  metadata: jsonb('metadata'),
   /**
    * MD5 hash of the file's contents
    */

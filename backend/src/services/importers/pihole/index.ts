@@ -272,7 +272,7 @@ export class PiholeSchemaRequestImporter {
       forward,
       replyTime: isNil(replyTime) ? null : Math.round(replyTime * 1000),
       replyType,
-      additionalInfo,
+      additionalInfo: JSON.stringify(additionalInfo),
       type,
       status,
       dnssec,

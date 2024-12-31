@@ -44,7 +44,7 @@
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
     "dotenv": "^16.4.5",
-    "drizzle-orm": "^0.36.4",
+    "drizzle-orm": "^0.38.3",
     "fastify": "^5.1.0",
     "front-matter": "^4.0.2",
     "geo-tz": "^8.1.2",

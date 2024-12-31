@@ -1,4 +1,4 @@
-import { desc, max, min, sql } from 'drizzle-orm'
+import { desc, sql } from 'drizzle-orm'
 import { db } from '../../../db/connection'
 import { BaseImporter } from '../BaseImporter'
 import { locationsTable } from '../../../models'
