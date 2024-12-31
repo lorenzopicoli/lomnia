@@ -39,21 +39,3 @@ export type DBTransaction = PgTransaction<
   typeof schema,
   ExtractTablesWithRelations<typeof schema>
 >
-
-/**
- * Replaces the default jsonb type. Needed because of a drizzle bug:
- * https://github.com/drizzle-team/drizzle-orm/pull/666
- * https://github.com/drizzle-team/drizzle-orm/pull/1641
- */
-export const customJsonb = <TData>(name: string) =>
-  customType<{ data: TData; driverData: TData }>({
-    dataType() {
-      return 'jsonb'
-    },
-    toDriver(val: TData) {
-      return sql`(((${JSON.stringify(val)})::jsonb)#>> '{}')::jsonb`
-    },
-    fromDriver(value): TData {
-      return value as TData
-    },
-  })(name)
