@@ -1,4 +1,4 @@
-import { desc, sql } from 'drizzle-orm'
+import { asc, sql } from 'drizzle-orm'
 import { db } from '../../../db/connection'
 import { BaseImporter } from '../BaseImporter'
 import { locationsTable } from '../../../models'
@@ -97,8 +97,12 @@ export class NominatimImport extends BaseImporter {
     }
   }
 
-  private async getNextPage(params: { tx: DBTransaction }) {
-    return await params.tx
+  private prevNext:
+    | Awaited<ReturnType<NominatimImport['getNextPage']>>[number]
+    | undefined
+
+  public async getNextPage(params: { tx: DBTransaction }) {
+    const next = await params.tx
       .select()
       .from(locationsTable)
       .where(
@@ -107,8 +111,18 @@ export class NominatimImport extends BaseImporter {
         AND NOT ${locationsTable.failedToReverseGeocode}
     `
       )
-      .orderBy(desc(locationsTable.locationFix))
+      .orderBy(asc(locationsTable.locationFix))
       .limit(this.importBatchSize)
+
+
+    if (next.length === 0) {
+      return next
+    }
+
+
+    this.prevNext = next[0]
+
+    return next
   }
 
   override async import(params: {

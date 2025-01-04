@@ -65,7 +65,7 @@ export async function getLocationsTimeline(params: {
   startDate: DateTime
   endDate: DateTime
 }) {
-  const accuracyFilter = 30
+  const accuracyFilter = 20
   const activityDurationFilter = 10
 
   // Prepare the locations table to be groupped in gaps/islands. Also applies base filters
@@ -125,7 +125,7 @@ export async function getLocationsTimeline(params: {
       .from(baseLocations)
       .orderBy(asc(min(baseLocations.locationFix)))
       .groupBy(
-        sql`${baseLocations.locationDetailsId},  (${baseLocations.totalSeq} - ${baseLocations.partitionSeq})`
+        sql`${baseLocations.locationDetailsId}, (${baseLocations.totalSeq} - ${baseLocations.partitionSeq})`
       )
   )
 
