@@ -51,6 +51,8 @@ export class OpenMeteoImport extends BaseImporter {
   // In ms
   private apiCallsDelay = 10000
 
+  private maxImportSession = 1000
+
   private apiUrl = 'https://archive-api.open-meteo.com/v1/archive'
   private apiParams = {
     hourly: [
@@ -595,6 +597,9 @@ export class OpenMeteoImport extends BaseImporter {
       // make a big impact. This is just a workaround for now
       await this.linkLocationsToWeather(params.tx, firstDate, lastDate)
 
+      if (importedCount >= this.maxImportSession) {
+        break
+      }
       //   await this.cleanUpDanglingWeatherEntries(params.tx)
     }
 

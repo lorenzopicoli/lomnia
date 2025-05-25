@@ -20,6 +20,7 @@ export class NominatimImport extends BaseImporter {
   override destinationTable = 'location_details'
   override entryDateKey = 'date'
   private importBatchSize = 1
+  private maxImportSession = 100
   private logs: string[] = []
 
   private precisionRadiusInMeters = 20
@@ -114,11 +115,9 @@ export class NominatimImport extends BaseImporter {
       .orderBy(asc(locationsTable.locationFix))
       .limit(this.importBatchSize)
 
-
     if (next.length === 0) {
       return next
     }
-
 
     this.prevNext = next[0]
 
@@ -200,6 +199,9 @@ export class NominatimImport extends BaseImporter {
           )`
           )
         importedCount++
+        if (importedCount >= this.maxImportSession) {
+          break
+        }
       } else {
         await params.tx
           .update(locationsTable)
