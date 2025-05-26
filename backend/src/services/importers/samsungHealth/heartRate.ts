@@ -62,7 +62,10 @@ export class SamsungHealthHeartRateImporter extends BaseSamsungHealthImporter<Ne
       ) => {
         const startTime = DateTime.fromMillis(binnedData.start_time)
         // Already imported
-        if (this.fromDate && startTime.diff(this.fromDate).milliseconds <= 0) {
+        if (
+          this.fromDate &&
+          startTime.diff(this.fromDate, 'millisecond').milliseconds <= 0
+        ) {
           return null
         }
 
@@ -71,7 +74,7 @@ export class SamsungHealthHeartRateImporter extends BaseSamsungHealthImporter<Ne
         }
 
         // Due to what I can only assume to be Samsungs bug, some entries are 100 years in the future
-        if (startTime.diff(DateTime.now()).years > 1) {
+        if (startTime.diff(DateTime.now(), 'years').years > 1) {
           return null
         }
 
@@ -93,14 +96,18 @@ export class SamsungHealthHeartRateImporter extends BaseSamsungHealthImporter<Ne
       onNewRow: async (row: any, importJobId: number) => {
         const startTime = DateTime.fromSQL(row[headersMap.startTime])
         // Already imported
-        if (this.fromDate && startTime.diff(this.fromDate).milliseconds <= 0) {
+        if (
+          this.fromDate &&
+          startTime.diff(this.fromDate, 'millisecond').milliseconds <= 0
+        ) {
           return null
         }
         if (this.invalidTimezones.includes(row[headersMap.timeOffset])) {
           return null
         }
+
         // Due to what I can only assume to be Samsungs bug, some entries are 100 years in the future
-        if (startTime.diff(DateTime.now()).years > 1) {
+        if (startTime.diff(DateTime.now(), 'years').years > 1) {
           return null
         }
 

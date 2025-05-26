@@ -11,7 +11,10 @@ export default class ProgressLogger {
   private isFileSize = false
   private startDate = new Date()
 
-  constructor(title, options?: { total?: number; isFileSize?: boolean }) {
+  constructor(
+    title: string,
+    options?: { total?: number; isFileSize?: boolean }
+  ) {
     const { total, isFileSize } = options ?? {}
     this.total = total
     this.isFileSize = isFileSize ?? false
@@ -86,7 +89,7 @@ export default class ProgressLogger {
     const timeElapsed = differenceInSeconds(new Date(), this.startDate)
     const eta = (this.total - current) * (timeElapsed / current)
     const duration = intervalToDuration({ start: 0, end: eta * 1000 })
-    const zeroPad = (num) => String(num).padStart(2, '0')
+    const zeroPad = (num: number) => String(num).padStart(2, '0')
 
     const formatted = [
       duration.hours ?? 0,

@@ -21,11 +21,11 @@ export class SamsungHealthSleepImporter extends BaseSamsungHealthImporter<NewSle
     const identifier = 'com.samsung.shealth.sleep'
     const csvColumnPrefix = 'com.samsung.health.sleep'
     const headersMap = {
-      mentalRecovery: `mental_recovery`,
-      physicalRecovery: `physical_recovery`,
-      efficiency: `efficiency`,
-      sleepScore: `sleep_score`,
-      sleepCycles: `sleep_cycles`,
+      mentalRecovery: 'mental_recovery',
+      physicalRecovery: 'physical_recovery',
+      efficiency: 'efficiency',
+      sleepScore: 'sleep_score',
+      sleepCycles: 'sleep_cycles',
       startTime: `${csvColumnPrefix}.start_time`,
       endTime: `${csvColumnPrefix}.end_time`,
       timeOffset: `${csvColumnPrefix}.time_offset`,
@@ -65,7 +65,10 @@ export class SamsungHealthSleepImporter extends BaseSamsungHealthImporter<NewSle
         )
 
         // Already imported
-        if (this.fromDate && startTime.diff(this.fromDate).milliseconds <= 0) {
+        if (
+          this.fromDate &&
+          startTime.diff(this.fromDate, 'milliseconds').milliseconds <= 0
+        ) {
           return null
         }
 
