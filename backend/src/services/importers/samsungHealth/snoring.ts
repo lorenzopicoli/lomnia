@@ -54,7 +54,10 @@ export class SamsungHealthSnoringImporter extends BaseSamsungHealthImporter<NewS
         )
 
         // Already imported
-        if (this.fromDate && startTime.diff(this.fromDate).milliseconds <= 0) {
+        if (
+          this.fromDate &&
+          startTime.diff(this.fromDate, 'milliseconds').milliseconds <= 0
+        ) {
           return null
         }
 

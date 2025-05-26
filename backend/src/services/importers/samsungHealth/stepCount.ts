@@ -71,7 +71,10 @@ export class SamsungHealthStepCountImporter extends BaseSamsungHealthImporter<Ne
         )
 
         // Already imported
-        if (this.fromDate && startTime.diff(this.fromDate).milliseconds <= 0) {
+        if (
+          this.fromDate &&
+          startTime.diff(this.fromDate, 'milliseconds').milliseconds <= 0
+        ) {
           return null
         }
 
