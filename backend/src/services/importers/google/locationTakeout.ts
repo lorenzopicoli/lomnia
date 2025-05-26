@@ -1,5 +1,5 @@
 import { BaseImporter } from '../BaseImporter'
-import { type DBTransaction } from '../../../db/types'
+import type { DBTransaction } from '../../../db/types'
 import { z } from 'zod'
 import { locationsTable } from '../../../models'
 import { DateTime } from 'luxon'
@@ -123,8 +123,9 @@ export class GoogleTakeoutLocationsImporter extends BaseImporter {
 
     if (!exportData.data) {
       throw new Error(
-        'Failed to parse JSON: ' +
-          JSON.stringify(exportData.error?.errors.splice(0, 10))
+        `Failed to parse JSON: ${JSON.stringify(
+          exportData.error?.errors.splice(0, 10)
+        )}`
       )
     }
 
@@ -211,7 +212,7 @@ export class GoogleTakeoutLocationsImporter extends BaseImporter {
       console.log(
         `Looking for inaccurate points ${currentOffset}/${totalPointsToInpect}`
       )
-      let pointsToInspect = await params.tx
+      const pointsToInspect = await params.tx
         .select({
           id: locationsTable.id,
         })
@@ -272,7 +273,7 @@ export class GoogleTakeoutLocationsImporter extends BaseImporter {
       )
       const faultyIds = toDelete.map((r) => r.id)
 
-      logs.push('Faulty locations found: ' + JSON.stringify(toDelete))
+      logs.push(`Faulty locations found: ${JSON.stringify(toDelete)}`)
       deletedCount += faultyIds.length
 
       if (faultyIds.length > 0) {
@@ -280,6 +281,7 @@ export class GoogleTakeoutLocationsImporter extends BaseImporter {
       }
 
       currentOffset += batchSize
+      // biome-ignore lint/correctness/noConstantCondition: <explanation>
     } while (true)
 
     return { logs, deletedCount }

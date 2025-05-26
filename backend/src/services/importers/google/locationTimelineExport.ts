@@ -1,5 +1,5 @@
 import { BaseImporter } from '../BaseImporter'
-import { type DBTransaction } from '../../../db/types'
+import type { DBTransaction } from '../../../db/types'
 import { z } from 'zod'
 import { locationsTable } from '../../../models'
 import { DateTime } from 'luxon'
@@ -114,7 +114,7 @@ export class GoogleLocationsTimelineImporter extends BaseImporter {
 
   private formatLatLng(latLng: string): { lat: number; lng: number } {
     const [lat, lng] = latLng.replace(' ', '').replace('°', '').split(',')
-    return { lat: parseFloat(lat), lng: parseFloat(lng) }
+    return { lat: Number.parseFloat(lat), lng: Number.parseFloat(lng) }
   }
 
   private parseDateTime(dateTime: string): DateTime {
@@ -148,8 +148,9 @@ export class GoogleLocationsTimelineImporter extends BaseImporter {
 
     if (!exportData.data) {
       throw new Error(
-        'Failed to parse JSON: ' +
-          JSON.stringify(exportData.error?.errors.splice(0, 10))
+        `Failed to parse JSON: ${JSON.stringify(
+          exportData.error?.errors.splice(0, 10)
+        )}`
       )
     }
 
