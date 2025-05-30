@@ -17,7 +17,7 @@ export const OwnTracksLocationSchema = z
      */
     lon: z.number().min(-180).max(180),
     /**
-     * Timestamp in UNIX format (epoch)
+     * Timestamp in UNIX format (seconds since epoch)
      */
     tst: z.number().int().positive(),
 
@@ -136,7 +136,7 @@ export const OwnTracksLocationSchema = z
 
     // Timestamp fields
     /**
-     * Message creation timestamp (epoch)
+     * Message creation timestamp (seconds since epoch)
      */
     created_at: z.number().int().positive().optional(),
     /**

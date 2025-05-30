@@ -19,7 +19,7 @@ export class OwntracksImporter extends BaseImporter {
   override entryDateKey = "";
   override apiVersion = "v1";
 
-  override callThrottleInMs = 100;
+  private callThrottleInMs = 100;
 
   public async sourceHasNewData(): Promise<{
     result: boolean;
@@ -134,7 +134,6 @@ export class OwntracksImporter extends BaseImporter {
           const locations = await tx.insert(locationsTable).values(chunk).returning({ id: locationsTable.id });
 
           importedCount += locations.length;
-          console.log("Imported count", importedCount);
         }
       }
 
@@ -171,12 +170,7 @@ export class OwntracksImporter extends BaseImporter {
         "X-Limit-To": day.plus({ day: 1 }).toFormat("yyyy-MM-dd"),
       },
     });
-    console.log("Calling for", {
-      headers: {
-        "X-Limit-From": day.toFormat("yyyy-MM-dd"),
-        "X-Limit-To": day.plus({ day: 1 }).toFormat("yyyy-MM-dd"),
-      },
-    });
+    console.log("Calling owntracks for day", day.toFormat("yyyy-MM-dd"));
     const recordings = parseOwnTracksApiResponse(response.data);
 
     const { data } = recordings;
@@ -212,8 +206,9 @@ export class OwntracksImporter extends BaseImporter {
       trigger,
       importJobId: jobId,
 
-      messageCreatedAt: entry.created_at ? new Date(entry.created_at) : null,
-      locationFix: entry.tst ? new Date(entry.tst) : null,
+      // Owntracks api returns date in seconds since epoch, but JS uses milliseconds since epoch
+      messageCreatedAt: entry.created_at ? new Date(entry.created_at * 1000) : null,
+      locationFix: entry.tst ? new Date(entry.tst * 1000) : null,
       timezone: entry.tzname,
       createdAt: new Date(),
     };
