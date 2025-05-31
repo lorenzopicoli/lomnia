@@ -16,7 +16,7 @@ import { chunk } from "lodash";
 export class OwntracksImporter extends BaseImporter {
   override sourceId = "owntracks-api";
   override destinationTable = "locations";
-  override entryDateKey = "";
+  override entryDateKey = "tst";
   override apiVersion = "v1";
 
   private callThrottleInMs = 100;
@@ -202,6 +202,9 @@ export class OwntracksImporter extends BaseImporter {
         lat: entry.lat,
         lng: entry.lon,
       },
+      wifiSSID: entry.SSID,
+      topic: entry.topic,
+      rawData: JSON.stringify(entry),
       source: "owntracks_api",
       trigger,
       importJobId: jobId,
