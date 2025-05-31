@@ -37,6 +37,7 @@ export const locationSourceEnum = pgEnum('source', [
   'sqlite_locations',
   'google',
   'google_new',
+  'owntracks_api',
 ])
 
 export const locationsTable = pgTable('locations', {

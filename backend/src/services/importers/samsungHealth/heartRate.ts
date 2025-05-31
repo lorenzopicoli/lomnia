@@ -1,36 +1,36 @@
-import { heartRateTable, type NewHeartRate } from '../../../models/HeartRate'
-import { DateTime } from 'luxon'
-import { BaseSamsungHealthImporter } from '.'
-import { offsetToTimezone } from '../../../helpers/offsetToTimezone'
-import { db } from '../../../db/connection'
-import { desc } from 'drizzle-orm'
-import type { DBTransaction } from '../../../db/types'
+import { heartRateTable, type NewHeartRate } from "../../../models/HeartRate";
+import { DateTime } from "luxon";
+import { BaseSamsungHealthImporter } from ".";
+import { offsetToTimezone } from "../../../helpers/offsetToTimezone";
+import { db } from "../../../db/connection";
+import { desc } from "drizzle-orm";
+import type { DBTransaction } from "../../../db/types";
 
 export class SamsungHealthHeartRateImporter extends BaseSamsungHealthImporter<NewHeartRate> {
-  override sourceId = 'samsung-health-export-hr-v1'
-  override destinationTable = 'heart_rate_readings'
-  override entryDateKey = 'com.samsung.health.heart_rate.start_time'
+  override sourceId = "samsung-health-export-hr-v1";
+  override destinationTable = "heart_rate_readings";
+  override entryDateKey = "com.samsung.health.heart_rate.start_time";
 
-  private fromDate: DateTime | null = null
+  private fromDate: DateTime | null = null;
 
   // Due to what I can only assume is a bug in samsungs parts, I get these wrong timezones. I just throw away these entries
   private invalidTimezones = [
-    'UTC+28550',
-    'UTC+28134',
-    'UTC+27718',
-    'UTC+28134',
-    'UTC+29006',
-    'UTC+30254',
-    'UTC+28550',
-  ]
+    "UTC+28550",
+    "UTC+28134",
+    "UTC+27718",
+    "UTC+28134",
+    "UTC+29006",
+    "UTC+30254",
+    "UTC+28550",
+  ];
 
   constructor() {
-    const identifier = 'com.samsung.shealth.tracker.heart_rate'
-    const csvColumnPrefix = 'com.samsung.health.heart_rate'
+    const identifier = "com.samsung.shealth.tracker.heart_rate";
+    const csvColumnPrefix = "com.samsung.health.heart_rate";
 
     const headersMap = {
-      source: 'source',
-      tagId: 'tag_id',
+      source: "source",
+      tagId: "tag_id",
       createShVer: `${csvColumnPrefix}.create_sh_ver`,
       heartBeatCount: `${csvColumnPrefix}.heart_beat_count`,
       startTime: `${csvColumnPrefix}.start_time`,
@@ -48,39 +48,32 @@ export class SamsungHealthHeartRateImporter extends BaseSamsungHealthImporter<Ne
       endTime: `${csvColumnPrefix}.end_time`,
       dataUuid: `${csvColumnPrefix}.datauuid`,
       heartRate: `${csvColumnPrefix}.heart_rate`,
-    }
+    };
 
     super({
       recordsTable: heartRateTable,
       headersMap,
       identifier,
       binnedDataColumn: undefined,
-      onNewBinnedData: async (
-        csvRow: any,
-        binnedData: any,
-        importJobId: number
-      ) => {
-        const startTime = DateTime.fromMillis(binnedData.start_time)
+      onNewBinnedData: async (csvRow: any, binnedData: any, importJobId: number) => {
+        const startTime = DateTime.fromMillis(binnedData.start_time);
         // Already imported
-        if (
-          this.fromDate &&
-          startTime.diff(this.fromDate, 'millisecond').milliseconds <= 0
-        ) {
-          return null
+        if (this.fromDate && startTime.diff(this.fromDate, "millisecond").milliseconds <= 0) {
+          return null;
         }
 
         if (this.invalidTimezones.includes(csvRow[headersMap.timeOffset])) {
-          return null
+          return null;
         }
 
         // Due to what I can only assume to be Samsungs bug, some entries are 100 years in the future
-        if (startTime.diff(DateTime.now(), 'years').years > 1) {
-          return null
+        if (startTime.diff(DateTime.now(), "years").years > 1) {
+          return null;
         }
 
-        const tz = offsetToTimezone(csvRow[headersMap.timeOffset])
+        const tz = offsetToTimezone(csvRow[headersMap.timeOffset]);
 
-        return {
+        const data = {
           startTime: startTime.toJSDate(),
           endTime: DateTime.fromMillis(binnedData.end_time).toJSDate(),
           heartRate: binnedData.heart_rate,
@@ -91,28 +84,30 @@ export class SamsungHealthHeartRateImporter extends BaseSamsungHealthImporter<Ne
           binUuid: csvRow[headersMap.dataUuid],
           dataExportId: csvRow[headersMap.dataUuid],
           importJobId,
-        }
+        };
+
+        this.updateFirstAndLastEntry(data.startTime);
+        this.updateFirstAndLastEntry(data.endTime);
+
+        return data;
       },
       onNewRow: async (row: any, importJobId: number) => {
-        const startTime = DateTime.fromSQL(row[headersMap.startTime])
+        const startTime = DateTime.fromSQL(row[headersMap.startTime]);
         // Already imported
-        if (
-          this.fromDate &&
-          startTime.diff(this.fromDate, 'millisecond').milliseconds <= 0
-        ) {
-          return null
+        if (this.fromDate && startTime.diff(this.fromDate, "millisecond").milliseconds <= 0) {
+          return null;
         }
         if (this.invalidTimezones.includes(row[headersMap.timeOffset])) {
-          return null
+          return null;
         }
 
         // Due to what I can only assume to be Samsungs bug, some entries are 100 years in the future
-        if (startTime.diff(DateTime.now(), 'years').years > 1) {
-          return null
+        if (startTime.diff(DateTime.now(), "years").years > 1) {
+          return null;
         }
 
-        const tz = offsetToTimezone(row[headersMap.timeOffset])
-        return {
+        const tz = offsetToTimezone(row[headersMap.timeOffset]);
+        const data = {
           startTime: startTime.toJSDate(),
           endTime: DateTime.fromSQL(row[headersMap.endTime]).toJSDate(),
           heartRate: row[headersMap.heartRate],
@@ -123,29 +118,32 @@ export class SamsungHealthHeartRateImporter extends BaseSamsungHealthImporter<Ne
           binUuid: row[headersMap.dataUuid],
           dataExportId: row[headersMap.dataUuid],
           importJobId,
-        }
+        };
+
+        this.updateFirstAndLastEntry(data.startTime);
+        this.updateFirstAndLastEntry(data.endTime);
+
+        return data;
       },
-    })
+    });
   }
 
   override async import(params: {
-    tx: DBTransaction
-    placeholderJobId: number
+    tx: DBTransaction;
+    placeholderJobId: number;
   }): Promise<{
-    importedCount: number
-    firstEntryDate?: Date
-    lastEntryDate?: Date
-    apiCallsCount?: number
-    logs: string[]
+    importedCount: number;
+    firstEntryDate?: Date;
+    lastEntryDate?: Date;
+    apiCallsCount?: number;
+    logs: string[];
   }> {
     const fromDate = await db.query.heartRateTable.findFirst({
       orderBy: desc(heartRateTable.startTime),
-    })
+    });
 
-    this.fromDate = fromDate
-      ? DateTime.fromJSDate(fromDate.startTime, { zone: 'UTC' })
-      : null
+    this.fromDate = fromDate ? DateTime.fromJSDate(fromDate.startTime, { zone: "UTC" }) : null;
 
-    return super.import(params)
+    return super.import(params);
   }
 }

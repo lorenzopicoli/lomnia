@@ -73,6 +73,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@biomejs/biome": "1.9.4",
     "@types/lodash": "^4.17.13",
     "@types/object-hash": "^3.0.6",
     "@types/react": "^18.3.12",

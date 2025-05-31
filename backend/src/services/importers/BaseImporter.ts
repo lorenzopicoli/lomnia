@@ -17,7 +17,7 @@ export class BaseImporter {
 
   public async sourceHasNewData(): Promise<{
     result: boolean
-    from?: Date
+    from?: DateTime
     totalEstimate?: number
   }> {
     throw new Error('sourceHasNewData not implemented')
@@ -73,6 +73,7 @@ export class BaseImporter {
         const result = await this.import({
           tx,
           placeholderJobId: placeholderJobId.id,
+          from,
         })
 
         if (result.importedCount === 0) {
@@ -108,6 +109,7 @@ export class BaseImporter {
   public async import(_params: {
     tx: DBTransaction
     placeholderJobId: number
+    from?: DateTime
   }): Promise<{
     importedCount: number
     firstEntryDate?: Date
