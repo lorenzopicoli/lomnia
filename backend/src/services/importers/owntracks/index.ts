@@ -1,6 +1,7 @@
 import { BaseImporter } from "../BaseImporter";
 import type { DBTransaction } from "../../../db/types";
 import {
+  importJobsTable,
   locationsTable,
   type batteryStatusEnum,
   type connectionStatusEnum,
@@ -12,6 +13,7 @@ import { DateTime } from "luxon";
 import { parseOwnTracksApiResponse, type OwnTracksLocation } from "./schema";
 import { delay } from "../../../helpers/delay";
 import { chunk } from "lodash";
+import { desc, eq } from "drizzle-orm";
 
 export class OwntracksImporter extends BaseImporter {
   override sourceId = "owntracks-api";
@@ -53,9 +55,14 @@ export class OwntracksImporter extends BaseImporter {
       baseURL: url,
     });
 
-    const currentDate = DateTime.now().minus({
-      days: 136,
+    const lastJob = await tx.query.importJobsTable.findFirst({
+      where: eq(importJobsTable.source, this.sourceId),
+      orderBy: desc(importJobsTable.lastEntryDate),
     });
+
+    const currentDate = lastJob
+      ? DateTime.fromJSDate(lastJob.lastEntryDate, { zone: "UTC" }).plus({ millisecond: 1 })
+      : DateTime.now().minus({ years: 5 });
 
     const users = await this.getAllUsersAndDevices();
 
@@ -123,7 +130,7 @@ export class OwntracksImporter extends BaseImporter {
     let importedCount = 0;
     while (currentDate.diffNow("milliseconds").milliseconds < 0) {
       await delay(this.callThrottleInMs);
-      const formattedEntries = await this.fetchDataForDay(currentDate, params);
+      const formattedEntries = await this.fetchDataForDay(currentDate, apiCallCount === 0, params);
       for (const entry of formattedEntries) {
         this.updateFirstAndLastEntry(entry.locationFix);
       }
@@ -146,6 +153,7 @@ export class OwntracksImporter extends BaseImporter {
 
   private async fetchDataForDay(
     day: DateTime,
+    preciseStartDate: boolean,
     params: {
       placeholderJobId: number;
       user: string;
@@ -166,8 +174,8 @@ export class OwntracksImporter extends BaseImporter {
         device,
       },
       headers: {
-        "X-Limit-From": day.toFormat("yyyy-MM-dd"),
-        "X-Limit-To": day.plus({ day: 1 }).toFormat("yyyy-MM-dd"),
+        "X-Limit-From": preciseStartDate ? day.toISO() : day.toFormat("yyyy-MM-dd"),
+        "X-Limit-To": day.startOf("day").plus({ day: 1 }).toFormat("yyyy-MM-dd"),
       },
     });
     console.log("Calling owntracks for day", day.toFormat("yyyy-MM-dd"));
