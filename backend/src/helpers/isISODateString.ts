@@ -1,6 +1,6 @@
-import { isValid, parseISO } from 'date-fns'
+import { isValid, parseISO } from "date-fns";
 
 export function isISODateString(value: string) {
-  const possibleDate = parseISO(value)
-  return isValid(possibleDate)
+  const possibleDate = parseISO(value);
+  return isValid(possibleDate);
 }

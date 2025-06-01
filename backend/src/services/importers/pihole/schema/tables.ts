@@ -1,4 +1,4 @@
-import { blob, integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { blob, integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 // 0|id|INTEGER|0||0
 // 1|timestamp|INTEGER|0||0
@@ -12,18 +12,18 @@ import { blob, integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 // 9|reply_time|REAL|0||0
 // 10|dnssec|INTEGER|0||0
 // https://docs.pi-hole.net/database/ftl/
-export const piholeQueriesTable = sqliteTable('queries', {
-  id: integer('id'),
-  timestamp: integer('timestamp', { mode: 'timestamp' }),
-  type: integer('type'),
-  status: integer('status'),
-  domain: text('domain'),
-  client: text('client'),
-  forward: text('forward'),
-  additionalInfo: blob('additional_info'),
-  replyType: integer('reply_type'),
-  replyTime: real('reply_time'),
-  dnssec: integer('dnssec'),
-})
+export const piholeQueriesTable = sqliteTable("queries", {
+  id: integer("id"),
+  timestamp: integer("timestamp", { mode: "timestamp" }),
+  type: integer("type"),
+  status: integer("status"),
+  domain: text("domain"),
+  client: text("client"),
+  forward: text("forward"),
+  additionalInfo: blob("additional_info"),
+  replyType: integer("reply_type"),
+  replyTime: real("reply_time"),
+  dnssec: integer("dnssec"),
+});
 
-export type PiholeSchemaQuery = typeof piholeQueriesTable.$inferSelect
+export type PiholeSchemaQuery = typeof piholeQueriesTable.$inferSelect;

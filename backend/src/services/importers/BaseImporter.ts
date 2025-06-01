@@ -1,50 +1,50 @@
-import { eq } from 'drizzle-orm'
-import { DateTime } from 'luxon'
-import { db } from '../../db/connection'
-import type { DBTransaction } from '../../db/types'
-import { importJobsTable } from '../../models/ImportJob'
+import { eq } from "drizzle-orm";
+import { DateTime } from "luxon";
+import { db } from "../../db/connection";
+import type { DBTransaction } from "../../db/types";
+import { importJobsTable } from "../../models/ImportJob";
 
 export class BaseImporter {
-  sourceId!: string
-  destinationTable!: string
-  entryDateKey!: string
-  apiVersion?: string
-  placeholderDate = new Date(1997, 6, 6)
-  firstEntry: Date | undefined
-  lastEntry: Date | undefined
+  sourceId!: string;
+  destinationTable!: string;
+  entryDateKey!: string;
+  apiVersion?: string;
+  placeholderDate = new Date(1997, 6, 6);
+  firstEntry: Date | undefined;
+  lastEntry: Date | undefined;
 
-  jobStart = DateTime.now()
+  jobStart = DateTime.now();
 
   public async sourceHasNewData(): Promise<{
-    result: boolean
-    from?: DateTime
-    totalEstimate?: number
+    result: boolean;
+    from?: DateTime;
+    totalEstimate?: number;
   }> {
-    throw new Error('sourceHasNewData not implemented')
+    throw new Error("sourceHasNewData not implemented");
   }
 
   public updateFirstAndLastEntry(d: Date | undefined | null) {
     if (!d) {
-      return
+      return;
     }
     if (!this.firstEntry || d < this.firstEntry) {
-      this.firstEntry = d
+      this.firstEntry = d;
     }
 
     if (!this.lastEntry || d > this.lastEntry) {
-      this.lastEntry = d
+      this.lastEntry = d;
     }
   }
 
   public async startJob() {
-    const { result, from, totalEstimate } = await this.sourceHasNewData()
-    console.log(`Importing data from ${this.sourceId}`)
+    const { result, from, totalEstimate } = await this.sourceHasNewData();
+    console.log(`Importing data from ${this.sourceId}`);
     if (!result) {
-      console.log(`No new data found ${this.sourceId}`)
-      return
+      console.log(`No new data found ${this.sourceId}`);
+      return;
     }
 
-    let successfullRollback = false
+    let successfullRollback = false;
     await db
       .transaction(async (tx) => {
         const placeholderJobId = await tx
@@ -64,22 +64,22 @@ export class BaseImporter {
             createdAt: new Date(),
           })
           .returning({ id: importJobsTable.id })
-          .then((r) => r[0])
+          .then((r) => r[0]);
 
         if (!placeholderJobId.id) {
-          throw new Error('Failed to insert placeholder job')
+          throw new Error("Failed to insert placeholder job");
         }
 
         const result = await this.import({
           tx,
           placeholderJobId: placeholderJobId.id,
           from,
-        })
+        });
 
         if (result.importedCount === 0) {
-          successfullRollback = true
-          console.log('No new data to import')
-          return tx.rollback()
+          successfullRollback = true;
+          console.log("No new data to import");
+          return tx.rollback();
         }
 
         await tx
@@ -95,28 +95,28 @@ export class BaseImporter {
             logs: result.logs,
             createdAt: new Date(),
           })
-          .where(eq(importJobsTable.id, placeholderJobId.id))
+          .where(eq(importJobsTable.id, placeholderJobId.id));
       })
       .catch((e) => {
         if (!successfullRollback) {
-          console.error('Error during import', e)
+          console.error("Error during import", e);
         }
-      })
+      });
 
-    console.log('Done importing', this.sourceId)
+    console.log("Done importing", this.sourceId);
   }
 
   public async import(_params: {
-    tx: DBTransaction
-    placeholderJobId: number
-    from?: DateTime
+    tx: DBTransaction;
+    placeholderJobId: number;
+    from?: DateTime;
   }): Promise<{
-    importedCount: number
-    firstEntryDate?: Date
-    lastEntryDate?: Date
-    apiCallsCount?: number
-    logs: string[]
+    importedCount: number;
+    firstEntryDate?: Date;
+    lastEntryDate?: Date;
+    apiCallsCount?: number;
+    logs: string[];
   }> {
-    throw new Error('Import not implemented')
+    throw new Error("Import not implemented");
   }
 }

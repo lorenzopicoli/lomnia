@@ -1,8 +1,8 @@
-import 'dotenv/config'
-import knex from 'knex'
+import "dotenv/config";
+import knex from "knex";
 
 export default knex({
-  client: 'pg',
+  client: "pg",
   connection: {
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -10,4 +10,4 @@ export default knex({
     database: process.env.DB_NAME,
     port: process.env.DB_PORT ?? 5432,
   },
-})
+});

@@ -1,36 +1,36 @@
-import { integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
-import { importJobsTable } from './ImportJob'
+import { integer, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { importJobsTable } from "./ImportJob";
 
-export const dnsQueriesTable = pgTable('dns_queries', {
-  id: integer('id'),
+export const dnsQueriesTable = pgTable("dns_queries", {
+  id: integer("id"),
   /**
    * A copy of the primary identifier of this row in the source database
    */
-  externalId: integer('external_id'),
+  externalId: integer("external_id"),
 
-  importJobId: integer('import_job_id')
+  importJobId: integer("import_job_id")
     .references(() => importJobsTable.id)
     .notNull(),
   /**
    * When the query was made, in UTC
    */
-  queryTimestamp: timestamp('query_timestamp').notNull(),
+  queryTimestamp: timestamp("query_timestamp").notNull(),
   /**
    * Just the domain part, no "http" or "www"
    */
-  domain: text('domain').notNull(),
+  domain: text("domain").notNull(),
   /**
    * Local IP address of the client that initiated the request
    */
-  client: text('client').notNull(),
+  client: text("client").notNull(),
   /**
    * Forward destination used for this query (only set if status == 2)
    */
-  forward: text('forward'),
+  forward: text("forward"),
   /**
    * In milliseconds
    */
-  replyTime: integer('reply_time'),
+  replyTime: integer("reply_time"),
   /**
    * The content and type of the additional_info row depends on the status of the given query. For many queries, this field is empty. You should, however, not rely on this field being empty as we may add content of any type for other status types in future releases.
    * Query blocked due to a CNAME inspection (status 9, 10, 11)¶
@@ -40,7 +40,7 @@ export const dnsQueriesTable = pgTable('dns_queries', {
    *
    * If a query was influenced by a black- or whitelist entry, this field contains the ID of the corresponding entry in the domainlist table.
    */
-  additionalInfo: jsonb('additional_info'),
+  additionalInfo: jsonb("additional_info"),
   /**
    * 1  A
    *
@@ -74,7 +74,7 @@ export const dnsQueriesTable = pgTable('dns_queries', {
    *
    * 16 HTTPS
    */
-  type: integer('type').notNull(),
+  type: integer("type").notNull(),
   /**
    * 0 	Unknown 	❔ 	Unknown status (not yet known)
    *
@@ -117,7 +117,7 @@ export const dnsQueriesTable = pgTable('dns_queries', {
    *
    * 17 	Allowed 	✅⌛ 	Replied from stale cache
    */
-  status: integer('status').notNull(),
+  status: integer("status").notNull(),
   /**
    * 0 	unknown (no reply so far)
    *
@@ -148,7 +148,7 @@ export const dnsQueriesTable = pgTable('dns_queries', {
    *
    * 13 BLOB (binary data)
    */
-  replyType: integer('reply_type').notNull(),
+  replyType: integer("reply_type").notNull(),
   /**
    *
    *  0 	unknown
@@ -161,8 +161,8 @@ export const dnsQueriesTable = pgTable('dns_queries', {
    *
    *  4 	ABANDONED
    */
-  dnssec: integer('dnssec'),
-})
+  dnssec: integer("dnssec"),
+});
 
-export type DnsQuery = typeof dnsQueriesTable.$inferSelect
-export type NewDnsQuery = typeof dnsQueriesTable.$inferInsert
+export type DnsQuery = typeof dnsQueriesTable.$inferSelect;
+export type NewDnsQuery = typeof dnsQueriesTable.$inferInsert;
