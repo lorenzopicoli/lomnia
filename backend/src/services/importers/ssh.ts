@@ -1,13 +1,15 @@
-import { NodeSSH } from 'node-ssh'
-import ProgressLogger from '../../helpers/ProgressLogger'
+import { NodeSSH } from "node-ssh";
+import ProgressLogger from "../../helpers/ProgressLogger";
+import { EnvVar } from "../../helpers/envVars";
+import { getEnvVarOrError } from "../../helpers/envVars";
 
 export const newSSHConnection = async (host: string) => {
   return new NodeSSH().connect({
     host,
-    username: 'lorenzo',
-    privateKeyPath: process.env.PRIVATE_KEY_PATH,
-  })
-}
+    username: "lorenzo",
+    privateKeyPath: getEnvVarOrError(EnvVar.PRIVATE_KEY_PATH),
+  });
+};
 
 /***
  * Safely download a file using SSH. Before calling this function it's advised to stop
@@ -26,50 +28,42 @@ export const newSSHConnection = async (host: string) => {
  *
  */
 export const safeDownloadFile = async (options: {
-  sshConnection: NodeSSH
-  localPath: string
-  remoteCopyPath: string
-  remotePath: string
-  onSafeToUseFile?: (() => Promise<void>) | (() => void)
+  sshConnection: NodeSSH;
+  localPath: string;
+  remoteCopyPath: string;
+  remotePath: string;
+  onSafeToUseFile?: (() => Promise<void>) | (() => void);
 }) => {
-  const {
-    sshConnection,
-    localPath,
-    remoteCopyPath,
-    remotePath,
-    onSafeToUseFile,
-  } = options
+  const { sshConnection, localPath, remoteCopyPath, remotePath, onSafeToUseFile } = options;
 
-  console.log('Copying remote file before downloading...')
-  await sshConnection
-    .execCommand(`cp ${remotePath} ${remoteCopyPath}`)
-    .then((result) => {
-      if (result.stdout) {
-        console.log(`File copy stdout: ${result.stdout}`)
-      }
+  console.log("Copying remote file before downloading...");
+  await sshConnection.execCommand(`cp ${remotePath} ${remoteCopyPath}`).then((result) => {
+    if (result.stdout) {
+      console.log(`File copy stdout: ${result.stdout}`);
+    }
 
-      if (result.stderr) {
-        console.log(`Error copying file: ${result.stderr}`)
-      }
-      console.log("Remote file copied, it's now safe to use the remote file...")
-    })
+    if (result.stderr) {
+      console.log(`Error copying file: ${result.stderr}`);
+    }
+    console.log("Remote file copied, it's now safe to use the remote file...");
+  });
 
   // I'd like to not have to await here, but I was getting weird SSH connection errors if I run sshConnection.execCommand
   // from within this callback. For the time being it's just easier to await
-  await onSafeToUseFile?.()
+  await onSafeToUseFile?.();
 
-  const progress = new ProgressLogger('SSH Download', { isFileSize: true })
-  console.log('Downloading file using SSH')
-  console.log('  - Remote path:', remoteCopyPath)
-  console.log('  - Local path:', localPath)
+  const progress = new ProgressLogger("SSH Download", { isFileSize: true });
+  console.log("Downloading file using SSH");
+  console.log("  - Remote path:", remoteCopyPath);
+  console.log("  - Local path:", localPath);
   try {
     await sshConnection.getFile(localPath, remoteCopyPath, undefined, {
       step: (current, _chunk, total) => {
-        progress.step(current, total)
+        progress.step(current, total);
       },
-    })
+    });
   } catch (e) {
-    console.log('Failed to download file')
+    console.log("Failed to download file");
   }
-  progress.stop()
-}
+  progress.stop();
+};

@@ -1,16 +1,16 @@
-import { BaseImporter } from '../BaseImporter'
-import type { DBTransaction } from '../../../db/types'
-import { z } from 'zod'
-import { locationsTable } from '../../../models'
-import { DateTime } from 'luxon'
-import { sql } from 'drizzle-orm'
-import { offsetToTimezone } from '../../../helpers/offsetToTimezone'
+import { BaseImporter } from "../BaseImporter";
+import type { DBTransaction } from "../../../db/types";
+import { z } from "zod";
+import { locationsTable } from "../../../models";
+import { DateTime } from "luxon";
+import { sql } from "drizzle-orm";
+import { offsetToTimezone } from "../../../helpers/offsetToTimezone";
+import { EnvVar, getEnvVarOrError } from "../../../helpers/envVars";
 
 /**
  * Matches: 2013-05-25T16:00:00.000-04:00
  */
-const dateTimeWithTimezoneOffet =
-  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}[-+]\d{2}:\d{2}$/
+const dateTimeWithTimezoneOffet = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}[-+]\d{2}:\d{2}$/;
 
 /**
  * Matches the new JSON export https://support.google.com/maps/thread/264641290/export-full-location-timeline-data-in-json-or-similar-format-in-the-new-version-of-timeline?hl=en
@@ -25,7 +25,7 @@ const exportSchema = z.object({
           z.object({
             point: z.string(),
             time: z.string().regex(dateTimeWithTimezoneOffet),
-          })
+          }),
         )
         .optional(),
       visit: z
@@ -48,7 +48,7 @@ const exportSchema = z.object({
           }),
         })
         .optional(),
-    })
+    }),
   ),
   rawSignals: z.array(
     z.object({
@@ -68,121 +68,105 @@ const exportSchema = z.object({
           LatLng: z.string(),
           accuracyMeters: z.number(),
           altitudeMeters: z.number(),
-          source: z.enum(['WIFI', 'CELL', 'GPS', 'UNKNOWN']),
+          source: z.enum(["WIFI", "CELL", "GPS", "UNKNOWN"]),
           timestamp: z.string().regex(dateTimeWithTimezoneOffet),
           speedMetersPerSecond: z.number(),
         })
         .optional(),
-    })
+    }),
   ),
-})
+});
 
 export class GoogleLocationsTimelineImporter extends BaseImporter {
-  override sourceId = 'google-new-timeline-locations-export'
-  override destinationTable = 'locations'
-  override entryDateKey = ''
-  private sourceName = 'google' as const
+  override sourceId = "google-new-timeline-locations-export";
+  override destinationTable = "locations";
+  override entryDateKey = "";
+  private sourceName = "google" as const;
 
   public async sourceHasNewData(): Promise<{
-    result: boolean
-    from?: Date
-    totalEstimate?: number
+    result: boolean;
+    from?: Date;
+    totalEstimate?: number;
   }> {
-    return { result: true }
+    return { result: true };
   }
   public async import(params: {
-    tx: DBTransaction
-    placeholderJobId: number
+    tx: DBTransaction;
+    placeholderJobId: number;
   }): Promise<{
-    importedCount: number
-    firstEntryDate: Date
-    lastEntryDate: Date
-    apiCallsCount?: number
-    logs: string[]
+    importedCount: number;
+    firstEntryDate: Date;
+    lastEntryDate: Date;
+    apiCallsCount?: number;
+    logs: string[];
   }> {
-    await params.tx
-      .delete(locationsTable)
-      .where(sql`source = ${this.sourceName}`)
-    const { importedCount, logs } = await this.handleExport(params)
+    await params.tx.delete(locationsTable).where(sql`source = ${this.sourceName}`);
+    const { importedCount, logs } = await this.handleExport(params);
     return {
       importedCount,
       firstEntryDate: new Date(),
       lastEntryDate: new Date(),
       logs,
-    }
+    };
   }
 
   private formatLatLng(latLng: string): { lat: number; lng: number } {
-    const [lat, lng] = latLng.replace(' ', '').replace('°', '').split(',')
-    return { lat: Number.parseFloat(lat), lng: Number.parseFloat(lng) }
+    const [lat, lng] = latLng.replace(" ", "").replace("°", "").split(",");
+    return { lat: Number.parseFloat(lat), lng: Number.parseFloat(lng) };
   }
 
   private parseDateTime(dateTime: string): DateTime {
     // "2013-05-25T16:00:00.000-04:00",
-    return DateTime.fromFormat(
-      dateTime.replace('T', ' '),
-      'yyyy-MM-dd HH:mm:ss.SSSZZ'
-    )
+    return DateTime.fromFormat(dateTime.replace("T", " "), "yyyy-MM-dd HH:mm:ss.SSSZZ");
   }
 
   private getTimezoneFromDate(date: DateTime): string {
-    return offsetToTimezone(
-      `UTC${date.zone.formatOffset(date.toMillis(), 'techie')}`
-    )
+    return offsetToTimezone(`UTC${date.zone.formatOffset(date.toMillis(), "techie")}`);
   }
 
   private async handleExport(params: {
-    tx: DBTransaction
-    placeholderJobId: number
+    tx: DBTransaction;
+    placeholderJobId: number;
   }): Promise<{
-    importedCount: number
-    logs: string[]
+    importedCount: number;
+    logs: string[];
   }> {
-    const path = process.env.GOOGLE_LOCATIONS_EXPORT_JSON
-    if (!path) {
-      throw new Error('GOOGLE_LOCATIONS_EXPORT_JSON env var is required')
-    }
-    const dataJson = await import(path)
-    let importedCount = 0
-    const exportData = await exportSchema.safeParseAsync(dataJson)
+    const path = getEnvVarOrError(EnvVar.GOOGLE_LOCATIONS_EXPORT_JSON);
+    const dataJson = await import(path);
+    let importedCount = 0;
+    const exportData = await exportSchema.safeParseAsync(dataJson);
 
     if (!exportData.data) {
-      throw new Error(
-        `Failed to parse JSON: ${JSON.stringify(
-          exportData.error?.errors.splice(0, 10)
-        )}`
-      )
+      throw new Error(`Failed to parse JSON: ${JSON.stringify(exportData.error?.errors.splice(0, 10))}`);
     }
 
     for (const segment of exportData.data.semanticSegments) {
-      importedCount += await this.handleVisit(segment, params)
-      importedCount += await this.handleActivity(segment, params)
-      importedCount += await this.handleTimelinePath(segment, params)
+      importedCount += await this.handleVisit(segment, params);
+      importedCount += await this.handleActivity(segment, params);
+      importedCount += await this.handleTimelinePath(segment, params);
     }
 
     for (const signal of exportData.data.rawSignals) {
-      importedCount += await this.handleRawSignal(signal, params)
+      importedCount += await this.handleRawSignal(signal, params);
     }
 
-    return { importedCount, logs: [] }
+    return { importedCount, logs: [] };
   }
 
   private async handleVisit(
-    segment: z.infer<typeof exportSchema>['semanticSegments'][number],
+    segment: z.infer<typeof exportSchema>["semanticSegments"][number],
     params: {
-      tx: DBTransaction
-      placeholderJobId: number
-    }
+      tx: DBTransaction;
+      placeholderJobId: number;
+    },
   ) {
-    const { tx, placeholderJobId } = params
+    const { tx, placeholderJobId } = params;
     if (!segment.visit) {
-      return 0
+      return 0;
     }
-    const { lat, lng } = this.formatLatLng(
-      segment.visit.topCandidate.placeLocation.latLng
-    )
-    const locationFix = this.parseDateTime(segment.startTime)
-    const timezone = this.getTimezoneFromDate(locationFix)
+    const { lat, lng } = this.formatLatLng(segment.visit.topCandidate.placeLocation.latLng);
+    const locationFix = this.parseDateTime(segment.startTime);
+    const timezone = this.getTimezoneFromDate(locationFix);
     await tx.insert(locationsTable).values([
       {
         source: this.sourceName,
@@ -194,34 +178,30 @@ export class GoogleLocationsTimelineImporter extends BaseImporter {
         locationFix: locationFix.toJSDate(),
         importJobId: placeholderJobId,
       },
-    ])
+    ]);
 
-    return 1
+    return 1;
   }
 
   private async handleActivity(
-    segment: z.infer<typeof exportSchema>['semanticSegments'][number],
+    segment: z.infer<typeof exportSchema>["semanticSegments"][number],
     params: {
-      tx: DBTransaction
-      placeholderJobId: number
-    }
+      tx: DBTransaction;
+      placeholderJobId: number;
+    },
   ) {
-    let importedCount = 0
-    const { tx, placeholderJobId } = params
+    let importedCount = 0;
+    const { tx, placeholderJobId } = params;
     if (!segment.activity) {
-      return 0
+      return 0;
     }
 
-    const { lat: startLat, lng: startLng } = this.formatLatLng(
-      segment.activity.start.latLng
-    )
-    const { lat: endLat, lng: endLng } = this.formatLatLng(
-      segment.activity.end.latLng
-    )
-    const locationFixStart = this.parseDateTime(segment.startTime)
-    const locationFixEnd = this.parseDateTime(segment.startTime)
-    const timezoneStart = this.getTimezoneFromDate(locationFixStart)
-    const timezoneEnd = this.getTimezoneFromDate(locationFixEnd)
+    const { lat: startLat, lng: startLng } = this.formatLatLng(segment.activity.start.latLng);
+    const { lat: endLat, lng: endLng } = this.formatLatLng(segment.activity.end.latLng);
+    const locationFixStart = this.parseDateTime(segment.startTime);
+    const locationFixEnd = this.parseDateTime(segment.startTime);
+    const timezoneStart = this.getTimezoneFromDate(locationFixStart);
+    const timezoneEnd = this.getTimezoneFromDate(locationFixEnd);
     await tx.insert(locationsTable).values([
       {
         source: this.sourceName,
@@ -233,9 +213,9 @@ export class GoogleLocationsTimelineImporter extends BaseImporter {
         locationFix: locationFixStart.toJSDate(),
         importJobId: placeholderJobId,
       },
-    ])
+    ]);
 
-    importedCount += 1
+    importedCount += 1;
     await tx.insert(locationsTable).values([
       {
         source: this.sourceName,
@@ -247,28 +227,28 @@ export class GoogleLocationsTimelineImporter extends BaseImporter {
         locationFix: locationFixEnd.toJSDate(),
         importJobId: placeholderJobId,
       },
-    ])
-    importedCount += 1
-    return importedCount
+    ]);
+    importedCount += 1;
+    return importedCount;
   }
 
   private async handleTimelinePath(
-    segment: z.infer<typeof exportSchema>['semanticSegments'][number],
+    segment: z.infer<typeof exportSchema>["semanticSegments"][number],
     params: {
-      tx: DBTransaction
-      placeholderJobId: number
-    }
+      tx: DBTransaction;
+      placeholderJobId: number;
+    },
   ) {
-    let importedCount = 0
-    const { tx, placeholderJobId } = params
+    let importedCount = 0;
+    const { tx, placeholderJobId } = params;
     if (!segment.timelinePath) {
-      return 0
+      return 0;
     }
 
     for (const point of segment.timelinePath) {
-      const { lat, lng } = this.formatLatLng(point.point)
-      const locationFix = this.parseDateTime(point.time)
-      const timezone = this.getTimezoneFromDate(locationFix)
+      const { lat, lng } = this.formatLatLng(point.point);
+      const locationFix = this.parseDateTime(point.time);
+      const timezone = this.getTimezoneFromDate(locationFix);
       await tx.insert(locationsTable).values([
         {
           source: this.sourceName,
@@ -280,27 +260,27 @@ export class GoogleLocationsTimelineImporter extends BaseImporter {
           locationFix: locationFix.toJSDate(),
           importJobId: placeholderJobId,
         },
-      ])
-      importedCount += 1
+      ]);
+      importedCount += 1;
     }
 
-    return importedCount
+    return importedCount;
   }
 
   private async handleRawSignal(
-    signal: z.infer<typeof exportSchema>['rawSignals'][number],
+    signal: z.infer<typeof exportSchema>["rawSignals"][number],
     params: {
-      tx: DBTransaction
-      placeholderJobId: number
-    }
+      tx: DBTransaction;
+      placeholderJobId: number;
+    },
   ) {
-    const { tx, placeholderJobId } = params
+    const { tx, placeholderJobId } = params;
     if (!signal.position) {
-      return 0
+      return 0;
     }
-    const { lat, lng } = this.formatLatLng(signal.position.LatLng)
-    const locationFix = this.parseDateTime(signal.position.timestamp)
-    const timezone = this.getTimezoneFromDate(locationFix)
+    const { lat, lng } = this.formatLatLng(signal.position.LatLng);
+    const locationFix = this.parseDateTime(signal.position.timestamp);
+    const timezone = this.getTimezoneFromDate(locationFix);
     await tx.insert(locationsTable).values([
       {
         source: this.sourceName,
@@ -312,7 +292,7 @@ export class GoogleLocationsTimelineImporter extends BaseImporter {
         locationFix: locationFix.toJSDate(),
         importJobId: placeholderJobId,
       },
-    ])
-    return 1
+    ]);
+    return 1;
   }
 }

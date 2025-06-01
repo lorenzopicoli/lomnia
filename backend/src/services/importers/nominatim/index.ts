@@ -132,6 +132,7 @@ export class NominatimImport extends BaseImporter {
     while (nextLocation[0]) {
       const location = nextLocation[0];
       await delay(this.apiCallsDelay);
+      console.log(`Calling Nomatim API for location ${location.location} (${location.locationFix} - UTC)`);
       const response = await http.get("/reverse", {
         params: {
           format: "json",

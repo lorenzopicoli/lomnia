@@ -1,11 +1,18 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "../models";
+import { EnvVar, getEnvVarOrError } from "../helpers/envVars";
+
+const dbConfig = {
+  host: getEnvVarOrError(EnvVar.DB_HOST),
+  user: getEnvVarOrError(EnvVar.DB_USER),
+  password: getEnvVarOrError(EnvVar.DB_PASSWORD),
+  database: getEnvVarOrError(EnvVar.DB_NAME),
+  port: getEnvVarOrError(EnvVar.DB_PORT),
+};
 
 const conn = postgres(
-  `postgres://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${
-    process.env.DB_HOST
-  }:${process.env.DB_PORT ?? 5432}/${process.env.DB_NAME}`,
+  `postgres://${dbConfig.user}:${dbConfig.password}@${dbConfig.host}:${dbConfig.port}/${dbConfig.database}`,
 );
 
 export const db = drizzle(conn, { schema, logger: false });

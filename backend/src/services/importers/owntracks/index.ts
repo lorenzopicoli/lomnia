@@ -15,6 +15,7 @@ import { delay } from "../../../helpers/delay";
 import { chunk } from "lodash";
 import { desc, eq } from "drizzle-orm";
 import { db } from "../../../db/connection";
+import { EnvVar, getEnvVarOrError } from "../../../helpers/envVars";
 
 export class OwntracksImporter extends BaseImporter {
   override sourceId = "owntracks-api";
@@ -43,10 +44,7 @@ export class OwntracksImporter extends BaseImporter {
     apiCallsCount?: number;
     logs: string[];
   }> {
-    const url = process.env.OWNTRACKS_HTTP_SERVER;
-    if (!url) {
-      throw new Error("OWNTRACKS_HTTP_SERVER env var is required");
-    }
+    const url = getEnvVarOrError(EnvVar.OWNTRACKS_HTTP_SERVER);
 
     const { tx, placeholderJobId } = params;
     let importedCount = 0;
@@ -89,11 +87,7 @@ export class OwntracksImporter extends BaseImporter {
   }
 
   private async getAllUsersAndDevices() {
-    const url = process.env.OWNTRACKS_HTTP_SERVER;
-    if (!url) {
-      throw new Error("OWNTRACKS_HTTP_SERVER env var is required");
-    }
-
+    const url = getEnvVarOrError(EnvVar.OWNTRACKS_HTTP_SERVER);
     const http = axios.create({
       baseURL: url,
     });
@@ -163,10 +157,7 @@ export class OwntracksImporter extends BaseImporter {
     },
   ) {
     const { placeholderJobId, user, device } = params;
-    const url = process.env.OWNTRACKS_HTTP_SERVER;
-    if (!url) {
-      throw new Error("OWNTRACKS_HTTP_SERVER env var is required");
-    }
+    const url = getEnvVarOrError(EnvVar.OWNTRACKS_HTTP_SERVER);
     const http = axios.create({
       baseURL: url,
     });
