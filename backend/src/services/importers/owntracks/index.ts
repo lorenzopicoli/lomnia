@@ -14,6 +14,7 @@ import { parseOwnTracksApiResponse, type OwnTracksLocation } from "./schema";
 import { delay } from "../../../helpers/delay";
 import { chunk } from "lodash";
 import { desc, eq } from "drizzle-orm";
+import { db } from "../../../db/connection";
 
 export class OwntracksImporter extends BaseImporter {
   override sourceId = "owntracks-api";
@@ -55,14 +56,15 @@ export class OwntracksImporter extends BaseImporter {
       baseURL: url,
     });
 
-    const lastJob = await tx.query.importJobsTable.findFirst({
+    // Not using tx because otherwise it would fetch the job that was created as a placeholder
+    const lastJob = await db.query.importJobsTable.findFirst({
       where: eq(importJobsTable.source, this.sourceId),
       orderBy: desc(importJobsTable.lastEntryDate),
     });
 
     const currentDate = lastJob
       ? DateTime.fromJSDate(lastJob.lastEntryDate, { zone: "UTC" }).plus({ millisecond: 1 })
-      : DateTime.now().minus({ years: 5 });
+      : DateTime.now().minus({ years: 15 });
 
     const users = await this.getAllUsersAndDevices();
 
