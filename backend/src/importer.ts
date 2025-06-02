@@ -62,25 +62,27 @@ const owntracks = async () => {
   await owntracks.startJob();
 };
 const main = async () => {
-  console.log("================== LOCATIONS IMPORT ================== ");
-  // await importLocations()
-  console.log("================= DNS QUERIES IMPORT ================= ");
-  // await importDnsQueries()
-  console.log("================= OBSIDIAN IMPORT ================= ");
-  // await importObsidianFiles()
-  console.log("================= OWNTACKS ================= ");
-  await owntracks();
-  console.log("================= OPEN METEO IMPORT ================= ");
-  await importOpenMeteoData();
-  console.log("================= USERS POI IMPORT ================= ");
-  // Should always happen before other location details imports
-  await importUserPOIs();
-  console.log("================= NOMINATIM IMPORT ================= ");
-  await nominatim();
-  console.log("================= SAMSUNG HEALTH IMPORT ================= ");
-  await samsungData();
-  console.log("================= GOOGLE ================= ");
-  // await google()
+  while (true) {
+    console.log("================== LOCATIONS IMPORT ================== ");
+    // await importLocations()
+    console.log("================= DNS QUERIES IMPORT ================= ");
+    // await importDnsQueries()
+    console.log("================= OBSIDIAN IMPORT ================= ");
+    // await importObsidianFiles()
+    console.log("================= OWNTACKS ================= ");
+    await owntracks();
+    console.log("================= OPEN METEO IMPORT ================= ");
+    await importOpenMeteoData();
+    console.log("================= USERS POI IMPORT ================= ");
+    // Should always happen before other location details imports
+    await importUserPOIs();
+    console.log("================= NOMINATIM IMPORT ================= ");
+    await nominatim();
+    console.log("================= SAMSUNG HEALTH IMPORT ================= ");
+    await samsungData();
+    console.log("================= GOOGLE ================= ");
+    // await google()
+  }
 };
 
 main();

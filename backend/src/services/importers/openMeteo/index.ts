@@ -51,7 +51,7 @@ export class OpenMeteoImport extends BaseImporter {
   // In ms
   private apiCallsDelay = 10000;
 
-  private maxImportSession = 10000;
+  private maxImportSession = 30000;
 
   private apiUrl = "https://archive-api.open-meteo.com/v1/archive";
   private apiParams = {
@@ -207,7 +207,10 @@ export class OpenMeteoImport extends BaseImporter {
       ...this.apiParams,
     };
 
-    console.log("Calling OpenMeteo with the following parameters", JSON.stringify(meteoParams));
+    console.log(
+      `Calling OpenMeteo for date (${paddedStartDate} - ${paddedEndDate}) with the following parameters`,
+      JSON.stringify(meteoParams),
+    );
 
     const responses = await fetchWeatherApi(this.apiUrl, meteoParams);
 
