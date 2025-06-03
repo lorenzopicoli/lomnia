@@ -49,7 +49,7 @@ export class NominatimImport extends BaseImporter {
     apiResponse: any,
   ): NewLocationDetails | null {
     if (!apiResponse.display_name) {
-      console.log(`No name for location ${location}, api response: ${JSON.stringify(apiResponse)}`);
+      this.logger.warn("No name found for location", { location, apiResponse });
       this.logs.push(`No name for location ${location}, api response: ${JSON.stringify(apiResponse)}`);
       return null;
     }
@@ -132,10 +132,15 @@ export class NominatimImport extends BaseImporter {
 
     while (nextLocation[0]) {
       const location = nextLocation[0];
+      this.logger.debug("Waiting before calling Nominatim again", {
+        delay: this.apiCallsDelay,
+      });
       await delay(this.apiCallsDelay);
-      console.log(
-        `Calling Nomatim API for location (${location.location.lat}, ${location.location.lng}) (${location.locationFix} - UTC)`,
-      );
+      this.logger.debug("Calling Nominatim API for location", {
+        locationId: location.id,
+        locationPos: location.location,
+        locationFix: location.locationFix,
+      });
       const response = await http.get("/reverse", {
         params: {
           format: "json",

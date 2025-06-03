@@ -34,10 +34,7 @@ export class Logger {
   }
 
   private createWinstonLogger(): winston.Logger {
-    const formats: Format[] = [
-      winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss.SSS" }),
-      winston.format.errors({ stack: true }),
-    ];
+    const formats: Format[] = [winston.format.timestamp(), winston.format.errors({ stack: true })];
 
     let consoleFormat: Format;
 

@@ -5,6 +5,7 @@ import data from "./personal.json";
 import { locationsTable } from "../../../models";
 import { eq, sql } from "drizzle-orm";
 import { locationDetailsTable } from "../../../models/LocationDetails";
+import type { DateTime } from "luxon";
 
 export class UserPointsOfInterestImporter extends BaseImporter {
   override sourceId = "userPOIJson";

@@ -28,6 +28,17 @@ export default {
       },
       openMeteo: {
         enabled: true,
+        /**
+         * Number of locations to updated each run. Increasing this number will slowdown each cycle
+         */
+        maxImportSession: 30000,
+        /* This should be better calculated so this importer can run as fast as possible. In reality I couldn't find
+         * any proper documentation on their API rate limits. On the website it says fewer than 10k calls per day,
+         * but I know there are also daily/minute rates. I found a PR with some description and that's what I used
+         * to very roughly calculate a number that would be very safe (I rather it to be slow than failing consistently)
+         * In ms
+         */
+        apiCallsDelay: 10000,
       },
       userPoi: {
         enabled: false,

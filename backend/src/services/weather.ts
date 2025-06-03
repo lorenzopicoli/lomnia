@@ -31,8 +31,6 @@ export const getWeatherCharts = async (params: ChartServiceParams): ChartService
   const isSafeYKeys = yKeys.every((yKey) => columns.includes(yKey as (typeof columns)[number]));
 
   if (!isSafeXKey || !isSafeYKeys) {
-    console.log("X", isSafeXKey, "Y", isSafeYKeys);
-    console.log("X", xKey, "Y", yKeys);
     throw new Error("Invalid keys");
   }
   const xKeyTyped = xKey as HourlyWeatherColumns;

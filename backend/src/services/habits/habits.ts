@@ -45,8 +45,6 @@ export const getHabitsCharts = async (params: HabitChartServiceParams): ChartSer
   const isSafeXKey = columns.includes(xKey as (typeof columns)[number]);
 
   if (!isSafeXKey) {
-    console.log("X", isSafeXKey);
-    console.log("X", xKey);
     throw new Error("Invalid keys");
   }
   const xKeyTyped = xKey as HabitColumns;

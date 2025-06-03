@@ -14,6 +14,7 @@ import {
   dailyWeatherTable,
   hourlyWeatherTable,
 } from "../../../models/Weather";
+import config from "../../../config";
 
 export class OpenMeteoImport extends BaseImporter {
   override sourceId = "openmeteo-v1";
@@ -44,14 +45,9 @@ export class OpenMeteoImport extends BaseImporter {
   // since the location/date pairs wouldn't match the exisiting weather entries anymore
   private gridPrecision = "0.01";
 
-  // This should be better calculated so this importer can run as fast as possible. In reality I couldn't find
-  // any proper documentation on their API rate limits. On the website it says fewer than 10k calls per day,
-  // but I know there are also daily/minute rates. I found a PR with some description and that's what I used
-  // to very roughly calculate a number that would be very safe (I rather it to be slow than failing consistently)
-  // In ms
-  private apiCallsDelay = 10000;
+  private apiCallsDelay = config.importers.locationDetails.openMeteo.apiCallsDelay;
 
-  private maxImportSession = 30000;
+  private maxImportSession = config.importers.locationDetails.openMeteo.maxImportSession;
 
   private apiUrl = "https://archive-api.open-meteo.com/v1/archive";
   private apiParams = {
@@ -86,7 +82,7 @@ export class OpenMeteoImport extends BaseImporter {
 
   public async sourceHasNewData(): Promise<{
     result: boolean;
-    from?: Date;
+    from?: DateTime;
     totalEstimate?: number;
   }> {
     const count = await db
@@ -207,10 +203,11 @@ export class OpenMeteoImport extends BaseImporter {
       ...this.apiParams,
     };
 
-    console.log(
-      `Calling OpenMeteo for date (${paddedStartDate} - ${paddedEndDate}) with the following parameters`,
-      JSON.stringify(meteoParams),
-    );
+    this.logger.debug("Calling OpenMeteo API", {
+      paddedStartDate,
+      paddedEndDate,
+      meteoParams,
+    });
 
     const responses = await fetchWeatherApi(this.apiUrl, meteoParams);
 
@@ -373,7 +370,7 @@ export class OpenMeteoImport extends BaseImporter {
   ) {
     const buffer = `${this.apiDayPadding + 1} days`;
 
-    console.log(
+    this.logger.debug(
       "Linking locations to weather info. This might take a while if there are a lot of loactions missing weather information",
     );
     await tx
@@ -520,9 +517,8 @@ export class OpenMeteoImport extends BaseImporter {
         const earliestDay = sameTimezonePairs[0].dayString;
         const latestDay = sameTimezonePairs[sameTimezonePairs.length - 1].dayString;
 
-        console.log("Waiting before calling API again");
+        this.logger.debug("Waiting before calling API again");
         await delay(this.apiCallsDelay);
-        console.log(`Calling API for days ${earliestDay} - ${latestDay} and timezone ${timezone}`);
         apiCallsCount += 1;
 
         // The API calls are really wasteful here. If there are 2 points: Point A and Point B
@@ -568,7 +564,6 @@ export class OpenMeteoImport extends BaseImporter {
     await this.linkLocationsToWeather(params.tx);
     await this.cleanUpDanglingWeatherEntries(params.tx);
 
-    console.log("Done importing weather information");
     return {
       importedCount,
       apiCallsCount,

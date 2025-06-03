@@ -62,7 +62,7 @@ export class OwntracksImporter extends BaseImporter {
 
     const currentDate = lastJob
       ? DateTime.fromJSDate(lastJob.lastEntryDate, { zone: "UTC" }).plus({ millisecond: 1 })
-      : DateTime.now().minus({ years: 15 });
+      : DateTime.now().minus({ years: 15 }).startOf("day");
 
     const users = await this.getAllUsersAndDevices();
 
@@ -120,13 +120,13 @@ export class OwntracksImporter extends BaseImporter {
       device: string;
     },
   ) {
-    const { tx } = params;
+    const { tx, ...otherParams } = params;
     let currentDate = startDate;
     let apiCallCount = 0;
     let importedCount = 0;
     while (currentDate.diffNow("milliseconds").milliseconds < 0) {
       await delay(this.callThrottleInMs);
-      const formattedEntries = await this.fetchDataForDay(currentDate, apiCallCount === 0, params);
+      const { formattedEntries, searchedUntil } = await this.fetchDataForDay(currentDate, otherParams);
       for (const entry of formattedEntries) {
         this.updateFirstAndLastEntry(entry.locationFix);
       }
@@ -141,15 +141,14 @@ export class OwntracksImporter extends BaseImporter {
       }
 
       apiCallCount++;
-      currentDate = currentDate.plus({ days: 1 });
+      currentDate = searchedUntil;
     }
 
     return { apiCallCount, importedCount };
   }
 
   private async fetchDataForDay(
-    day: DateTime,
-    preciseStartDate: boolean,
+    startDate: DateTime,
     params: {
       placeholderJobId: number;
       user: string;
@@ -161,22 +160,27 @@ export class OwntracksImporter extends BaseImporter {
     const http = axios.create({
       baseURL: url,
     });
+    const endDate = startDate.plus({ hour: 24 });
+    const headers = {
+      "X-Limit-From": startDate.toISO(),
+      "X-Limit-To": endDate.toISO(),
+    };
+    this.logger.debug("Calling server", {
+      headers,
+      params,
+    });
     const response = await http.get("/api/0/locations", {
       params: {
         user,
         device,
       },
-      headers: {
-        "X-Limit-From": preciseStartDate ? day.toISO() : day.toFormat("yyyy-MM-dd"),
-        "X-Limit-To": day.startOf("day").plus({ day: 1 }).toFormat("yyyy-MM-dd"),
-      },
+      headers,
     });
-    console.log("Calling owntracks for day", day.toFormat("yyyy-MM-dd"));
     const recordings = parseOwnTracksApiResponse(response.data);
 
     const { data } = recordings;
     const formattedEntries = data.map((entry) => this.formatApiEntry(placeholderJobId, entry));
-    return formattedEntries;
+    return { formattedEntries, searchedUntil: endDate };
   }
 
   private formatApiEntry(jobId: number, entry: OwnTracksLocation): NewLocation {
