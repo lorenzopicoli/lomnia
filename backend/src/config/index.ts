@@ -17,12 +17,20 @@ export default {
     locationDetails: {
       nominatim: {
         enabled: true,
+        /**
+         * In MS
+         */
+        apiCallsDelay: 1500,
+        /**
+         * Number of locations to be fetched in each run. Increasing this number will slowdown each cycle
+         */
+        maxImportSession: 1000,
       },
       openMeteo: {
         enabled: true,
       },
       userPoi: {
-        enabled: true,
+        enabled: false,
       },
     },
     health: {

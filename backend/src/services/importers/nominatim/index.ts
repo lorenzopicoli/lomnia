@@ -6,6 +6,8 @@ import { toPostgisGeoPoint, type DBTransaction, type Point } from "../../../db/t
 import axios from "axios";
 import { locationDetailsTable, type NewLocationDetails } from "../../../models/LocationDetails";
 import { delay } from "../../../helpers/delay";
+import type { DateTime } from "luxon";
+import config from "../../../config";
 
 export class NominatimImport extends BaseImporter {
   override sourceId = "nomatim-v1";
@@ -13,18 +15,17 @@ export class NominatimImport extends BaseImporter {
   override destinationTable = "location_details";
   override entryDateKey = "date";
   private importBatchSize = 1;
-  private maxImportSession = 1000;
+  private maxImportSession = config.importers.locationDetails.nominatim.maxImportSession;
   private logs: string[] = [];
 
   private precisionRadiusInMeters = 20;
 
-  // In ms
-  private apiCallsDelay = 1500;
+  private apiCallsDelay = config.importers.locationDetails.nominatim.apiCallsDelay;
   private apiUrl = this.apiVersion;
 
   public async sourceHasNewData(): Promise<{
     result: boolean;
-    from?: Date;
+    from?: DateTime;
     totalEstimate?: number;
   }> {
     const count = await db

@@ -1,8 +1,11 @@
 import winston from "winston";
 import type { Format } from "logform";
+import { Duration } from "luxon";
 
 // biome-ignore lint/suspicious/noExplicitAny: <explanation>
 type MetaInfo = any;
+
+type LoggingLevel = "info" | "debug" | "warn" | "error";
 
 export interface LoggerConfig {
   level: string;
@@ -87,19 +90,13 @@ export class Logger {
     this.log("error", message, meta);
   }
 
-  public logError(operation: string, error: Error, duration?: number, meta: MetaInfo = {}) {
+  public logError(message: string, error: Error, meta: MetaInfo = {}) {
     const logMeta = {
       error: error.message,
       stack: error.stack,
-      ...(duration && { duration }),
       ...meta,
     };
-    this.error(`${operation} failed`, logMeta);
-  }
-
-  public logDuration(operation: string, startTime: number, meta: MetaInfo = {}) {
-    const duration = Date.now() - startTime;
-    this.info(`${operation} completed`, { duration, ...meta });
+    this.error(message, logMeta);
   }
 
   public setLevel(level: string) {
@@ -128,31 +125,40 @@ export class Logger {
     });
   }
 
-  public timer(operation: string): Timer {
-    return new Timer(this, operation);
+  public timer(operation: string, level: LoggingLevel): TimerLogger {
+    return new TimerLogger(this, operation, level);
   }
 }
 
-export class Timer {
+export class TimerLogger {
   private startTime: number;
 
   constructor(
     private logger: Logger,
     private operation: string,
+    private loggingLevel: LoggingLevel,
   ) {
     this.startTime = Date.now();
-    this.logger.debug(`Starting timer for ${operation}`);
+    this.logger[this.loggingLevel](`Starting ${operation}`);
+  }
+
+  private getDurationMetadata() {
+    const durationMs = Date.now() - this.startTime;
+    const duration = Duration.fromMillis(durationMs).shiftTo("hours", "minutes", "seconds", "milliseconds");
+    return { durationMs, humanReadableDuration: duration.toHuman() };
   }
 
   public end(meta: MetaInfo = {}) {
-    const duration = Date.now() - this.startTime;
-    this.logger.info(`${this.operation} completed`, { duration, ...meta });
-    return duration;
+    this.logger[this.loggingLevel](`${this.operation} completed`, {
+      ...this.getDurationMetadata(),
+      ...meta,
+    });
   }
 
   public endWithError(error: Error, meta: MetaInfo = {}) {
-    const duration = Date.now() - this.startTime;
-    this.logger.logError(this.operation, error, duration, meta);
-    return duration;
+    this.logger.logError(this.operation, error, {
+      ...this.getDurationMetadata(),
+      ...meta,
+    });
   }
 }

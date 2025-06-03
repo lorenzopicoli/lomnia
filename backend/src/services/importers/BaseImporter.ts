@@ -3,6 +3,7 @@ import { DateTime } from "luxon";
 import { db } from "../../db/connection";
 import type { DBTransaction } from "../../db/types";
 import { importJobsTable } from "../../models/ImportJob";
+import { Logger } from "../Logger";
 
 export class BaseImporter {
   sourceId!: string;
@@ -14,6 +15,8 @@ export class BaseImporter {
   lastEntry: Date | undefined;
 
   jobStart = DateTime.now();
+
+  logger = new Logger("BaseImporter");
 
   public async sourceHasNewData(): Promise<{
     result: boolean;
@@ -38,13 +41,16 @@ export class BaseImporter {
 
   public async startJob() {
     const { result, from, totalEstimate } = await this.sourceHasNewData();
-    console.log(`Importing data from ${this.sourceId}`);
+    this.logger = new Logger(this.sourceId);
+    const timer = this.logger.timer("importer", "info");
+
     if (!result) {
-      console.log(`No new data found ${this.sourceId}`);
+      this.logger.info("No new data to import");
       return;
     }
 
     let successfullRollback = false;
+    let errored = false;
     await db
       .transaction(async (tx) => {
         const placeholderJobId = await tx
@@ -78,7 +84,7 @@ export class BaseImporter {
 
         if (result.importedCount === 0) {
           successfullRollback = true;
-          console.log("No new data to import");
+          this.logger.info("No new data was imported");
           return tx.rollback();
         }
 
@@ -96,14 +102,22 @@ export class BaseImporter {
             createdAt: new Date(),
           })
           .where(eq(importJobsTable.id, placeholderJobId.id));
+        this.logger.info("Finished importing", {
+          importJobId: placeholderJobId,
+          firstEntryDate: result.firstEntryDate,
+          lastEntryDate: result.lastEntryDate,
+          apiCallsCount: result.apiCallsCount,
+          apiVersion: this.apiVersion,
+          importedCount: result.importedCount,
+        });
       })
       .catch((e) => {
         if (!successfullRollback) {
-          console.error("Error during import", e);
+          errored = true;
+          timer.endWithError(e);
         }
       });
-
-    console.log("Done importing", this.sourceId);
+    timer.end();
   }
 
   public async import(_params: {
