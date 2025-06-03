@@ -46,7 +46,7 @@ export class UserPointsOfInterestImporter extends BaseImporter {
 
   public async sourceHasNewData(): Promise<{
     result: boolean;
-    from?: Date;
+    from?: DateTime;
     totalEstimate?: number;
   }> {
     // Simply always re-write user's point of interests
@@ -73,6 +73,7 @@ export class UserPointsOfInterestImporter extends BaseImporter {
     await tx.delete(locationDetailsTable).where(eq(locationDetailsTable.source, "userPOIJson"));
 
     for (const poi of userPOIs) {
+      console.log(`Updating locations for place of interest: ${poi.displayName}`);
       const { lat, lng, radiusInMeters, ...rest } = poi;
       const locationDetailsId = await tx
         .insert(locationDetailsTable)
