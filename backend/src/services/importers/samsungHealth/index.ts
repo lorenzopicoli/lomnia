@@ -13,9 +13,10 @@ export class BaseSamsungHealthImporter<T> extends BaseImporter {
   private baseExportPath: string;
   public csvPath: string;
 
-  private onNewBinnedData: (row: any, data: any, importJobId: number) => Promise<T | null>;
-  private onNewRow: (data: any, importJobId: number) => Promise<T | null>;
+  private onNewBinnedData: (row: unknown, data: unknown, importJobId: number) => Promise<T | null>;
+  private onNewRow: (data: unknown, importJobId: number) => Promise<T | null>;
 
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   private recordsTable: PgTableWithColumns<any>;
 
   private binnedDataColumn?: string;
@@ -23,8 +24,9 @@ export class BaseSamsungHealthImporter<T> extends BaseImporter {
   public logs: string[] = [];
 
   constructor(params: {
-    onNewBinnedData: (csvRow: any, binnedData: any, importJobId: number) => Promise<T | null>;
-    onNewRow: (data: any, importJobId: number) => Promise<T | null>;
+    onNewBinnedData: (csvRow: unknown, binnedData: unknown, importJobId: number) => Promise<T | null>;
+    onNewRow: (data: unknown, importJobId: number) => Promise<T | null>;
+    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
     recordsTable: PgTableWithColumns<any>;
     identifier: string;
     binnedDataColumn?: string;
@@ -90,7 +92,7 @@ export class BaseSamsungHealthImporter<T> extends BaseImporter {
         this.binnedDataColumn && record[this.binnedDataColumn]
           ? this.getBinnedData(record[this.binnedDataColumn])
           : undefined;
-      const newEntriesProm: Promise<T | null>[] = binnedData?.map((d: any) =>
+      const newEntriesProm: Promise<T | null>[] = binnedData?.map((d: unknown) =>
         this.onNewBinnedData(record, d, params.placeholderJobId),
       ) ?? [this.onNewRow(record, params.placeholderJobId)];
 
