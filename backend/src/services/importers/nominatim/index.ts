@@ -8,6 +8,7 @@ import { locationDetailsTable, type NewLocationDetails } from "../../../models/L
 import { delay } from "../../../helpers/delay";
 import type { DateTime } from "luxon";
 import config from "../../../config";
+import { NominatimReverseResponseSchema, type NominatimReverseResponse } from "./schema";
 
 export class NominatimImport extends BaseImporter {
   override sourceId = "nomatim-v1";
@@ -28,25 +29,17 @@ export class NominatimImport extends BaseImporter {
     from?: DateTime;
     totalEstimate?: number;
   }> {
-    const count = await db
-      .select({
-        count: sql`COUNT(id)`.mapWith(Number),
-      })
-      .from(locationsTable)
-      .where(sql`
-        (
-        ${locationsTable.locationDetailsId} IS NULL
-        )
-    `);
+    return await db.transaction(async (tx) => {
+      const value = await this.getNextPage({ tx });
 
-    const value = count[0].count ?? 0;
-    return { result: value > 0, totalEstimate: value };
+      return { result: value.length > 0, totalEstimate: value.length };
+    });
   }
 
   private mapApiResponseToDbSchema(
     location: Point,
     placeholderJobId: number,
-    apiResponse: any,
+    apiResponse: NominatimReverseResponse,
   ): NewLocationDetails | null {
     if (!apiResponse.display_name) {
       this.logger.warn("No name found for location", { location, apiResponse });
@@ -65,7 +58,7 @@ export class NominatimImport extends BaseImporter {
       placeRank: apiResponse.place_rank,
       category: apiResponse.class,
       type: apiResponse.type,
-      importance: apiResponse.importance,
+      importance: String(apiResponse.importance),
       addressType: apiResponse.addresstype,
       displayName: apiResponse.display_name,
       extraTags: apiResponse.extratags,
@@ -85,8 +78,6 @@ export class NominatimImport extends BaseImporter {
     };
   }
 
-  private prevNext: Awaited<ReturnType<NominatimImport["getNextPage"]>>[number] | undefined;
-
   public async getNextPage(params: { tx: DBTransaction }) {
     const next = await params.tx
       .select()
@@ -99,12 +90,6 @@ export class NominatimImport extends BaseImporter {
       )
       .orderBy(asc(locationsTable.locationFix))
       .limit(this.importBatchSize);
-
-    if (next.length === 0) {
-      return next;
-    }
-
-    this.prevNext = next[0];
 
     return next;
   }
@@ -124,8 +109,7 @@ export class NominatimImport extends BaseImporter {
 
     const http = axios.create({
       baseURL: this.apiUrl,
-      // TODO: this needs to be specific to each user
-      headers: { "User-Agent": "lomnia" },
+      headers: { "User-Agent": config.importers.locationDetails.nominatim.userAgent },
     });
 
     let nextLocation = await this.getNextPage({ tx: params.tx });
@@ -151,7 +135,9 @@ export class NominatimImport extends BaseImporter {
           lon: location.location.lng,
         },
       });
-      const mappedResponse = this.mapApiResponseToDbSchema(location.location, params.placeholderJobId, response.data);
+
+      const parsedResponse = NominatimReverseResponseSchema.parse(response);
+      const mappedResponse = this.mapApiResponseToDbSchema(location.location, params.placeholderJobId, parsedResponse);
 
       if (mappedResponse) {
         const existingDetails = mappedResponse.osmId

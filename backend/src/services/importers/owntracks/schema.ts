@@ -4,7 +4,7 @@ const TriggerType = z.enum(["p", "c", "C", "b", "r", "u", "t", "v"]);
 
 const ConnectivityStatus = z.enum(["w", "o", "m"]);
 
-export const OwnTracksLocationSchema = z
+export const OwntracksLocationSchema = z
   .object({
     _type: z.literal("location"),
 
@@ -168,26 +168,14 @@ export const OwnTracksLocationSchema = z
   })
   .strict();
 
-export type OwnTracksLocation = z.infer<typeof OwnTracksLocationSchema>;
+export type OwntracksLocation = z.infer<typeof OwntracksLocationSchema>;
 
-export const OwnTracksLocationApiResponseSchema = z
+export const OwntracksLocationApiResponseSchema = z
   .object({
     count: z.number().optional(),
-    data: z.array(OwnTracksLocationSchema),
+    data: z.array(OwntracksLocationSchema),
     status: z.number(),
     version: z.string(),
   })
   .strict();
-export type OwnTracksLocationApiResponse = z.infer<typeof OwnTracksLocationApiResponseSchema>;
-
-export function parseOwnTracksLocation(data: unknown): OwnTracksLocation {
-  return OwnTracksLocationSchema.parse(data);
-}
-
-export function safeParseOwnTracksLocation(data: unknown) {
-  return OwnTracksLocationSchema.safeParse(data);
-}
-
-export function parseOwnTracksApiResponse(data: unknown): OwnTracksLocationApiResponse {
-  return OwnTracksLocationApiResponseSchema.parse(data);
-}
+export type OwnTracksLocationApiResponse = z.infer<typeof OwntracksLocationApiResponseSchema>;

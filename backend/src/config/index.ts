@@ -25,6 +25,13 @@ export default {
          * Number of locations to be fetched in each run. Increasing this number will slowdown each cycle
          */
         maxImportSession: 1000,
+
+        /**
+         * User agent used when calling the api. Nominatim requires you to pass this. You should adapt this to something
+         * that reflects your application as this is used to rate limit. More info:
+         * https://operations.osmfoundation.org/policies/nominatim/
+         */
+        userAgent: "lomnia",
       },
       openMeteo: {
         enabled: true,

@@ -5,6 +5,76 @@ import { offsetToTimezone } from "../../../helpers/offsetToTimezone";
 import { db } from "../../../db/connection";
 import { desc } from "drizzle-orm";
 import type { DBTransaction } from "../../../db/types";
+import { z } from "zod";
+import { camelize } from "../../../helpers/camelize";
+
+const CsvRowSchema = z
+  .object({
+    source: z.string().optional(),
+    tag_id: z.number().optional(),
+    "com.samsung.health.heart_rate.create_sh_ver": z.number().optional(),
+    "com.samsung.health.heart_rate.heart_beat_count": z.number().optional(),
+    "com.samsung.health.heart_rate.start_time": z.string(),
+    "com.samsung.health.heart_rate.custom": z.string().optional(),
+    "com.samsung.health.heart_rate.binning_data": z.string().optional(),
+    "com.samsung.health.heart_rate.modify_sh_ver": z.string().or(z.number()).optional(),
+    "com.samsung.health.heart_rate.update_time": z.string().optional(),
+    "com.samsung.health.heart_rate.create_time": z.string().optional(),
+    "com.samsung.health.heart_rate.max": z.coerce.number(),
+    "com.samsung.health.heart_rate.min": z.coerce.number(),
+    /**
+     * offset in string format UTC-0400
+     */
+    "com.samsung.health.heart_rate.time_offset": z.string(),
+    "com.samsung.health.heart_rate.deviceuuid": z.string().optional(),
+    "com.samsung.health.heart_rate.comment": z.string().optional(),
+    "com.samsung.health.heart_rate.pkg_name": z.string().optional(),
+    "com.samsung.health.heart_rate.end_time": z.string(),
+    "com.samsung.health.heart_rate.datauuid": z.string(),
+    "com.samsung.health.heart_rate.heart_rate": z.coerce.number(),
+  })
+  .transform((raw) => {
+    const csvColumnPrefix = "com.samsung.health.heart_rate";
+
+    return {
+      source: raw.source,
+      tagId: raw.tag_id,
+      deviceUuid: raw[`${csvColumnPrefix}.deviceuuid`],
+      packageName: raw[`${csvColumnPrefix}.pkg_name`],
+      dataUuid: raw[`${csvColumnPrefix}.datauuid`],
+
+      startTime: raw[`${csvColumnPrefix}.start_time`],
+      endTime: raw[`${csvColumnPrefix}.end_time`],
+      createTime: raw[`${csvColumnPrefix}.create_time`],
+      updateTime: raw[`${csvColumnPrefix}.update_time`],
+      timeOffset: raw[`${csvColumnPrefix}.time_offset`],
+
+      heartRate: raw[`${csvColumnPrefix}.heart_rate`],
+      heartRateMax: raw[`${csvColumnPrefix}.max`],
+      heartRateMin: raw[`${csvColumnPrefix}.min`],
+      heartBeatCount: raw[`${csvColumnPrefix}.heart_beat_count`],
+
+      binningData: raw[`${csvColumnPrefix}.binning_data`],
+      comment: raw[`${csvColumnPrefix}.comment`],
+      custom: raw[`${csvColumnPrefix}.custom`],
+
+      createShVersion: raw[`${csvColumnPrefix}.create_sh_ver`],
+      modifyShVersion: raw[`${csvColumnPrefix}.modify_sh_ver`],
+    };
+  });
+
+const BinnedDataSchema = z
+  .object({
+    start_time: z.number(), // Unix timestamp in milliseconds
+    end_time: z.number(), // Unix timestamp in milliseconds
+    heart_rate: z.number(),
+    heart_rate_max: z.number(),
+    heart_rate_min: z.number(),
+  })
+  .transform(camelize);
+
+// type SamsungHealthHeartRateCsvRow = z.infer<typeof CsvRowSchema>;
+// type SamsungHealthHeartRateBinnedData = z.infer<typeof BinnedDataSchema>;
 
 export class SamsungHealthHeartRateImporter extends BaseSamsungHealthImporter<NewHeartRate> {
   override sourceId = "samsung-health-export-hr-v1";
@@ -26,43 +96,27 @@ export class SamsungHealthHeartRateImporter extends BaseSamsungHealthImporter<Ne
 
   constructor() {
     const identifier = "com.samsung.shealth.tracker.heart_rate";
-    const csvColumnPrefix = "com.samsung.health.heart_rate";
-
-    const headersMap = {
-      source: "source",
-      tagId: "tag_id",
-      createShVer: `${csvColumnPrefix}.create_sh_ver`,
-      heartBeatCount: `${csvColumnPrefix}.heart_beat_count`,
-      startTime: `${csvColumnPrefix}.start_time`,
-      custom: `${csvColumnPrefix}.custom`,
-      binningData: `${csvColumnPrefix}.binning_data`,
-      modifyShVer: `${csvColumnPrefix}.modify_sh_ver`,
-      updateTime: `${csvColumnPrefix}.update_time`,
-      createTime: `${csvColumnPrefix}.create_time`,
-      max: `${csvColumnPrefix}.max`,
-      min: `${csvColumnPrefix}.min`,
-      timeOffset: `${csvColumnPrefix}.time_offset`,
-      deviceUuid: `${csvColumnPrefix}.deviceuuid`,
-      comment: `${csvColumnPrefix}.comment`,
-      packageName: `${csvColumnPrefix}.pkg_name`,
-      endTime: `${csvColumnPrefix}.end_time`,
-      dataUuid: `${csvColumnPrefix}.datauuid`,
-      heartRate: `${csvColumnPrefix}.heart_rate`,
-    };
 
     super({
       recordsTable: heartRateTable,
-      headersMap,
       identifier,
       binnedDataColumn: undefined,
-      onNewBinnedData: async (csvRow: any, binnedData: any, importJobId: number) => {
-        const startTime = DateTime.fromMillis(binnedData.start_time);
+      onNewBinnedData: async (csvRowParam: unknown, binnedDataParam: unknown, importJobId: number) => {
+        const csvRow = CsvRowSchema.parse(csvRowParam);
+        const binnedData = BinnedDataSchema.parse(binnedDataParam);
+        const startTime = DateTime.fromMillis(binnedData.startTime);
+        const endTime = DateTime.fromMillis(binnedData.endTime);
+        if (!endTime.isValid || !startTime.isValid) {
+          this.logger.error("Invalid start or end time found in health heart rate importer", {
+            binnedData,
+          });
+        }
         // Already imported
         if (this.fromDate && startTime.diff(this.fromDate, "millisecond").milliseconds <= 0) {
           return null;
         }
 
-        if (this.invalidTimezones.includes(csvRow[headersMap.timeOffset])) {
+        if (this.invalidTimezones.includes(csvRow.timeOffset)) {
           return null;
         }
 
@@ -71,18 +125,18 @@ export class SamsungHealthHeartRateImporter extends BaseSamsungHealthImporter<Ne
           return null;
         }
 
-        const tz = offsetToTimezone(csvRow[headersMap.timeOffset]);
+        const tz = offsetToTimezone(csvRow.timeOffset);
 
         const data = {
           startTime: startTime.toJSDate(),
-          endTime: DateTime.fromMillis(binnedData.end_time).toJSDate(),
-          heartRate: binnedData.heart_rate,
-          heartRateMax: binnedData.heart_rate_max,
-          heartRateMin: binnedData.heart_rate_min,
+          endTime: endTime.toJSDate(),
+          heartRate: binnedData.heartRate,
+          heartRateMax: binnedData.heartRateMax,
+          heartRateMin: binnedData.heartRateMin,
           timezone: tz,
-          comment: csvRow[headersMap.comment],
-          binUuid: csvRow[headersMap.dataUuid],
-          dataExportId: csvRow[headersMap.dataUuid],
+          comment: csvRow.comment,
+          binUuid: csvRow.dataUuid,
+          dataExportId: csvRow.dataUuid,
           importJobId,
         };
 
@@ -91,13 +145,20 @@ export class SamsungHealthHeartRateImporter extends BaseSamsungHealthImporter<Ne
 
         return data;
       },
-      onNewRow: async (row: any, importJobId: number) => {
-        const startTime = DateTime.fromSQL(row[headersMap.startTime]);
+      onNewRow: async (rowParam: unknown, importJobId: number) => {
+        const csvRow = CsvRowSchema.parse(rowParam);
+        const startTime = DateTime.fromSQL(csvRow.startTime);
+        const endTime = DateTime.fromSQL(csvRow.endTime);
+        if (!endTime.isValid || !startTime.isValid) {
+          this.logger.error("Invalid start or end time found in health heart rate importer", {
+            csvRow,
+          });
+        }
         // Already imported
         if (this.fromDate && startTime.diff(this.fromDate, "millisecond").milliseconds <= 0) {
           return null;
         }
-        if (this.invalidTimezones.includes(row[headersMap.timeOffset])) {
+        if (this.invalidTimezones.includes(csvRow.timeOffset)) {
           return null;
         }
 
@@ -105,18 +166,17 @@ export class SamsungHealthHeartRateImporter extends BaseSamsungHealthImporter<Ne
         if (startTime.diff(DateTime.now(), "years").years > 1) {
           return null;
         }
-
-        const tz = offsetToTimezone(row[headersMap.timeOffset]);
+        const tz = offsetToTimezone(csvRow.timeOffset);
         const data = {
           startTime: startTime.toJSDate(),
-          endTime: DateTime.fromSQL(row[headersMap.endTime]).toJSDate(),
-          heartRate: row[headersMap.heartRate],
-          heartRateMax: row[headersMap.max],
-          heartRateMin: row[headersMap.min],
+          endTime: endTime.toJSDate(),
+          heartRate: csvRow.heartRate,
+          heartRateMax: csvRow.heartRateMax,
+          heartRateMin: csvRow.heartRateMin,
           timezone: tz,
-          comment: row[headersMap.comment],
-          binUuid: row[headersMap.dataUuid],
-          dataExportId: row[headersMap.dataUuid],
+          comment: csvRow.comment,
+          binUuid: csvRow.dataUuid,
+          dataExportId: csvRow.dataUuid,
           importJobId,
         };
 

@@ -1,4 +1,5 @@
 import { FixedOffsetZone } from "luxon";
+import { defaultLogger } from "../services/Logger";
 
 /**
  *
@@ -12,7 +13,8 @@ export const offsetToTimezone = (offset: string) => {
   const timezone = zone.name.indexOf("-") > -1 ? zone.name.replace("-", "+") : zone.name.replace("+", "-");
 
   if (!zone.isValid) {
-    throw new Error("Invalid timezone: " + offset);
+    defaultLogger.error("Trying to transform invalid offset into timezone");
+    throw new Error(`Invalid timezone: ${offset}`);
   }
 
   return timezone;

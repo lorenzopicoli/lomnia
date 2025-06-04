@@ -159,3 +159,5 @@ export class TimerLogger {
     });
   }
 }
+
+export const defaultLogger = new Logger();

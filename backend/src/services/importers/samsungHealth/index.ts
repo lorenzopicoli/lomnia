@@ -26,7 +26,6 @@ export class BaseSamsungHealthImporter<T> extends BaseImporter {
     onNewBinnedData: (csvRow: any, binnedData: any, importJobId: number) => Promise<T | null>;
     onNewRow: (data: any, importJobId: number) => Promise<T | null>;
     recordsTable: PgTableWithColumns<any>;
-    headersMap: Record<string, string>;
     identifier: string;
     binnedDataColumn?: string;
   }) {

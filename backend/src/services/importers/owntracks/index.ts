@@ -10,7 +10,7 @@ import {
 } from "../../../models";
 import axios from "axios";
 import { DateTime } from "luxon";
-import { parseOwnTracksApiResponse, type OwnTracksLocation } from "./schema";
+import { OwntracksLocationApiResponseSchema, type OwntracksLocation } from "./schema";
 import { delay } from "../../../helpers/delay";
 import { chunk } from "lodash";
 import { desc, eq } from "drizzle-orm";
@@ -25,6 +25,10 @@ export class OwntracksImporter extends BaseImporter {
 
   private callThrottleInMs = 100;
 
+  /**
+   * One of those cases that we can't know if there's new data before calling the API so always return true
+   * and let the importer try to fetch data from the API
+   */
   public async sourceHasNewData(): Promise<{
     result: boolean;
     from?: DateTime;
@@ -44,15 +48,9 @@ export class OwntracksImporter extends BaseImporter {
     apiCallsCount?: number;
     logs: string[];
   }> {
-    const url = getEnvVarOrError(EnvVar.OWNTRACKS_HTTP_SERVER);
-
     const { tx, placeholderJobId } = params;
     let importedCount = 0;
     let apiCallsCount = 0;
-
-    const http = axios.create({
-      baseURL: url,
-    });
 
     // Not using tx because otherwise it would fetch the job that was created as a placeholder
     const lastJob = await db.query.importJobsTable.findFirst({
@@ -176,14 +174,14 @@ export class OwntracksImporter extends BaseImporter {
       },
       headers,
     });
-    const recordings = parseOwnTracksApiResponse(response.data);
+    const recordings = OwntracksLocationApiResponseSchema.parse(response.data);
 
     const { data } = recordings;
     const formattedEntries = data.map((entry) => this.formatApiEntry(placeholderJobId, entry));
     return { formattedEntries, searchedUntil: endDate };
   }
 
-  private formatApiEntry(jobId: number, entry: OwnTracksLocation): NewLocation {
+  private formatApiEntry(jobId: number, entry: OwntracksLocation): NewLocation {
     const batteryStatus = this.getBatteryStatus(entry);
     const connectionStatus = this.getConnectionStatus(entry);
     const trigger = this.getTrigger(entry);
@@ -222,7 +220,7 @@ export class OwntracksImporter extends BaseImporter {
     };
   }
 
-  private getTrigger(entry: OwnTracksLocation): (typeof locationTriggerEnum.enumValues)[number] | null {
+  private getTrigger(entry: OwntracksLocation): (typeof locationTriggerEnum.enumValues)[number] | null {
     switch (entry.t) {
       case "c":
       case "C":
@@ -241,7 +239,7 @@ export class OwntracksImporter extends BaseImporter {
     }
   }
 
-  private getBatteryStatus(entry: OwnTracksLocation): (typeof batteryStatusEnum.enumValues)[number] | null {
+  private getBatteryStatus(entry: OwntracksLocation): (typeof batteryStatusEnum.enumValues)[number] | null {
     switch (entry.bs) {
       case 0:
         return "unknown";
@@ -256,7 +254,7 @@ export class OwntracksImporter extends BaseImporter {
     }
   }
 
-  private getConnectionStatus(entry: OwnTracksLocation): (typeof connectionStatusEnum.enumValues)[number] | null {
+  private getConnectionStatus(entry: OwntracksLocation): (typeof connectionStatusEnum.enumValues)[number] | null {
     switch (entry.conn) {
       case "w":
         return "wifi";
