@@ -6,6 +6,8 @@ import { desc } from "drizzle-orm";
 import type { DBTransaction } from "../../../db/types";
 import { sleepRecordsTable, type NewSleepRecord } from "../../../models/SleepRecord";
 import { isNumber } from "../../../helpers/isNumber";
+import { SamsungHealthSleepCsvSchema } from "./schema";
+import config from "../../../config";
 
 export class SamsungHealthSleepImporter extends BaseSamsungHealthImporter<NewSleepRecord> {
   override sourceId = "samsung-health-export-sleep-v1";
@@ -16,73 +18,47 @@ export class SamsungHealthSleepImporter extends BaseSamsungHealthImporter<NewSle
 
   constructor() {
     const identifier = "com.samsung.shealth.sleep";
-    const csvColumnPrefix = "com.samsung.health.sleep";
-    const headersMap = {
-      mentalRecovery: "mental_recovery",
-      physicalRecovery: "physical_recovery",
-      efficiency: "efficiency",
-      sleepScore: "sleep_score",
-      sleepCycles: "sleep_cycles",
-      startTime: `${csvColumnPrefix}.start_time`,
-      endTime: `${csvColumnPrefix}.end_time`,
-      timeOffset: `${csvColumnPrefix}.time_offset`,
-      comment: `${csvColumnPrefix}.comment`,
-      dataUuid: `${csvColumnPrefix}.datauuid`,
-      deviceUuid: `${csvColumnPrefix}.deviceuuid`,
-    };
 
     super({
       recordsTable: sleepRecordsTable,
-      headersMap,
       identifier,
       binnedDataColumn: undefined,
-      onNewBinnedData: async (row: any, data: any, importJobId: number) => {
+      onNewBinnedData: async (row: unknown, data: unknown, importJobId: number) => {
         throw new Error("Sleep data should not be binned");
       },
-      onNewRow: async (data: any, importJobId: number) => {
-        if (!data[headersMap.startTime]) {
-          throw new Error("Missing start time");
-        }
-        if (!data[headersMap.endTime]) {
-          throw new Error("Missing end time");
-        }
-        if (!data[headersMap.timeOffset]) {
-          throw new Error("Missing time offset");
-        }
-        if (!data[headersMap.dataUuid]) {
-          throw new Error("Missing data uuid");
-        }
+      onNewRow: async (data: unknown, importJobId: number) => {
+        const csvRow = SamsungHealthSleepCsvSchema.parse(data);
+
         const dateFormat = "yyyy-MM-dd HH:mm:ss.SSS";
-        const startTime = DateTime.fromFormat(data[headersMap.startTime], dateFormat, {
+        const startTime = DateTime.fromFormat(csvRow.startTime, dateFormat, {
+          zone: "UTC",
+        });
+        const endTime = DateTime.fromFormat(csvRow.endTime, dateFormat, {
           zone: "UTC",
         });
 
-        // Already imported
-        if (this.fromDate && startTime.diff(this.fromDate, "milliseconds").milliseconds <= 0) {
+        const { skip } = this.validateEntry({ startTime, endTime, timeOffset: csvRow.timeOffset });
+        if (skip) {
           return null;
         }
 
-        const endTime = DateTime.fromFormat(data[headersMap.endTime], dateFormat, {
-          zone: "UTC",
-        });
-
         const dbEntry: NewSleepRecord = {
-          isSleepTimeManual: data[headersMap.deviceUuid] === "YONCTMRFDw",
+          isSleepTimeManual: csvRow.deviceUuid === config.importers.health.samsung.sleep.manualSleepDeviceUuid,
+          source: "samsung_health",
           sleepScoreManual: null,
 
           bedTime: startTime.toJSDate(),
           awakeTime: endTime.toJSDate(),
-          timezone: offsetToTimezone(data[headersMap.timeOffset]),
-          source: "samsung_health",
-          sleepScoreExternal: isNumber(+data[headersMap.sleepScore]) ? +data[headersMap.sleepScore] : null,
-          mentalRecovery: isNumber(+data[headersMap.mentalRecovery]) ? +data[headersMap.mentalRecovery] : null,
-          physicalRecovery: isNumber(+data[headersMap.physicalRecovery]) ? +data[headersMap.physicalRecovery] : null,
-          sleepCycles: isNumber(+data[headersMap.sleepCycles]) ? +data[headersMap.sleepCycles] : null,
-          efficiency: isNumber(+data[headersMap.efficiency]) ? +data[headersMap.efficiency] : null,
-          comment: data[headersMap.comment],
-          samsungSleepId: data[headersMap.dataUuid],
+          timezone: offsetToTimezone(csvRow.timeOffset),
+          sleepScoreExternal: this.ensureNumber(csvRow.sleepScore),
+          mentalRecovery: this.ensureNumber(csvRow.mentalRecovery),
+          physicalRecovery: this.ensureNumber(csvRow.physicalRecovery),
+          sleepCycles: this.ensureNumber(csvRow.sleepCycles),
+          efficiency: this.ensureNumber(csvRow.efficiency),
+          comment: csvRow.comment,
+          samsungSleepId: csvRow.dataUuid,
 
-          dataExportId: data[headersMap.dataUuid],
+          dataExportId: csvRow.dataUuid,
           importJobId,
         };
 
@@ -92,6 +68,26 @@ export class SamsungHealthSleepImporter extends BaseSamsungHealthImporter<NewSle
         return dbEntry;
       },
     });
+  }
+
+  private ensureNumber(possibleNumber?: string | number): number | null {
+    return possibleNumber && isNumber(+possibleNumber) ? +possibleNumber : null;
+  }
+
+  private validateEntry(params: { startTime: DateTime; endTime: DateTime; timeOffset: string }): { skip: boolean } {
+    const { startTime, endTime, timeOffset } = params;
+    if (!startTime.isValid) {
+      throw new Error("Missing start time");
+    }
+    if (!endTime.isValid) {
+      throw new Error("Missing end time");
+    }
+
+    if (this.fromDate && startTime.diff(this.fromDate, "milliseconds").milliseconds <= 0) {
+      return { skip: true };
+    }
+
+    return { skip: false };
   }
 
   override async import(params: {

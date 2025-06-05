@@ -61,6 +61,7 @@ export default {
         },
         sleep: {
           enabled: true,
+          manualSleepDeviceUuid: "YONCTMRFDw",
         },
         sleepStage: {
           enabled: true,
