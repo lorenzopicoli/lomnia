@@ -11,7 +11,7 @@ export default {
         enabled: false,
       },
       owntracksServer: {
-        enabled: true,
+        enabled: false,
       },
     },
     locationDetails: {
@@ -34,7 +34,7 @@ export default {
         userAgent: "lomnia",
       },
       openMeteo: {
-        enabled: true,
+        enabled: false,
         /**
          * Number of locations to updated each run. Increasing this number will slowdown each cycle
          */
@@ -65,6 +65,21 @@ export default {
         },
         sleepStage: {
           enabled: true,
+          /**
+           * Sometimes samsung health will record sleep stages but without a matching sleep id. To avoid logging
+           * them as errors every time, you can skip them here
+           */
+          skipSleepIds: [
+            "00353839-3137-3831-3832-343336333731",
+            "00353839-3137-3235-3935-353236333731",
+            "00353839-3137-3338-3239-363136333731",
+            "00353839-3137-3738-3134-383036333731",
+            "00353839-3137-3032-3036-393935333731",
+            "00353839-3137-3937-3633-313935333731",
+            "00353839-3137-3436-3733-323835333731",
+            "00353839-3137-3434-3531-343735333731",
+            "00353839-3137-3135-3932-353635333731",
+          ],
         },
         snoring: {
           enabled: true,

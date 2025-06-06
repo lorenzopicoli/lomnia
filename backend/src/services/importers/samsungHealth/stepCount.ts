@@ -2,10 +2,10 @@ import { DateTime } from "luxon";
 import { BaseSamsungHealthImporter } from ".";
 import { stepCountTable, type NewStepCount } from "../../../models/StepCount";
 import { offsetToTimezone } from "../../../helpers/offsetToTimezone";
-import { isNumber } from "../../../helpers/isNumber";
 import { db } from "../../../db/connection";
 import { desc } from "drizzle-orm";
 import type { DBTransaction } from "../../../db/types";
+import { SamsungHealthStepCountCsvRowSchema } from "./schema";
 
 export class SamsungHealthStepCountImporter extends BaseSamsungHealthImporter<NewStepCount> {
   override sourceId = "samsung-health-export-sc-v1";
@@ -17,75 +17,40 @@ export class SamsungHealthStepCountImporter extends BaseSamsungHealthImporter<Ne
   constructor() {
     const identifier = "com.samsung.shealth.tracker.pedometer_step_count";
     const csvColumnPrefix = "com.samsung.health.step_count";
-    const headersMap = {
-      runStep: "run_step",
-      walkStep: "walk_step",
-      startTime: `${csvColumnPrefix}.start_time`,
-      endTime: `${csvColumnPrefix}.end_time`,
-      stepCount: `${csvColumnPrefix}.count`,
-      speed: `${csvColumnPrefix}.speed`,
-      distance: `${csvColumnPrefix}.distance`,
-      calories: `${csvColumnPrefix}.calorie`,
-      timeOffset: `${csvColumnPrefix}.time_offset`,
-      deviceUuid: `${csvColumnPrefix}.deviceuuid`,
-      dataUuid: `${csvColumnPrefix}.datauuid`,
-    };
 
     super({
       recordsTable: stepCountTable,
-      headersMap,
       identifier,
       binnedDataColumn: undefined,
-      onNewBinnedData: async (row: any, data: any, importJobId: number) => {
+      onNewBinnedData: async (_row: unknown, _data: unknown, _importJobId: number) => {
         throw new Error("Step count data should not be binned");
       },
-      onNewRow: async (data: any, importJobId: number) => {
-        if (!data[headersMap.startTime]) {
-          throw new Error("Missing start time");
-        }
-        if (!data[headersMap.endTime]) {
-          throw new Error("Missing end time");
-        }
-        if (!isNumber(data[headersMap.walkStep])) {
-          throw new Error("Missing walk step");
-        }
-        if (!isNumber(data[headersMap.runStep])) {
-          throw new Error("Missing run step");
-        }
-        if (!isNumber(data[headersMap.stepCount])) {
-          throw new Error("Missing step count");
-        }
-        if (!data[headersMap.timeOffset]) {
-          throw new Error("Missing time offset");
-        }
-        if (!data[headersMap.dataUuid]) {
-          throw new Error("Missing data uuid");
-        }
+      onNewRow: async (data: unknown, importJobId: number) => {
+        const csvRow = SamsungHealthStepCountCsvRowSchema.parse(data);
         const dateFormat = "yyyy-MM-dd HH:mm:ss.SSS";
-        const startTime = DateTime.fromFormat(data[headersMap.startTime], dateFormat, {
+        const startTime = DateTime.fromFormat(csvRow.startTime, dateFormat, {
+          zone: "UTC",
+        });
+        const endTime = DateTime.fromFormat(csvRow.endTime, dateFormat, {
           zone: "UTC",
         });
 
-        // Already imported
-        if (this.fromDate && startTime.diff(this.fromDate, "milliseconds").milliseconds <= 0) {
+        const { skip } = this.validateEntry({ startTime, endTime, timeOffset: csvRow.timeOffset });
+        if (skip) {
           return null;
         }
-
-        const endTime = DateTime.fromFormat(data[headersMap.endTime], dateFormat, {
-          zone: "UTC",
-        });
 
         const dbEntry: NewStepCount = {
           startTime: startTime.toJSDate(),
           endTime: endTime.toJSDate(),
-          walkStep: data[headersMap.walkStep],
-          runStep: data[headersMap.runStep],
-          stepCount: data[headersMap.stepCount],
-          speed: data[headersMap.speed],
-          distance: data[headersMap.distance],
-          calories: data[headersMap.calories],
-          timezone: offsetToTimezone(data[headersMap.timeOffset]),
-          dataExportId: data[headersMap.dataUuid],
+          walkStep: csvRow.walkStep,
+          runStep: csvRow.runStep,
+          stepCount: csvRow.stepCount,
+          speed: csvRow.speed,
+          distance: csvRow.distance,
+          calories: csvRow.calories,
+          timezone: offsetToTimezone(csvRow.timeOffset),
+          dataExportId: csvRow.dataUuid,
           importJobId,
         };
 
@@ -94,6 +59,22 @@ export class SamsungHealthStepCountImporter extends BaseSamsungHealthImporter<Ne
         return dbEntry;
       },
     });
+  }
+
+  private validateEntry(params: { startTime: DateTime; endTime: DateTime; timeOffset: string }): { skip: boolean } {
+    const { startTime, endTime, timeOffset } = params;
+    if (!startTime.isValid) {
+      throw new Error("Missing start time");
+    }
+    if (!endTime.isValid) {
+      throw new Error("Missing end time");
+    }
+
+    if (this.fromDate && startTime.diff(this.fromDate, "milliseconds").milliseconds <= 0) {
+      return { skip: true };
+    }
+
+    return { skip: false };
   }
 
   override async import(params: {

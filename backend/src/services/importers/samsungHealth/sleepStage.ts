@@ -6,6 +6,9 @@ import { desc, eq } from "drizzle-orm";
 import type { DBTransaction } from "../../../db/types";
 import { sleepRecordsTable } from "../../../models/SleepRecord";
 import { sleepStagesTable, type NewSleepStage } from "../../../models";
+import { SamsungHealthSleepStageCsvRowSchema } from "./schema";
+import type z from "zod";
+import config from "../../../config";
 
 export class SamsungHealthSleepStageImporter extends BaseSamsungHealthImporter<NewSleepStage> {
   override sourceId = "samsung-health-export-sleepStage-v1";
@@ -16,88 +19,46 @@ export class SamsungHealthSleepStageImporter extends BaseSamsungHealthImporter<N
 
   constructor() {
     const identifier = "com.samsung.health.sleep_stage";
-    const headersMap = {
-      dataUuid: "datauuid",
-      startTime: "start_time",
-      endTime: "end_time",
-      timeOffset: "time_offset",
-      stage: "stage",
-      sleepId: "sleep_id",
-    };
 
     super({
       recordsTable: sleepStagesTable,
-      headersMap,
       identifier,
       binnedDataColumn: undefined,
-      onNewBinnedData: async (row: any, data: any, importJobId: number) => {
+      onNewBinnedData: async (_row: unknown, data: unknown, _importJobId: number) => {
         throw new Error("Sleep data should not be binned");
       },
-      onNewRow: async (data: any, importJobId: number) => {
-        if (!data[headersMap.startTime]) {
-          throw new Error("Missing start time");
-        }
-        if (!data[headersMap.endTime]) {
-          throw new Error("Missing end time");
-        }
-        if (!data[headersMap.timeOffset]) {
-          throw new Error("Missing time offset");
-        }
-        if (!data[headersMap.dataUuid]) {
-          throw new Error("Missing data uuid");
-        }
-        if (!data[headersMap.stage]) {
-          throw new Error("Missing stage");
-        }
-        const dateFormat = "yyyy-MM-dd HH:mm:ss.SSS";
-        const startTime = DateTime.fromFormat(data[headersMap.startTime], dateFormat, {
-          zone: "UTC",
-        });
+      onNewRow: async (data: unknown, importJobId: number) => {
+        const csvRow = SamsungHealthSleepStageCsvRowSchema.parse(data);
 
-        // Already imported
-        if (this.fromDate && startTime.diff(this.fromDate, "milliseconds").milliseconds <= 0) {
+        const validated = this.validateEntry(csvRow);
+        if (validated.skip) {
           return null;
         }
 
-        const endTime = DateTime.fromFormat(data[headersMap.endTime], dateFormat, {
-          zone: "UTC",
-        });
+        const { startTime, endTime, sleepId, timeOffset, dataUuid, sleepStage } = validated;
 
         const sleepRecord = await db.query.sleepRecordsTable.findFirst({
-          where: eq(sleepRecordsTable.samsungSleepId, data[headersMap.sleepId]),
+          where: eq(sleepRecordsTable.samsungSleepId, sleepId),
         });
 
         if (!sleepRecord) {
-          throw new Error(`Sleep record not found for sleep stage ${data[headersMap.dataUuid]}`);
+          this.logger.error("Sleep record not found for sleep stage record", {
+            s: csvRow.sleepId,
+          });
+          return null;
         }
 
-        const toStageEnum = (rawStage: number) => {
-          if (rawStage === 40001) {
-            return "awake";
-          }
-          if (rawStage === 40002) {
-            return "light";
-          }
-          if (rawStage === 40003) {
-            return "deep";
-          }
-          if (rawStage === 40004) {
-            return "rem";
-          }
-          throw new Error(`Invalid stage ${rawStage}`);
-        };
-
-        const stage = toStageEnum(data[headersMap.stage]);
+        const stage = this.stageToStageEnum(sleepStage);
 
         const dbEntry: NewSleepStage = {
           startTime: startTime.toJSDate(),
           endTime: endTime.toJSDate(),
           stage,
           sleepRecordId: sleepRecord.id,
-          samsungSleepId: data[headersMap.sleepId],
-          timezone: offsetToTimezone(data[headersMap.timeOffset]),
+          samsungSleepId: csvRow.sleepId,
+          timezone: offsetToTimezone(timeOffset),
 
-          dataExportId: data[headersMap.dataUuid],
+          dataExportId: dataUuid,
           importJobId,
         };
 
@@ -107,6 +68,94 @@ export class SamsungHealthSleepStageImporter extends BaseSamsungHealthImporter<N
         return dbEntry;
       },
     });
+  }
+
+  private stageToStageEnum(rawStage: number) {
+    if (rawStage === 40001) {
+      return "awake";
+    }
+    if (rawStage === 40002) {
+      return "light";
+    }
+    if (rawStage === 40003) {
+      return "deep";
+    }
+    if (rawStage === 40004) {
+      return "rem";
+    }
+    throw new Error(`Invalid stage ${rawStage}`);
+  }
+
+  private validateEntry(csvRow: z.infer<typeof SamsungHealthSleepStageCsvRowSchema>):
+    | { skip: true }
+    | {
+        skip: false;
+        startTime: DateTime;
+        endTime: DateTime;
+        timeOffset: string;
+        dataUuid: string;
+        sleepId: string;
+        sleepStage: number;
+      } {
+    const dateFormat = "yyyy-MM-dd HH:mm:ss.SSS";
+
+    if (csvRow.sleepId && config.importers.health.samsung.sleepStage.skipSleepIds.indexOf(csvRow.sleepId) > -1) {
+      return { skip: true };
+    }
+
+    if (!csvRow.startTime) {
+      this.logger.error("Snoring entry without start time. Skipping it");
+      return { skip: true };
+    }
+    if (!csvRow.endTime) {
+      this.logger.error("Snoring entry without end time. Skipping it");
+      return { skip: true };
+    }
+    if (!csvRow.timeOffset) {
+      this.logger.error("Snoring entry without timeOffset. Skipping it");
+      return { skip: true };
+    }
+    if (!csvRow.dataUuid) {
+      this.logger.error("Snoring entry without dataUuid. Skipping it");
+      return { skip: true };
+    }
+    if (!csvRow.sleepId) {
+      this.logger.error("Snoring entry without dataUuid. Skipping it");
+      return { skip: true };
+    }
+    if (!csvRow.stage) {
+      this.logger.error("Snoring entry without dataUuid. Skipping it");
+      return { skip: true };
+    }
+
+    const startTime = DateTime.fromFormat(csvRow.startTime, dateFormat, {
+      zone: "UTC",
+    });
+    const endTime = DateTime.fromFormat(csvRow.endTime, dateFormat, {
+      zone: "UTC",
+    });
+
+    if (!startTime.isValid) {
+      throw new Error("Missing start time");
+    }
+    if (!endTime.isValid) {
+      throw new Error("Missing end time");
+    }
+
+    // Already imported
+    if (this.fromDate && startTime.diff(this.fromDate, "milliseconds").milliseconds <= 0) {
+      return { skip: true };
+    }
+
+    return {
+      skip: false,
+      startTime,
+      endTime,
+      timeOffset: csvRow.timeOffset,
+      dataUuid: csvRow.dataUuid,
+      sleepId: csvRow.sleepId,
+      sleepStage: csvRow.stage,
+    };
   }
 
   override async import(params: {

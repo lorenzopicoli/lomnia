@@ -180,3 +180,181 @@ export const SamsungHealthSleepCsvSchema = z
       ...camelize(nonPrefixedKeys),
     };
   });
+
+export const SamsungHealthSleepStageCsvRowSchema = z
+  .object({
+    source: z.string().optional(),
+    tag_id: z.number().optional(),
+    "com.samsung.health.sleep_stage.create_sh_ver": z.number().optional(),
+    "com.samsung.health.sleep_stage.start_time": z.string().optional(),
+    "com.samsung.health.sleep_stage.end_time": z.string().optional(),
+    "com.samsung.health.sleep_stage.time_offset": z.string().optional(),
+    "com.samsung.health.sleep_stage.stage": z.number().optional(),
+    "com.samsung.health.sleep_stage.sleep_id": z.string().optional(),
+    "com.samsung.health.sleep_stage.datauuid": z.string().optional(),
+    "com.samsung.health.sleep_stage.modify_sh_ver": z.string().or(z.number()).optional(),
+    "com.samsung.health.sleep_stage.update_time": z.string().optional(),
+    "com.samsung.health.sleep_stage.create_time": z.string().optional(),
+    "com.samsung.health.sleep_stage.deviceuuid": z.string().optional(),
+    "com.samsung.health.sleep_stage.comment": z.string().optional(),
+    "com.samsung.health.sleep_stage.pkg_name": z.string().optional(),
+    "com.samsung.health.sleep_stage.custom": z.string().optional(),
+    "com.samsung.health.sleep_stage.client_data_ver": z.string().optional(),
+    "com.samsung.health.sleep_stage.client_data_id": z.string().optional(),
+
+    update_time: z.string().optional(),
+    create_time: z.string().optional(),
+    time_offset: z.string().optional(),
+    datauuid: z.string().optional(),
+    deviceuuid: z.string().optional(),
+    start_time: z.string().optional(),
+    end_time: z.string().optional(),
+    pkg_name: z.string().optional(),
+    custom: z.string().optional(),
+    stage: z.number().optional(),
+    sleep_id: z.string().optional(),
+    create_sh_ver: z.number().optional(),
+    modify_sh_ver: z.number().optional(),
+  })
+  .strict()
+  .transform((raw) => {
+    const csvColumnPrefix = "com.samsung.health.sleep_stage";
+    return {
+      source: raw.source,
+      tagId: raw.tag_id,
+      deviceUuid: raw[`${csvColumnPrefix}.deviceuuid`] || raw.deviceuuid,
+      packageName: raw[`${csvColumnPrefix}.pkg_name`] || raw.pkg_name,
+      dataUuid: raw[`${csvColumnPrefix}.datauuid`] || raw.datauuid,
+      startTime: raw[`${csvColumnPrefix}.start_time`] || raw.start_time,
+      endTime: raw[`${csvColumnPrefix}.end_time`] || raw.end_time,
+      createTime: raw[`${csvColumnPrefix}.create_time`] || raw.create_time,
+      updateTime: raw[`${csvColumnPrefix}.update_time`] || raw.update_time,
+      timeOffset: raw[`${csvColumnPrefix}.time_offset`] || raw.time_offset,
+      stage: raw[`${csvColumnPrefix}.stage`] || raw.stage,
+      sleepId: raw[`${csvColumnPrefix}.sleep_id`] || raw.sleep_id,
+      comment: raw[`${csvColumnPrefix}.comment`],
+      custom: raw[`${csvColumnPrefix}.custom`] || raw.custom,
+      createShVersion: raw[`${csvColumnPrefix}.create_sh_ver`],
+      modifyShVersion: raw[`${csvColumnPrefix}.modify_sh_ver`],
+      clientDataVersion: raw[`${csvColumnPrefix}.client_data_ver`],
+      clientDataId: raw[`${csvColumnPrefix}.client_data_id`],
+    };
+  });
+
+export const SamsungHealthSnoringCsvRowSchema = z
+  .object({
+    source: z.string().optional(),
+    tag_id: z.number().optional(),
+    // A lot of things aren't really expected to be optional, but samsung is samsung
+    create_sh_ver: z.number().optional(),
+    "com.samsung.shealth.sleep_snoring.start_time": z.string().optional(),
+    "com.samsung.shealth.sleep_snoring.end_time": z.string().optional(),
+    "com.samsung.shealth.sleep_snoring.time_offset": z.string().optional(),
+    "com.samsung.shealth.sleep_snoring.datauuid": z.string().optional(),
+
+    "com.samsung.shealth.sleep_snoring.create_sh_ver": z.number().optional(),
+    "com.samsung.shealth.sleep_snoring.modify_sh_ver": z.string().or(z.number()).optional(),
+
+    modify_sh_ver: z.string().or(z.number()).optional(),
+    "com.samsung.shealth.sleep_snoring.update_time": z.string().optional(),
+    "com.samsung.shealth.sleep_snoring.create_time": z.string().optional(),
+    "com.samsung.shealth.sleep_snoring.deviceuuid": z.string().optional(),
+    "com.samsung.shealth.sleep_snoring.comment": z.string().optional(),
+    "com.samsung.shealth.sleep_snoring.pkg_name": z.string().optional(),
+    "com.samsung.shealth.sleep_snoring.custom": z.string().optional(),
+    "com.samsung.shealth.sleep_snoring.client_data_ver": z.string().optional(),
+    "com.samsung.shealth.sleep_snoring.client_data_id": z.string().optional(),
+
+    duration: z.number(),
+    update_time: z.string().optional(),
+    create_time: z.string().optional(),
+    time_offset: z.string().optional(),
+    datauuid: z.string().optional(),
+    deviceuuid: z.string().optional(),
+    start_time: z.string().optional(),
+    end_time: z.string().optional(),
+    pkg_name: z.string().optional(),
+    custom: z.string().optional(),
+  })
+  .strict()
+  .transform((raw) => {
+    const csvColumnPrefix = "com.samsung.shealth.sleep_snoring";
+    return {
+      source: raw.source,
+      tagId: raw.tag_id,
+      deviceUuid: raw[`${csvColumnPrefix}.deviceuuid`] || raw.deviceuuid,
+      packageName: raw[`${csvColumnPrefix}.pkg_name`] || raw.pkg_name,
+      dataUuid: raw[`${csvColumnPrefix}.datauuid`] || raw.datauuid,
+      startTime: raw[`${csvColumnPrefix}.start_time`] || raw.start_time,
+      endTime: raw[`${csvColumnPrefix}.end_time`] || raw.end_time,
+      createTime: raw[`${csvColumnPrefix}.create_time`],
+      updateTime: raw[`${csvColumnPrefix}.update_time`],
+      timeOffset: raw[`${csvColumnPrefix}.time_offset`] || raw.time_offset,
+      comment: raw[`${csvColumnPrefix}.comment`],
+      custom: raw[`${csvColumnPrefix}.custom`] || raw.custom,
+      createShVersion: raw[`${csvColumnPrefix}.create_sh_ver`] || raw.create_sh_ver,
+      modifyShVersion: raw[`${csvColumnPrefix}.modify_sh_ver`] || raw.modify_sh_ver,
+      clientDataVersion: raw[`${csvColumnPrefix}.client_data_ver`],
+      clientDataId: raw[`${csvColumnPrefix}.client_data_id`],
+    };
+  });
+
+export const SamsungHealthStepCountCsvRowSchema = z
+  .object({
+    source: z.string().optional(),
+    tag_id: z.number().optional(),
+    run_step: z.coerce.number(),
+    walk_step: z.coerce.number(),
+    "com.samsung.health.step_count.create_sh_ver": z.number().optional(),
+    "com.samsung.health.step_count.start_time": z.string(),
+    "com.samsung.health.step_count.end_time": z.string(),
+    "com.samsung.health.step_count.count": z.coerce.number(),
+    "com.samsung.health.step_count.speed": z.coerce.number().optional(),
+    "com.samsung.health.step_count.distance": z.coerce.number().optional(),
+    "com.samsung.health.step_count.calorie": z.coerce.number().optional(),
+    "com.samsung.health.step_count.time_offset": z.string(),
+    "com.samsung.health.step_count.deviceuuid": z.string().optional(),
+    "com.samsung.health.step_count.datauuid": z.string(),
+    "com.samsung.health.step_count.modify_sh_ver": z.string().or(z.number()).optional(),
+    "com.samsung.health.step_count.update_time": z.string().optional(),
+    "com.samsung.health.step_count.create_time": z.string().optional(),
+    "com.samsung.health.step_count.comment": z.string().optional(),
+    "com.samsung.health.step_count.pkg_name": z.string().optional(),
+    "com.samsung.health.step_count.custom": z.string().optional(),
+    "com.samsung.health.step_count.client_data_ver": z.string().optional(),
+    "com.samsung.health.step_count.client_data_id": z.string().optional(),
+    "com.samsung.health.step_count.sample_position_type": z.string().optional(),
+    version_code: z.number().optional(),
+    duration: z.number().optional(),
+  })
+  .strict()
+  .transform((raw) => {
+    const csvColumnPrefix = "com.samsung.health.step_count";
+    return {
+      source: raw.source,
+      tagId: raw.tag_id,
+      runStep: raw.run_step,
+      walkStep: raw.walk_step,
+      deviceUuid: raw[`${csvColumnPrefix}.deviceuuid`],
+      packageName: raw[`${csvColumnPrefix}.pkg_name`],
+      dataUuid: raw[`${csvColumnPrefix}.datauuid`],
+      startTime: raw[`${csvColumnPrefix}.start_time`],
+      endTime: raw[`${csvColumnPrefix}.end_time`],
+      createTime: raw[`${csvColumnPrefix}.create_time`],
+      updateTime: raw[`${csvColumnPrefix}.update_time`],
+      timeOffset: raw[`${csvColumnPrefix}.time_offset`],
+      stepCount: raw[`${csvColumnPrefix}.count`],
+      speed: raw[`${csvColumnPrefix}.speed`],
+      distance: raw[`${csvColumnPrefix}.distance`],
+      calories: raw[`${csvColumnPrefix}.calorie`],
+      comment: raw[`${csvColumnPrefix}.comment`],
+      custom: raw[`${csvColumnPrefix}.custom`],
+      createShVersion: raw[`${csvColumnPrefix}.create_sh_ver`],
+      modifyShVersion: raw[`${csvColumnPrefix}.modify_sh_ver`],
+      clientDataVersion: raw[`${csvColumnPrefix}.client_data_ver`],
+      clientDataId: raw[`${csvColumnPrefix}.client_data_id`],
+      versionCode: raw.version_code,
+      duration: raw.duration,
+      positionType: raw["com.samsung.health.step_count.sample_position_type"],
+    };
+  });
