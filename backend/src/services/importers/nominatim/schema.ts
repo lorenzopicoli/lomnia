@@ -16,6 +16,14 @@ export const NominatimAddressSchema = z
     postcode: z.string().optional(),
     country: z.string().optional(),
     country_code: z.string().optional(),
+    quarter: z.string().optional(),
+    borough: z.string().optional(),
+    city_district: z.string().optional(),
+    municipality: z.string().optional(),
+    state_district: z.string().optional(),
+    shop: z.unknown().optional(),
+    locality: z.unknown().optional(),
+    amenity: z.unknown().optional(),
   })
   .strict();
 
@@ -35,8 +43,8 @@ export const NominatimReverseResponseSchema = z
     name: z.string().optional(),
     display_name: z.string().optional(),
     address: NominatimAddressSchema.optional(),
-    extratags: z.record(z.string()).nullable().optional(),
-    namedetails: z.record(z.string()).nullable().optional(),
+    extratags: z.record(z.string(), z.string()).nullable().optional(),
+    namedetails: z.record(z.string(), z.string()).nullable().optional(),
     boundingbox: z.array(z.string()).length(4).optional(),
   })
   .strict();

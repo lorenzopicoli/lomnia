@@ -6,6 +6,7 @@
   "scripts": {
     "ts:check": "tsc --noEmit",
     "dev:importer": "tsx watch --clear-screen=false src/importer.ts",
+    "add-poi": "tsx src/scripts/poiFormatter.ts",
     "importer": "tsx src/importer.ts",
     "exporter": "tsx src/exporter.ts",
     "dev:server": "tsx watch --clear-screen=false src/server.ts | pino-pretty",
