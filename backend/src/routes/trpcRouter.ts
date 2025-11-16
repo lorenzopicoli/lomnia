@@ -1,10 +1,6 @@
 import { initTRPC } from "@trpc/server";
 import { DateTime } from "luxon";
 import { z } from "zod";
-import { getDiaryEntries } from "../services/diaryEntries";
-import { getHabits, getHabitsCharts } from "../services/habits/habits";
-import { getHeatmapPoints, getLocationsTimeline } from "../services/locations";
-import { getWeatherCharts, getWeatherInformation } from "../services/weather";
 import {
   habitsNumericKeys,
   habitsPrimitiveKeys,
@@ -13,7 +9,11 @@ import {
   weatherNumericKeys,
   weatherPrimitiveKeys,
 } from "../services/charts/chartOptions";
+import { getDiaryEntries } from "../services/diaryEntries";
+import { getHabits, getHabitsCharts } from "../services/habits/habits";
 import { getHeartRateCharts } from "../services/heartRates";
+import { getHeatmapPoints, getLocationsTimeline } from "../services/locations";
+import { getWeatherCharts, getWeatherInformation } from "../services/weather";
 
 export const t = initTRPC.create();
 
@@ -63,8 +63,8 @@ export const appRouter = t.router({
           bottomRightLat: z.coerce.number(),
           bottomRightLng: z.coerce.number(),
           zoom: z.coerce.number(),
-          startDate: z.string().datetime(),
-          endDate: z.string().datetime(),
+          startDate: z.iso.datetime(),
+          endDate: z.iso.datetime(),
         })
         .partial()
         .required({
@@ -87,8 +87,8 @@ export const appRouter = t.router({
   getVisitedPlaces: loggedProcedure
     .input(
       z.object({
-        startDate: z.string().datetime(),
-        endDate: z.string().datetime(),
+        startDate: z.iso.datetime(),
+        endDate: z.iso.datetime(),
       }),
     )
     .query((opts) => {
@@ -101,13 +101,16 @@ export const appRouter = t.router({
     .input(
       z
         .object({
-          startDate: z.string().datetime(),
-          endDate: z.string().datetime(),
+          startDate: z.iso.datetime(),
+          endDate: z.iso.datetime(),
           xKey: z.string(),
           yKeys: z.array(z.string()),
           aggregation: z.object({
             fun: z.literal("avg").or(z.literal("median")).or(z.literal("max")).or(z.literal("min")),
-            period: z.literal("month").or(z.literal("week")).or(z.literal("day")),
+            period: z
+              .literal("month")
+              .or(z.literal("week"))
+              .or(z.literal("day").or(z.literal("hour"))),
           }),
         })
         .partial()
@@ -133,8 +136,8 @@ export const appRouter = t.router({
     .input(
       z
         .object({
-          startDate: z.string().datetime(),
-          endDate: z.string().datetime(),
+          startDate: z.iso.datetime(),
+          endDate: z.iso.datetime(),
           xKey: z.string(),
           yKeys: z.array(z.string()),
           aggregation: z.object({
@@ -165,8 +168,8 @@ export const appRouter = t.router({
     .input(
       z
         .object({
-          startDate: z.string().datetime(),
-          endDate: z.string().datetime(),
+          startDate: z.iso.datetime(),
+          endDate: z.iso.datetime(),
           xKey: z.string(),
           yKeys: z.array(z.string()),
           aggregation: z.object({

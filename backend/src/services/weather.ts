@@ -1,10 +1,10 @@
 import { isValid, parse } from "date-fns";
-import { asc, sql, type SQL } from "drizzle-orm";
+import { asc, type SQL, sql } from "drizzle-orm";
 import { db } from "../db/connection";
-import { dailyWeatherTable, hourlyWeatherTable, type HourlyWeatherColumns } from "../models";
-import type { ChartServiceParams, ChartServiceReturn } from "./charts/types";
 import { getKeys } from "../helpers/getKeys";
+import { dailyWeatherTable, type HourlyWeatherColumns, hourlyWeatherTable } from "../models";
 import { getAggregatedXColumn, getAggregatedYColumn, getMinMaxChart } from "./charts/charts";
+import type { ChartServiceParams, ChartServiceReturn } from "./charts/types";
 
 export async function getWeatherInformation(params: { day: string }) {
   const { day } = params;
@@ -52,8 +52,8 @@ export const getWeatherCharts = async (params: ChartServiceParams): ChartService
     .from(hourlyWeatherTable)
     .where(
       sql`
-      ${hourlyWeatherTable.date} >= (${filters.startDate.toISO()} AT TIME ZONE 'America/Toronto')::date 
-      AND ${hourlyWeatherTable.date} <= (${filters.endDate.toISO()} AT TIME ZONE 'America/Toronto')::date`,
+      ${hourlyWeatherTable.date} >= (${filters.startDate.toISO()} AT TIME ZONE ${hourlyWeatherTable.timezone})::date 
+      AND ${hourlyWeatherTable.date} <= (${filters.endDate.toISO()} AT TIME ZONE ${hourlyWeatherTable.timezone})::date`,
     )
     .$dynamic();
 

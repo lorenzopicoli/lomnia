@@ -10,6 +10,7 @@ export function WeatherExperienced(props: { startDate: Date; endDate: Date }) {
       endDate: props.endDate.toISOString(),
       xKey: "date",
       yKeys: ["apparentTemperature", "temperature2m"],
+      aggregation: { fun: "avg", period: "hour" },
     }),
   );
 

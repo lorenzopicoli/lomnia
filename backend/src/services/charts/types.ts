@@ -1,6 +1,6 @@
 import type { DateTime } from "luxon";
 
-export const aggregationPeriods = ["month", "day", "week"] as const;
+export const aggregationPeriods = ["month", "day", "week", "hour"] as const;
 export type ChartServiceParams = {
   yKeys: string[];
   xKey: string;

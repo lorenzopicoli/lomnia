@@ -1,16 +1,16 @@
-import { BaseImporter } from "../BaseImporter";
-import type { DBTransaction } from "../../../db/types";
-import { z } from "zod";
-import { locationsTable } from "../../../models";
-import { DateTime } from "luxon";
 import { sql } from "drizzle-orm";
 import { find } from "geo-tz";
+import { DateTime } from "luxon";
+import { z } from "zod";
+import type { DBTransaction } from "../../../db/types";
 import { EnvVar, getEnvVarOrError } from "../../../helpers/envVars";
+import { locationsTable } from "../../../models";
+import { BaseImporter } from "../BaseImporter";
 
 const oldExportSchema = z.object({
   locations: z.array(
     z.object({
-      timestamp: z.string().datetime(),
+      timestamp: z.iso.datetime(),
       latitudeE7: z.number(),
       longitudeE7: z.number(),
       accuracy: z.number(),
@@ -42,7 +42,7 @@ const oldExportSchema = z.object({
                 confidence: z.number(),
               }),
             ),
-            timestamp: z.string().datetime(),
+            timestamp: z.iso.datetime(),
           }),
         )
         .optional(),
