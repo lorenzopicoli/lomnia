@@ -122,10 +122,7 @@ export class SamsungHealthHeartRateImporter extends BaseSamsungHealthImporter<Ne
     return { skip: false };
   }
 
-  override async import(params: {
-    tx: DBTransaction;
-    placeholderJobId: number;
-  }): Promise<{
+  override async import(params: { tx: DBTransaction; placeholderJobId: number }): Promise<{
     importedCount: number;
     firstEntryDate?: Date;
     lastEntryDate?: Date;

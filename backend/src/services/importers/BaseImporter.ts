@@ -120,11 +120,7 @@ export class BaseImporter {
     timer.end();
   }
 
-  public async import(_params: {
-    tx: DBTransaction;
-    placeholderJobId: number;
-    from?: DateTime;
-  }): Promise<{
+  public async import(_params: { tx: DBTransaction; placeholderJobId: number; from?: DateTime }): Promise<{
     importedCount: number;
     firstEntryDate?: Date;
     lastEntryDate?: Date;

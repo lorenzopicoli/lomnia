@@ -90,10 +90,7 @@ export class GoogleLocationsTimelineImporter extends BaseImporter {
   }> {
     return { result: true };
   }
-  public async import(params: {
-    tx: DBTransaction;
-    placeholderJobId: number;
-  }): Promise<{
+  public async import(params: { tx: DBTransaction; placeholderJobId: number }): Promise<{
     importedCount: number;
     firstEntryDate: Date;
     lastEntryDate: Date;
@@ -124,10 +121,7 @@ export class GoogleLocationsTimelineImporter extends BaseImporter {
     return offsetToTimezone(`UTC${date.zone.formatOffset(date.toMillis(), "techie")}`);
   }
 
-  private async handleExport(params: {
-    tx: DBTransaction;
-    placeholderJobId: number;
-  }): Promise<{
+  private async handleExport(params: { tx: DBTransaction; placeholderJobId: number }): Promise<{
     importedCount: number;
     logs: string[];
   }> {

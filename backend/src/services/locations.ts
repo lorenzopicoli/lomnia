@@ -41,10 +41,7 @@ function withPointFilters<T extends PgSelectQueryBuilder<PgSelectHKT, typeof loc
   );
 }
 
-export async function getLocationsTimeline(params: {
-  startDate: DateTime;
-  endDate: DateTime;
-}) {
+export async function getLocationsTimeline(params: { startDate: DateTime; endDate: DateTime }) {
   const accuracyFilter = 20;
   const activityDurationFilter = 10;
 

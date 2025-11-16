@@ -54,10 +54,7 @@ export class UserPointsOfInterestImporter extends BaseImporter {
     return { result: true };
   }
 
-  public async import(params: {
-    tx: DBTransaction;
-    placeholderJobId: number;
-  }): Promise<{
+  public async import(params: { tx: DBTransaction; placeholderJobId: number }): Promise<{
     importedCount: number;
     firstEntryDate: Date;
     lastEntryDate: Date;

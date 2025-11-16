@@ -477,10 +477,7 @@ export class OpenMeteoImport extends BaseImporter {
     return { first, last };
   }
 
-  public async import(params: {
-    tx: DBTransaction;
-    placeholderJobId: number;
-  }): Promise<{
+  public async import(params: { tx: DBTransaction; placeholderJobId: number }): Promise<{
     importedCount: number;
     firstEntryDate: Date;
     lastEntryDate: Date;

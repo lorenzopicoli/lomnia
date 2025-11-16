@@ -9,10 +9,7 @@ function removeUnwantedContent(markdownText: string): string {
   return markdownText.split("## Birthdays")[0];
 }
 
-export async function getDiaryEntries(params: {
-  day: string;
-  privateMode: boolean;
-}) {
+export async function getDiaryEntries(params: { day: string; privateMode: boolean }) {
   const { day, privateMode } = params;
   if (!isValid(parse(day, "yyyy-MM-dd", new Date()))) {
     throw new Error("Invalid date");

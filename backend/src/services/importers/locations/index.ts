@@ -74,11 +74,7 @@ export class ExternalLocationsImporter {
     };
   }
 
-  private async importInternal(params: {
-    tx: DBTransaction;
-    from?: Date;
-    totalEstimate: number;
-  }) {
+  private async importInternal(params: { tx: DBTransaction; from?: Date; totalEstimate: number }) {
     const { tx, from, totalEstimate } = params;
     let firstEntryDate: ImportJob["firstEntryDate"] | undefined;
     let lastEntryDate: ImportJob["lastEntryDate"] | undefined;

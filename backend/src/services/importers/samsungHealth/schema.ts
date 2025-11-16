@@ -359,7 +359,7 @@ export const SamsungHealthStepCountCsvRowSchema = z
     };
   });
 
-  export const SamsungHealthExerciseCsvRowSchema = z
+export const SamsungHealthExerciseCsvRowSchema = z
   .object({
     source: z.string().optional(),
     tag_id: z.number().optional(),
@@ -449,34 +449,34 @@ export const SamsungHealthStepCountCsvRowSchema = z
       tagId: raw.tag_id,
       deviceUuid: raw[`${csvColumnPrefix}.deviceuuid`],
       packageName: raw[`${csvColumnPrefix}.pkg_name`],
-      dataUuid: raw[`${csvColumnPrefix}.datauuid`] ,
-      
+      dataUuid: raw[`${csvColumnPrefix}.datauuid`],
+
       // Time fields
       startTime: raw[`${csvColumnPrefix}.start_time`],
       endTime: raw[`${csvColumnPrefix}.end_time`],
-      createTime: raw[`${csvColumnPrefix}.create_time`] ,
-      updateTime: raw[`${csvColumnPrefix}.update_time`] ,
-      timeOffset: raw[`${csvColumnPrefix}.time_offset`] ,
-      duration: raw[`${csvColumnPrefix}.duration`] ,
-      
+      createTime: raw[`${csvColumnPrefix}.create_time`],
+      updateTime: raw[`${csvColumnPrefix}.update_time`],
+      timeOffset: raw[`${csvColumnPrefix}.time_offset`],
+      duration: raw[`${csvColumnPrefix}.duration`],
+
       // Exercise details
-      exerciseType: raw[`${csvColumnPrefix}.exercise_type`] ,
+      exerciseType: raw[`${csvColumnPrefix}.exercise_type`],
       exerciseCustomType: raw[`${csvColumnPrefix}.exercise_custom_type`],
       title: raw.title,
-      
+
       // Calories and energy
-      calorie: raw[`${csvColumnPrefix}.calorie`] ,
+      calorie: raw[`${csvColumnPrefix}.calorie`],
       totalCalorie: raw.total_calorie,
       meanCaloricBurnRate: raw[`${csvColumnPrefix}.mean_caloricburn_rate`],
       maxCaloricBurnRate: raw[`${csvColumnPrefix}.max_caloricburn_rate`],
-      
+
       // Distance and location
       distance: raw[`${csvColumnPrefix}.distance`],
       startLatitude: raw.start_latitude,
       startLongitude: raw.start_longitude,
       locationData: raw[`${csvColumnPrefix}.location_data`],
       locationDataInternal: raw.location_data_internal,
-      
+
       // Altitude
       maxAltitude: raw[`${csvColumnPrefix}.max_altitude`],
       minAltitude: raw[`${csvColumnPrefix}.min_altitude`],
@@ -484,70 +484,70 @@ export const SamsungHealthStepCountCsvRowSchema = z
       altitudeLoss: raw[`${csvColumnPrefix}.altitude_loss`],
       inclineDistance: raw[`${csvColumnPrefix}.incline_distance`],
       declineDistance: raw[`${csvColumnPrefix}.decline_distance`],
-      
+
       // Heart rate
       meanHeartRate: raw[`${csvColumnPrefix}.mean_heart_rate`],
       maxHeartRate: raw[`${csvColumnPrefix}.max_heart_rate`],
       minHeartRate: raw[`${csvColumnPrefix}.min_heart_rate`],
       heartRateSampleCount: raw.heart_rate_sample_count,
       heartRateDeviceUuid: raw.heart_rate_deviceuuid,
-      
+
       // Speed and cadence
       meanSpeed: raw[`${csvColumnPrefix}.mean_speed`],
       maxSpeed: raw[`${csvColumnPrefix}.max_speed`],
       meanCadence: raw[`${csvColumnPrefix}.mean_cadence`],
       maxCadence: raw[`${csvColumnPrefix}.max_cadence`],
-      
+
       // Power and RPM
       meanPower: raw[`${csvColumnPrefix}.mean_power`],
       maxPower: raw[`${csvColumnPrefix}.max_power`],
       meanRpm: raw[`${csvColumnPrefix}.mean_rpm`],
       maxRpm: raw[`${csvColumnPrefix}.max_rpm`],
       ftp: raw.ftp,
-      
+
       // Fitness metrics
       vo2Max: raw[`${csvColumnPrefix}.vo2_max`],
       sweatLoss: raw[`${csvColumnPrefix}.sweat_loss`],
-      
+
       // Counting
       count: raw[`${csvColumnPrefix}.count`],
       countType: raw[`${csvColumnPrefix}.count_type`],
-      
+
       // Custom and additional data
-      custom: raw[`${csvColumnPrefix}.custom`] ,
+      custom: raw[`${csvColumnPrefix}.custom`],
       customId: raw.custom_id,
       additional: raw[`${csvColumnPrefix}.additional`],
       additionalInternal: raw.additional_internal,
       comment: raw[`${csvColumnPrefix}.comment`],
-      
+
       // Live data
       liveData: raw[`${csvColumnPrefix}.live_data`],
       liveDataInternal: raw.live_data_internal,
       paceLiveData: raw.pace_live_data,
       paceInfoId: raw.pace_info_id,
-      
+
       // Program and mission data
       programId: raw.program_id,
       programScheduleId: raw.program_schedule_id,
       missionType: raw.mission_type,
       missionValue: raw.mission_value,
       missionExtraValue: raw.mission_extra_value,
-      
+
       // Status fields
       trackingStatus: raw.tracking_status,
       sensingStatus: raw.sensing_status,
       completionStatus: raw.completion_status,
       rewardStatus: raw.reward_status,
-      
+
       activityType: raw.activity_type,
       sourceType: raw.source_type,
       raceTarget: raw.race_target,
       subsetData: raw.subset_data,
       routineDataUuid: raw.routine_datauuid,
       auxiliaryDevices: raw[`${csvColumnPrefix}.auxiliary_devices`],
-      
-      createShVersion: raw[`${csvColumnPrefix}.create_sh_ver`] ,
-      modifyShVersion: raw[`${csvColumnPrefix}.modify_sh_ver`] ,
+
+      createShVersion: raw[`${csvColumnPrefix}.create_sh_ver`],
+      modifyShVersion: raw[`${csvColumnPrefix}.modify_sh_ver`],
       clientDataVersion: raw[`${csvColumnPrefix}.client_data_ver`],
       clientDataId: raw[`${csvColumnPrefix}.client_data_id`],
     };
