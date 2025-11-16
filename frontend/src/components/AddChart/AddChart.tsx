@@ -3,8 +3,8 @@ import { useForm } from "@mantine/form";
 import { IconAdjustments, IconChartArrowsVertical } from "@tabler/icons-react";
 import { subYears } from "date-fns/subYears";
 import { useState } from "react";
+import { v4 } from "uuid";
 import { type ChartAreaConfig, type ChartId, ChartSource } from "../../charts/types";
-import { useAvailableCharts } from "../../charts/useAvailableCharts";
 import { availableCharts, ChartDisplayer } from "../ChartDisplayer/ChartDisplayer";
 import { AddChartId } from "./AddChartId";
 import { AddChartPlaceholder } from "./AddChartPlaceholder";
@@ -24,7 +24,6 @@ export type AddChartFormValues = {
 const initialSource = ChartSource.Weather;
 export function AddChart(props: AddChartProps) {
   const [currentStep, setCurrentStep] = useState(0);
-  const { availableKeys } = useAvailableCharts();
   const form = useForm<AddChartFormValues>({
     mode: "uncontrolled",
     initialValues: {
@@ -65,9 +64,14 @@ export function AddChart(props: AddChartProps) {
     if (!values.chartId) {
       return;
     }
+    const chart = availableCharts.find((chart) => chart.id === values.chartId);
+
+    if (!chart) {
+      throw new Error("Couldn't match chart to chart id");
+    }
 
     // This should be on submit
-    props.onSave({ id: values.chartId });
+    props.onSave({ id: values.chartId, title: chart.title, uniqueId: v4() });
   };
   const previousStep = () => {
     if (currentStep === 0) {
@@ -77,9 +81,6 @@ export function AddChart(props: AddChartProps) {
 
     setCurrentStep(currentStep - 1);
   };
-  if (!availableKeys) {
-    return <>Loading...</>;
-  }
 
   return (
     <>

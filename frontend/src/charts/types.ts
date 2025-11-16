@@ -1,5 +1,17 @@
 export type ChartAreaConfig = {
-  id: string;
+  /**
+   * The chart id that is used to render the right component.
+   * A dashboard could have more than one chart with the same id
+   */
+  id: ChartId;
+  /**
+   * Title of the chart
+   */
+  title: string;
+  /**
+   * A random uuid that uniquely identifies this instance of the chart
+   */
+  uniqueId: string;
 };
 
 export enum ChartId {

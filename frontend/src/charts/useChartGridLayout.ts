@@ -4,7 +4,6 @@ import { useCallback, useMemo, useState } from "react";
 import type { Layout, Layouts } from "react-grid-layout";
 import type { ResizableGridProps } from "../components/ResizableGrid/ResizableGrid";
 import type { ChartAreaConfig } from "./types";
-import { useAvailableCharts } from "./useAvailableCharts";
 
 type ChartLayout = {
   [breakpoint: string]: Layout[];
@@ -46,28 +45,24 @@ export function useChartGridLayout(gridId: string): {
     },
   });
   const [isChangingLayout, setIsChangingLayout] = useState<boolean>(false);
-  const { isLoading: isLoadingAvailableCharts } = useAvailableCharts();
 
   const onLayoutChange: ResizableGridProps["onLayoutChange"] = useCallback(
     (_currentLayout: Layout[], newLayout: Layouts) => {
-      if (isLoadingAvailableCharts) {
-        return;
-      }
       setLayout({ idToChart: layout.idToChart, placement: newLayout });
     },
-    [isLoadingAvailableCharts, layout.idToChart, setLayout],
+    [layout.idToChart, setLayout],
   );
   const handleStopGridChange = useCallback(() => setIsChangingLayout(false), []);
   const handleStartGridChange = useCallback(() => setIsChangingLayout(true), []);
   const onRemoveChart = useCallback(
-    (chartId: string) => {
+    (uniqueId: string) => {
       const newLayout: ChartLayout = {};
       for (const bp of Object.keys(layout.placement)) {
         for (const l of layout.placement[bp]) {
           if (!newLayout[bp]) {
             newLayout[bp] = [];
           }
-          if (l.i === chartId) {
+          if (l.i === uniqueId) {
             continue;
           }
           newLayout[bp] = [...newLayout[bp], l];
@@ -75,7 +70,7 @@ export function useChartGridLayout(gridId: string): {
       }
 
       setLayout({
-        idToChart: omitBy(layout.idToChart, (o) => o.id === chartId),
+        idToChart: omitBy(layout.idToChart, (o) => o.uniqueId === uniqueId),
         placement: newLayout,
       });
     },
@@ -83,15 +78,13 @@ export function useChartGridLayout(gridId: string): {
   );
   const onAddCharts = useCallback(
     (charts: ChartAreaConfig[]) => {
-      //   const newCharts = charts.filter(
-      //     (item) => !chartsBeingShown.some((c) => item.id === c.id)
-      //   )
+      console.log("charts", charts);
       const newIdToCharts = { ...layout.idToChart };
       for (const chart of charts) {
-        if (newIdToCharts[chart.id]) {
+        if (newIdToCharts[chart.uniqueId]) {
           throw new Error("Detected duplicated chart id");
         }
-        newIdToCharts[chart.id] = chart;
+        newIdToCharts[chart.uniqueId] = chart;
       }
       const newLayout: ChartLayout = {};
       for (const bp of Object.keys(layout.placement)) {
@@ -110,10 +103,11 @@ export function useChartGridLayout(gridId: string): {
 
         newLayout[bp] = [...(layout.placement[bp] ?? [])];
 
+        console.log("newlayout", newLayout);
         for (const newChart of charts) {
           const defaultWidth = 6;
           let newPane: Layout = {
-            i: newChart.id,
+            i: newChart.uniqueId,
             x: 0,
             y: 0,
             w: defaultWidth,
@@ -124,7 +118,7 @@ export function useChartGridLayout(gridId: string): {
             const spaceLeftInRow = 12 - lastElement.x - lastElement.w;
             const shouldTakeNewRow = defaultWidth > spaceLeftInRow;
             newPane = {
-              i: newChart.id,
+              i: newChart.uniqueId,
               x: shouldTakeNewRow ? 0 : lastElement.x + lastElement.w,
               y: shouldTakeNewRow ? lastElement.y + 1 : lastElement.y,
               w: defaultWidth,
@@ -137,6 +131,8 @@ export function useChartGridLayout(gridId: string): {
         }
       }
 
+      console.log("newlayout", newLayout);
+      console.log("newIdToCharts", newIdToCharts);
       setLayout({ idToChart: newIdToCharts, placement: newLayout });
     },
     [layout, setLayout],

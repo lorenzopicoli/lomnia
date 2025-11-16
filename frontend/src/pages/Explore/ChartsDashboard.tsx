@@ -3,7 +3,9 @@ import { subDays } from "date-fns";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useChartGridLayout } from "../../charts/useChartGridLayout";
+import { ChartDisplayer } from "../../components/ChartDisplayer/ChartDisplayer";
 import { ChartMenu } from "../../components/ChartMenu/ChartMenu";
+import { ChartPlaceholder } from "../../components/ChartPlaceholder/ChartPlaceholder";
 import { ResizableGrid } from "../../components/ResizableGrid/ResizableGrid";
 import { removeNills } from "../../utils/removeNils";
 
@@ -11,7 +13,7 @@ export function ChartsDashboard() {
   const theme = useMantineTheme();
   const navigate = useNavigate();
 
-  const [dateRange, setDateRange] = useState<[Date, Date]>([subDays(new Date(), 30), new Date()]);
+  const [dateRange, setDateRange] = useState<[Date, Date]>([subDays(new Date(), 365), new Date()]);
   const { chartsBeingShown, onRemoveChart, isChangingLayout, gridProps } = useChartGridLayout("explore");
   const charts = useMemo(() => {
     return Object.values(chartsBeingShown).filter(removeNills);
@@ -42,12 +44,19 @@ export function ChartsDashboard() {
           {charts.length > 0 ? (
             <ResizableGrid {...gridProps} rowHeight={500}>
               {charts.map((chart) => (
-                <div key={chart.id}>
+                <div key={chart.uniqueId}>
                   {isChangingLayout ? (
-                    <Container fluid h={"100%"} p={0} bg={theme.colors.dark[8]} />
+                    <Container fluid h={"100%"} p={0} bg={theme.colors.dark[8]}>
+                      <ChartPlaceholder text={chart.title} />
+                    </Container>
                   ) : (
                     <Container fluid h={"100%"} p={0}>
-                      {/* <PrecipitationExperienced startDate={dateRange[0]} endDate={dateRange[1]} /> */}
+                      <ChartDisplayer
+                        chartId={chart.id}
+                        startDate={dateRange[0]}
+                        endDate={dateRange[1]}
+                        aggPeriod={"day"}
+                      />
                     </Container>
                   )}
                 </div>

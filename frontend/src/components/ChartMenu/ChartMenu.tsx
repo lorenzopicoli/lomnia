@@ -45,7 +45,7 @@ export function ChartMenu(props: {
     setPartialDateRange(range);
   };
   const handleRemove = (chart: ChartAreaConfig) => () => {
-    props.onRemoveChart(chart.id);
+    props.onRemoveChart(chart.uniqueId);
   };
   useEffect(() => {
     if (partialDateRange[0] && partialDateRange[1]) {
@@ -67,7 +67,7 @@ export function ChartMenu(props: {
         <Pill.Group>
           {props.selectedCharts.map((v) => (
             <Pill key={v.id} variant="default" withRemoveButton onRemove={handleRemove(v)}>
-              {(v as any)?.title ?? "Unknown"}
+              {v.title}
             </Pill>
           ))}
         </Pill.Group>

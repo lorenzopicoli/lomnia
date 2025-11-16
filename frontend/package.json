@@ -71,6 +71,7 @@
     "react-markdown": "^10.1.0",
     "react-router-dom": "^7.9.6",
     "remark-wiki-link": "^2.0.1",
+    "uuid": "^13.0.0",
     "zod": "^4.1.12"
   },
   "devDependencies": {
