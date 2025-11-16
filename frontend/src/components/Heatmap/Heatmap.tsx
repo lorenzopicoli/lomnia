@@ -38,7 +38,8 @@ function findBounds(points: DataPoint[]) {
 function Heatmap(props: HeatmapProps) {
   const MAP_STYLE = "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
 
-  let initialViewState;
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  let initialViewState: any;
   if (props.fitToBounds) {
     const bounds = findBounds(props.points);
     const { longitude, latitude, zoom } = new WebMercatorViewport({

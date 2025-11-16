@@ -3,19 +3,20 @@ import { omitBy } from "lodash";
 import { useCallback, useMemo, useState } from "react";
 import type { Layout, Layouts } from "react-grid-layout";
 import type { ResizableGridProps } from "../components/ResizableGrid/ResizableGrid";
-import type { ChartAreaConfig } from "./charts";
+import type { ChartAreaConfig } from "./types";
 import { useAvailableCharts } from "./useAvailableCharts";
 
 type ChartLayout = {
   [breakpoint: string]: Layout[];
 };
+
 /**
  *
  * Manages and persists the chart grid and configuration
  *
  * @param gridId A unique identifier to make sure that the stored layout doesn´t conflict
  * @returns isChangingLayout - true if the user is in the process of moving or resizing tiles
- * @returns onAddCustomCharts - function to be called to add charts to the grid. It'll automatically
+ * @returns onAddCharts - function to be called to add charts to the grid. It'll automatically
  * add them to the bottom of the gird
  * @returns onRemoveChart - function to be called to remove a chart. Use the same id used to add it
  * @returns chartsBeingShow - an object of { chartId: ChartConfig }. This can be used to see what charts
@@ -25,7 +26,7 @@ type ChartLayout = {
  */
 export function useChartGridLayout(gridId: string): {
   isChangingLayout: boolean;
-  onAddCustomCharts: (charts: ChartAreaConfig[]) => void;
+  onAddCharts: (charts: ChartAreaConfig[]) => void;
   onRemoveChart: (chartId: string) => void;
   chartsBeingShown: { [key: string]: ChartAreaConfig };
   layout: {
@@ -80,7 +81,7 @@ export function useChartGridLayout(gridId: string): {
     },
     [layout, setLayout],
   );
-  const onAddCustomCharts = useCallback(
+  const onAddCharts = useCallback(
     (charts: ChartAreaConfig[]) => {
       //   const newCharts = charts.filter(
       //     (item) => !chartsBeingShown.some((c) => item.id === c.id)
@@ -142,13 +143,11 @@ export function useChartGridLayout(gridId: string): {
   );
   const gridLayout = useMemo(() => {
     return layout.placement;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [, layout.placement]);
+  }, [layout.placement]);
 
   const chartsBeingShown = useMemo(() => {
     return layout.idToChart;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [, layout.idToChart]);
+  }, [layout.idToChart]);
 
   const gridProps = useMemo(
     () => ({
@@ -165,12 +164,12 @@ export function useChartGridLayout(gridId: string): {
   return useMemo(
     () => ({
       isChangingLayout,
-      onAddCustomCharts,
+      onAddCharts,
       onRemoveChart,
       chartsBeingShown,
       layout,
       gridProps,
     }),
-    [isChangingLayout, onAddCustomCharts, onRemoveChart, chartsBeingShown, layout, gridProps],
+    [isChangingLayout, onAddCharts, onRemoveChart, chartsBeingShown, layout, gridProps],
   );
 }

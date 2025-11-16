@@ -14,7 +14,6 @@ import "allotment/dist/style.css";
 import { createTheme, MantineProvider, rem } from "@mantine/core";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { queryClient } from "./api/trpc";
-import { MemoizationProvider } from "./charts/MemoizationContext";
 import { ConfigProvider } from "./containers/ConfigContext";
 import Layout from "./pages/Layout";
 
@@ -61,9 +60,7 @@ function App() {
     <ConfigProvider>
       <QueryClientProvider client={queryClient}>
         <MantineProvider theme={theme} defaultColorScheme="dark">
-          <MemoizationProvider>
-            <RouterProvider router={router} />
-          </MemoizationProvider>
+          <RouterProvider router={router} />
         </MantineProvider>
       </QueryClientProvider>
     </ConfigProvider>

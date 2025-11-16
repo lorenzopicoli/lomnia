@@ -21,7 +21,6 @@ export function useAvailableCharts(): {
     if (data && !alreadyFetched) {
       setAlreadyFetched(true);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, alreadyFetched]);
   const refetch = useMemo(() => () => setAlreadyFetched(false), []);
   const response = useMemo(() => ({ refetch, availableKeys: data, isLoading }), [refetch, data, isLoading]);

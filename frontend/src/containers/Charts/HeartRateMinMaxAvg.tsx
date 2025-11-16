@@ -3,7 +3,7 @@ import ReactECharts from "echarts-for-react";
 import { useMemo } from "react";
 import { trpc } from "../../api/trpc";
 
-export function HeartRate(props: { startDate: Date; endDate: Date }) {
+export function HeartRateMinMaxAvg(props: { startDate: Date; endDate: Date }) {
   const { data } = useQuery(
     trpc.getHeartRateMinMaxAvg.queryOptions({
       startDate: props.startDate.toISOString(),

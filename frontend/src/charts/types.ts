@@ -1,33 +1,60 @@
-import { ScaleTime, ScaleBand, ScaleLinear } from "@visx/vendor/d3-scale";
-
-export type ChartScale = {
-  scale: ScaleTime<number, number, never> | ScaleLinear<number, number, never> | ScaleBand<string | number | Date>;
-  type: "linear" | "band" | "utc";
+export type ChartAreaConfig = {
+  id: string;
 };
 
-export type ChartScaleLinear = {
-  scale: ScaleLinear<number, number, never>;
-  type: "linear";
-};
-
-export type ChartScaleBand = {
-  scale: ScaleBand<string | number | Date>;
-  type: "band";
-};
-
-export type ChartScaleUtc = {
-  scale: ScaleTime<number, number, never>;
-  type: "utc";
-};
-
-export function isScaleLinear(s: ChartScale): s is { type: "linear"; scale: ScaleLinear<number, number, never> } {
-  return s.type === "linear";
+export enum ChartId {
+  TemperatureExperienced = "temperatureExperienced",
+  HeartRateMinMaxAvg = "heartRateMinMaxAvg ",
+  PrecipitationExperienced = "precipitationExperienced ",
 }
 
-export function isScaleBand(s: ChartScale): s is { type: "band"; scale: ScaleBand<string | number | Date> } {
-  return s.type === "band";
+export const aggregationPeriods = ["month", "day", "week", "hour"] as const;
+export type AggregationPeriod = (typeof aggregationPeriods)[number];
+
+export interface ChartProps {
+  startDate: Date;
+  endDate: Date;
+  aggPeriod: AggregationPeriod;
 }
 
-export function isScaleUtc(s: ChartScale): s is { type: "utc"; scale: ScaleTime<number, number, never> } {
-  return s.type === "utc";
+export enum ChartSource {
+  Weather = "weather",
+  Habit = "habit",
+  HeartRate = "heartRate",
+}
+
+export function stringToChartSource(str: string) {
+  switch (str) {
+    case "weather":
+      return ChartSource.Weather;
+    case "habit":
+      return ChartSource.Habit;
+    case "heartRate":
+      return ChartSource.HeartRate;
+    default:
+      throw new Error(`Unknown chart source: ${str}`);
+  }
+}
+
+export function chartSourceTitleAndDescription(source: ChartSource): {
+  title: string;
+  description: string;
+} {
+  switch (source) {
+    case ChartSource.Weather:
+      return {
+        title: "Weather",
+        description: "Weather data of the location of the user",
+      };
+    case ChartSource.Habit:
+      return {
+        title: "Habit",
+        description: "Habit data tracked by the user",
+      };
+    case ChartSource.HeartRate:
+      return {
+        title: "Heart Rate",
+        description: "Heart rate data from the user",
+      };
+  }
 }

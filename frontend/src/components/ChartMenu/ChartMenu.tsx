@@ -6,7 +6,7 @@ import { subMonths } from "date-fns/subMonths";
 import { subWeeks } from "date-fns/subWeeks";
 import { subYears } from "date-fns/subYears";
 import { useEffect, useState } from "react";
-import type { ChartAreaConfig } from "../../charts/charts";
+import type { ChartAreaConfig } from "../../charts/types";
 
 export function ChartMenu(props: {
   selectedCharts: ChartAreaConfig[];
@@ -67,7 +67,7 @@ export function ChartMenu(props: {
         <Pill.Group>
           {props.selectedCharts.map((v) => (
             <Pill key={v.id} variant="default" withRemoveButton onRemove={handleRemove(v)}>
-              {v.title}
+              {(v as any)?.title ?? "Unknown"}
             </Pill>
           ))}
         </Pill.Group>

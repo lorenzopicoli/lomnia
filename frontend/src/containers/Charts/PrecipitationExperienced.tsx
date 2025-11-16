@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import type { EChartsOption } from "echarts";
 import ReactECharts from "echarts-for-react";
 import { useMemo } from "react";
 import { trpc } from "../../api/trpc";
@@ -12,7 +13,7 @@ export function PrecipitationExperienced(props: { startDate: Date; endDate: Date
     }),
   );
 
-  const option = useMemo(() => {
+  const option: EChartsOption = useMemo(() => {
     if (!precipitationData) return {};
 
     const dates = precipitationData.map((p) => new Date(p.date));
