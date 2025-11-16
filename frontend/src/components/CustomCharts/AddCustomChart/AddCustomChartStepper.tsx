@@ -1,6 +1,6 @@
-import { Stepper, rem, type StepperProps } from "@mantine/core";
+import { rem, Stepper, type StepperProps } from "@mantine/core";
 
-export function AddChartStepper(props: StepperProps) {
+export function AddCustomChartStepper(props: StepperProps) {
   return (
     <Stepper
       styles={{

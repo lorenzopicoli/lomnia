@@ -1,19 +1,19 @@
+import { useMantineTheme } from "@mantine/core";
 import { useInViewport } from "@mantine/hooks";
+import type { localPoint } from "@visx/event";
 import { ParentSize } from "@visx/responsive";
-import { ChartType } from "../../charts/charts";
+import { bisector } from "@visx/vendor/d3-array";
 import { useCallback, useMemo } from "react";
+import { ChartType } from "../../../charts/charts";
+import { type ChartScaleBand, isScaleBand, isScaleLinear, isScaleUtc } from "../../../charts/types";
+import { useChartScales } from "../../../charts/useChartScales";
+import useEventEmitters from "../../../charts/useEventEmitters";
+import { GenericChart } from "./GenericChart";
+import { GenericChartAxis } from "./GenericChartAxis";
+import { GenericChartGrids } from "./GenericChartGrids";
+import { GenericChartSynchronized } from "./GenericChartSynchronized";
 import type { GenericChartAreaProps, InternalGenericChartAreaProps } from "./GenericChartTypes";
 import { getMaxDomains } from "./utils";
-import { GenericChart } from "./GenericChart";
-import { useMantineTheme } from "@mantine/core";
-import useEventEmitters from "../../charts/useEventEmitters";
-import type { localPoint } from "@visx/event";
-import { GenericChartGrids } from "./GenericChartGrids";
-import { GenericChartAxis } from "./GenericChartAxis";
-import { useChartScales } from "../../charts/useChartScales";
-import { isScaleBand, isScaleLinear, isScaleUtc, type ChartScaleBand } from "../../charts/types";
-import { GenericChartSynchronized } from "./GenericChartSynchronized";
-import { bisector } from "@visx/vendor/d3-array";
 
 // The order at which the charts are rendered. Later charts will be drawn on top of previous charts
 const order: Record<ChartType, number> = {
@@ -29,26 +29,24 @@ const order: Record<ChartType, number> = {
 export function GenericChartArea<T extends object>(props: GenericChartAreaProps<T>) {
   const { ref, inViewport } = useInViewport();
   return (
-    <>
-      <ParentSize debounceTime={10}>
-        {({ width, height }) => (
-          <div style={{ width: "100%", height: "100%" }} ref={ref}>
-            {inViewport ? (
-              <>
-                <GenericChartAreaInternal {...props} height={height} width={width} />
-                {/* Maybe use deferred value for this?  */}
-                <GenericChartSynchronized
-                  mainChart={props.mainChart}
-                  secondaryCharts={props.secondaryCharts}
-                  width={width}
-                  height={height}
-                />
-              </>
-            ) : null}
-          </div>
-        )}
-      </ParentSize>
-    </>
+    <ParentSize debounceTime={10}>
+      {({ width, height }) => (
+        <div style={{ width: "100%", height: "100%" }} ref={ref}>
+          {inViewport ? (
+            <>
+              <GenericChartAreaInternal {...props} height={height} width={width} />
+              {/* Maybe use deferred value for this?  */}
+              <GenericChartSynchronized
+                mainChart={props.mainChart}
+                secondaryCharts={props.secondaryCharts}
+                width={width}
+                height={height}
+              />
+            </>
+          ) : null}
+        </div>
+      )}
+    </ParentSize>
   );
 }
 function GenericChartAreaInternal<T extends object>(props: InternalGenericChartAreaProps<T>) {
@@ -80,7 +78,7 @@ function GenericChartAreaInternal<T extends object>(props: InternalGenericChartA
     const domain = scale.domain();
     const paddingOuter = scale(domain[0]) ?? 0;
     const eachBand = scale.step();
-    return function (value: number) {
+    return (value: number) => {
       const index = Math.floor((value - paddingOuter) / eachBand);
       return domain[Math.max(0, Math.min(index, domain.length - 1))];
     };
@@ -113,7 +111,7 @@ function GenericChartAreaInternal<T extends object>(props: InternalGenericChartA
         y: mainChart.accessors.getY(nearestDatum),
       };
     },
-    [mainChart.accessors, mainChart.data, xScale],
+    [mainChart.accessors, mainChart.data, xScale, scaleBandInvert],
   );
   const eventEmitters = useEventEmitters({
     chartId,
@@ -128,7 +126,7 @@ function GenericChartAreaInternal<T extends object>(props: InternalGenericChartA
         return (
           <GenericChart
             {...chart}
-            key={"generic-chart" + chart.id}
+            key={`generic-chart${chart.id}`}
             xScale={xScale}
             yScale={yScale}
             outerHeight={height}

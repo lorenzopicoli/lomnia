@@ -1,11 +1,11 @@
 import { scaleBand, scaleLinear, scaleUtc } from "@visx/scale";
-import type { GenericChartProps } from "../components/SimpleChart/GenericChartTypes";
-import type { getMaxDomains } from "../components/SimpleChart/utils";
+import { useMemo } from "react";
+import type { GenericChartProps } from "../components/CustomCharts/SimpleChart/GenericChartTypes";
+import type { getMaxDomains } from "../components/CustomCharts/SimpleChart/utils";
 import { isDateLike } from "../utils/isDateLike";
 import { isNumber } from "../utils/isNumber";
-import type { ChartScale, ChartScaleLinear } from "./types";
 import { ChartType } from "./charts";
-import { useMemo } from "react";
+import type { ChartScale, ChartScaleLinear } from "./types";
 
 export function useChartScales<T>(params: {
   mainChart: GenericChartProps<T>;

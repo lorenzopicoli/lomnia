@@ -1,23 +1,23 @@
+import { Checkbox, Collapse, Divider, Flex, Group, Select, Text } from "@mantine/core";
 import type { UseFormReturnType } from "@mantine/form";
-import type { AddChartFormValues } from "./AddChart";
-import { Text, Checkbox, Divider, Flex, Group, Select, Collapse } from "@mantine/core";
-import styles from "./AddChart.module.css";
+import type { RouterOutputs } from "../../../api/trpc";
 import {
   aggregationFunctions,
   aggregationPeriods,
+  type ChartSource,
   chartSourceTitleAndDescription,
   stringToChartSource,
-  type ChartSource,
-} from "../../charts/charts";
-import type { RouterOutputs } from "../../api/trpc";
-import { getKeys } from "../../utils/getKeys";
+} from "../../../charts/charts";
+import { getKeys } from "../../../utils/getKeys";
+import type { AddCustomChartFormValues } from "./AddCustomChart";
+import styles from "./AddCustomChart.module.css";
 
-export function AddChartGeneralConfig(props: {
+export function AddCustomChartGeneralConfig(props: {
   xKeys: RouterOutputs["getAvailableKeys"]["xKeys"];
   showAggregationOptions: boolean;
   selectedSources: ChartSource[];
   toggleWantsToAggregate: () => void;
-  form: UseFormReturnType<AddChartFormValues>;
+  form: UseFormReturnType<AddCustomChartFormValues>;
 }) {
   const { xKeys, showAggregationOptions, selectedSources, toggleWantsToAggregate, form } = props;
 

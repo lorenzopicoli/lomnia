@@ -1,5 +1,5 @@
 import { GridColumns, GridRows } from "@visx/grid";
-import type { ChartScale } from "../../charts/types";
+import type { ChartScale } from "../../../charts/types";
 
 export type GenericChartGridsProps = {
   xScale: ChartScale;

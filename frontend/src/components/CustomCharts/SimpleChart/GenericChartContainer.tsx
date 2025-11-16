@@ -1,8 +1,8 @@
 import { useInViewport } from "@mantine/hooks";
-import type { ChartAreaConfig } from "../../charts/charts";
-import { useChartData } from "../../charts/useChartData";
-import { GenericChartArea } from "./GenericChartArea";
 import { isNil } from "lodash";
+import type { ChartAreaConfig } from "../../../charts/charts";
+import { useChartData } from "../../../charts/useChartData";
+import { GenericChartArea } from "./GenericChartArea";
 
 /**
  * Responsible for connecting the data provider to the chart area

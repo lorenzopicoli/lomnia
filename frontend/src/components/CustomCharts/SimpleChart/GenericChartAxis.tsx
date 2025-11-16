@@ -1,11 +1,11 @@
-import { AxisBottom, AxisLeft } from "@visx/axis";
-import { unitToLabel } from "../../charts/charts";
 import { useMantineTheme } from "@mantine/core";
-import type { GenericChartProps } from "./GenericChartTypes";
+import { AxisBottom, AxisLeft } from "@visx/axis";
 import type { AxisProps } from "@visx/axis/lib/axis/Axis";
-import { isNumber } from "../../utils/isNumber";
 import { format, isDate } from "date-fns";
-import type { ChartScale } from "../../charts/types";
+import { unitToLabel } from "../../../charts/charts";
+import type { ChartScale } from "../../../charts/types";
+import { isNumber } from "../../../utils/isNumber";
+import type { GenericChartProps } from "./GenericChartTypes";
 
 export type GenericChartAxisProps = {
   xScale: ChartScale;

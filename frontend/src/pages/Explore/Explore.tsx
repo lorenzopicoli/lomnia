@@ -6,10 +6,9 @@ import { useMemo, useState } from "react";
 import type { ChartAreaConfig } from "../../charts/charts";
 import { SynchronizedProvider } from "../../charts/SynchronizedContext";
 import { useChartGridLayout } from "../../charts/useChartGridLayout";
-import { AddChart } from "../../components/AddChart/AddChart";
 import { ChartMenu } from "../../components/ChartMenu/ChartMenu";
+import { AddCustomChart } from "../../components/CustomCharts/AddCustomChart/AddCustomChart";
 import { ResizableGrid } from "../../components/ResizableGrid/ResizableGrid";
-import { PrecipitationExperienced } from "../../containers/PreDefineCharts/PrecipitationExperienced";
 import { removeNills } from "../../utils/removeNils";
 
 export function Explore() {
@@ -17,9 +16,10 @@ export function Explore() {
 
   const [dateRange, setDateRange] = useState<[Date, Date]>([subDays(new Date(), 30), new Date()]);
   const [opened, { open, close }] = useDisclosure(false);
-  const { chartsBeingShown, onAddCharts, onRemoveChart, isChangingLayout, gridProps } = useChartGridLayout("explore");
-  const handleAddChart = (chart: ChartAreaConfig) => {
-    onAddCharts([chart]);
+  const { chartsBeingShown, onAddCustomCharts, onRemoveChart, isChangingLayout, gridProps } =
+    useChartGridLayout("explore");
+  const handleAddCustomChart = (chart: ChartAreaConfig) => {
+    onAddCustomCharts([chart]);
     close();
   };
   const charts = useMemo(() => {
@@ -41,7 +41,7 @@ export function Explore() {
             bg={theme.colors.dark[9]}
             style={{ backgroundColor: theme.colors.dark[9] }}
           >
-            <AddChart opened={opened} onSave={handleAddChart} />
+            <AddCustomChart opened={opened} onSave={handleAddCustomChart} />
           </Modal>
           <ChartMenu
             selectedCharts={charts}
@@ -62,7 +62,7 @@ export function Explore() {
                         <Container fluid h={"100%"} p={0} bg={theme.colors.dark[8]} />
                       ) : (
                         <Container fluid h={"100%"} p={0}>
-                          <PrecipitationExperienced startDate={dateRange[0]} endDate={dateRange[1]} />
+                          {/* <PrecipitationExperienced startDate={dateRange[0]} endDate={dateRange[1]} /> */}
                         </Container>
                       )}
                     </div>

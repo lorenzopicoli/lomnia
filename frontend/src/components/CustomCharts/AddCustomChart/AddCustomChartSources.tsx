@@ -1,10 +1,13 @@
+import { Checkbox, Flex, Group, Text } from "@mantine/core";
 import type { UseFormReturnType } from "@mantine/form";
-import type { AddChartFormValues } from "./AddChart";
-import { Text, Checkbox, Flex, Group } from "@mantine/core";
-import styles from "./AddChart.module.css";
-import { chartSourceTitleAndDescription, type ChartSource } from "../../charts/charts";
+import { type ChartSource, chartSourceTitleAndDescription } from "../../../charts/charts";
+import type { AddCustomChartFormValues } from "./AddCustomChart";
+import styles from "./AddCustomChart.module.css";
 
-export function AddChartSources(props: { sources: ChartSource[]; form: UseFormReturnType<AddChartFormValues> }) {
+export function AddCustomChartSources(props: {
+  sources: ChartSource[];
+  form: UseFormReturnType<AddCustomChartFormValues>;
+}) {
   const { sources, form } = props;
   return (
     <Flex direction={"row"} gap={"md"} p={"sm"} wrap="wrap" justify={"space-between"}>

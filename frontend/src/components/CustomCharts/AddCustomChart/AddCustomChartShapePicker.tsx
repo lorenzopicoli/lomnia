@@ -1,10 +1,10 @@
+import { Button, Checkbox, Container, Flex, Group, Radio, RadioGroup, Table, Text } from "@mantine/core";
 import { useState } from "react";
-import { ChartAreaConfig, ChartType, type ChartSource } from "../../charts/charts";
-import { Button, Checkbox, Container, Flex, Group, Radio, Text, RadioGroup, Table } from "@mantine/core";
-import { DecorativeLineChart } from "../DecorativeChart/DecorativeLineChart";
-import { DecorativeBarChart } from "../DecorativeChart/DecorativeBarChart";
-import { DecorativeAreaChart } from "../DecorativeChart/DecorativeAreaChart";
-import styles from "./AddChart.module.css";
+import { type ChartAreaConfig, type ChartSource, ChartType } from "../../../charts/charts";
+import { DecorativeAreaChart } from "../../DecorativeChart/DecorativeAreaChart";
+import { DecorativeBarChart } from "../../DecorativeChart/DecorativeBarChart";
+import { DecorativeLineChart } from "../../DecorativeChart/DecorativeLineChart";
+import styles from "./AddCustomChart.module.css";
 
 const WrapInButton = (props: { onClicked: () => void; children: React.ReactNode }) => {
   return (
@@ -74,7 +74,7 @@ const ChartTypeRadioGroup = ({
     </RadioGroup>
   );
 };
-export function AddChartShapePicker(props: {
+export function AddCustomChartShapePicker(props: {
   onAdd?: (
     shapes: Array<
       ChartAreaConfig["shapes"][number] & {

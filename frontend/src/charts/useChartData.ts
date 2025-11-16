@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { groupBy } from "lodash";
 import { trpc } from "../api/trpc";
-import type { GenericChartProps } from "../components/SimpleChart/GenericChartTypes";
+import type { GenericChartProps } from "../components/CustomCharts/SimpleChart/GenericChartTypes";
 import { isDateLike } from "../utils/isDateLike";
 import { isNotNill } from "../utils/isNotNil";
 import type { ChartType } from "./charts";

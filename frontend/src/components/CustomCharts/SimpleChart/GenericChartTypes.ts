@@ -1,6 +1,6 @@
-import { ChartType } from "../../charts/charts";
-import { type NumberLike } from "@visx/scale";
-import type { ChartScale, ChartScaleBand, ChartScaleLinear } from "../../charts/types";
+import type { NumberLike } from "@visx/scale";
+import type { ChartType } from "../../../charts/charts";
+import type { ChartScale, ChartScaleBand, ChartScaleLinear } from "../../../charts/types";
 
 export type GenericChartAreaProps<T> = {
   mainChart: GenericChartProps<T>;

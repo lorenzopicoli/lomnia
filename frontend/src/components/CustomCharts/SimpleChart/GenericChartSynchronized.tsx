@@ -1,16 +1,16 @@
-import { useContext, useMemo } from "react";
-import { getMaxDomains } from "./utils";
-import { useChartScales } from "../../charts/useChartScales";
-import { SynchronizedContext } from "../../charts/SynchronizedContext";
-import type { GenericChartProps } from "./GenericChartTypes";
-import { isScaleBand } from "../../charts/types";
 import { Flex, useMantineTheme } from "@mantine/core";
-import { MemoizationContext } from "../../charts/MemoizationContext";
-import { isNil } from "lodash";
-import { isDateLike } from "../../utils/isDateLike";
-import { format } from "date-fns";
 import { useElementSize } from "@mantine/hooks";
-import { ChartType } from "../../charts/charts";
+import { format } from "date-fns";
+import { isNil } from "lodash";
+import { useContext, useMemo } from "react";
+import { ChartType } from "../../../charts/charts";
+import { MemoizationContext } from "../../../charts/MemoizationContext";
+import { SynchronizedContext } from "../../../charts/SynchronizedContext";
+import { isScaleBand } from "../../../charts/types";
+import { useChartScales } from "../../../charts/useChartScales";
+import { isDateLike } from "../../../utils/isDateLike";
+import type { GenericChartProps } from "./GenericChartTypes";
+import { getMaxDomains } from "./utils";
 
 export function GenericChartSynchronized<T extends object>(props: {
   mainChart: GenericChartProps<T>;
@@ -45,13 +45,7 @@ export function GenericChartSynchronized<T extends object>(props: {
     });
     return hash;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    JSON.stringify(props.mainChart.data),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    JSON.stringify(props.secondaryCharts),
-    props.mainChart.id,
-  ]);
+  }, [props.mainChart.id, props.secondaryCharts.forEach, props.mainChart.data]);
   const nearestDatum = useMemo(() => {
     if (!memoizationContext) {
       // if (memoizationContext) {

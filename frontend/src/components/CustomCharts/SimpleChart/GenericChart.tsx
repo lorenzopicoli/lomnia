@@ -1,14 +1,14 @@
-import { ChartType } from "../../charts/charts";
-import { curveMonotoneX } from "@visx/curve";
-import { Area, LinePath } from "@visx/shape";
-import { scaleBand } from "@visx/scale";
-import type { InternalGenericChartProps } from "./GenericChartTypes";
-import { isNumber } from "../../utils/isNumber";
-import { useCallback } from "react";
-import { isDate } from "lodash";
 import { useMantineTheme } from "@mantine/core";
+import { curveMonotoneX } from "@visx/curve";
 import { LinearGradient } from "@visx/gradient";
-import { isScaleBand } from "../../charts/types";
+import { scaleBand } from "@visx/scale";
+import { Area, LinePath } from "@visx/shape";
+import { isDate } from "lodash";
+import { useCallback } from "react";
+import { ChartType } from "../../../charts/charts";
+import { isScaleBand } from "../../../charts/types";
+import { isNumber } from "../../../utils/isNumber";
+import type { InternalGenericChartProps } from "./GenericChartTypes";
 
 /**
  * Responsible for displaying a single shape (the component name should be changed)
