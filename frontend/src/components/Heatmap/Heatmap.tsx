@@ -1,7 +1,6 @@
-import DeckGL, { HeatmapLayer, WebMercatorViewport, type DeckProps } from "deck.gl";
+import DeckGL, { type DeckProps, HeatmapLayer, WebMercatorViewport } from "deck.gl";
 import { Map as MapLibre } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { memo } from "react";
 import type MapViewParams from "../../types/MapViewParams";
 
 type DataPoint = [longitude: number, latitude: number, count: number];
@@ -39,7 +38,7 @@ function findBounds(points: DataPoint[]) {
 function Heatmap(props: HeatmapProps) {
   const MAP_STYLE = "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
 
-  let initialViewState = undefined;
+  let initialViewState;
   if (props.fitToBounds) {
     const bounds = findBounds(props.points);
     const { longitude, latitude, zoom } = new WebMercatorViewport({

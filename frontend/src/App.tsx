@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 // Import styles of packages that you've installed.
 // All packages except `@mantine/hooks` require styles imports
 import "@mantine/core/styles.css";
@@ -12,10 +12,8 @@ import "react-resizable/css/styles.css";
 import "maplibre-gl/dist/maplibre-gl.css";
 import "allotment/dist/style.css";
 import { createTheme, MantineProvider, rem } from "@mantine/core";
-import { httpBatchLink } from "@trpc/client";
-import { useState } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import { trpc } from "./api/trpc";
+import { queryClient } from "./api/trpc";
 import { MemoizationProvider } from "./charts/MemoizationContext";
 import { ConfigProvider } from "./containers/ConfigContext";
 import Layout from "./pages/Layout";
@@ -59,31 +57,16 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
-  const [trpcClient] = useState(() =>
-    trpc.createClient({
-      links: [
-        httpBatchLink({
-          url: "http://localhost:3010/trpc",
-          async headers() {
-            return {};
-          },
-        }),
-      ],
-    }),
-  );
-  const queryClient = new QueryClient();
   return (
-    <trpc.Provider client={trpcClient} queryClient={queryClient}>
-      <ConfigProvider>
-        <QueryClientProvider client={queryClient}>
-          <MantineProvider theme={theme} defaultColorScheme="dark">
-            <MemoizationProvider>
-              <RouterProvider router={router} />
-            </MemoizationProvider>
-          </MantineProvider>
-        </QueryClientProvider>
-      </ConfigProvider>
-    </trpc.Provider>
+    <ConfigProvider>
+      <QueryClientProvider client={queryClient}>
+        <MantineProvider theme={theme} defaultColorScheme="dark">
+          <MemoizationProvider>
+            <RouterProvider router={router} />
+          </MemoizationProvider>
+        </MantineProvider>
+      </QueryClientProvider>
+    </ConfigProvider>
   );
 }
 

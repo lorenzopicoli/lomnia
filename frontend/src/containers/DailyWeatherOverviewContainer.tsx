@@ -11,6 +11,7 @@ import {
   IconUmbrella,
   IconUvIndex,
 } from "@tabler/icons-react";
+import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns/format";
 import { intervalToDuration } from "date-fns/intervalToDuration";
 import { startOfDay } from "date-fns/startOfDay";
@@ -46,9 +47,11 @@ const weatherCodeInformation = (code: number) => {
 };
 
 export default function DailyWeatherOverviewContainer(props: DailyWeatherOverviewContainerProps) {
-  const { data, isLoading } = trpc.getWeatherByDay.useQuery({
-    day: format(startOfDay(props.date), "yyyy-MM-dd"),
-  });
+  const { data, isLoading } = useQuery(
+    trpc.getWeatherByDay.queryOptions({
+      day: format(startOfDay(props.date), "yyyy-MM-dd"),
+    }),
+  );
 
   if (isLoading) {
     return "Loading...";

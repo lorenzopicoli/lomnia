@@ -1,4 +1,5 @@
 import { Flex, Grid } from "@mantine/core";
+import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns/format";
 import { trpc } from "../api/trpc";
 import { Anonymize } from "../components/Anonymize/Anonymize";
@@ -13,10 +14,12 @@ type DailyHabitEntriesProps = {
 
 export default function DailyHabitEntriesContainer(props: DailyHabitEntriesProps) {
   const config = useConfig();
-  const { data, isLoading } = trpc.getHabitsByDay.useQuery({
-    day: format(props.date, "yyyy-MM-dd"),
-    privateMode: config.privateMode,
-  });
+  const { data, isLoading } = useQuery(
+    trpc.getHabitsByDay.queryOptions({
+      day: format(props.date, "yyyy-MM-dd"),
+      privateMode: config.privateMode,
+    }),
+  );
 
   if (isLoading) {
     return "Loading...";
@@ -27,22 +30,20 @@ export default function DailyHabitEntriesContainer(props: DailyHabitEntriesProps
   }
 
   return (
-    <>
-      <Grid gutter={"md"}>
-        {data.map((h) => (
-          <Grid.Col key={h.key} span={6}>
-            <Flex key={h.key} gap={"sm"}>
-              <LoIcon Icon={iconForKey(h.key ?? "")} color={getRandomColor()} />
-              <span>
-                <Anonymize>
-                  {h.label}
-                  {typeof h.value !== "boolean" ? `: ${h.value}` : ""}
-                </Anonymize>
-              </span>
-            </Flex>
-          </Grid.Col>
-        ))}
-      </Grid>
-    </>
+    <Grid gutter={"md"}>
+      {data.map((h) => (
+        <Grid.Col key={h.key} span={6}>
+          <Flex key={h.key} gap={"sm"}>
+            <LoIcon Icon={iconForKey(h.key ?? "")} color={getRandomColor()} />
+            <span>
+              <Anonymize>
+                {h.label}
+                {typeof h.value !== "boolean" ? `: ${h.value}` : ""}
+              </Anonymize>
+            </span>
+          </Flex>
+        </Grid.Col>
+      ))}
+    </Grid>
   );
 }

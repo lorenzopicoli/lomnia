@@ -1,9 +1,10 @@
+import { useQuery } from "@tanstack/react-query";
 import { groupBy } from "lodash";
-import type { ChartType } from "./charts";
 import { trpc } from "../api/trpc";
 import type { GenericChartProps } from "../components/SimpleChart/GenericChartTypes";
-import { isNotNill } from "../utils/isNotNil";
 import { isDateLike } from "../utils/isDateLike";
+import { isNotNill } from "../utils/isNotNil";
+import type { ChartType } from "./charts";
 
 const genericXAccessor = (d: { x: string | Date | number }) => (isDateLike(d.x) ? new Date(d.x) : d.x);
 
@@ -63,15 +64,21 @@ export function useChartData(
     yKeys: sources.heartRate?.map((s) => s.yKey) ?? [],
     aggregation: chart.config.aggregation,
   };
-  const { data: habitData, isLoading: habitLoading } = trpc.getHabitsCharts.useQuery(habitPayload, {
-    enabled: enabled && habitPayload.yKeys.length > 0,
-  });
-  const { data: weatherData, isLoading: weatherLoading } = trpc.getWeatherCharts.useQuery(weatherPayload, {
-    enabled: enabled && weatherPayload.yKeys.length > 0,
-  });
-  const { data: heartRateData, isLoading: heartRateLoading } = trpc.getHeartRateCharts.useQuery(heartRatePayload, {
-    enabled: enabled && heartRatePayload.yKeys.length > 0,
-  });
+  const { data: habitData, isLoading: habitLoading } = useQuery(
+    trpc.getHabitsCharts.queryOptions(habitPayload, {
+      enabled: enabled && habitPayload.yKeys.length > 0,
+    }),
+  );
+  const { data: weatherData, isLoading: weatherLoading } = useQuery(
+    trpc.getWeatherCharts.queryOptions(weatherPayload, {
+      enabled: enabled && weatherPayload.yKeys.length > 0,
+    }),
+  );
+  const { data: heartRateData, isLoading: heartRateLoading } = useQuery(
+    trpc.getHeartRateCharts.queryOptions(heartRatePayload, {
+      enabled: enabled && heartRatePayload.yKeys.length > 0,
+    }),
+  );
 
   if (habitLoading || weatherLoading || heartRateLoading) {
     return { isLoading: true };

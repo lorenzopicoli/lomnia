@@ -1,4 +1,5 @@
 import { useDebouncedState } from "@mantine/hooks";
+import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { trpc } from "../api/trpc";
 import Heatmap from "../components/Heatmap/Heatmap";
@@ -33,16 +34,18 @@ export default function HeatmapContainer(props: HeatmapContainerProps) {
     setIsFirstFetch(false);
   }, [props.startDate]);
 
-  const { data } = trpc.getHeatmap.useQuery(
-    {
-      ...mapViewParams,
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
-    },
-    {
-      // Makes sure that data isn't undefined while new request is loading
-      placeholderData: (prev) => prev,
-    },
+  const { data } = useQuery(
+    trpc.getHeatmap.queryOptions(
+      {
+        ...mapViewParams,
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+      },
+      {
+        // Makes sure that data isn't undefined while new request is loading
+        placeholderData: (prev) => prev,
+      },
+    ),
   );
 
   if (data && !isFirstFetch) {

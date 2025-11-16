@@ -1,9 +1,10 @@
-import { trpc } from "../api/trpc";
-import { startOfDay } from "date-fns/startOfDay";
-import { endOfDay } from "date-fns/endOfDay";
 import { Timeline } from "@mantine/core";
 import { IconLocation } from "@tabler/icons-react";
+import { useQuery } from "@tanstack/react-query";
+import { endOfDay } from "date-fns/endOfDay";
+import { startOfDay } from "date-fns/startOfDay";
 import { useCallback, useEffect, useState } from "react";
+import { trpc } from "../api/trpc";
 import { VisitedPlaceTimelineItem } from "../components/VisitedPlaceTimelineItem/VisitedPlaceTimelineItem";
 
 type PlacesVisitedTimelineContainerProps = {
@@ -12,10 +13,12 @@ type PlacesVisitedTimelineContainerProps = {
 };
 
 export default function PlacesVisitedTimelineContainer(props: PlacesVisitedTimelineContainerProps) {
-  const { data, isLoading } = trpc.getVisitedPlaces.useQuery({
-    startDate: startOfDay(props.date).toISOString(),
-    endDate: endOfDay(props.date).toISOString(),
-  });
+  const { data, isLoading } = useQuery(
+    trpc.getVisitedPlaces.queryOptions({
+      startDate: startOfDay(props.date).toISOString(),
+      endDate: endOfDay(props.date).toISOString(),
+    }),
+  );
   const [activeIndex, setActiveIndex] = useState<number>();
 
   useEffect(() => {
@@ -32,8 +35,7 @@ export default function PlacesVisitedTimelineContainer(props: PlacesVisitedTimel
         props.onFilterChange?.(new Date(itemEndDate));
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [data],
+    [data, props.onFilterChange],
   );
 
   if (isLoading) {

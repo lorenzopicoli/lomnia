@@ -1,8 +1,9 @@
+import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns/format";
+import { memo } from "react";
 import { trpc } from "../api/trpc";
 import DiaryEntry from "../components/DiaryEntry/DiaryEntry";
 import { useConfig } from "../utils/useConfig";
-import { memo } from "react";
 
 type DiaryEntryContainer = {
   date: Date;
@@ -10,10 +11,12 @@ type DiaryEntryContainer = {
 
 export const DiaryEntryContainer = memo((props: DiaryEntryContainer) => {
   const config = useConfig();
-  const { data, isLoading } = trpc.getDiaryEntriesByDay.useQuery({
-    day: format(props.date, "yyyy-MM-dd"),
-    privateMode: config.privateMode,
-  });
+  const { data, isLoading } = useQuery(
+    trpc.getDiaryEntriesByDay.queryOptions({
+      day: format(props.date, "yyyy-MM-dd"),
+      privateMode: config.privateMode,
+    }),
+  );
 
   if (isLoading) {
     return "Loading...";

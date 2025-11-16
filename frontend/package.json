@@ -22,6 +22,7 @@
     "@trpc/client": "^11.7.1",
     "@trpc/react-query": "^11.7.1",
     "@trpc/server": "^11.7.1",
+    "@trpc/tanstack-react-query": "^11.7.1",
     "@visx/annotation": "v4.0.0-alpha.0",
     "@visx/axis": "v4.0.0-alpha.0",
     "@visx/bounds": "v4.0.0-alpha.0",
