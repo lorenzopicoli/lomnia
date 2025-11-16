@@ -68,7 +68,12 @@ export function ChartsDashboard() {
                       </Container>
                       {chartsConfig.isRearranging ? (
                         <Container pos={"absolute"} top={0} right={0} p={0}>
-                          <ActionIcon size={"lg"} variant="light">
+                          <ActionIcon
+                            onMouseDown={(e) => e.stopPropagation()}
+                            onClick={() => onRemoveChart(chart.uniqueId)}
+                            size={"lg"}
+                            variant="light"
+                          >
                             <IconTrash size={20} />
                           </ActionIcon>
                         </Container>
