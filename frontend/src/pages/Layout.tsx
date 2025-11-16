@@ -6,7 +6,7 @@ import { startOfDay } from "date-fns/startOfDay";
 import { subDays } from "date-fns/subDays";
 import { createSearchParams, Route, Routes, useNavigate, useSearchParams } from "react-router-dom";
 import Header from "../components/Header/Header";
-import { useConfig } from "../utils/useConfig";
+import { useConfig } from "../contexts/ConfigContext";
 import { Explore } from "./Explore/Explore";
 import Home from "./Home/Home";
 

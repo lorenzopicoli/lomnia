@@ -14,7 +14,7 @@ import "allotment/dist/style.css";
 import { createTheme, MantineProvider, rem } from "@mantine/core";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { queryClient } from "./api/trpc";
-import { ConfigProvider } from "./containers/ConfigContext";
+import { ConfigProvider } from "./contexts/ConfigContext";
 import Layout from "./pages/Layout";
 
 const theme = createTheme({

@@ -1,19 +1,19 @@
 import { Container, Paper, ScrollArea, Space, useMantineTheme } from "@mantine/core";
-import { subDays } from "date-fns";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useChartGridLayout } from "../../charts/useChartGridLayout";
 import { ChartDisplayer } from "../../components/ChartDisplayer/ChartDisplayer";
 import { ChartMenu } from "../../components/ChartMenu/ChartMenu";
 import { ChartPlaceholder } from "../../components/ChartPlaceholder/ChartPlaceholder";
 import { ResizableGrid } from "../../components/ResizableGrid/ResizableGrid";
+import { useChartsConfig } from "../../contexts/ChartsConfigContext";
 import { removeNills } from "../../utils/removeNils";
 
 export function ChartsDashboard() {
   const theme = useMantineTheme();
   const navigate = useNavigate();
+  const chartsConfig = useChartsConfig();
 
-  const [dateRange, setDateRange] = useState<[Date, Date]>([subDays(new Date(), 365), new Date()]);
   const { chartsBeingShown, onRemoveChart, isChangingLayout, gridProps } = useChartGridLayout("explore");
   const charts = useMemo(() => {
     return Object.values(chartsBeingShown).filter(removeNills);
@@ -35,14 +35,20 @@ export function ChartsDashboard() {
           <ChartMenu
             selectedCharts={charts}
             onRemoveChart={onRemoveChart}
-            currentRange={dateRange}
-            onDateChange={setDateRange}
+            currentRange={[chartsConfig.startDate, chartsConfig.endDate]}
+            onDateChange={chartsConfig.setDateRange}
             onNewChart={handleClickNewChart}
+            onRearrangeCharts={chartsConfig.toggleIsRearranging}
           />
 
           <Space h={50} />
           {charts.length > 0 ? (
-            <ResizableGrid {...gridProps} rowHeight={500}>
+            <ResizableGrid
+              {...gridProps}
+              isResizable={chartsConfig.isRearranging}
+              isDraggable={chartsConfig.isRearranging}
+              rowHeight={500}
+            >
               {charts.map((chart) => (
                 <div key={chart.uniqueId}>
                   {isChangingLayout ? (
@@ -53,8 +59,8 @@ export function ChartsDashboard() {
                     <Container fluid h={"100%"} p={0}>
                       <ChartDisplayer
                         chartId={chart.id}
-                        startDate={dateRange[0]}
-                        endDate={dateRange[1]}
+                        startDate={chartsConfig.startDate}
+                        endDate={chartsConfig.endDate}
                         aggPeriod={"day"}
                       />
                     </Container>

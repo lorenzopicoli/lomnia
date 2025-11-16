@@ -1,5 +1,5 @@
 import type React from "react";
-import { type ReactNode, createContext, useState } from "react";
+import { createContext, type ReactNode, useContext, useState } from "react";
 
 interface Config {
   privateMode: boolean;
@@ -21,4 +21,12 @@ export const ConfigProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   };
 
   return <ConfigContext.Provider value={{ ...config, updateConfig }}>{children}</ConfigContext.Provider>;
+};
+
+export const useConfig = (): ConfigContextType => {
+  const context = useContext(ConfigContext);
+  if (!context) {
+    throw new Error("useConfig must be used within a ConfigProvider");
+  }
+  return context;
 };
