@@ -1,16 +1,16 @@
-import { Container, Modal, Paper, ScrollArea, Space, useMantineTheme, Text } from "@mantine/core";
-import { useMemo, useState } from "react";
-import { ResizableGrid } from "../../components/ResizableGrid/ResizableGrid";
+import { Container, Modal, Paper, ScrollArea, Space, useMantineTheme } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { removeNills } from "../../utils/removeNils";
-import { AddChart } from "../../components/AddChart/AddChart";
-import { useChartGridLayout } from "../../charts/useChartGridLayout";
-import { ChartMenu } from "../../components/ChartMenu/ChartMenu";
-import { subDays } from "date-fns";
-import { GenericChartContainer } from "../../components/SimpleChart/GenericChartContainer";
-import type { ChartAreaConfig } from "../../charts/charts";
 import { EventEmitterProvider } from "@visx/xychart";
+import { subDays } from "date-fns";
+import { useMemo, useState } from "react";
+import type { ChartAreaConfig } from "../../charts/charts";
 import { SynchronizedProvider } from "../../charts/SynchronizedContext";
+import { useChartGridLayout } from "../../charts/useChartGridLayout";
+import { AddChart } from "../../components/AddChart/AddChart";
+import { ChartMenu } from "../../components/ChartMenu/ChartMenu";
+import { ResizableGrid } from "../../components/ResizableGrid/ResizableGrid";
+import { WeatherExperienced } from "../../containers/PreDefineCharts/WeatherExperienced";
+import { removeNills } from "../../utils/removeNils";
 
 export function Explore() {
   const theme = useMantineTheme();
@@ -26,7 +26,6 @@ export function Explore() {
     return Object.values(chartsBeingShown).filter(removeNills);
   }, [chartsBeingShown]);
 
-  const chartAreaTopMargin = 40;
   return (
     <Paper component={Container} fluid h={"100vh"} bg={theme.colors.dark[9]}>
       <ScrollArea
@@ -51,6 +50,7 @@ export function Explore() {
             onDateChange={setDateRange}
             onNewChart={() => open()}
           />
+
           <Space h={50} />
           <EventEmitterProvider>
             <SynchronizedProvider>
@@ -58,15 +58,11 @@ export function Explore() {
                 <ResizableGrid {...gridProps} rowHeight={500}>
                   {charts.map((chart) => (
                     <div key={chart.id}>
-                      <Container display={"flex"} p={0} pos={"absolute"} top={0} left={0}>
-                        <Text pr="sm">X: {chart.xKey}</Text>
-                        <Text>Y: {chart.shapes.map((s) => s.yKey).join(", ")}</Text>
-                      </Container>
                       {isChangingLayout ? (
                         <Container fluid h={"100%"} p={0} bg={theme.colors.dark[8]} />
                       ) : (
-                        <Container fluid h={`calc(100% - ${chartAreaTopMargin}px)`} mt={chartAreaTopMargin} p={0}>
-                          <GenericChartContainer chart={chart} startDate={dateRange[0]} endDate={dateRange[1]} />
+                        <Container fluid h={"100%"} p={0}>
+                          <WeatherExperienced startDate={dateRange[0]} endDate={dateRange[1]} />
                         </Container>
                       )}
                     </div>
