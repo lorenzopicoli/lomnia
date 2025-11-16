@@ -1,31 +1,31 @@
 import { z } from "zod";
 
-export const NominatimAddressSchema = z
-  .object({
-    house_number: z.string().optional(),
-    road: z.string().optional(),
-    neighbourhood: z.string().optional(),
-    suburb: z.string().optional(),
-    city: z.string().optional(),
-    town: z.string().optional(),
-    village: z.string().optional(),
-    county: z.string().optional(),
-    region: z.string().optional(),
-    state: z.string().optional(),
-    "ISO3166-2-lvl4": z.string().optional(),
-    postcode: z.string().optional(),
-    country: z.string().optional(),
-    country_code: z.string().optional(),
-    quarter: z.string().optional(),
-    borough: z.string().optional(),
-    city_district: z.string().optional(),
-    municipality: z.string().optional(),
-    state_district: z.string().optional(),
-    shop: z.unknown().optional(),
-    locality: z.unknown().optional(),
-    amenity: z.unknown().optional(),
-  })
-  .strict();
+export const NominatimAddressSchema = z.object({
+  house_number: z.string().optional(),
+  road: z.string().optional(),
+  neighbourhood: z.string().optional(),
+  suburb: z.string().optional(),
+  city: z.string().optional(),
+  town: z.string().optional(),
+  village: z.string().optional(),
+  county: z.string().optional(),
+  region: z.string().optional(),
+  state: z.string().optional(),
+  "ISO3166-2-lvl4": z.string().optional(),
+  postcode: z.string().optional(),
+  country: z.string().optional(),
+  country_code: z.string().optional(),
+  quarter: z.string().optional(),
+  borough: z.string().optional(),
+  city_district: z.string().optional(),
+  municipality: z.string().optional(),
+  state_district: z.string().optional(),
+  shop: z.unknown().optional(),
+  locality: z.unknown().optional(),
+  amenity: z.unknown().optional(),
+  craft: z.unknown().optional(),
+  railway: z.unknown().optional(),
+});
 
 export const NominatimReverseResponseSchema = z
   .object({

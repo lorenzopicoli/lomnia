@@ -11,7 +11,13 @@ export default {
         enabled: false,
       },
       owntracksServer: {
-        enabled: false,
+        enabled: true,
+        /**
+         * Number of locations to be fetched in each run. Increasing this number will slowdown each cycle.
+         *
+         * The actual run might import a bit more since it fetches points per day so it might go above the limit
+         */
+        maxImportSession: 5000,
       },
     },
     locationDetails: {
@@ -34,7 +40,7 @@ export default {
         userAgent: "lomnia",
       },
       openMeteo: {
-        enabled: false,
+        enabled: true,
         /**
          * Number of locations to updated each run. Increasing this number will slowdown each cycle
          */
@@ -54,17 +60,17 @@ export default {
     health: {
       samsung: {
         heartRate: {
-          enabled: true,
+          enabled: false,
         },
         stepCount: {
-          enabled: true,
+          enabled: false,
         },
         sleep: {
-          enabled: true,
+          enabled: false,
           manualSleepDeviceUuid: "YONCTMRFDw",
         },
         sleepStage: {
-          enabled: true,
+          enabled: false,
           /**
            * Sometimes samsung health will record sleep stages but without a matching sleep id. To avoid logging
            * them as errors every time, you can skip them here
@@ -82,7 +88,7 @@ export default {
           ],
         },
         snoring: {
-          enabled: true,
+          enabled: false,
         },
       },
     },

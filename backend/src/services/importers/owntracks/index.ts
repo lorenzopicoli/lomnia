@@ -1,27 +1,29 @@
-import { BaseImporter } from "../BaseImporter";
+import axios from "axios";
+import { desc, eq } from "drizzle-orm";
+import { chunk } from "lodash";
+import { DateTime } from "luxon";
+import config from "../../../config";
+import { db } from "../../../db/connection";
 import type { DBTransaction } from "../../../db/types";
+import { delay } from "../../../helpers/delay";
+import { EnvVar, getEnvVarOrError } from "../../../helpers/envVars";
 import {
-  importJobsTable,
-  locationsTable,
   type batteryStatusEnum,
   type connectionStatusEnum,
+  importJobsTable,
+  locationsTable,
   type locationTriggerEnum,
   type NewLocation,
 } from "../../../models";
-import axios from "axios";
-import { DateTime } from "luxon";
-import { OwntracksLocationApiResponseSchema, type OwntracksLocation } from "./schema";
-import { delay } from "../../../helpers/delay";
-import { chunk } from "lodash";
-import { desc, eq } from "drizzle-orm";
-import { db } from "../../../db/connection";
-import { EnvVar, getEnvVarOrError } from "../../../helpers/envVars";
+import { BaseImporter } from "../BaseImporter";
+import { type OwntracksLocation, OwntracksLocationApiResponseSchema } from "./schema";
 
 export class OwntracksImporter extends BaseImporter {
   override sourceId = "owntracks-api";
   override destinationTable = "locations";
   override entryDateKey = "tst";
   override apiVersion = "v1";
+  private maxImportSession = config.importers.location.owntracksServer.maxImportSession;
 
   private callThrottleInMs = 100;
 
@@ -37,11 +39,7 @@ export class OwntracksImporter extends BaseImporter {
     return { result: true };
   }
 
-  public async import(params: {
-    tx: DBTransaction;
-    placeholderJobId: number;
-    from?: DateTime;
-  }): Promise<{
+  public async import(params: { tx: DBTransaction; placeholderJobId: number; from?: DateTime }): Promise<{
     importedCount: number;
     firstEntryDate: Date;
     lastEntryDate: Date;
@@ -140,6 +138,10 @@ export class OwntracksImporter extends BaseImporter {
 
       apiCallCount++;
       currentDate = searchedUntil;
+
+      if (importedCount >= this.maxImportSession) {
+        break;
+      }
     }
 
     return { apiCallCount, importedCount };

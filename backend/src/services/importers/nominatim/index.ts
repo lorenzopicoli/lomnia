@@ -1,14 +1,14 @@
-import { asc, sql } from "drizzle-orm";
-import { db } from "../../../db/connection";
-import { BaseImporter } from "../BaseImporter";
-import { locationsTable } from "../../../models";
-import { toPostgisGeoPoint, type DBTransaction, type Point } from "../../../db/types";
 import axios from "axios";
-import { locationDetailsTable, type NewLocationDetails } from "../../../models/LocationDetails";
-import { delay } from "../../../helpers/delay";
+import { asc, sql } from "drizzle-orm";
 import type { DateTime } from "luxon";
 import config from "../../../config";
-import { NominatimReverseResponseSchema, type NominatimReverseResponse } from "./schema";
+import { db } from "../../../db/connection";
+import { type DBTransaction, type Point, toPostgisGeoPoint } from "../../../db/types";
+import { delay } from "../../../helpers/delay";
+import { locationsTable } from "../../../models";
+import { locationDetailsTable, type NewLocationDetails } from "../../../models/LocationDetails";
+import { BaseImporter } from "../BaseImporter";
+import { type NominatimReverseResponse, NominatimReverseResponseSchema } from "./schema";
 
 export class NominatimImport extends BaseImporter {
   override sourceId = "nomatim-v1";
@@ -94,10 +94,7 @@ export class NominatimImport extends BaseImporter {
     return next;
   }
 
-  override async import(params: {
-    tx: DBTransaction;
-    placeholderJobId: number;
-  }): Promise<{
+  override async import(params: { tx: DBTransaction; placeholderJobId: number }): Promise<{
     importedCount: number;
     firstEntryDate?: Date;
     lastEntryDate?: Date;
@@ -136,7 +133,7 @@ export class NominatimImport extends BaseImporter {
         },
       });
 
-      const parsedResponse = NominatimReverseResponseSchema.parse(response);
+      const parsedResponse = NominatimReverseResponseSchema.parse(response.data);
       const mappedResponse = this.mapApiResponseToDbSchema(location.location, params.placeholderJobId, parsedResponse);
 
       if (mappedResponse) {
