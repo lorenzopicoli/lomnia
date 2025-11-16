@@ -1,4 +1,5 @@
 import axios from "axios";
+import axiosRetry from "axios-retry";
 import { asc, sql } from "drizzle-orm";
 import type { DateTime } from "luxon";
 import config from "../../../config";
@@ -109,6 +110,8 @@ export class NominatimImport extends BaseImporter {
       headers: { "User-Agent": config.importers.locationDetails.nominatim.userAgent },
     });
 
+    axiosRetry(http, { retries: 3, retryDelay: axiosRetry.linearDelay(1000) });
+
     let nextLocation = await this.getNextPage({ tx: params.tx });
     let previousTimer = new Date();
     while (nextLocation[0]) {
@@ -132,16 +135,26 @@ export class NominatimImport extends BaseImporter {
         locationPos: location.location,
         locationFix: location.locationFix,
       });
-      const response = await http.get("/reverse", {
-        params: {
-          format: "json",
-          zoom: 18,
-          namedetails: 1,
-          extratags: 1,
-          lat: location.location.lat,
-          lon: location.location.lng,
-        },
-      });
+      const response = await http
+        .get("/reverse", {
+          params: {
+            format: "json",
+            zoom: 18,
+            namedetails: 1,
+            extratags: 1,
+            lat: location.location.lat,
+            lon: location.location.lng,
+          },
+        })
+        .catch((e) => {
+          this.logger.debug("Got Nominatim error", {
+            locationId: location.id,
+            locationPos: location.location,
+            locationFix: location.locationFix,
+            e,
+          });
+          throw e;
+        });
       previousTimer = currentTimer;
       this.logger.debug("Got Nominatim response", {
         locationId: location.id,

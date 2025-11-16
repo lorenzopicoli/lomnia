@@ -42,6 +42,7 @@
     "@types/lodash": "^4.17.20",
     "ansi-colors": "^4.1.3",
     "axios": "^1.13.2",
+    "axios-retry": "^4.5.0",
     "better-sqlite3": "^12.4.1",
     "camelcase-keys": "^10.0.1",
     "cli-progress": "^3.12.0",
