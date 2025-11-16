@@ -1,8 +1,8 @@
 import { boolean, integer, jsonb, pgEnum, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
 import { geography } from "../db/types";
 import { importJobsTable } from "./ImportJob";
-import { dailyWeatherTable, hourlyWeatherTable } from "./Weather";
 import { locationDetailsTable } from "./LocationDetails";
+import { dailyWeatherTable, hourlyWeatherTable } from "./Weather";
 
 export const batteryStatusEnum = pgEnum("battery_status", ["unknown", "unplugged", "charging", "full"]);
 
@@ -16,9 +16,13 @@ export const locationsTable = pgTable("locations", {
   id: serial("id").primaryKey(),
   externalId: integer("external_id"),
   /***
-   * The source used to get this location
+   * The application source used to get this location
    */
   source: locationSourceEnum("source").notNull(),
+  /***
+   * The source used to get this location in the device (eg. network, gps, fused)
+   */
+  gpsSource: text("gps_source"),
   /***
    * In meters
    */

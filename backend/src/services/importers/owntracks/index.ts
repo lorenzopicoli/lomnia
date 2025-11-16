@@ -176,7 +176,13 @@ export class OwntracksImporter extends BaseImporter {
       },
       headers,
     });
-    const recordings = OwntracksLocationApiResponseSchema.parse(response.data);
+    const recordings = await OwntracksLocationApiResponseSchema.parseAsync(response.data).catch((e) => {
+      this.logger.debug("Failed to parse response (zod error)", {
+        params,
+        data: response.data,
+      });
+      throw e;
+    });
 
     const { data } = recordings;
     const formattedEntries = data.map((entry) => this.formatApiEntry(placeholderJobId, entry));
@@ -203,6 +209,7 @@ export class OwntracksImporter extends BaseImporter {
       battery: entry.batt,
       batteryStatus,
       connectionStatus,
+      gpsSource: entry.source,
       location: {
         lat: entry.lat,
         lng: entry.lon,
