@@ -1,17 +1,15 @@
-import { useCallback } from 'react'
-import useEventEmitter, { type HandlerParams } from './useEventEmitter'
+import { useCallback } from "react";
+import useEventEmitter, { type HandlerParams } from "./useEventEmitter";
 
-export function useEventHandlers(
-  setCurrentDatum: (datum: { x: string | number | Date; y: number }) => void
-) {
+export function useEventHandlers(setCurrentDatum: (datum: { x: string | number | Date; y: number }) => void) {
   const handlePointerMove = useCallback(
     (params?: HandlerParams) => {
-      setCurrentDatum(params?.emitterNearestDatum ?? { x: 0, y: 0 })
+      setCurrentDatum(params?.emitterNearestDatum ?? { x: 0, y: 0 });
     },
-    [setCurrentDatum]
-  )
+    [setCurrentDatum],
+  );
 
-  useEventEmitter({ eventType: 'pointermove', handler: handlePointerMove })
+  useEventEmitter({ eventType: "pointermove", handler: handlePointerMove });
 
   //   const handlePointerUp = useCallback((params?: HandlerParams) => {
   //   }, [])

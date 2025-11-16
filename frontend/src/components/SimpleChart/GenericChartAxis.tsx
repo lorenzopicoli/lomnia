@@ -1,34 +1,28 @@
-import { AxisBottom, AxisLeft } from '@visx/axis'
-import { unitToLabel } from '../../charts/charts'
-import { useMantineTheme } from '@mantine/core'
-import type { GenericChartProps } from './GenericChartTypes'
-import type { AxisProps } from '@visx/axis/lib/axis/Axis'
-import { isNumber } from '../../utils/isNumber'
-import { format, isDate } from 'date-fns'
-import type { ChartScale } from '../../charts/types'
+import { AxisBottom, AxisLeft } from "@visx/axis";
+import { unitToLabel } from "../../charts/charts";
+import { useMantineTheme } from "@mantine/core";
+import type { GenericChartProps } from "./GenericChartTypes";
+import type { AxisProps } from "@visx/axis/lib/axis/Axis";
+import { isNumber } from "../../utils/isNumber";
+import { format, isDate } from "date-fns";
+import type { ChartScale } from "../../charts/types";
 
 export type GenericChartAxisProps = {
-  xScale: ChartScale
-  yScale: ChartScale
-  height: number
-  margin: { top: number; right: number; bottom: number; left: number }
+  xScale: ChartScale;
+  yScale: ChartScale;
+  height: number;
+  margin: { top: number; right: number; bottom: number; left: number };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  mainChart: GenericChartProps<any>
-}
-export function GenericChartAxis({
-  xScale,
-  yScale,
-  height,
-  margin,
-  mainChart,
-}: GenericChartAxisProps) {
-  const theme = useMantineTheme()
+  mainChart: GenericChartProps<any>;
+};
+export function GenericChartAxis({ xScale, yScale, height, margin, mainChart }: GenericChartAxisProps) {
+  const theme = useMantineTheme();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const tickProps: AxisProps<any>['tickLabelProps'] = {
+  const tickProps: AxisProps<any>["tickLabelProps"] = {
     fill: theme.colors.dark[0],
     fontSize: 13,
-  }
-  const axisColor = theme.colors.dark[0]
+  };
+  const axisColor = theme.colors.dark[0];
   return (
     <>
       <AxisBottom
@@ -37,21 +31,21 @@ export function GenericChartAxis({
         stroke={axisColor}
         tickLabelProps={tickProps}
         tickFormat={(v) => {
-          const unit = unitToLabel(mainChart.axis.x.unit)
+          const unit = unitToLabel(mainChart.axis.x.unit);
           if (isNumber(v)) {
-            return `${v.toFixed(2)}${unit ? ' ' : ''}${unit}`
+            return `${v.toFixed(2)}${unit ? " " : ""}${unit}`;
           }
           if (isDate(v)) {
-            return format(v, 'MMM dd')
+            return format(v, "MMM dd");
           }
-          console.log('Non number/date value in AxisBottom')
-          return ''
+          console.log("Non number/date value in AxisBottom");
+          return "";
         }}
       />
       <AxisLeft
         tickFormat={(v) => {
-          const unit = unitToLabel(mainChart.axis.y.unit)
-          return `${v}${unit ? ' ' : ''}${unit}`
+          const unit = unitToLabel(mainChart.axis.y.unit);
+          return `${v}${unit ? " " : ""}${unit}`;
         }}
         stroke={axisColor}
         tickLabelProps={tickProps}
@@ -59,5 +53,5 @@ export function GenericChartAxis({
         scale={yScale.scale}
       />
     </>
-  )
+  );
 }

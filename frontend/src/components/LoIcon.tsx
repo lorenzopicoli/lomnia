@@ -1,23 +1,17 @@
-import { type MantineColor, ThemeIcon, rem } from '@mantine/core'
-import type { Icon, IconProps } from '@tabler/icons-react'
-import type {
-  ComponentType,
-  ForwardRefExoticComponent,
-  RefAttributes,
-} from 'react'
+import { type MantineColor, ThemeIcon, rem } from "@mantine/core";
+import type { Icon, IconProps } from "@tabler/icons-react";
+import type { ComponentType, ForwardRefExoticComponent, RefAttributes } from "react";
 
 export type LoIconProps = {
-  color: MantineColor
-  Icon:
-    | ComponentType<IconProps>
-    | ForwardRefExoticComponent<Omit<IconProps, 'ref'> & RefAttributes<Icon>>
-}
+  color: MantineColor;
+  Icon: ComponentType<IconProps> | ForwardRefExoticComponent<Omit<IconProps, "ref"> & RefAttributes<Icon>>;
+};
 
 export function LoIcon(props: LoIconProps) {
-  const { Icon } = props
+  const { Icon } = props;
   return (
     <ThemeIcon size={rem(30)} radius="xl" color={props.color}>
       <Icon style={{ width: rem(20), height: rem(20) }} />
     </ThemeIcon>
-  )
+  );
 }

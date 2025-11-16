@@ -1,20 +1,14 @@
-import { GridColumns, GridRows } from '@visx/grid'
-import type { ChartScale } from '../../charts/types'
+import { GridColumns, GridRows } from "@visx/grid";
+import type { ChartScale } from "../../charts/types";
 
 export type GenericChartGridsProps = {
-  xScale: ChartScale
-  yScale: ChartScale
-  width: number
-  height: number
-  margin: { top: number; right: number; bottom: number; left: number }
-}
-export function GenericChartGrids({
-  xScale,
-  yScale,
-  width,
-  height,
-  margin,
-}: GenericChartGridsProps) {
+  xScale: ChartScale;
+  yScale: ChartScale;
+  width: number;
+  height: number;
+  margin: { top: number; right: number; bottom: number; left: number };
+};
+export function GenericChartGrids({ xScale, yScale, width, height, margin }: GenericChartGridsProps) {
   return (
     <>
       <GridRows
@@ -33,5 +27,5 @@ export function GenericChartGrids({
         opacity={0.1}
       />
     </>
-  )
+  );
 }

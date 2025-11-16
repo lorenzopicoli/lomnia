@@ -1,39 +1,25 @@
-import type { UseFormReturnType } from '@mantine/form'
-import type { AddChartFormValues } from './AddChart'
-import {
-  Text,
-  Checkbox,
-  Divider,
-  Flex,
-  Group,
-  Select,
-  Collapse,
-} from '@mantine/core'
-import styles from './AddChart.module.css'
+import type { UseFormReturnType } from "@mantine/form";
+import type { AddChartFormValues } from "./AddChart";
+import { Text, Checkbox, Divider, Flex, Group, Select, Collapse } from "@mantine/core";
+import styles from "./AddChart.module.css";
 import {
   aggregationFunctions,
   aggregationPeriods,
   chartSourceTitleAndDescription,
   stringToChartSource,
   type ChartSource,
-} from '../../charts/charts'
-import type { RouterOutputs } from '../../api/trpc'
-import { getKeys } from '../../utils/getKeys'
+} from "../../charts/charts";
+import type { RouterOutputs } from "../../api/trpc";
+import { getKeys } from "../../utils/getKeys";
 
 export function AddChartGeneralConfig(props: {
-  xKeys: RouterOutputs['getAvailableKeys']['xKeys']
-  showAggregationOptions: boolean
-  selectedSources: ChartSource[]
-  toggleWantsToAggregate: () => void
-  form: UseFormReturnType<AddChartFormValues>
+  xKeys: RouterOutputs["getAvailableKeys"]["xKeys"];
+  showAggregationOptions: boolean;
+  selectedSources: ChartSource[];
+  toggleWantsToAggregate: () => void;
+  form: UseFormReturnType<AddChartFormValues>;
 }) {
-  const {
-    xKeys,
-    showAggregationOptions,
-    selectedSources,
-    toggleWantsToAggregate,
-    form,
-  } = props
+  const { xKeys, showAggregationOptions, selectedSources, toggleWantsToAggregate, form } = props;
 
   const groupOptions = getKeys(xKeys)
     .filter((s) => selectedSources.includes(s as ChartSource))
@@ -41,27 +27,21 @@ export function AddChartGeneralConfig(props: {
       group: chartSourceTitleAndDescription(stringToChartSource(group)).title,
       items: xKeys[group].map((item) => ({
         value: `${group}-${item.key}`,
-        label: item.key === 'date' ? `${item.label} (recommended)` : item.label,
+        label: item.key === "date" ? `${item.label} (recommended)` : item.label,
       })),
-    }))
+    }));
 
   return (
     <>
-      <Divider m={'md'} />
-      <Flex
-        direction={'row'}
-        gap={'md'}
-        p={'sm'}
-        wrap="wrap"
-        justify={'space-between'}
-      >
+      <Divider m={"md"} />
+      <Flex direction={"row"} gap={"md"} p={"sm"} wrap="wrap" justify={"space-between"}>
         <Select
           label="X axis"
           placeholder=""
           data={groupOptions}
-          width={'50%'}
-          key={form.key('xKey')}
-          {...form.getInputProps('xKey', { type: 'input' })}
+          width={"50%"}
+          key={form.key("xKey")}
+          {...form.getInputProps("xKey", { type: "input" })}
         />
         <div>
           <Checkbox.Card
@@ -75,34 +55,33 @@ export function AddChartGeneralConfig(props: {
               <div>
                 <Text className={styles.cardCheckboxTitle}>Aggregate data</Text>
                 <Text className={styles.cardCheckboxDescription}>
-                  Use this to see aggregated data for a period (ie. monthly
-                  data)
+                  Use this to see aggregated data for a period (ie. monthly data)
                 </Text>
               </div>
             </Group>
           </Checkbox.Card>
 
-          <Flex direction={'row'} gap={'md'} pt={'sm'} wrap="wrap">
+          <Flex direction={"row"} gap={"md"} pt={"sm"} wrap="wrap">
             <Collapse in={showAggregationOptions}>
               <Select
                 label="Period"
                 placeholder=""
                 data={aggregationPeriods}
-                key={form.key('aggregation.period')}
-                {...form.getInputProps('aggregation.period')}
+                key={form.key("aggregation.period")}
+                {...form.getInputProps("aggregation.period")}
               />
 
               <Select
                 label="Function"
                 placeholder=""
                 data={aggregationFunctions}
-                key={form.key('aggregation.fun')}
-                {...form.getInputProps('aggregation.fun')}
+                key={form.key("aggregation.fun")}
+                {...form.getInputProps("aggregation.fun")}
               />
             </Collapse>
           </Flex>
         </div>
       </Flex>
     </>
-  )
+  );
 }

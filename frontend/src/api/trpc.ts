@@ -1,12 +1,9 @@
-import {
-  createTRPCReact,
-  type inferReactQueryProcedureOptions,
-} from '@trpc/react-query'
-import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server'
-import type { AppRouter } from '../../../backend/src/routes/trpcRouter'
+import { createTRPCReact, type inferReactQueryProcedureOptions } from "@trpc/react-query";
+import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
+import type { AppRouter } from "../../../backend/src/routes/trpcRouter";
 
-export type ReactQueryOptions = inferReactQueryProcedureOptions<AppRouter>
-export type RouterInputs = inferRouterInputs<AppRouter>
-export type RouterOutputs = inferRouterOutputs<AppRouter>
+export type ReactQueryOptions = inferReactQueryProcedureOptions<AppRouter>;
+export type RouterInputs = inferRouterInputs<AppRouter>;
+export type RouterOutputs = inferRouterOutputs<AppRouter>;
 
-export const trpc = createTRPCReact<AppRouter>()
+export const trpc = createTRPCReact<AppRouter>();
