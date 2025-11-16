@@ -9,6 +9,10 @@ export const OwntracksLocationSchema = z
     _type: z.literal("location"),
 
     /**
+     * The source of the datapoint hardware-wise
+     */
+    source: z.enum(["network", "fused", "gps"]).optional(),
+    /**
      * Latitude in degrees
      */
     lat: z.number().min(-90).max(90),
