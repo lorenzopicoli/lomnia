@@ -1,10 +1,11 @@
 import { isValid, parse } from "date-fns";
 import { asc, type SQL, sql } from "drizzle-orm";
+import type { DateTime } from "luxon";
 import { db } from "../db/connection";
 import { getKeys } from "../helpers/getKeys";
 import { dailyWeatherTable, type HourlyWeatherColumns, hourlyWeatherTable } from "../models";
 import { getAggregatedXColumn, getAggregatedYColumn, getMinMaxChart } from "./charts/charts";
-import type { ChartServiceParams, ChartServiceReturn } from "./charts/types";
+import type { AggregationPeriod, ChartServiceParams, ChartServiceReturn } from "./charts/types";
 
 export async function getWeatherInformation(params: { day: string }) {
   const { day } = params;
@@ -35,10 +36,10 @@ export const getWeatherCharts = async (params: ChartServiceParams): ChartService
   }
   const xKeyTyped = xKey as HourlyWeatherColumns;
   const yKeysTyped = yKeys as HourlyWeatherColumns[];
-  const xCol = getAggregatedXColumn(hourlyWeatherTable[xKeyTyped], aggregation);
+  const xCol = getAggregatedXColumn(hourlyWeatherTable[xKeyTyped], aggregation?.period);
   const yCols = yKeysTyped.reduce(
     (acc, curr) => {
-      acc[curr] = getAggregatedYColumn(hourlyWeatherTable[curr], aggregation).mapWith(Number);
+      acc[curr] = getAggregatedYColumn(hourlyWeatherTable[curr], aggregation?.fun).mapWith(Number);
       return acc;
     },
     {} as Record<HourlyWeatherColumns, SQL>,
@@ -80,4 +81,28 @@ export const getWeatherCharts = async (params: ChartServiceParams): ChartService
   }
 
   return getMinMaxChart(formatted);
+};
+
+export const getWeatherPrecipitation = async (params: {
+  startDate: DateTime;
+  endDate: DateTime;
+  period: AggregationPeriod;
+}) => {
+  const aggregatedDate = getAggregatedXColumn(dailyWeatherTable.date, params.period);
+  const data = db
+    .select({
+      rainSum: getAggregatedYColumn(dailyWeatherTable.rainSum, "max").mapWith(Number),
+      snowfallSum: sql`${getAggregatedYColumn(dailyWeatherTable.snowfallSum, "max")} * 10`.mapWith(Number),
+      date: aggregatedDate.mapWith(String),
+    })
+    .from(dailyWeatherTable)
+    .where(
+      sql`
+      ${dailyWeatherTable.date} >= (${params.startDate.toISO()} AT TIME ZONE 'America/Toronto')::date 
+      AND ${dailyWeatherTable.date} <= (${params.endDate.toISO()} AT TIME ZONE 'America/Toronto')::date`,
+    )
+    .groupBy(aggregatedDate)
+    .orderBy(asc(aggregatedDate));
+
+  return data;
 };

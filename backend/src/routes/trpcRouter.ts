@@ -11,9 +11,9 @@ import {
 } from "../services/charts/chartOptions";
 import { getDiaryEntries } from "../services/diaryEntries";
 import { getHabits, getHabitsCharts } from "../services/habits/habits";
-import { getHeartRateCharts } from "../services/heartRates";
+import { getHeartRateCharts, getHeartRateMinMaxAvg } from "../services/heartRates";
 import { getHeatmapPoints, getLocationsTimeline } from "../services/locations";
-import { getWeatherCharts, getWeatherInformation } from "../services/weather";
+import { getWeatherCharts, getWeatherInformation, getWeatherPrecipitation } from "../services/weather";
 
 export const t = initTRPC.create();
 
@@ -28,6 +28,16 @@ export const loggedProcedure = t.procedure.use(async (opts) => {
   result.ok ? console.log("OK request timing:", meta) : console.error("Non-OK request timing", meta);
 
   return result;
+});
+
+const period = z
+  .literal("month")
+  .or(z.literal("week"))
+  .or(z.literal("day").or(z.literal("hour")));
+
+const aggregation = z.object({
+  fun: z.literal("avg").or(z.literal("median")).or(z.literal("max")).or(z.literal("min")).or(z.literal("sum")),
+  period,
 });
 
 export const appRouter = t.router({
@@ -105,13 +115,7 @@ export const appRouter = t.router({
           endDate: z.iso.datetime(),
           xKey: z.string(),
           yKeys: z.array(z.string()),
-          aggregation: z.object({
-            fun: z.literal("avg").or(z.literal("median")).or(z.literal("max")).or(z.literal("min")),
-            period: z
-              .literal("month")
-              .or(z.literal("week"))
-              .or(z.literal("day").or(z.literal("hour"))),
-          }),
+          aggregation,
         })
         .partial()
         .required({
@@ -132,6 +136,28 @@ export const appRouter = t.router({
         aggregation: opts.input.aggregation,
       });
     }),
+  getWeatherPrecipitation: loggedProcedure
+    .input(
+      z
+        .object({
+          startDate: z.iso.datetime(),
+          endDate: z.iso.datetime(),
+          period,
+        })
+        .partial()
+        .required({
+          startDate: true,
+          endDate: true,
+          period: true,
+        }),
+    )
+    .query((opts) => {
+      return getWeatherPrecipitation({
+        startDate: DateTime.fromISO(opts.input.startDate, { zone: "UTC" }),
+        endDate: DateTime.fromISO(opts.input.endDate, { zone: "UTC" }),
+        period: opts.input.period,
+      });
+    }),
   getHeartRateCharts: loggedProcedure
     .input(
       z
@@ -140,10 +166,7 @@ export const appRouter = t.router({
           endDate: z.iso.datetime(),
           xKey: z.string(),
           yKeys: z.array(z.string()),
-          aggregation: z.object({
-            fun: z.literal("avg").or(z.literal("median")).or(z.literal("max")).or(z.literal("min")),
-            period: z.literal("month").or(z.literal("week")).or(z.literal("day")),
-          }),
+          aggregation,
         })
         .partial()
         .required({
@@ -164,6 +187,28 @@ export const appRouter = t.router({
         aggregation: opts.input.aggregation,
       });
     }),
+  getHeartRateMinMaxAvg: loggedProcedure
+    .input(
+      z
+        .object({
+          startDate: z.iso.datetime(),
+          endDate: z.iso.datetime(),
+          period,
+        })
+        .partial()
+        .required({
+          startDate: true,
+          endDate: true,
+          period: true,
+        }),
+    )
+    .query((opts) => {
+      return getHeartRateMinMaxAvg({
+        startDate: DateTime.fromISO(opts.input.startDate, { zone: "UTC" }),
+        endDate: DateTime.fromISO(opts.input.endDate, { zone: "UTC" }),
+        period: opts.input.period,
+      });
+    }),
   getHabitsCharts: loggedProcedure
     .input(
       z
@@ -172,10 +217,7 @@ export const appRouter = t.router({
           endDate: z.iso.datetime(),
           xKey: z.string(),
           yKeys: z.array(z.string()),
-          aggregation: z.object({
-            fun: z.literal("avg").or(z.literal("median")).or(z.literal("max")).or(z.literal("min")),
-            period: z.literal("month").or(z.literal("week")).or(z.literal("day")),
-          }),
+          aggregation,
         })
         .partial()
         .required({

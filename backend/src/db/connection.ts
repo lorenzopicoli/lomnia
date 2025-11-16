@@ -1,7 +1,7 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import * as schema from "../models";
 import { EnvVar, getEnvVarOrError } from "../helpers/envVars";
+import * as schema from "../models";
 
 const dbConfig = {
   host: getEnvVarOrError(EnvVar.DB_HOST),

@@ -3,8 +3,8 @@ import ReactECharts from "echarts-for-react";
 import { useMemo } from "react";
 import { trpc } from "../../api/trpc";
 
-export function WeatherExperienced(props: { startDate: Date; endDate: Date }) {
-  const { data, isLoading } = useQuery(
+export function TemperatureExperienced(props: { startDate: Date; endDate: Date }) {
+  const { data } = useQuery(
     trpc.getWeatherCharts.queryOptions({
       startDate: props.startDate.toISOString(),
       endDate: props.endDate.toISOString(),
@@ -22,21 +22,18 @@ export function WeatherExperienced(props: { startDate: Date; endDate: Date }) {
       type: "line",
       smooth: true,
       showSymbol: false,
-      data: points.map((p) => [p.x, p.y]),
+      data: points.map((p) => [new Date(p.x), +p.y.toFixed(2)]),
     }));
 
     return {
-      grid: { top: 20, right: 8, bottom: 24, left: 36 },
+      grid: { top: 40, right: 8, bottom: 24, left: 36 },
 
       xAxis: {
-        type: "category",
-        boundaryGap: false,
+        type: "time",
       },
 
       yAxis: {
         type: "value",
-        min: data.minY,
-        max: data.maxY,
       },
 
       series,

@@ -110,13 +110,23 @@ export class NominatimImport extends BaseImporter {
     });
 
     let nextLocation = await this.getNextPage({ tx: params.tx });
-
+    let previousTimer = new Date();
     while (nextLocation[0]) {
+      const currentTimer = new Date();
       const location = nextLocation[0];
-      this.logger.debug("Waiting before calling Nominatim again", {
-        delay: this.apiCallsDelay,
-      });
-      await delay(this.apiCallsDelay);
+      const timeEllapsed = currentTimer.getTime() - previousTimer.getTime();
+      if (timeEllapsed < this.apiCallsDelay) {
+        const remainingTime = this.apiCallsDelay - timeEllapsed;
+        this.logger.debug("Waiting before calling Nominatim again", {
+          delay: remainingTime,
+        });
+        await delay(remainingTime);
+      } else {
+        this.logger.debug("Skipping wait time since ellapsed time is longer than delay", {
+          delay: this.apiCallsDelay,
+          timeEllapsed,
+        });
+      }
       this.logger.debug("Calling Nominatim API for location", {
         locationId: location.id,
         locationPos: location.location,
@@ -131,6 +141,12 @@ export class NominatimImport extends BaseImporter {
           lat: location.location.lat,
           lon: location.location.lng,
         },
+      });
+      previousTimer = currentTimer;
+      this.logger.debug("Got Nominatim response", {
+        locationId: location.id,
+        locationPos: location.location,
+        locationFix: location.locationFix,
       });
 
       const parsedResponse = NominatimReverseResponseSchema.parse(response.data);

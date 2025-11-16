@@ -17,7 +17,7 @@ export default {
          *
          * The actual run might import a bit more since it fetches points per day so it might go above the limit
          */
-        maxImportSession: 5000,
+        maxImportSession: 15000,
       },
     },
     locationDetails: {
@@ -26,7 +26,7 @@ export default {
         /**
          * In MS
          */
-        apiCallsDelay: 1500,
+        apiCallsDelay: 1200,
         /**
          * Number of locations to be fetched in each run. Increasing this number will slowdown each cycle
          */

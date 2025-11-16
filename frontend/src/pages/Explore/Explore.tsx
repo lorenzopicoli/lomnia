@@ -9,7 +9,7 @@ import { useChartGridLayout } from "../../charts/useChartGridLayout";
 import { AddChart } from "../../components/AddChart/AddChart";
 import { ChartMenu } from "../../components/ChartMenu/ChartMenu";
 import { ResizableGrid } from "../../components/ResizableGrid/ResizableGrid";
-import { WeatherExperienced } from "../../containers/PreDefineCharts/WeatherExperienced";
+import { PrecipitationExperienced } from "../../containers/PreDefineCharts/PrecipitationExperienced";
 import { removeNills } from "../../utils/removeNils";
 
 export function Explore() {
@@ -62,7 +62,7 @@ export function Explore() {
                         <Container fluid h={"100%"} p={0} bg={theme.colors.dark[8]} />
                       ) : (
                         <Container fluid h={"100%"} p={0}>
-                          <WeatherExperienced startDate={dateRange[0]} endDate={dateRange[1]} />
+                          <PrecipitationExperienced startDate={dateRange[0]} endDate={dateRange[1]} />
                         </Container>
                       )}
                     </div>

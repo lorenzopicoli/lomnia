@@ -1,12 +1,14 @@
 import type { DateTime } from "luxon";
 
 export const aggregationPeriods = ["month", "day", "week", "hour"] as const;
+export type AggregationPeriod = (typeof aggregationPeriods)[number];
+export type AggregationFunction = "avg" | "max" | "min" | "median" | "sum";
 export type ChartServiceParams = {
   yKeys: string[];
   xKey: string;
   aggregation?: {
-    period: (typeof aggregationPeriods)[number];
-    fun: "avg" | "max" | "min" | "median";
+    period: AggregationPeriod;
+    fun: AggregationFunction;
   };
   filters: {
     startDate: DateTime;
