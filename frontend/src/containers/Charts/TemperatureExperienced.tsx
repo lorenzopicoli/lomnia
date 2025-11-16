@@ -2,15 +2,16 @@ import { useQuery } from "@tanstack/react-query";
 import ReactECharts from "echarts-for-react";
 import { useMemo } from "react";
 import { trpc } from "../../api/trpc";
+import type { AggregationPeriod } from "../../charts/types";
 
-export function TemperatureExperienced(props: { startDate: Date; endDate: Date }) {
+export function TemperatureExperienced(props: { startDate: Date; endDate: Date; aggPeriod: AggregationPeriod }) {
   const { data } = useQuery(
     trpc.getWeatherCharts.queryOptions({
       startDate: props.startDate.toISOString(),
       endDate: props.endDate.toISOString(),
       xKey: "date",
       yKeys: ["apparentTemperature", "temperature2m"],
-      aggregation: { fun: "avg", period: "hour" },
+      aggregation: { fun: "avg", period: props.aggPeriod },
     }),
   );
 
@@ -22,6 +23,7 @@ export function TemperatureExperienced(props: { startDate: Date; endDate: Date }
       type: "line",
       smooth: true,
       showSymbol: false,
+
       data: points.map((p) => [new Date(p.x), +p.y.toFixed(2)]),
     }));
 
@@ -34,6 +36,9 @@ export function TemperatureExperienced(props: { startDate: Date; endDate: Date }
 
       yAxis: {
         type: "value",
+        axisLabel: {
+          formatter: "{value} °C",
+        },
       },
 
       series,

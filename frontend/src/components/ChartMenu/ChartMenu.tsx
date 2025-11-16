@@ -1,6 +1,6 @@
 import { ActionIcon, Button, Flex, Menu } from "@mantine/core";
 import { DatePicker, type PickerBaseProps } from "@mantine/dates";
-import { IconLayoutGrid } from "@tabler/icons-react";
+import { IconCheck, IconEdit } from "@tabler/icons-react";
 import { format } from "date-fns/format";
 import { subHours } from "date-fns/subHours";
 import { subMonths } from "date-fns/subMonths";
@@ -63,9 +63,6 @@ export function ChartMenu(props: {
     <Menu shadow="md" width={200}>
       <Flex direction={"row"}>
         <Flex flex={1}>
-          <Button onClick={props.onNewChart} variant={"subtle"}>
-            Add chart
-          </Button>
           <Menu.Target>
             <Button variant="subtle">
               {format(props.currentRange[0], "MMMM do, yyyy HH:mm")} to{" "}
@@ -75,12 +72,17 @@ export function ChartMenu(props: {
         </Flex>
         {!isRearranging ? (
           <ActionIcon variant="light" size="lg" onClick={handleRearrange} mr={"lg"}>
-            <IconLayoutGrid />
+            <IconEdit />
           </ActionIcon>
         ) : (
-          <Button variant="primary" onClick={handleRearrange}>
-            Stop rearranging
-          </Button>
+          <>
+            <Button onClick={props.onNewChart} variant={"subtle"}>
+              Add chart
+            </Button>
+            <ActionIcon variant="light" size="lg" onClick={handleRearrange} mr={"lg"}>
+              <IconCheck />
+            </ActionIcon>
+          </>
         )}
       </Flex>
 

@@ -5,6 +5,7 @@ import { subYears } from "date-fns/subYears";
 import { useState } from "react";
 import { v4 } from "uuid";
 import { type ChartAreaConfig, type ChartId, ChartSource } from "../../charts/types";
+import { useChartsConfig } from "../../contexts/ChartsConfigContext";
 import { availableCharts, ChartDisplayer } from "../ChartDisplayer/ChartDisplayer";
 import { AddChartId } from "./AddChartId";
 import { AddChartPlaceholder } from "./AddChartPlaceholder";
@@ -24,6 +25,7 @@ export type AddChartFormValues = {
 const initialSource = ChartSource.Weather;
 export function AddChart(props: AddChartProps) {
   const [currentStep, setCurrentStep] = useState(0);
+  const { aggPeriod } = useChartsConfig();
   const form = useForm<AddChartFormValues>({
     mode: "uncontrolled",
     initialValues: {
@@ -116,7 +118,7 @@ export function AddChart(props: AddChartProps) {
         </Container>
         <Container fluid flex={1}>
           {values.chartId && currentStep === 1 ? (
-            <ChartDisplayer chartId={values.chartId} startDate={startDate} endDate={endDate} aggPeriod={"day"} />
+            <ChartDisplayer chartId={values.chartId} startDate={startDate} endDate={endDate} aggPeriod={aggPeriod} />
           ) : (
             <AddChartPlaceholder />
           )}

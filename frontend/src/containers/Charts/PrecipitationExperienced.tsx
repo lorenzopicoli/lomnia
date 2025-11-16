@@ -3,13 +3,14 @@ import type { EChartsOption } from "echarts";
 import ReactECharts from "echarts-for-react";
 import { useMemo } from "react";
 import { trpc } from "../../api/trpc";
+import type { AggregationPeriod } from "../../charts/types";
 
-export function PrecipitationExperienced(props: { startDate: Date; endDate: Date }) {
+export function PrecipitationExperienced(props: { startDate: Date; endDate: Date; aggPeriod: AggregationPeriod }) {
   const { data: precipitationData } = useQuery(
     trpc.getWeatherPrecipitation.queryOptions({
       startDate: props.startDate.toISOString(),
       endDate: props.endDate.toISOString(),
-      period: "day",
+      period: props.aggPeriod,
     }),
   );
 

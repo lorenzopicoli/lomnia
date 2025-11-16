@@ -1,4 +1,5 @@
-import { Container, Paper, ScrollArea, Space, useMantineTheme } from "@mantine/core";
+import { ActionIcon, Container, Paper, ScrollArea, Space, useMantineTheme } from "@mantine/core";
+import { IconTrash } from "@tabler/icons-react";
 import { useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useChartGridLayout } from "../../charts/useChartGridLayout";
@@ -57,12 +58,21 @@ export function ChartsDashboard() {
                     </Container>
                   ) : (
                     <Container fluid h={"100%"} p={0}>
-                      <ChartDisplayer
-                        chartId={chart.id}
-                        startDate={chartsConfig.startDate}
-                        endDate={chartsConfig.endDate}
-                        aggPeriod={"day"}
-                      />
+                      <Container fluid h={"100%"} p={0} opacity={chartsConfig.isRearranging ? 0.5 : 1}>
+                        <ChartDisplayer
+                          chartId={chart.id}
+                          startDate={chartsConfig.startDate}
+                          endDate={chartsConfig.endDate}
+                          aggPeriod={chartsConfig.aggPeriod}
+                        />
+                      </Container>
+                      {chartsConfig.isRearranging ? (
+                        <Container pos={"absolute"} top={0} right={0} p={0}>
+                          <ActionIcon size={"lg"} variant="light">
+                            <IconTrash size={20} />
+                          </ActionIcon>
+                        </Container>
+                      ) : null}
                     </Container>
                   )}
                 </div>

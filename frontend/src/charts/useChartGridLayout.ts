@@ -26,7 +26,7 @@ type ChartLayout = {
 export function useChartGridLayout(gridId: string): {
   isChangingLayout: boolean;
   onAddCharts: (charts: ChartAreaConfig[]) => void;
-  onRemoveChart: (chartId: string) => void;
+  onRemoveChart: (chartUniqueId: string) => void;
   chartsBeingShown: { [key: string]: ChartAreaConfig };
   layout: {
     idToChart: { [key: string]: ChartAreaConfig };

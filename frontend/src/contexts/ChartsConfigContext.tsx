@@ -20,7 +20,7 @@ export const ChartsConfigContext = createContext<ChartsConfig | undefined>(undef
 export const ChartsConfigProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [dateRange, setDateRange] = useState<[Date, Date]>([subDays(new Date(), 365), new Date()]);
   const [isRearranging, toggleIsRearranging] = useToggle([false, true]);
-  const [aggPeriod, setAggPeriod] = useState<AggregationPeriod>("day");
+  const [aggPeriod, setAggPeriod] = useState<AggregationPeriod>("week");
 
   return (
     <ChartsConfigContext.Provider
