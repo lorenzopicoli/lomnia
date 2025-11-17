@@ -48,7 +48,7 @@ export function ChartsDashboard() {
               {...gridProps}
               isResizable={chartsConfig.isRearranging}
               isDraggable={chartsConfig.isRearranging}
-              rowHeight={500}
+              rowHeight={100}
             >
               {charts.map((chart) => (
                 <div key={chart.uniqueId}>

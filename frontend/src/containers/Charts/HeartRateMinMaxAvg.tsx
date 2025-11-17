@@ -73,5 +73,7 @@ export function HeartRateMinMaxAvg(props: { startDate: Date; endDate: Date; aggP
     };
   }, [data]);
 
-  return <ReactECharts style={{ height: "100%" }} option={option} notMerge={true} lazyUpdate={true} />;
+  return (
+    <ReactECharts theme={"my_theme"} style={{ height: "100%" }} option={option} notMerge={true} lazyUpdate={true} />
+  );
 }

@@ -12,8 +12,10 @@ import "react-resizable/css/styles.css";
 import "maplibre-gl/dist/maplibre-gl.css";
 import "allotment/dist/style.css";
 import { createTheme, MantineProvider, rem } from "@mantine/core";
+import * as echarts from "echarts";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { queryClient } from "./api/trpc";
+import echartsTheme from "./assets/dark.project.json";
 import { ConfigProvider } from "./contexts/ConfigContext";
 import Layout from "./pages/Layout";
 
@@ -47,6 +49,8 @@ const theme = createTheme({
     },
   },
 });
+
+echarts.registerTheme("my_theme", echartsTheme.theme);
 
 const router = createBrowserRouter([
   {

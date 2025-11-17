@@ -111,7 +111,7 @@ export function useChartGridLayout(gridId: string): {
             x: 0,
             y: 0,
             w: defaultWidth,
-            h: 1,
+            h: 4,
           };
 
           if (lastElement) {
@@ -122,7 +122,7 @@ export function useChartGridLayout(gridId: string): {
               x: shouldTakeNewRow ? 0 : lastElement.x + lastElement.w,
               y: shouldTakeNewRow ? lastElement.y + 1 : lastElement.y,
               w: defaultWidth,
-              h: 1,
+              h: 4,
             };
           }
 

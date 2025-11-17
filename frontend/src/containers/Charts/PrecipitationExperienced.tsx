@@ -4,6 +4,7 @@ import ReactECharts from "echarts-for-react";
 import { useMemo } from "react";
 import { trpc } from "../../api/trpc";
 import type { AggregationPeriod } from "../../charts/types";
+import { EchartsCommonConfig } from "./commonConfig";
 
 export function PrecipitationExperienced(props: { startDate: Date; endDate: Date; aggPeriod: AggregationPeriod }) {
   const { data: precipitationData } = useQuery(
@@ -23,55 +24,60 @@ export function PrecipitationExperienced(props: { startDate: Date; endDate: Date
 
     return {
       tooltip: {
-        trigger: "axis",
-        axisPointer: { type: "shadow" },
-        formatter(params: any) {
-          const rain = params.find((p: any) => p.seriesName === "Rain")?.value[1] ?? 0;
-          const snow = params.find((p: any) => p.seriesName === "Snow")?.value[1] ?? 0;
-          const total = rain + snow;
-
-          return `
-          <div>
-            <strong>${new Date(params[0].value[0]).toDateString()}</strong><br/>
-            Rain: ${rain.toFixed(1)} mm<br/>
-            Snow: ${snow.toFixed(1)} mm<br/>
-            <b>Total: ${total.toFixed(1)} mm</b>
-          </div>
-        `;
-        },
+        ...EchartsCommonConfig.tooltip,
+        formatter: EchartsCommonConfig.dateNumberSeriesFormatter<Date, number>(
+          ["Rain", "Snow"],
+          (x) => x.toDateString(),
+          (y, series) => {
+            const formattedY = y.toFixed(1);
+            switch (series) {
+              case "Rain":
+                return `🌧 Rain: ${formattedY} mm`;
+              case "Snow":
+                return `❄️ Snow ${formattedY} mm`;
+              default:
+                return "";
+            }
+          },
+          (_x, ys) => {
+            const sum = ys.reduce((acc, cur) => acc + cur, 0).toFixed(1);
+            return `<b>Total: ${sum} mm</b>`;
+          },
+        ),
       },
 
-      legend: { top: 0 },
+      color: ["#4A90E2", "#BBD4F1"],
 
-      grid: [{ top: 40, bottom: 0, left: 0, right: 0 }],
+      legend: EchartsCommonConfig.legend,
+      grid: EchartsCommonConfig.grid,
+      xAxis: EchartsCommonConfig.timeXAxis,
 
-      xAxis: [{ type: "time", gridIndex: 0 }],
-
-      yAxis: [
-        {
-          type: "value",
-          name: "Precipitation (mm)",
-        },
-      ],
+      yAxis: {
+        ...EchartsCommonConfig.valueYAxis,
+        splitLine: EchartsCommonConfig.splitLine,
+        name: "mm",
+      },
 
       series: [
         {
           name: "Rain",
           type: "bar",
           stack: "precip",
-          xAxisIndex: 0,
-          yAxisIndex: 0,
           data: dates.map((d, i) => [d, rain[i]]),
-          barMaxWidth: 22,
+          itemStyle: {
+            ...EchartsCommonConfig.roundedBar,
+            opacity: 0.9,
+          },
         },
         {
           name: "Snow",
           type: "bar",
           stack: "precip",
-          xAxisIndex: 0,
-          yAxisIndex: 0,
           data: dates.map((d, i) => [d, snow[i]]),
-          barMaxWidth: 22,
+          itemStyle: {
+            ...EchartsCommonConfig.roundedBar,
+            opacity: 0.85,
+          },
         },
       ],
     };

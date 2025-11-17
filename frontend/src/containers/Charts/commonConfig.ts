@@ -1,0 +1,94 @@
+import type { CallbackDataParams } from "echarts/types/dist/shared";
+
+export namespace EchartsCommonConfig {
+  export const tooltip = {
+    axisPointer: { type: "shadow" as const },
+
+    trigger: "axis" as const,
+  };
+
+  export const legend = {
+    top: 5,
+
+    textStyle: {
+      color: "#fff",
+    },
+  };
+
+  export const grid = {
+    top: 50,
+    bottom: 0,
+    left: 0,
+    right: 0,
+  };
+
+  export const axisLabel = {
+    color: "#fff",
+    hideOverlap: true,
+  };
+
+  export const timeXAxis = {
+    type: "time" as const,
+    interval: "auto",
+    autoRotate: true,
+    axisLabel: {
+      ...EchartsCommonConfig.axisLabel,
+    },
+  };
+
+  export const valueYAxis = {
+    type: "value" as const,
+    nameGap: 20,
+  };
+
+  export const roundedBar = {
+    borderRadius: [4, 4, 0, 0],
+  };
+
+  export const splitLine = {
+    lineStyle: { opacity: 0.2 },
+  };
+
+  export function dateNumberSeriesFormatter<XValue, YValue>(
+    seriesNames: string[],
+    formatXValue: (x: XValue) => string,
+    formatYValue: (y: YValue, seriesName: string) => string,
+    formatExtra?: (x: XValue, ys: YValue[]) => string,
+  ) {
+    return (_params: CallbackDataParams | CallbackDataParams[]) => {
+      const params = Array.isArray(_params) ? _params : [_params];
+      const series = params.filter((p) => seriesNames.includes(p.seriesName ?? ""));
+      if (!series[0]) {
+        console.log("No series matched for tooltip");
+        return "";
+      }
+
+      const typeValue = (v: unknown) => v as unknown as [XValue, YValue];
+
+      const typed = typeValue(series[0].value);
+      const formattedX = formatXValue(typed[0]);
+
+      return `
+            <div>
+              <strong>${formattedX}</strong><br/>
+              ${series
+                .map((param) => {
+                  const typedValue = typeValue(param.value);
+                  const formattedY = formatYValue(typedValue[1], param.seriesName ?? "");
+
+                  return `${formattedY}<br/>`;
+                })
+                .join("")}
+              ${
+                formatExtra
+                  ? formatExtra(
+                      typed[0],
+                      series.map((p) => typeValue(p.value)[1]),
+                    )
+                  : ""
+              }
+            </div>
+          `;
+    };
+  }
+}

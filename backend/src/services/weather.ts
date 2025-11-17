@@ -106,3 +106,27 @@ export const getWeatherPrecipitation = async (params: {
 
   return data;
 };
+
+export const getWeatherApparentVsActual = async (params: {
+  startDate: DateTime;
+  endDate: DateTime;
+  period: AggregationPeriod;
+}) => {
+  const aggregatedDate = getAggregatedXColumn(hourlyWeatherTable.date, params.period);
+  const data = db
+    .select({
+      apparentTemp: getAggregatedYColumn(hourlyWeatherTable.apparentTemperature, "max").mapWith(Number),
+      actualTemp: getAggregatedYColumn(hourlyWeatherTable.temperature2m, "max").mapWith(Number),
+      date: aggregatedDate.mapWith(String),
+    })
+    .from(hourlyWeatherTable)
+    .where(
+      sql`
+      ${hourlyWeatherTable.date} >= (${params.startDate.toISO()} AT TIME ZONE 'America/Toronto')::date 
+      AND ${hourlyWeatherTable.date} <= (${params.endDate.toISO()} AT TIME ZONE 'America/Toronto')::date`,
+    )
+    .groupBy(aggregatedDate)
+    .orderBy(asc(aggregatedDate));
+
+  return data;
+};

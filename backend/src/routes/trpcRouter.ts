@@ -13,7 +13,12 @@ import { getDiaryEntries } from "../services/diaryEntries";
 import { getHabits, getHabitsCharts } from "../services/habits/habits";
 import { getHeartRateCharts, getHeartRateMinMaxAvg } from "../services/heartRates";
 import { getHeatmapPoints, getLocationsTimeline } from "../services/locations";
-import { getWeatherCharts, getWeatherInformation, getWeatherPrecipitation } from "../services/weather";
+import {
+  getWeatherApparentVsActual,
+  getWeatherCharts,
+  getWeatherInformation,
+  getWeatherPrecipitation,
+} from "../services/weather";
 
 export const t = initTRPC.create();
 
@@ -134,6 +139,29 @@ export const appRouter = t.router({
           endDate: DateTime.fromISO(opts.input.endDate, { zone: "UTC" }),
         },
         aggregation: opts.input.aggregation,
+      });
+    }),
+
+  getWeatherApparentVsActual: loggedProcedure
+    .input(
+      z
+        .object({
+          startDate: z.iso.datetime(),
+          endDate: z.iso.datetime(),
+          period,
+        })
+        .partial()
+        .required({
+          startDate: true,
+          endDate: true,
+          period: true,
+        }),
+    )
+    .query((opts) => {
+      return getWeatherApparentVsActual({
+        startDate: DateTime.fromISO(opts.input.startDate, { zone: "UTC" }),
+        endDate: DateTime.fromISO(opts.input.endDate, { zone: "UTC" }),
+        period: opts.input.period,
       });
     }),
   getWeatherPrecipitation: loggedProcedure
