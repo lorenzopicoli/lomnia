@@ -1,4 +1,3 @@
-import { useMantineTheme } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
 import ReactECharts from "echarts-for-react";
 import { useMemo } from "react";
@@ -7,7 +6,6 @@ import type { AggregationPeriod } from "../../charts/types";
 import { EchartsCommonConfig } from "./commonConfig";
 
 export function TemperatureExperienced(props: { startDate: Date; endDate: Date; aggPeriod: AggregationPeriod }) {
-  const theme = useMantineTheme();
   const { data } = useQuery(
     trpc.getWeatherApparentVsActual.queryOptions({
       startDate: props.startDate.toISOString(),
@@ -37,38 +35,60 @@ export function TemperatureExperienced(props: { startDate: Date; endDate: Date; 
     });
 
     return {
-      grid: EchartsCommonConfig.grid,
-      xAxis: EchartsCommonConfig.timeXAxis,
-
+      xAxis: {
+        type: "time",
+      },
       yAxis: {
-        ...EchartsCommonConfig.valueYAxis,
-        splitLine: EchartsCommonConfig.splitLine,
         axisLabel: {
-          ...EchartsCommonConfig.axisLabel,
           formatter: "{value} °C",
         },
       },
 
-      tooltip: { trigger: "axis" },
-      legend: EchartsCommonConfig.legend,
+      tooltip: {
+        trigger: "axis",
 
+        formatter: EchartsCommonConfig.dateNumberSeriesFormatter<Date, number>(
+          ["Apparent Temperature", "Actual Temperature", "Feels Hotter", "Feels Colder"],
+          (x) => x.toDateString(),
+          (y, series) => {
+            switch (series) {
+              case "Apparent Temperature": {
+                const formattedY = y.toFixed(0);
+                return `Apparent: <b>${formattedY}°C</b>`;
+              }
+              case "Actual Temperature": {
+                const formattedY = y.toFixed(0);
+                return `Actual: <b>${formattedY}°C</b>`;
+              }
+              case "Feels Hotter": {
+                const formattedY = +y.toFixed(2);
+                return formattedY !== 0 ? `Feels <b>${formattedY}°C</b> hotter` : "";
+              }
+              case "Feels Colder": {
+                const formattedY = +y.toFixed(2) * -1;
+                return formattedY !== 0 ? `Feels <b>${formattedY}°C</b> colder` : "";
+              }
+              default:
+                return "";
+            }
+          },
+        ),
+      },
       series: [
+        {
+          name: "Apparent Temperature",
+          type: "line",
+          data: dates.map((d, i) => [d, apparentTemps[i]]),
+        },
         {
           name: "Actual Temperature",
           type: "line",
-          smooth: true,
-          showSymbol: false,
           data: dates.map((d, i) => [d, actualTemps[i]]),
-          lineStyle: { width: 1.5 },
-          itemStyle: {
-            opacity: 0,
-          },
         },
         {
           name: "Feels Hotter",
           type: "line",
           data: dates.map((d, i) => [d, hotDiff[i]]),
-          smooth: true,
           symbol: "none",
           lineStyle: {
             opacity: 0,
@@ -87,7 +107,6 @@ export function TemperatureExperienced(props: { startDate: Date; endDate: Date; 
           type: "line",
           data: dates.map((d, i) => [d, coldDiff[i]]),
           symbol: "none",
-          smooth: true,
           lineStyle: {
             opacity: 0,
             color: "#4a9bf3",
@@ -100,21 +119,11 @@ export function TemperatureExperienced(props: { startDate: Date; endDate: Date; 
             opacity: 0.5,
           },
         },
-
-        {
-          name: "Apparent Temperature",
-          type: "line",
-          smooth: true,
-          showSymbol: false,
-          data: dates.map((d, i) => [d, apparentTemps[i]]),
-          lineStyle: { width: 1.5 },
-          itemStyle: {
-            opacity: 0,
-          },
-        },
       ],
     };
   }, [data]);
 
-  return <ReactECharts style={{ height: "100%" }} option={option} notMerge={true} lazyUpdate={true} />;
+  return (
+    <ReactECharts theme={"default_dark"} style={{ height: "100%" }} option={option} notMerge={true} lazyUpdate={true} />
+  );
 }

@@ -1,54 +1,9 @@
 import type { CallbackDataParams } from "echarts/types/dist/shared";
 
 export namespace EchartsCommonConfig {
-  export const tooltip = {
-    axisPointer: { type: "shadow" as const },
-
-    trigger: "axis" as const,
-  };
-
-  export const legend = {
-    top: 5,
-
-    textStyle: {
-      color: "#fff",
-    },
-  };
-
-  export const grid = {
-    top: 50,
-    bottom: 0,
-    left: 0,
-    right: 0,
-  };
-
-  export const axisLabel = {
-    color: "#fff",
-    hideOverlap: true,
-  };
-
-  export const timeXAxis = {
-    type: "time" as const,
-    interval: "auto",
-    autoRotate: true,
-    axisLabel: {
-      ...EchartsCommonConfig.axisLabel,
-    },
-  };
-
-  export const valueYAxis = {
-    type: "value" as const,
-    nameGap: 20,
-  };
-
   export const roundedBar = {
     borderRadius: [4, 4, 0, 0],
   };
-
-  export const splitLine = {
-    lineStyle: { opacity: 0.2 },
-  };
-
   export function dateNumberSeriesFormatter<XValue, YValue>(
     seriesNames: string[],
     formatXValue: (x: XValue) => string,
@@ -75,8 +30,10 @@ export namespace EchartsCommonConfig {
                 .map((param) => {
                   const typedValue = typeValue(param.value);
                   const formattedY = formatYValue(typedValue[1], param.seriesName ?? "");
-
-                  return `${formattedY}<br/>`;
+                  if (formattedY !== "") {
+                    return `${formattedY}<br/>`;
+                  }
+                  return "";
                 })
                 .join("")}
               ${

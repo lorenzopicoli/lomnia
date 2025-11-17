@@ -24,7 +24,6 @@ export function PrecipitationExperienced(props: { startDate: Date; endDate: Date
 
     return {
       tooltip: {
-        ...EchartsCommonConfig.tooltip,
         formatter: EchartsCommonConfig.dateNumberSeriesFormatter<Date, number>(
           ["Rain", "Snow"],
           (x) => x.toDateString(),
@@ -32,9 +31,9 @@ export function PrecipitationExperienced(props: { startDate: Date; endDate: Date
             const formattedY = y.toFixed(1);
             switch (series) {
               case "Rain":
-                return `🌧 Rain: ${formattedY} mm`;
+                return `Rain: <b>${formattedY}mm</b>`;
               case "Snow":
-                return `❄️ Snow ${formattedY} mm`;
+                return `Snow <b>${formattedY}mm</b>`;
               default:
                 return "";
             }
@@ -48,13 +47,11 @@ export function PrecipitationExperienced(props: { startDate: Date; endDate: Date
 
       color: ["#4A90E2", "#BBD4F1"],
 
-      legend: EchartsCommonConfig.legend,
-      grid: EchartsCommonConfig.grid,
-      xAxis: EchartsCommonConfig.timeXAxis,
+      xAxis: {
+        type: "time",
+      },
 
       yAxis: {
-        ...EchartsCommonConfig.valueYAxis,
-        splitLine: EchartsCommonConfig.splitLine,
         name: "mm",
       },
 
@@ -64,24 +61,26 @@ export function PrecipitationExperienced(props: { startDate: Date; endDate: Date
           type: "bar",
           stack: "precip",
           data: dates.map((d, i) => [d, rain[i]]),
-          itemStyle: {
-            ...EchartsCommonConfig.roundedBar,
-            opacity: 0.9,
-          },
+          itemStyle: EchartsCommonConfig.roundedBar,
         },
         {
           name: "Snow",
           type: "bar",
           stack: "precip",
           data: dates.map((d, i) => [d, snow[i]]),
-          itemStyle: {
-            ...EchartsCommonConfig.roundedBar,
-            opacity: 0.85,
-          },
+          itemStyle: EchartsCommonConfig.roundedBar,
         },
       ],
     };
   }, [precipitationData]);
 
-  return <ReactECharts style={{ height: "100%", width: "100%" }} option={option} notMerge lazyUpdate />;
+  return (
+    <ReactECharts
+      theme={"default_dark"}
+      style={{ height: "100%", width: "100%" }}
+      option={option}
+      notMerge
+      lazyUpdate
+    />
+  );
 }

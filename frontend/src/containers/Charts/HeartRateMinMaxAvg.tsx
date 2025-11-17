@@ -45,7 +45,6 @@ export function HeartRateMinMaxAvg(props: { startDate: Date; endDate: Date; aggP
           name: "Max",
           type: "line",
           data: data.map((point) => [new Date(point.date), point.max]),
-          smooth: true,
           symbol: "none",
           lineStyle: { width: 0 },
           areaStyle: { opacity: 0.25 },
@@ -54,7 +53,6 @@ export function HeartRateMinMaxAvg(props: { startDate: Date; endDate: Date; aggP
           name: "Min",
           type: "line",
           data: data.map((point) => [new Date(point.date), point.min]),
-          smooth: true,
           symbol: "none",
           lineStyle: { width: 0 },
           areaStyle: { opacity: 0.25 },
@@ -63,7 +61,6 @@ export function HeartRateMinMaxAvg(props: { startDate: Date; endDate: Date; aggP
           name: "Median",
           type: "line",
           data: data.map((point) => [new Date(point.date), point.median]),
-          smooth: true,
           symbol: "none",
           lineStyle: { width: 2 },
         },
@@ -74,6 +71,6 @@ export function HeartRateMinMaxAvg(props: { startDate: Date; endDate: Date; aggP
   }, [data]);
 
   return (
-    <ReactECharts theme={"my_theme"} style={{ height: "100%" }} option={option} notMerge={true} lazyUpdate={true} />
+    <ReactECharts theme={"default_dark"} style={{ height: "100%" }} option={option} notMerge={true} lazyUpdate={true} />
   );
 }

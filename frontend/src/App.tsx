@@ -15,8 +15,8 @@ import { createTheme, MantineProvider, rem } from "@mantine/core";
 import * as echarts from "echarts";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { queryClient } from "./api/trpc";
-import echartsTheme from "./assets/dark.project.json";
 import { ConfigProvider } from "./contexts/ConfigContext";
+import { EchartsThemes } from "./echartsThemes";
 import Layout from "./pages/Layout";
 
 const theme = createTheme({
@@ -50,7 +50,7 @@ const theme = createTheme({
   },
 });
 
-echarts.registerTheme("my_theme", echartsTheme.theme);
+echarts.registerTheme("default_dark", EchartsThemes.darkDefault);
 
 const router = createBrowserRouter([
   {
