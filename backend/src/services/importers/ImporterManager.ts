@@ -1,20 +1,20 @@
-import { PiholeSchemaRequestImporter } from "./pihole";
+import { DateTime } from "luxon";
+import config from "../../config";
+import { Logger } from "../Logger";
+import { GoogleTakeoutLocationsImporter } from "./google/locationTakeout";
+import { GoogleLocationsTimelineImporter } from "./google/locationTimelineExport";
 import { ExternalLocationsImporter } from "./locations";
+import { NominatimImport } from "./nominatim";
 import { ObsidianImporter } from "./obsidian";
 import { OpenMeteoImport } from "./openMeteo";
-import { UserPointsOfInterestImporter } from "./userPOI";
-import { NominatimImport } from "./nominatim";
-import { SamsungHealthStepCountImporter } from "./samsungHealth/stepCount";
+import { OwntracksImporter } from "./owntracks";
+import { PiholeSchemaRequestImporter } from "./pihole";
 import { SamsungHealthHeartRateImporter } from "./samsungHealth/heartRate";
 import { SamsungHealthSleepImporter } from "./samsungHealth/sleep";
 import { SamsungHealthSleepStageImporter } from "./samsungHealth/sleepStage";
 import { SamsungHealthSnoringImporter } from "./samsungHealth/snoring";
-import { GoogleLocationsTimelineImporter } from "./google/locationTimelineExport";
-import { GoogleTakeoutLocationsImporter } from "./google/locationTakeout";
-import { OwntracksImporter } from "./owntracks";
-import { DateTime } from "luxon";
-import config from "../../config";
-import { Logger } from "../Logger";
+import { SamsungHealthStepCountImporter } from "./samsungHealth/stepCount";
+import { UserPointsOfInterestImporter } from "./userPOI";
 
 export class ImporterManager {
   private lastStart: DateTime | null = null;
@@ -92,20 +92,20 @@ export class ImporterManager {
   }
 
   private async runLocationDetailsImporters() {
-    // Nominatim
-    if (config.importers.locationDetails.nominatim.enabled) {
-      const nominatim = new NominatimImport();
-      await nominatim.startJob();
-    } else {
-      this.logger.debug("Skipping Nominatim import");
-    }
-
     // Points of interest
     if (config.importers.locationDetails.userPoi.enabled) {
       const userPOI = new UserPointsOfInterestImporter();
       await userPOI.startJob();
     } else {
       this.logger.debug("Skipping places of interest import");
+    }
+
+    // Nominatim
+    if (config.importers.locationDetails.nominatim.enabled) {
+      const nominatim = new NominatimImport();
+      await nominatim.startJob();
+    } else {
+      this.logger.debug("Skipping Nominatim import");
     }
 
     // Open meteo
