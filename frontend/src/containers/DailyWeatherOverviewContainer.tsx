@@ -6,6 +6,8 @@ import {
   IconDroplets,
   IconSnowflake,
   IconSun,
+  IconSunrise,
+  IconSunset,
   IconTemperatureMinus,
   IconTemperaturePlus,
   IconUmbrella,
@@ -17,6 +19,7 @@ import { intervalToDuration } from "date-fns/intervalToDuration";
 import { startOfDay } from "date-fns/startOfDay";
 import { trpc } from "../api/trpc";
 import { LoIcon } from "../components/LoIcon";
+import { formatDateTime } from "../utils/formatDateTime";
 import { getRandomColor } from "../utils/getRandomColor";
 import { isNumber } from "../utils/isNumber";
 
@@ -58,7 +61,7 @@ export default function DailyWeatherOverviewContainer(props: DailyWeatherOvervie
   }
 
   if (!data) {
-    return "No data";
+    return null;
   }
 
   const sunshineInterval = isNumber(data.daily?.sunshineDuration)
@@ -88,6 +91,22 @@ export default function DailyWeatherOverviewContainer(props: DailyWeatherOvervie
               <Flex gap={"sm"}>
                 <LoIcon Icon={IconUvIndex} color={getRandomColor()} />
                 {`Sunshine: ${zeroPad(sunshineInterval.hours ?? 0)}h${zeroPad(sunshineInterval.minutes ?? 0)}m`}
+              </Flex>
+            </Grid.Col>
+          ) : null}
+          {data.daily.sunrise ? (
+            <Grid.Col span={6}>
+              <Flex gap={"sm"}>
+                <LoIcon Icon={IconSunrise} color={getRandomColor()} />
+                {`Sunrise: ${formatDateTime(data.daily.sunrise)}`}
+              </Flex>
+            </Grid.Col>
+          ) : null}
+          {data.daily.sunset ? (
+            <Grid.Col span={6}>
+              <Flex gap={"sm"}>
+                <LoIcon Icon={IconSunset} color={getRandomColor()} />
+                {`Sunrise: ${formatDateTime(data.daily.sunset)}`}
               </Flex>
             </Grid.Col>
           ) : null}

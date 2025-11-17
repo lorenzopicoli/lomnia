@@ -43,7 +43,7 @@ export default function PlacesVisitedTimelineContainer(props: PlacesVisitedTimel
   }
 
   if (!data) {
-    return "No data";
+    return null;
   }
 
   return (

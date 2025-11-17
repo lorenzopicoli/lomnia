@@ -1,4 +1,4 @@
-import { Anchor, Chip, Group, Text } from "@mantine/core";
+import { Anchor, Chip, Container, Group, Text } from "@mantine/core";
 import Markdown from "react-markdown";
 import wikiLinkPlugin from "remark-wiki-link";
 import { Anonymize } from "../Anonymize/Anonymize";
@@ -12,7 +12,7 @@ export type DiaryEntryProps = {
 
 function DiaryEntry(props: DiaryEntryProps) {
   return (
-    <div>
+    <Container fluid mt={-20}>
       <Anonymize>
         <Markdown
           remarkPlugins={[wikiLinkPlugin]}
@@ -37,7 +37,7 @@ function DiaryEntry(props: DiaryEntryProps) {
           </Chip>
         ))}
       </Group>
-    </div>
+    </Container>
   );
 }
 

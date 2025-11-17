@@ -26,7 +26,7 @@ export default function DailyHabitEntriesContainer(props: DailyHabitEntriesProps
   }
 
   if (!data) {
-    return "No data";
+    return null;
   }
 
   return (

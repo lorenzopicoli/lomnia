@@ -23,7 +23,7 @@ export const DiaryEntryContainer = memo((props: DiaryEntryContainer) => {
   }
 
   if (!data) {
-    return "No data";
+    return null;
   }
 
   return (

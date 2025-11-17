@@ -43,17 +43,23 @@ function Home() {
   }, [parsedDay]);
 
   const theme = useMantineTheme();
+  const scrollAreaHeight = "calc(100vh - var(--app-shell-header-height, 0px) - var(--app-shell-footer-height, 0px))";
   return (
     <Paper component={Container} fluid h={"100vh"} bg={theme.colors.dark[9]}>
       <Allotment className={classes.splitPane}>
         <Allotment.Pane preferredSize={"75%"}>
-          <ScrollArea
-            h="calc(100vh - var(--app-shell-header-height, 0px) - var(--app-shell-footer-height, 0px))"
-            type="never"
-          >
-            <Container fluid className={classes.diaryEntry} pt={"md"} pb={"md"}>
+          <ScrollArea h={scrollAreaHeight} type="never">
+            <Flex
+              direction={"column"}
+              component={Container}
+              fluid
+              className={classes.diaryEntry}
+              pt={"xl"}
+              pb={"md"}
+              gap={100}
+            >
               <DiaryEntryContainer date={day} />
-              <Flex direction={"row"} pt={100}>
+              <Flex flex={1} direction={"row"}>
                 <Container pb={"xl"} pl={0} fluid maw={400}>
                   <PlacesVisitedTimelineContainer date={day} onFilterChange={handleMapFilterChange} />
                 </Container>
@@ -64,20 +70,17 @@ function Home() {
                   </AspectRatio>
                 </Container>
               </Flex>
-            </Container>
+            </Flex>
           </ScrollArea>
         </Allotment.Pane>
         <Allotment.Pane preferredSize={"25%"}>
-          <ScrollArea
-            h="calc(100vh - var(--app-shell-header-height, 0px) - var(--app-shell-footer-height, 0px))"
-            type="never"
-          >
-            <Container fluid pt={"md"} pr={0}>
+          <ScrollArea h={scrollAreaHeight} type="never">
+            <Flex component={Container} fluid pt={"xl"} pr={0}>
               <DailyHabitEntries date={day} />
-              <Container pl={0} pt={"xl"} fluid>
+              <Container pl={0} fluid>
                 <DailyWeatherOverviewContainer date={day} />
               </Container>
-            </Container>
+            </Flex>
           </ScrollArea>
         </Allotment.Pane>
       </Allotment>
