@@ -1,16 +1,16 @@
-import { Container, Flex, Paper, ScrollArea, useMantineTheme } from "@mantine/core";
+import { AspectRatio, Container, Flex, Paper, ScrollArea, useMantineTheme } from "@mantine/core";
 import { Allotment } from "allotment";
 import { endOfDay } from "date-fns/endOfDay";
 import { parse } from "date-fns/parse";
 import { startOfDay } from "date-fns/startOfDay";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import DailyHabitEntries from "../../containers/DailyHabitEntries";
 import DailyWeatherOverviewContainer from "../../containers/DailyWeatherOverviewContainer";
 import { DiaryEntryContainer } from "../../containers/DiaryEntryContainer";
 import HeatmapContainer from "../../containers/HeatmapContainer";
-import classes from "./Home.module.css";
 import PlacesVisitedTimelineContainer from "../../containers/PlacesVisitedTimelineContainer";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import classes from "./Home.module.css";
 
 function Home() {
   const [searchParams] = useSearchParams();
@@ -51,17 +51,17 @@ function Home() {
             h="calc(100vh - var(--app-shell-header-height, 0px) - var(--app-shell-footer-height, 0px))"
             type="never"
           >
-            <Container className={classes.diaryEntry} pt={"md"} pb={"md"}>
+            <Container fluid className={classes.diaryEntry} pt={"md"} pb={"md"}>
               <DiaryEntryContainer date={day} />
               <Flex direction={"row"} pt={100}>
-                <Container pb={"xl"} pl={0} fluid maw={"50%"}>
+                <Container pb={"xl"} pl={0} fluid maw={400}>
                   <PlacesVisitedTimelineContainer date={day} onFilterChange={handleMapFilterChange} />
                 </Container>
 
                 <Container fluid h={500} flex={"1"}>
-                  {/* <AspectRatio ratio={1} className={classes.map}> */}
-                  <HeatmapContainer startDate={mapFilter.startDate} endDate={mapFilter.endDate} />
-                  {/* </AspectRatio> */}
+                  <AspectRatio ratio={1} mah={"75vh"} className={classes.map}>
+                    <HeatmapContainer startDate={mapFilter.startDate} endDate={mapFilter.endDate} />
+                  </AspectRatio>
                 </Container>
               </Flex>
             </Container>
@@ -73,16 +73,6 @@ function Home() {
             type="never"
           >
             <Container fluid pt={"md"} pr={0}>
-              {/* <Container pb={'xl'} pl={0} pt={'xl'} fluid>
-                <PlacesVisitedTimelineContainer date={day} />
-              </Container>
-              <AspectRatio ratio={1} className={classes.map}>
-                <HeatmapContainer
-                  startDate={startOfDay(day)}
-                  endDate={endOfDay(day)}
-                />
-              </AspectRatio>
-              <Divider my="md" /> */}
               <DailyHabitEntries date={day} />
               <Container pl={0} pt={"xl"} fluid>
                 <DailyWeatherOverviewContainer date={day} />

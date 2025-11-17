@@ -9,6 +9,7 @@ type HeaderProps = {
   onSearch: (query: string) => void;
   onChangePrivateMode: (privateMode: boolean) => void;
   onGoToExplore: () => void;
+  onGoToHome: () => void;
   currentDate: Date;
   privateMode: boolean;
 };
@@ -23,11 +24,15 @@ function Header(props: HeaderProps) {
 
   return (
     <Flex component={Container} fluid justify={"space-between"} align={"center"} bg={theme.colors.dark[9]} h={"100%"}>
-      <Button variant="subtle" onClick={props.onGoToExplore}>
-        Explore data
-      </Button>
-
-      <Flex component={"h2"} gap={"lg"} align={"center"}>
+      <Flex component={Container} justify={"center"} align={"center"} bg={theme.colors.dark[9]} h={"100%"}>
+        <Button variant="subtle" onClick={props.onGoToHome}>
+          Home
+        </Button>
+        <Button variant="subtle" onClick={props.onGoToExplore}>
+          Explore
+        </Button>
+      </Flex>
+      <Flex flex={1} component={"h2"} gap={"lg"} justify={"center"} align={"center"}>
         <Button onClick={props.onPreviousDay} variant="subtle">
           <Center>
             <IconChevronLeft />

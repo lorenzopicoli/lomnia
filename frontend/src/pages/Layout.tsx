@@ -42,6 +42,11 @@ function Layout() {
       pathname: "/explore",
     });
   };
+  const handleGoToHome = () => {
+    navigate({
+      pathname: "/",
+    });
+  };
 
   const handleChangePrivateMode = (mode: boolean) => config.updateConfig({ privateMode: mode });
   const handleSearch = () => null;
@@ -57,6 +62,7 @@ function Layout() {
           onSearch={handleSearch}
           privateMode={config.privateMode}
           onGoToExplore={handleGoToExplore}
+          onGoToHome={handleGoToHome}
         />
       </AppShell.Header>
       <AppShell.Main>
