@@ -55,6 +55,8 @@ export default {
       },
       userPoi: {
         enabled: true,
+
+        recalculateAll: false,
       },
     },
     health: {
