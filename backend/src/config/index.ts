@@ -54,7 +54,7 @@ export default {
         apiCallsDelay: 10000,
       },
       userPoi: {
-        enabled: false,
+        enabled: true,
       },
     },
     health: {
