@@ -18,6 +18,7 @@ export enum ChartId {
   TemperatureExperienced = "temperatureExperienced",
   HeartRateMinMaxAvg = "heartRateMinMaxAvg ",
   PrecipitationExperienced = "precipitationExperienced ",
+  RainHeatmap = "rainHeatmap",
 }
 
 export const aggregationPeriods = ["month", "day", "week", "hour"] as const;
@@ -33,19 +34,6 @@ export enum ChartSource {
   Weather = "weather",
   Habit = "habit",
   HeartRate = "heartRate",
-}
-
-export function stringToChartSource(str: string) {
-  switch (str) {
-    case "weather":
-      return ChartSource.Weather;
-    case "habit":
-      return ChartSource.Habit;
-    case "heartRate":
-      return ChartSource.HeartRate;
-    default:
-      throw new Error(`Unknown chart source: ${str}`);
-  }
 }
 
 export function chartSourceTitleAndDescription(source: ChartSource): {

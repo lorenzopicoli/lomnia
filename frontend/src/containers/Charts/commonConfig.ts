@@ -4,6 +4,17 @@ export namespace EchartsCommonConfig {
   export const roundedBar = {
     borderRadius: [4, 4, 0, 0],
   };
+
+  export const colors = {
+    rain: "#4A90E2",
+
+    snow: "#BBD4F1",
+  };
+
+  export const colorSteps = {
+    rain: ["#205799", "#1464C4", "#0771F2", "#00B2FF"],
+  };
+
   export function dateNumberSeriesFormatter<XValue, YValue>(
     seriesNames: string[],
     formatXValue: (x: XValue) => string,

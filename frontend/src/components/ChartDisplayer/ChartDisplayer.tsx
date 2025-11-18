@@ -1,6 +1,7 @@
 import { ChartId, type ChartProps, ChartSource } from "../../charts/types";
 import { HeartRateMinMaxAvg } from "../../containers/Charts/HeartRateMinMaxAvg";
 import { PrecipitationExperienced } from "../../containers/Charts/PrecipitationExperienced";
+import { RainHeatmap } from "../../containers/Charts/RainHeatmap";
 import { TemperatureExperienced } from "../../containers/Charts/TemperatureExperienced";
 
 interface ChartDisplayerProps extends ChartProps {
@@ -15,6 +16,8 @@ export function ChartDisplayer(props: ChartDisplayerProps) {
       return <PrecipitationExperienced {...props} />;
     case ChartId.TemperatureExperienced:
       return <TemperatureExperienced {...props} />;
+    case ChartId.RainHeatmap:
+      return <RainHeatmap {...props} />;
   }
 }
 
@@ -35,6 +38,12 @@ export const availableCharts = [
     id: ChartId.PrecipitationExperienced,
     title: "Precipitation Experienced (snow + rain)",
     description: "See how much rain and snow you have experienced",
+    sources: [ChartSource.Weather],
+  },
+  {
+    id: ChartId.RainHeatmap,
+    title: "Rain experienced in a calendar",
+    description: "See how much rain you have experienced",
     sources: [ChartSource.Weather],
   },
 ];

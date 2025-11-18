@@ -23,7 +23,9 @@ export namespace EchartsThemes {
       "#c14089",
     ],
     backgroundColor: "transparent",
-    textStyle: {},
+    textStyle: {
+      fontFamily: "JetBrains Mono",
+    },
     title: {
       textStyle: {
         color: "#ffffff",

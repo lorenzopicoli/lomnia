@@ -45,7 +45,7 @@ export function PrecipitationExperienced(props: { startDate: Date; endDate: Date
         ),
       },
 
-      color: ["#4A90E2", "#BBD4F1"],
+      color: [EchartsCommonConfig.colors.rain, EchartsCommonConfig.colors.snow],
 
       xAxis: {
         type: "time",
