@@ -106,7 +106,7 @@ export default function DailyWeatherOverviewContainer(props: DailyWeatherOvervie
             <Grid.Col span={6}>
               <Flex gap={"sm"}>
                 <LoIcon Icon={IconSunset} color={getRandomColor()} />
-                {`Sunrise: ${formatDateTime(data.daily.sunset)}`}
+                {`Sunset: ${formatDateTime(data.daily.sunset)}`}
               </Flex>
             </Grid.Col>
           ) : null}
