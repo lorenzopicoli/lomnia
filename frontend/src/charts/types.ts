@@ -13,6 +13,10 @@ export type ChartAreaConfig = {
    */
   habitKey?: string;
   /**
+   * Key if a count chart
+   */
+  countKey?: string;
+  /**
    * A random uuid that uniquely identifies this instance of the chart
    */
   uniqueId: string;
@@ -23,7 +27,9 @@ export enum ChartId {
   HeartRateMinMaxAvg = "heartRateMinMaxAvg ",
   PrecipitationExperienced = "precipitationExperienced ",
   RainHeatmap = "rainHeatmap",
-  NumberHabitCalendarHeatmap = "NumberHabitCalendarHeatmap",
+  NumberHabitCalendarHeatmap = "numberHabitCalendarHeatmap",
+  MetaValue = "metaValue",
+  Count = "Count",
 }
 
 export const aggregationPeriods = ["month", "day", "week", "hour"] as const;
@@ -39,12 +45,19 @@ export interface HabitChartProps extends ChartProps {
   habitKey: string;
 }
 
-export type AllChartsProps = ChartProps & Partial<HabitChartProps>;
+export interface CountCardChartProps extends ChartProps {
+  unit?: string;
+  description?: string;
+  countKey: string;
+}
+
+export type AllChartsProps = ChartProps & Partial<HabitChartProps> & Partial<CountCardChartProps>;
 
 export enum ChartSource {
   Weather = "weather",
   Habit = "habit",
   HeartRate = "heartRate",
+  Meta = "meta",
 }
 
 export enum ChartElement {
@@ -52,6 +65,7 @@ export enum ChartElement {
   Area = "area",
   CalendarHeatmap = "calendarHeatmap",
   Bar = "bar",
+  Value = "value",
 }
 
 export function chartSourceTitleAndDescription(source: ChartSource): {
@@ -72,7 +86,12 @@ export function chartSourceTitleAndDescription(source: ChartSource): {
     case ChartSource.HeartRate:
       return {
         title: "Heart Rate",
-        description: "Heart rate data from the user",
+        description: "Heart rate data collected",
+      };
+    case ChartSource.Meta:
+      return {
+        title: "Meta information",
+        description: "Data on the system (eg. number of entries collected)",
       };
   }
 }

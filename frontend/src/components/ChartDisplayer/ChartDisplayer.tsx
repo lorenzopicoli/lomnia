@@ -1,4 +1,5 @@
 import { type AllChartsProps, ChartElement, ChartId, ChartSource } from "../../charts/types";
+import { CountCard } from "../../containers/Charts/CountCard";
 import { HeartRateMinMaxAvg } from "../../containers/Charts/HeartRateMinMaxAvg";
 import { NumberHabitCalendarHeatmap } from "../../containers/Charts/NumberHabitCalendarHeatmap";
 import { PrecipitationExperienced } from "../../containers/Charts/PrecipitationExperienced";
@@ -26,6 +27,13 @@ export function ChartDisplayer(props: ChartDisplayerProps) {
         return <ChartPlaceholder text="Select a habit key to see data in here" />;
       }
       return <NumberHabitCalendarHeatmap {...props} habitKey={habitKey} />;
+    }
+    case ChartId.Count: {
+      const countKey = props.countKey;
+      if (!countKey) {
+        return <ChartPlaceholder text="Select a count key to see data in here" />;
+      }
+      return <CountCard {...props} countKey={countKey} />;
     }
   }
 }
@@ -65,5 +73,12 @@ export const availableCharts = [
     description: "See how often and by how much you do a certain habit in a calendar",
     sources: [ChartSource.Habit],
     elements: [ChartElement.CalendarHeatmap],
+  },
+  {
+    id: ChartId.Count,
+    title: "Entry count",
+    description: "Displays the number of entries collected from a source",
+    sources: [ChartSource.Meta],
+    elements: [ChartElement.Value],
   },
 ];

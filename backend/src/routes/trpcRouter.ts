@@ -3,9 +3,9 @@ import { DateTime } from "luxon";
 import { z } from "zod";
 import { habitsNumericKeys } from "../services/charts/chartOptions";
 import { getDiaryEntries } from "../services/diaryEntries";
-import { getHabits, getHabitsCharts, getNumberHabit } from "../services/habits/habits";
+import { getHabits, getNumberHabit } from "../services/habits/habits";
 import { getHeartRateCharts, getHeartRateMinMaxAvg } from "../services/heartRates";
-import { getHeatmapPoints, getLocationsTimeline } from "../services/locations";
+import { getHeatmapPoints, getLocationEntriesCount, getLocationsTimeline } from "../services/locations";
 import {
   getWeatherApparentVsActual,
   getWeatherCharts,
@@ -255,41 +255,32 @@ export const appRouter = t.router({
         habitKey: opts.input.habitKey,
       });
     }),
-  getHabitsCharts: loggedProcedure
-    .input(
-      z
-        .object({
-          startDate: z.iso.datetime(),
-          endDate: z.iso.datetime(),
-          xKey: z.string(),
-          yKeys: z.array(z.string()),
-          aggregation,
-        })
-        .partial()
-        .required({
-          xKey: true,
-          yKeys: true,
-          startDate: true,
-          endDate: true,
-        }),
-    )
-    .query((opts) => {
-      return getHabitsCharts({
-        xKey: opts.input.xKey,
-        yKeys: opts.input.yKeys,
-        filters: {
-          startDate: DateTime.fromISO(opts.input.startDate, { zone: "UTC" }),
-          endDate: DateTime.fromISO(opts.input.endDate, { zone: "UTC" }),
-        },
-        aggregation: opts.input.aggregation,
-      });
-    }),
 
   getHabitKeys: loggedProcedure.query(async () => {
     return {
       numeric: await habitsNumericKeys(),
     };
   }),
+  getCountKeys: loggedProcedure.query(async () => {
+    return ["totalWeatherEnties", "dailyWeatherEntries", "hourlyWeatherEntries", "totalLocationEntries"];
+  }),
+  getCounts: loggedProcedure
+    .input(
+      z
+        .object({
+          countKey: z.string(),
+        })
+        .partial()
+        .required({
+          countKey: true,
+        }),
+    )
+    .query((opts) => {
+      if (opts.input.countKey === "totalLocationEntries") {
+        return getLocationEntriesCount();
+      }
+      return 10000;
+    }),
 });
 
 export type AppRouter = typeof appRouter;

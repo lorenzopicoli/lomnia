@@ -1,11 +1,11 @@
-import { sql, eq, asc, avg, min, max } from "drizzle-orm";
+import { asc, avg, count, eq, max, min, sql } from "drizzle-orm";
 import type { PgSelectHKT, PgSelectQueryBuilder } from "drizzle-orm/pg-core";
+import type { DateTime } from "luxon";
 import { db } from "../db/connection";
 import type { Point } from "../db/types";
+import { isNumber } from "../helpers/isNumber";
 import { locationsTable } from "../models";
 import { locationDetailsTable } from "../models/LocationDetails";
-import type { DateTime } from "luxon";
-import { isNumber } from "../helpers/isNumber";
 
 function withPointFilters<T extends PgSelectQueryBuilder<PgSelectHKT, typeof locationsTable._.name>>(
   qb: T,
@@ -217,4 +217,13 @@ export async function getHeatmapPoints(params: {
   ).groupBy(sql`ST_SnapToGrid(location::geometry, ${sql.raw(zoomToGrid(zoom))})`);
 
   return results;
+}
+
+export async function getLocationEntriesCount() {
+  return db
+    .select({
+      count: count(),
+    })
+    .from(locationsTable)
+    .then((r) => r[0].count);
 }

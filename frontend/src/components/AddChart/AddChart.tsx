@@ -23,6 +23,7 @@ export type AddChartFormValues = {
   source: ChartSource;
   chartId: ChartId | null;
   habitKey?: string;
+  countKey?: string;
   title: string;
 };
 
@@ -32,6 +33,7 @@ export function AddChart(props: AddChartProps) {
   const { aggPeriod } = useChartsConfig();
 
   const { data: habitKeysData } = useQuery(trpc.getHabitKeys.queryOptions());
+  const { data: countKeysData } = useQuery(trpc.getCountKeys.queryOptions());
 
   // Form is controlled so it's easier to fetch updated values for chart title and habit keys
   // could change for uncontrolled if that's figured out
@@ -88,6 +90,7 @@ export function AddChart(props: AddChartProps) {
       id: values.chartId,
       uniqueId: v4(),
       habitKey: values.habitKey,
+      countKey: values.countKey,
       title: values.title,
     };
 
@@ -144,11 +147,19 @@ export function AddChart(props: AddChartProps) {
               searchable
               {...form.getInputProps("habitKey", { type: "input" })}
             />
+            <Select
+              label="What to count"
+              withAsterisk
+              data={countKeysData?.map((k) => ({ value: k, label: k })) ?? []}
+              searchable
+              {...form.getInputProps("countKey", { type: "input" })}
+            />
           </Flex>
           {values.chartId && currentStep === 1 ? (
             <ChartDisplayer
               chartId={values.chartId}
               habitKey={values.habitKey}
+              countKey={values.countKey}
               title={values.title}
               startDate={startDate}
               endDate={endDate}
