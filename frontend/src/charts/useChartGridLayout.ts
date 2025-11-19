@@ -78,7 +78,6 @@ export function useChartGridLayout(gridId: string): {
   );
   const onAddCharts = useCallback(
     (charts: ChartAreaConfig[]) => {
-      console.log("charts", charts);
       const newIdToCharts = { ...layout.idToChart };
       for (const chart of charts) {
         if (newIdToCharts[chart.uniqueId]) {
@@ -103,7 +102,6 @@ export function useChartGridLayout(gridId: string): {
 
         newLayout[bp] = [...(layout.placement[bp] ?? [])];
 
-        console.log("newlayout", newLayout);
         for (const newChart of charts) {
           const defaultWidth = 6;
           let newPane: Layout = {
@@ -131,8 +129,6 @@ export function useChartGridLayout(gridId: string): {
         }
       }
 
-      console.log("newlayout", newLayout);
-      console.log("newIdToCharts", newIdToCharts);
       setLayout({ idToChart: newIdToCharts, placement: newLayout });
     },
     [layout, setLayout],

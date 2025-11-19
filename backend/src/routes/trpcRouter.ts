@@ -1,16 +1,9 @@
 import { initTRPC } from "@trpc/server";
 import { DateTime } from "luxon";
 import { z } from "zod";
-import {
-  habitsNumericKeys,
-  habitsPrimitiveKeys,
-  heartRateNumericKeys,
-  heartRatePrimitiveKeys,
-  weatherNumericKeys,
-  weatherPrimitiveKeys,
-} from "../services/charts/chartOptions";
+import { habitsNumericKeys } from "../services/charts/chartOptions";
 import { getDiaryEntries } from "../services/diaryEntries";
-import { getHabits, getHabitsCharts } from "../services/habits/habits";
+import { getHabits, getHabitsCharts, getNumberHabit } from "../services/habits/habits";
 import { getHeartRateCharts, getHeartRateMinMaxAvg } from "../services/heartRates";
 import { getHeatmapPoints, getLocationsTimeline } from "../services/locations";
 import {
@@ -237,6 +230,31 @@ export const appRouter = t.router({
         period: opts.input.period,
       });
     }),
+  getNumberHabit: loggedProcedure
+    .input(
+      z
+        .object({
+          startDate: z.iso.datetime(),
+          endDate: z.iso.datetime(),
+          habitKey: z.string(),
+          period,
+        })
+        .partial()
+        .required({
+          startDate: true,
+          endDate: true,
+          period: true,
+          habitKey: true,
+        }),
+    )
+    .query((opts) => {
+      return getNumberHabit({
+        startDate: DateTime.fromISO(opts.input.startDate, { zone: "UTC" }),
+        endDate: DateTime.fromISO(opts.input.endDate, { zone: "UTC" }),
+        period: opts.input.period,
+        habitKey: opts.input.habitKey,
+      });
+    }),
   getHabitsCharts: loggedProcedure
     .input(
       z
@@ -266,18 +284,10 @@ export const appRouter = t.router({
         aggregation: opts.input.aggregation,
       });
     }),
-  getAvailableKeys: loggedProcedure.query(async () => {
+
+  getHabitKeys: loggedProcedure.query(async () => {
     return {
-      xKeys: {
-        weather: weatherPrimitiveKeys,
-        habit: await habitsPrimitiveKeys(),
-        heartRate: heartRatePrimitiveKeys,
-      },
-      yKeys: {
-        weather: weatherNumericKeys,
-        habit: await habitsNumericKeys(),
-        heartRate: heartRateNumericKeys,
-      },
+      numeric: await habitsNumericKeys(),
     };
   }),
 });

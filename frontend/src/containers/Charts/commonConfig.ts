@@ -13,6 +13,7 @@ export namespace EchartsCommonConfig {
 
   export const colorSteps = {
     rain: ["#205799", "#1464C4", "#0771F2", "#00B2FF"],
+    generic: ["#4B2C6E", "#7B2099", "#C414C1", "#FF0073"],
   };
 
   export function dateNumberSeriesFormatter<XValue, YValue>(

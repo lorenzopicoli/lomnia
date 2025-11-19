@@ -60,6 +60,7 @@ export function ChartsDashboard() {
                     <Container fluid h={"100%"} p={0}>
                       <Container fluid h={"100%"} p={0} opacity={chartsConfig.isRearranging ? 0.5 : 1}>
                         <ChartDisplayer
+                          {...chart}
                           chartId={chart.id}
                           startDate={chartsConfig.startDate}
                           endDate={chartsConfig.endDate}

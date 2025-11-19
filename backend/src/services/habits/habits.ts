@@ -1,13 +1,15 @@
 import { isValid, parse } from "date-fns";
 import { asc, sql } from "drizzle-orm";
+import type { DateTime } from "luxon";
 import { db } from "../../db/connection";
 import { anonymize } from "../../helpers/anonymize";
-import { habitsTable, type Habit, type HabitColumns } from "../../models/Habit";
+import { getKeys } from "../../helpers/getKeys";
+import { type Habit, type HabitColumns, habitsTable } from "../../models/Habit";
+import { habitsNumericKeys } from "../charts/chartOptions";
+import { getAggregatedXColumn, getAggregatedYColumn, getMinMaxChart } from "../charts/charts";
+import type { AggregationPeriod, ChartServiceReturn, HabitChartServiceParams } from "../charts/types";
 import type { HabitKeys } from "../importers/obsidian/personal";
 import { habitLabel, habitTransformers } from "./personal";
-import type { ChartServiceReturn, HabitChartServiceParams } from "../charts/types";
-import { getKeys } from "../../helpers/getKeys";
-import { getAggregatedXColumn, getAggregatedYColumn, getMinMaxChart } from "../charts/charts";
 
 export const formatHabitResponse = (habits: Habit[], shouldAnonymize: boolean): (Habit & { label: string })[] => {
   return habits
@@ -48,13 +50,13 @@ export const getHabitsCharts = async (params: HabitChartServiceParams): ChartSer
     throw new Error("Invalid keys");
   }
   const xKeyTyped = xKey as HabitColumns;
-  const xCol = getAggregatedXColumn(habitsTable[xKeyTyped], aggregation);
-  const dateCol = getAggregatedXColumn(habitsTable.date, aggregation);
+  const xCol = getAggregatedXColumn(habitsTable[xKeyTyped], aggregation?.period);
+  const dateCol = getAggregatedXColumn(habitsTable.date, aggregation?.period);
 
   const data = db
     .select({
       key: habitsTable.key,
-      value: getAggregatedYColumn(sql`${habitsTable.value}::integer`, aggregation).mapWith(Number),
+      value: getAggregatedYColumn(sql`${habitsTable.value}::integer`, aggregation?.fun).mapWith(Number),
       [xKey]: xCol,
     })
     .from(habitsTable)
@@ -85,4 +87,35 @@ export const getHabitsCharts = async (params: HabitChartServiceParams): ChartSer
   }
 
   return getMinMaxChart(formatted);
+};
+
+export const getNumberHabit = async (params: {
+  startDate: DateTime;
+  endDate: DateTime;
+  period: AggregationPeriod;
+  habitKey: string;
+}) => {
+  const supportedKeys = await habitsNumericKeys();
+
+  if (!supportedKeys.find((k) => k.key === params.habitKey)) {
+    return [];
+  }
+
+  const aggregatedDate = getAggregatedXColumn(habitsTable.date, params.period);
+  const data = db
+    .select({
+      value: getAggregatedYColumn(sql`${habitsTable.value}::integer`, "sum").mapWith(Number),
+      date: aggregatedDate.mapWith(String),
+    })
+    .from(habitsTable)
+    .where(
+      sql`
+      ${habitsTable.key} = ${params.habitKey} AND
+      ${habitsTable.date} >= (${params.startDate.toISO()} AT TIME ZONE 'America/Toronto')::date 
+      AND ${habitsTable.date} <= (${params.endDate.toISO()} AT TIME ZONE 'America/Toronto')::date`,
+    )
+    .groupBy(aggregatedDate)
+    .orderBy(asc(aggregatedDate));
+
+  return data;
 };

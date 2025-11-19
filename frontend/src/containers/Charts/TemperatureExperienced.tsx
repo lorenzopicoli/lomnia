@@ -2,10 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import ReactECharts from "echarts-for-react";
 import { useMemo } from "react";
 import { trpc } from "../../api/trpc";
-import type { AggregationPeriod } from "../../charts/types";
+import type { ChartProps } from "../../charts/types";
 import { EchartsCommonConfig } from "./commonConfig";
 
-export function TemperatureExperienced(props: { startDate: Date; endDate: Date; aggPeriod: AggregationPeriod }) {
+export function TemperatureExperienced(props: ChartProps) {
   const { data } = useQuery(
     trpc.getWeatherApparentVsActual.queryOptions({
       startDate: props.startDate.toISOString(),

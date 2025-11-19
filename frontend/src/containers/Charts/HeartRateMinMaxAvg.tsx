@@ -2,9 +2,9 @@ import { useQuery } from "@tanstack/react-query";
 import ReactECharts from "echarts-for-react";
 import { useMemo } from "react";
 import { trpc } from "../../api/trpc";
-import type { AggregationPeriod } from "../../charts/types";
+import type { ChartProps } from "../../charts/types";
 
-export function HeartRateMinMaxAvg(props: { startDate: Date; endDate: Date; aggPeriod: AggregationPeriod }) {
+export function HeartRateMinMaxAvg(props: ChartProps) {
   const { data } = useQuery(
     trpc.getHeartRateMinMaxAvg.queryOptions({
       startDate: props.startDate.toISOString(),

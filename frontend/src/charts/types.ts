@@ -9,6 +9,10 @@ export type ChartAreaConfig = {
    */
   title: string;
   /**
+   * Habit Key
+   */
+  habitKey?: string;
+  /**
    * A random uuid that uniquely identifies this instance of the chart
    */
   uniqueId: string;
@@ -19,6 +23,7 @@ export enum ChartId {
   HeartRateMinMaxAvg = "heartRateMinMaxAvg ",
   PrecipitationExperienced = "precipitationExperienced ",
   RainHeatmap = "rainHeatmap",
+  NumberHabitCalendarHeatmap = "NumberHabitCalendarHeatmap",
 }
 
 export const aggregationPeriods = ["month", "day", "week", "hour"] as const;
@@ -28,12 +33,25 @@ export interface ChartProps {
   startDate: Date;
   endDate: Date;
   aggPeriod: AggregationPeriod;
+  title?: string;
 }
+export interface HabitChartProps extends ChartProps {
+  habitKey: string;
+}
+
+export type AllChartsProps = ChartProps & Partial<HabitChartProps>;
 
 export enum ChartSource {
   Weather = "weather",
   Habit = "habit",
   HeartRate = "heartRate",
+}
+
+export enum ChartElement {
+  Line = "line",
+  Area = "area",
+  CalendarHeatmap = "calendarHeatmap",
+  Bar = "bar",
 }
 
 export function chartSourceTitleAndDescription(source: ChartSource): {
