@@ -1,33 +1,97 @@
-import { ScaleTime, ScaleBand, ScaleLinear } from "@visx/vendor/d3-scale";
-
-export type ChartScale = {
-  scale: ScaleTime<number, number, never> | ScaleLinear<number, number, never> | ScaleBand<string | number | Date>;
-  type: "linear" | "band" | "utc";
+export type ChartAreaConfig = {
+  /**
+   * The chart id that is used to render the right component.
+   * A dashboard could have more than one chart with the same id
+   */
+  id: ChartId;
+  /**
+   * Title of the chart
+   */
+  title: string;
+  /**
+   * Habit Key
+   */
+  habitKey?: string;
+  /**
+   * Key if a count chart
+   */
+  countKey?: string;
+  /**
+   * A random uuid that uniquely identifies this instance of the chart
+   */
+  uniqueId: string;
 };
 
-export type ChartScaleLinear = {
-  scale: ScaleLinear<number, number, never>;
-  type: "linear";
-};
-
-export type ChartScaleBand = {
-  scale: ScaleBand<string | number | Date>;
-  type: "band";
-};
-
-export type ChartScaleUtc = {
-  scale: ScaleTime<number, number, never>;
-  type: "utc";
-};
-
-export function isScaleLinear(s: ChartScale): s is { type: "linear"; scale: ScaleLinear<number, number, never> } {
-  return s.type === "linear";
+export enum ChartId {
+  TemperatureExperienced = "temperatureExperienced",
+  HeartRateMinMaxAvg = "heartRateMinMaxAvg ",
+  PrecipitationExperienced = "precipitationExperienced ",
+  RainHeatmap = "rainHeatmap",
+  NumberHabitCalendarHeatmap = "numberHabitCalendarHeatmap",
+  MetaValue = "metaValue",
+  Count = "Count",
 }
 
-export function isScaleBand(s: ChartScale): s is { type: "band"; scale: ScaleBand<string | number | Date> } {
-  return s.type === "band";
+const aggregationPeriods = ["month", "day", "week", "hour"] as const;
+export type AggregationPeriod = (typeof aggregationPeriods)[number];
+
+export interface ChartProps {
+  startDate: Date;
+  endDate: Date;
+  aggPeriod: AggregationPeriod;
+  title?: string;
+}
+export interface HabitChartProps extends ChartProps {
+  habitKey: string;
 }
 
-export function isScaleUtc(s: ChartScale): s is { type: "utc"; scale: ScaleTime<number, number, never> } {
-  return s.type === "utc";
+export interface CountCardChartProps extends ChartProps {
+  unit?: string;
+  description?: string;
+  countKey: string;
+}
+
+export type AllChartsProps = ChartProps & Partial<HabitChartProps> & Partial<CountCardChartProps>;
+
+export enum ChartSource {
+  Weather = "weather",
+  Habit = "habit",
+  HeartRate = "heartRate",
+  Meta = "meta",
+}
+
+export enum ChartElement {
+  Line = "line",
+  Area = "area",
+  CalendarHeatmap = "calendarHeatmap",
+  Bar = "bar",
+  Value = "value",
+}
+
+export function chartSourceTitleAndDescription(source: ChartSource): {
+  title: string;
+  description: string;
+} {
+  switch (source) {
+    case ChartSource.Weather:
+      return {
+        title: "Weather",
+        description: "Weather data of the location of the user",
+      };
+    case ChartSource.Habit:
+      return {
+        title: "Habit",
+        description: "Habit data tracked by the user",
+      };
+    case ChartSource.HeartRate:
+      return {
+        title: "Heart Rate",
+        description: "Heart rate data collected",
+      };
+    case ChartSource.Meta:
+      return {
+        title: "Meta information",
+        description: "Data on the system (eg. number of entries collected)",
+      };
+  }
 }

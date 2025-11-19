@@ -4,9 +4,9 @@ import { format } from "date-fns/format";
 import { parse } from "date-fns/parse";
 import { startOfDay } from "date-fns/startOfDay";
 import { subDays } from "date-fns/subDays";
-import { Route, Routes, createSearchParams, useNavigate, useSearchParams } from "react-router-dom";
+import { createSearchParams, Route, Routes, useNavigate, useSearchParams } from "react-router-dom";
 import Header from "../components/Header/Header";
-import { useConfig } from "../utils/useConfig";
+import { useConfig } from "../contexts/ConfigContext";
 import { Explore } from "./Explore/Explore";
 import Home from "./Home/Home";
 
@@ -39,7 +39,12 @@ function Layout() {
   };
   const handleGoToExplore = () => {
     navigate({
-      pathname: "explore",
+      pathname: "/explore",
+    });
+  };
+  const handleGoToHome = () => {
+    navigate({
+      pathname: "/",
     });
   };
 
@@ -57,12 +62,13 @@ function Layout() {
           onSearch={handleSearch}
           privateMode={config.privateMode}
           onGoToExplore={handleGoToExplore}
+          onGoToHome={handleGoToHome}
         />
       </AppShell.Header>
       <AppShell.Main>
         <Routes>
-          <Route path={"/"} element={<Home />} />
-          <Route path={"/explore"} element={<Explore />} />
+          <Route index element={<Home />} />
+          <Route path={"/explore/*"} element={<Explore />} />
         </Routes>
       </AppShell.Main>
     </AppShell>

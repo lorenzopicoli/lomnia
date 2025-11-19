@@ -4,9 +4,9 @@ import { format } from "date-fns/format";
 import { trpc } from "../api/trpc";
 import { Anonymize } from "../components/Anonymize/Anonymize";
 import { LoIcon } from "../components/LoIcon";
+import { useConfig } from "../contexts/ConfigContext";
 import { getRandomColor } from "../utils/getRandomColor";
 import { iconForKey } from "../utils/personal";
-import { useConfig } from "../utils/useConfig";
 
 type DailyHabitEntriesProps = {
   date: Date;
@@ -26,7 +26,7 @@ export default function DailyHabitEntriesContainer(props: DailyHabitEntriesProps
   }
 
   if (!data) {
-    return "No data";
+    return null;
   }
 
   return (

@@ -5,49 +5,23 @@ import "@mantine/core/styles.css";
 import "@mantine/dates/styles.css";
 import "@mantine/code-highlight/styles.css";
 import "@mantine/spotlight/styles.css";
+import "@mantine/charts/styles.css";
 
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 
 import "maplibre-gl/dist/maplibre-gl.css";
 import "allotment/dist/style.css";
-import { createTheme, MantineProvider, rem } from "@mantine/core";
+import { MantineProvider } from "@mantine/core";
+import * as echarts from "echarts";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { queryClient } from "./api/trpc";
-import { MemoizationProvider } from "./charts/MemoizationContext";
-import { ConfigProvider } from "./containers/ConfigContext";
+import { ConfigProvider } from "./contexts/ConfigContext";
 import Layout from "./pages/Layout";
+import { EchartsThemes } from "./themes/echartsThemes";
+import { mantineTheme } from "./themes/mantineThemes";
 
-const theme = createTheme({
-  colors: {
-    violet: [
-      "#f6ecff",
-      "#e7d6fb",
-      "#caabf1",
-      "#ac7ce8",
-      "#9354e0",
-      "#833cdb",
-      "#7b2eda",
-      "#6921c2",
-      "#5d1cae",
-      "#501599",
-    ],
-    ye: ["#fff8e0", "#ffeeca", "#ffdb99", "#ffc762", "#ffb536", "#ffab18", "#ffa503", "#e49000", "#cb7f00", "#b06d00"],
-  },
-  primaryColor: "violet",
-
-  fontFamily: "JetBrains Mono",
-  fontFamilyMonospace: "JetBrains Mono",
-
-  focusRing: "auto",
-
-  headings: {
-    fontFamily: "JetBrains Mono, monospace",
-    sizes: {
-      h1: { fontSize: rem(36) },
-    },
-  },
-});
+echarts.registerTheme("default_dark", EchartsThemes.darkDefault);
 
 const router = createBrowserRouter([
   {
@@ -58,15 +32,13 @@ const router = createBrowserRouter([
 
 function App() {
   return (
-    <ConfigProvider>
-      <QueryClientProvider client={queryClient}>
-        <MantineProvider theme={theme} defaultColorScheme="dark">
-          <MemoizationProvider>
-            <RouterProvider router={router} />
-          </MemoizationProvider>
-        </MantineProvider>
-      </QueryClientProvider>
-    </ConfigProvider>
+    <MantineProvider theme={mantineTheme} defaultColorScheme="dark">
+      <ConfigProvider>
+        <QueryClientProvider client={queryClient}>
+          <RouterProvider router={router} />
+        </QueryClientProvider>
+      </ConfigProvider>
+    </MantineProvider>
   );
 }
 

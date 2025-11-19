@@ -1,11 +1,12 @@
-import { BaseImporter } from "../BaseImporter";
-import { toPostgisGeoPoint, type DBTransaction } from "../../../db/types";
-import { z } from "zod";
-import data from "./personal.json";
-import { locationsTable } from "../../../models";
 import { eq, sql } from "drizzle-orm";
-import { locationDetailsTable } from "../../../models/LocationDetails";
 import type { DateTime } from "luxon";
+import { z } from "zod";
+import config from "../../../config";
+import { type DBTransaction, toPostgisGeoPoint } from "../../../db/types";
+import { locationsTable } from "../../../models";
+import { locationDetailsTable } from "../../../models/LocationDetails";
+import { BaseImporter } from "../BaseImporter";
+import data from "./personal.json";
 
 export class UserPointsOfInterestImporter extends BaseImporter {
   override sourceId = "userPOIJson";
@@ -66,12 +67,16 @@ export class UserPointsOfInterestImporter extends BaseImporter {
 
     const userPOIs = this.jsonSchema.parse(data);
 
-    // Delete all the user point of interests from the location details table
-    // This automatically sets locationDetailsId to null in locations
-    await tx.delete(locationDetailsTable).where(eq(locationDetailsTable.source, "userPOIJson"));
+    if (config.importers.locationDetails.userPoi.recalculateAll) {
+      // Delete all the user point of interests from the location details table
+      // This automatically sets locationDetailsId to null in locations
+      await tx.delete(locationDetailsTable).where(eq(locationDetailsTable.source, "userPOIJson"));
+    }
 
     for (const poi of userPOIs) {
-      console.log(`Updating locations for place of interest: ${poi.displayName}`);
+      this.logger.debug("Updating locations for place of interest", {
+        poi,
+      });
       const { lat, lng, radiusInMeters, ...rest } = poi;
       const locationDetailsId = await tx
         .insert(locationDetailsTable)
@@ -95,7 +100,7 @@ export class UserPointsOfInterestImporter extends BaseImporter {
           ST_DWithin(
             ${locationsTable.location},
             ${toPostgisGeoPoint({ lat, lng })},
-            ${poi.radiusInMeters}
+            ${radiusInMeters}
           )`,
         );
       importedCount += 1;

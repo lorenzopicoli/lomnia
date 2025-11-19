@@ -1,7 +1,7 @@
+import { avg, max, min, type SQL, sql, sum } from "drizzle-orm";
 import type { PgColumn } from "drizzle-orm/pg-core";
-import { aggregationPeriods, type ChartServiceParams, type ChartServiceReturn } from "./types";
-import { avg, max, min, sql, type SQL } from "drizzle-orm";
 import { isNil } from "lodash";
+import { type AggregationFunction, type AggregationPeriod, aggregationPeriods, type ChartServiceReturn } from "./types";
 
 // TODO: Slow
 export function getMinMaxChart(
@@ -47,34 +47,36 @@ export function getMinMaxChart(
   return { minX: minX!, minY: minY!, maxX: maxX!, maxY: maxY!, data };
 }
 
-export function getAggregatedYColumn(col: PgColumn | SQL, aggregation?: ChartServiceParams["aggregation"]): SQL {
-  if (!aggregation) {
+export function getAggregatedYColumn(col: PgColumn | SQL, fun?: AggregationFunction): SQL {
+  if (!fun) {
     return sql`${col}`;
   }
 
-  switch (aggregation.fun) {
+  switch (fun) {
     case "avg":
       return avg(col);
     case "median":
-      return avg(col);
+      return sql`PERCENTILE_CONT(0.5) WITHIN GROUP(ORDER BY ${col})`;
     case "max":
       return max(col);
     case "min":
       return min(col);
+    case "sum":
+      return sum(col);
   }
 }
 
-export function getAggregatedXColumn(col: PgColumn, aggregation?: ChartServiceParams["aggregation"]): SQL {
-  if (!aggregation) {
+export function getAggregatedXColumn(col: PgColumn, period?: AggregationPeriod): SQL {
+  if (!period) {
     return sql`${col}`;
   }
 
   // Protect against sql injection
-  if (aggregationPeriods.indexOf(aggregation.period) === -1) {
+  if (aggregationPeriods.indexOf(period) === -1) {
     return sql`${col}`;
   }
 
   // Need to use SQL raw so the period isn't a parameter. By doing this psql knows that
   // the selection/order/group are all the same expression
-  return sql`DATE_TRUNC('${sql.raw(aggregation.period)}', ${col})`;
+  return sql`DATE_TRUNC('${sql.raw(period)}', ${col})`;
 }

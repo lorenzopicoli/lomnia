@@ -1,6 +1,6 @@
 import cs from "classnames";
 import type { ReactNode } from "react";
-import { useConfig } from "../../utils/useConfig";
+import { useConfig } from "../../contexts/ConfigContext";
 import styles from "./Anonymize.module.css";
 
 export function Anonymize({ children }: { children: ReactNode }) {

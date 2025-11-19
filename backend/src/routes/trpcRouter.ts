@@ -1,19 +1,17 @@
 import { initTRPC } from "@trpc/server";
 import { DateTime } from "luxon";
 import { z } from "zod";
+import { habitsNumericKeys } from "../services/charts/chartOptions";
 import { getDiaryEntries } from "../services/diaryEntries";
-import { getHabits, getHabitsCharts } from "../services/habits/habits";
-import { getHeatmapPoints, getLocationsTimeline } from "../services/locations";
-import { getWeatherCharts, getWeatherInformation } from "../services/weather";
+import { getHabits, getNumberHabit } from "../services/habits/habits";
+import { getHeartRateCharts, getHeartRateMinMaxAvg } from "../services/heartRates";
+import { getHeatmapPoints, getLocationEntriesCount, getLocationsTimeline } from "../services/locations";
 import {
-  habitsNumericKeys,
-  habitsPrimitiveKeys,
-  heartRateNumericKeys,
-  heartRatePrimitiveKeys,
-  weatherNumericKeys,
-  weatherPrimitiveKeys,
-} from "../services/charts/chartOptions";
-import { getHeartRateCharts } from "../services/heartRates";
+  getWeatherApparentVsActual,
+  getWeatherCharts,
+  getWeatherInformation,
+  getWeatherPrecipitation,
+} from "../services/weather";
 
 export const t = initTRPC.create();
 
@@ -28,6 +26,16 @@ export const loggedProcedure = t.procedure.use(async (opts) => {
   result.ok ? console.log("OK request timing:", meta) : console.error("Non-OK request timing", meta);
 
   return result;
+});
+
+const period = z
+  .literal("month")
+  .or(z.literal("week"))
+  .or(z.literal("day").or(z.literal("hour")));
+
+const aggregation = z.object({
+  fun: z.literal("avg").or(z.literal("median")).or(z.literal("max")).or(z.literal("min")).or(z.literal("sum")),
+  period,
 });
 
 export const appRouter = t.router({
@@ -63,8 +71,8 @@ export const appRouter = t.router({
           bottomRightLat: z.coerce.number(),
           bottomRightLng: z.coerce.number(),
           zoom: z.coerce.number(),
-          startDate: z.string().datetime(),
-          endDate: z.string().datetime(),
+          startDate: z.iso.datetime(),
+          endDate: z.iso.datetime(),
         })
         .partial()
         .required({
@@ -87,8 +95,8 @@ export const appRouter = t.router({
   getVisitedPlaces: loggedProcedure
     .input(
       z.object({
-        startDate: z.string().datetime(),
-        endDate: z.string().datetime(),
+        startDate: z.iso.datetime(),
+        endDate: z.iso.datetime(),
       }),
     )
     .query((opts) => {
@@ -101,14 +109,11 @@ export const appRouter = t.router({
     .input(
       z
         .object({
-          startDate: z.string().datetime(),
-          endDate: z.string().datetime(),
+          startDate: z.iso.datetime(),
+          endDate: z.iso.datetime(),
           xKey: z.string(),
           yKeys: z.array(z.string()),
-          aggregation: z.object({
-            fun: z.literal("avg").or(z.literal("median")).or(z.literal("max")).or(z.literal("min")),
-            period: z.literal("month").or(z.literal("week")).or(z.literal("day")),
-          }),
+          aggregation,
         })
         .partial()
         .required({
@@ -129,18 +134,60 @@ export const appRouter = t.router({
         aggregation: opts.input.aggregation,
       });
     }),
+
+  getWeatherApparentVsActual: loggedProcedure
+    .input(
+      z
+        .object({
+          startDate: z.iso.datetime(),
+          endDate: z.iso.datetime(),
+          period,
+        })
+        .partial()
+        .required({
+          startDate: true,
+          endDate: true,
+          period: true,
+        }),
+    )
+    .query((opts) => {
+      return getWeatherApparentVsActual({
+        startDate: DateTime.fromISO(opts.input.startDate, { zone: "UTC" }),
+        endDate: DateTime.fromISO(opts.input.endDate, { zone: "UTC" }),
+        period: opts.input.period,
+      });
+    }),
+  getWeatherPrecipitation: loggedProcedure
+    .input(
+      z
+        .object({
+          startDate: z.iso.datetime(),
+          endDate: z.iso.datetime(),
+          period,
+        })
+        .partial()
+        .required({
+          startDate: true,
+          endDate: true,
+          period: true,
+        }),
+    )
+    .query((opts) => {
+      return getWeatherPrecipitation({
+        startDate: DateTime.fromISO(opts.input.startDate, { zone: "UTC" }),
+        endDate: DateTime.fromISO(opts.input.endDate, { zone: "UTC" }),
+        period: opts.input.period,
+      });
+    }),
   getHeartRateCharts: loggedProcedure
     .input(
       z
         .object({
-          startDate: z.string().datetime(),
-          endDate: z.string().datetime(),
+          startDate: z.iso.datetime(),
+          endDate: z.iso.datetime(),
           xKey: z.string(),
           yKeys: z.array(z.string()),
-          aggregation: z.object({
-            fun: z.literal("avg").or(z.literal("median")).or(z.literal("max")).or(z.literal("min")),
-            period: z.literal("month").or(z.literal("week")).or(z.literal("day")),
-          }),
+          aggregation,
         })
         .partial()
         .required({
@@ -161,52 +208,79 @@ export const appRouter = t.router({
         aggregation: opts.input.aggregation,
       });
     }),
-  getHabitsCharts: loggedProcedure
+  getHeartRateMinMaxAvg: loggedProcedure
     .input(
       z
         .object({
-          startDate: z.string().datetime(),
-          endDate: z.string().datetime(),
-          xKey: z.string(),
-          yKeys: z.array(z.string()),
-          aggregation: z.object({
-            fun: z.literal("avg").or(z.literal("median")).or(z.literal("max")).or(z.literal("min")),
-            period: z.literal("month").or(z.literal("week")).or(z.literal("day")),
-          }),
+          startDate: z.iso.datetime(),
+          endDate: z.iso.datetime(),
+          period,
         })
         .partial()
         .required({
-          xKey: true,
-          yKeys: true,
           startDate: true,
           endDate: true,
+          period: true,
         }),
     )
     .query((opts) => {
-      return getHabitsCharts({
-        xKey: opts.input.xKey,
-        yKeys: opts.input.yKeys,
-        filters: {
-          startDate: DateTime.fromISO(opts.input.startDate, { zone: "UTC" }),
-          endDate: DateTime.fromISO(opts.input.endDate, { zone: "UTC" }),
-        },
-        aggregation: opts.input.aggregation,
+      return getHeartRateMinMaxAvg({
+        startDate: DateTime.fromISO(opts.input.startDate, { zone: "UTC" }),
+        endDate: DateTime.fromISO(opts.input.endDate, { zone: "UTC" }),
+        period: opts.input.period,
       });
     }),
-  getAvailableKeys: loggedProcedure.query(async () => {
+  getNumberHabit: loggedProcedure
+    .input(
+      z
+        .object({
+          startDate: z.iso.datetime(),
+          endDate: z.iso.datetime(),
+          habitKey: z.string(),
+          period,
+        })
+        .partial()
+        .required({
+          startDate: true,
+          endDate: true,
+          period: true,
+          habitKey: true,
+        }),
+    )
+    .query((opts) => {
+      return getNumberHabit({
+        startDate: DateTime.fromISO(opts.input.startDate, { zone: "UTC" }),
+        endDate: DateTime.fromISO(opts.input.endDate, { zone: "UTC" }),
+        period: opts.input.period,
+        habitKey: opts.input.habitKey,
+      });
+    }),
+
+  getHabitKeys: loggedProcedure.query(async () => {
     return {
-      xKeys: {
-        weather: weatherPrimitiveKeys,
-        habit: await habitsPrimitiveKeys(),
-        heartRate: heartRatePrimitiveKeys,
-      },
-      yKeys: {
-        weather: weatherNumericKeys,
-        habit: await habitsNumericKeys(),
-        heartRate: heartRateNumericKeys,
-      },
+      numeric: await habitsNumericKeys(),
     };
   }),
+  getCountKeys: loggedProcedure.query(async () => {
+    return ["totalWeatherEnties", "dailyWeatherEntries", "hourlyWeatherEntries", "totalLocationEntries"];
+  }),
+  getCounts: loggedProcedure
+    .input(
+      z
+        .object({
+          countKey: z.string(),
+        })
+        .partial()
+        .required({
+          countKey: true,
+        }),
+    )
+    .query((opts) => {
+      if (opts.input.countKey === "totalLocationEntries") {
+        return getLocationEntriesCount();
+      }
+      return 10000;
+    }),
 });
 
 export type AppRouter = typeof appRouter;

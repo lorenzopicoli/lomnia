@@ -3,7 +3,7 @@ import { format } from "date-fns/format";
 import { memo } from "react";
 import { trpc } from "../api/trpc";
 import DiaryEntry from "../components/DiaryEntry/DiaryEntry";
-import { useConfig } from "../utils/useConfig";
+import { useConfig } from "../contexts/ConfigContext";
 
 type DiaryEntryContainer = {
   date: Date;
@@ -23,7 +23,7 @@ export const DiaryEntryContainer = memo((props: DiaryEntryContainer) => {
   }
 
   if (!data) {
-    return "No data";
+    return null;
   }
 
   return (

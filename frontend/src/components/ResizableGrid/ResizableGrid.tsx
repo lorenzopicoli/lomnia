@@ -1,8 +1,7 @@
 import { Container } from "@mantine/core";
 import { IconBorderCornerSquare } from "@tabler/icons-react";
-import { type ReactNode } from "react";
-import { forwardRef } from "react";
-import { Responsive, WidthProvider, type Layouts, type ResponsiveProps } from "react-grid-layout";
+import { forwardRef, type ReactNode } from "react";
+import { type Layouts, Responsive, type ResponsiveProps, WidthProvider } from "react-grid-layout";
 
 const ResizeHandle = forwardRef((props, ref) => {
   // Can't really find the typing for this
@@ -22,7 +21,7 @@ export type ResizableGridProps = {
   children: ReactNode;
 } & ResponsiveProps;
 
-export const GRID_MARGIN = 10;
+const GRID_MARGIN = 10;
 
 export function ResizableGrid(props: ResizableGridProps) {
   const { children, layout, ...otherProps } = props;
@@ -36,7 +35,6 @@ export function ResizableGrid(props: ResizableGridProps) {
         layouts={layout}
         breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
         cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
-        isResizable={true}
         resizeHandles={["se"]}
         resizeHandle={<ResizeHandle />}
         {...otherProps}

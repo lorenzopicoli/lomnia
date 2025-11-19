@@ -1,7 +1,8 @@
-import { ActionIcon, Button, Center, Code, Container, Flex, Input, useMantineTheme } from "@mantine/core";
+import { ActionIcon, Button, Center, Code, Container, Flex, Input } from "@mantine/core";
 import { IconChevronLeft, IconChevronRight, IconEye, IconEyeOff, IconSearch } from "@tabler/icons-react";
 import { format } from "date-fns/format";
 import { isToday } from "date-fns/isToday";
+import { useConfig } from "../../contexts/ConfigContext";
 
 type HeaderProps = {
   onPreviousDay: () => void;
@@ -9,13 +10,14 @@ type HeaderProps = {
   onSearch: (query: string) => void;
   onChangePrivateMode: (privateMode: boolean) => void;
   onGoToExplore: () => void;
+  onGoToHome: () => void;
   currentDate: Date;
   privateMode: boolean;
 };
 
 function Header(props: HeaderProps) {
   const formattedDate = format(props.currentDate, "MMMM do, yyyy");
-  const theme = useMantineTheme();
+  const { theme } = useConfig();
 
   const handlePrivateModeChange = () => {
     props.onChangePrivateMode(!props.privateMode);
@@ -23,11 +25,15 @@ function Header(props: HeaderProps) {
 
   return (
     <Flex component={Container} fluid justify={"space-between"} align={"center"} bg={theme.colors.dark[9]} h={"100%"}>
-      <Button variant="subtle" onClick={props.onGoToExplore}>
-        Explore data
-      </Button>
-
-      <Flex component={"h2"} gap={"lg"} align={"center"}>
+      <Flex component={Container} justify={"center"} align={"center"} bg={theme.colors.dark[9]} h={"100%"}>
+        <Button variant="subtle" onClick={props.onGoToHome}>
+          Home
+        </Button>
+        <Button variant="subtle" onClick={props.onGoToExplore}>
+          Explore
+        </Button>
+      </Flex>
+      <Flex flex={1} component={"h2"} gap={"lg"} justify={"center"} align={"center"}>
         <Button onClick={props.onPreviousDay} variant="subtle">
           <Center>
             <IconChevronLeft />

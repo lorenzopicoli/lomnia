@@ -1,12 +1,14 @@
-import { Button, Flex, Menu, Pill } from "@mantine/core";
+import { ActionIcon, Button, Flex, Menu } from "@mantine/core";
 import { DatePicker, type PickerBaseProps } from "@mantine/dates";
+import { IconCheck, IconEdit } from "@tabler/icons-react";
 import { format } from "date-fns/format";
 import { subHours } from "date-fns/subHours";
 import { subMonths } from "date-fns/subMonths";
 import { subWeeks } from "date-fns/subWeeks";
 import { subYears } from "date-fns/subYears";
 import { useEffect, useState } from "react";
-import type { ChartAreaConfig } from "../../charts/charts";
+import type { ChartAreaConfig } from "../../charts/types";
+import { useDashboard } from "../../contexts/DashboardContext";
 
 export function ChartMenu(props: {
   selectedCharts: ChartAreaConfig[];
@@ -14,8 +16,10 @@ export function ChartMenu(props: {
   onDateChange: (range: [Date, Date]) => void;
   onRemoveChart: (chartId: string) => void;
   onNewChart: () => void;
+  onRearrangeCharts: () => void;
 }) {
   const [partialDateRange, setPartialDateRange] = useState<[Date | null, Date | null]>([null, null]);
+  const { isRearranging } = useDashboard();
   const handleDateChange: PickerBaseProps<"range">["onChange"] = (dateStr) => {
     const dates: [Date | null, Date | null] = [
       dateStr[0] ? new Date(dateStr[0]) : null,
@@ -45,7 +49,10 @@ export function ChartMenu(props: {
     setPartialDateRange(range);
   };
   const handleRemove = (chart: ChartAreaConfig) => () => {
-    props.onRemoveChart(chart.id);
+    props.onRemoveChart(chart.uniqueId);
+  };
+  const handleRearrange = () => {
+    props.onRearrangeCharts();
   };
   useEffect(() => {
     if (partialDateRange[0] && partialDateRange[1]) {
@@ -55,22 +62,28 @@ export function ChartMenu(props: {
   return (
     <Menu shadow="md" width={200}>
       <Flex direction={"row"}>
-        <Button onClick={props.onNewChart} variant={"subtle"}>
-          Add chart
-        </Button>
-        <Menu.Target>
-          <Button variant="subtle">
-            {format(props.currentRange[0], "MMMM do, yyyy HH:mm")} to{" "}
-            {format(props.currentRange[1], "MMMM do, yyyy HH:mm")}
-          </Button>
-        </Menu.Target>
-        <Pill.Group>
-          {props.selectedCharts.map((v) => (
-            <Pill key={v.id} variant="default" withRemoveButton onRemove={handleRemove(v)}>
-              {v.title}
-            </Pill>
-          ))}
-        </Pill.Group>
+        <Flex flex={1}>
+          <Menu.Target>
+            <Button variant="subtle">
+              {format(props.currentRange[0], "MMMM do, yyyy HH:mm")} to{" "}
+              {format(props.currentRange[1], "MMMM do, yyyy HH:mm")}
+            </Button>
+          </Menu.Target>
+        </Flex>
+        {!isRearranging ? (
+          <ActionIcon variant="light" size="lg" onClick={handleRearrange} mr={"lg"}>
+            <IconEdit />
+          </ActionIcon>
+        ) : (
+          <>
+            <Button onClick={props.onNewChart} variant={"subtle"}>
+              Add chart
+            </Button>
+            <ActionIcon variant="light" size="lg" onClick={handleRearrange} mr={"lg"}>
+              <IconCheck />
+            </ActionIcon>
+          </>
+        )}
       </Flex>
 
       <Menu.Dropdown w={460}>

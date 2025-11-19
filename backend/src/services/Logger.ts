@@ -1,13 +1,13 @@
-import winston from "winston";
 import type { Format } from "logform";
 import { Duration } from "luxon";
+import winston from "winston";
 
 // biome-ignore lint/suspicious/noExplicitAny: <explanation>
 type MetaInfo = any;
 
 type LoggingLevel = "info" | "debug" | "warn" | "error";
 
-export interface LoggerConfig {
+interface LoggerConfig {
   level: string;
   service?: string;
   environment: "development" | "production" | "test";

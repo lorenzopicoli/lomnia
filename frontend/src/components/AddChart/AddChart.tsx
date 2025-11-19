@@ -1,72 +1,61 @@
-import { useState } from "react";
-import {
-  ChartSource,
-  stringToChartSource,
-  type ChartAreaConfig,
-  type aggregationFunctions,
-  type aggregationPeriods,
-} from "../../charts/charts";
-import { Button, Flex, Stepper, Text, PillGroup, Pill, Container } from "@mantine/core";
-import { useAvailableCharts } from "../../charts/useAvailableCharts";
-import styles from "./AddChart.module.css";
+import { Button, Container, Flex, ScrollArea, Select, Space, Stepper, TextInput } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { useDisclosure } from "@mantine/hooks";
-import { IconAdjustments, IconChartArrowsVertical, IconPresentation } from "@tabler/icons-react";
-import { AddChartSources } from "./AddChartSources";
-import { AddChartGeneralConfig } from "./AddChartGeneralConfig";
-import { AddChartStepper } from "./AddChartStepper";
-import { AddChartShapePicker } from "./AddChartShapePicker";
-import { getKeys } from "../../utils/getKeys";
-import { uniqBy } from "lodash";
+import { IconAdjustments, IconChartArrowsVertical } from "@tabler/icons-react";
+import { useQuery } from "@tanstack/react-query";
 import { subYears } from "date-fns/subYears";
-import { GenericChartContainer } from "../SimpleChart/GenericChartContainer";
+import { useMemo, useState } from "react";
+import { v4 } from "uuid";
+import { trpc } from "../../api/trpc";
+import { type ChartAreaConfig, type ChartId, ChartSource } from "../../charts/types";
+import { useDashboard } from "../../contexts/DashboardContext";
+import { availableCharts, ChartDisplayer } from "../ChartDisplayer/ChartDisplayer";
+import { AddChartId } from "./AddChartId";
+import { AddChartPlaceholder } from "./AddChartPlaceholder";
+import { AddChartSource } from "./AddChartSource";
+import { AddChartStepper } from "./AddChartStepper";
 
-export type AddChartProps = {
-  opened: boolean;
+type AddChartProps = {
   onSave: (chart: ChartAreaConfig) => void;
+  onDismiss: () => void;
 };
 
 export type AddChartFormValues = {
-  sources: { [key in ChartSource]: boolean };
-  xKey: string;
-  aggregation: {
-    period: (typeof aggregationPeriods)[number] | null;
-    fun: (typeof aggregationFunctions)[number] | null;
-  } | null;
-  shapes: Array<
-    ChartAreaConfig["shapes"][number] & {
-      label: string;
-    }
-  >;
+  source: ChartSource;
+  chartId: ChartId | null;
+  habitKey?: string;
+  countKey?: string;
+  title: string;
 };
 
+const initialSource = ChartSource.Weather;
 export function AddChart(props: AddChartProps) {
   const [currentStep, setCurrentStep] = useState(0);
-  const [wantsToAggregate, { toggle: toggleWantsToAggregate }] = useDisclosure(false);
-  const { availableKeys } = useAvailableCharts();
+  const { aggPeriod } = useDashboard();
+
+  const { data: habitKeysData } = useQuery(trpc.getHabitKeys.queryOptions());
+  const { data: countKeysData } = useQuery(trpc.getCountKeys.queryOptions());
+
+  // Form is controlled so it's easier to fetch updated values for chart title and habit keys
+  // could change for uncontrolled if that's figured out
   const form = useForm<AddChartFormValues>({
-    mode: "uncontrolled",
     initialValues: {
-      sources: {
-        [ChartSource.Weather]: false,
-        [ChartSource.Habit]: false,
-        [ChartSource.HeartRate]: false,
-      },
-      xKey: "",
-      aggregation: {
-        period: null,
-        fun: null,
-      },
-      shapes: [],
+      source: initialSource,
+      chartId: availableCharts.find((chart) => chart.sources.includes(initialSource))?.id ?? null,
+      title: "",
     },
 
     validate: (values) => {
       if (currentStep === 0) {
-        if (!Object.values(values.sources).some((v) => v)) {
+        if (!values.source) {
           return { missingSource: "Missing source" };
         }
-        if (!values.xKey) {
-          return { missingXKey: "Missing xKey" };
+      }
+      if (currentStep === 1) {
+        if (!values.chartId) {
+          return { missingChartId: "Select a chart" };
+        }
+        if (!values.title) {
+          return { missingChartId: "Choose a title" };
         }
       }
 
@@ -74,113 +63,114 @@ export function AddChart(props: AddChartProps) {
     },
   });
 
-  const startDate = subYears(new Date(), 1);
-  const endDate = new Date();
+  const startDate = useMemo(() => subYears(new Date(), 1), []);
+  const endDate = useMemo(() => new Date(), []);
   const values = form.getValues();
-  const aggregationFun = values.aggregation?.fun;
-  const aggregationPeriod = values.aggregation?.period;
-  const currentChart: ChartAreaConfig = {
-    id: values.xKey + "-" + values.shapes.map((s) => s.yKey) + crypto.randomUUID(),
-    xKey: values.xKey.split("-")[1],
-    aggregation: aggregationFun && aggregationPeriod ? { fun: aggregationFun, period: aggregationPeriod } : undefined,
-    shapes: values.shapes.map((s, i) => ({
-      ...s,
-      isMain: i === 0,
-    })),
-    title: values.xKey + "/" + values.shapes.map((s) => s.yKey),
-  };
+
   const nextStep = () => {
     if (form.validate().hasErrors) {
       return;
     }
 
-    if (currentStep < 2) {
+    if (currentStep < 1) {
       setCurrentStep(currentStep + 1);
       return;
     }
 
+    if (!values.chartId) {
+      return;
+    }
+    const chart = availableCharts.find((chart) => chart.id === values.chartId);
+
+    if (!chart) {
+      throw new Error("Couldn't match chart to chart id");
+    }
+
+    const chartToSave: ChartAreaConfig = {
+      id: values.chartId,
+      uniqueId: v4(),
+      habitKey: values.habitKey,
+      countKey: values.countKey,
+      title: values.title,
+    };
+
     // This should be on submit
-    props.onSave(currentChart);
+    props.onSave(chartToSave);
   };
   const previousStep = () => {
     if (currentStep === 0) {
+      props.onDismiss();
       return;
     }
 
     setCurrentStep(currentStep - 1);
   };
-  if (!availableKeys) {
-    return <>Loading...</>;
-  }
 
   return (
-    <Container p={0}>
-      <form>
-        <AddChartStepper active={currentStep} size="sm">
-          {/* Step 1 */}
-          <Stepper.Step icon={<IconAdjustments height="17px" width="17px" />}>
-            <AddChartSources sources={Object.values(ChartSource)} form={form} />
-            {Object.values(form.getValues().sources).some((v) => v) && availableKeys.xKeys ? (
-              <AddChartGeneralConfig
-                form={form}
-                xKeys={availableKeys.xKeys}
-                selectedSources={getKeys(form.getValues().sources).filter((s) => form.getValues().sources[s])}
-                showAggregationOptions={wantsToAggregate}
-                toggleWantsToAggregate={toggleWantsToAggregate}
-              />
-            ) : null}
-          </Stepper.Step>
+    <form>
+      <Space h={50} />
+      <Flex w="100%" p={0} gap={"lg"}>
+        <Container w={"40%"}>
+          <AddChartStepper active={currentStep} size="sm">
+            {/* Step 1 */}
+            <Stepper.Step icon={<IconAdjustments height="17px" width="17px" />}>
+              <ScrollArea h="70vh">
+                <AddChartSource sources={Object.values(ChartSource)} form={form} />
+              </ScrollArea>
+            </Stepper.Step>
 
-          {/* Step 2 */}
-          <Stepper.Step icon={<IconChartArrowsVertical height="17px" width="17px" />}>
-            <Text pt={"xl"}>Add as many features as you want to analyze</Text>
-            <Text className={styles.sourceCheckboxDescription}>
-              The chart will expand the X/Y axis to fit the content. So make sure to pick things with similar orders of
-              magnitude
-            </Text>
+            {/* Step 2 */}
+            <Stepper.Step icon={<IconChartArrowsVertical height="17px" width="17px" />}>
+              <ScrollArea h="70vh">
+                <AddChartId form={form} />
+              </ScrollArea>
+            </Stepper.Step>
+          </AddChartStepper>
 
-            <AddChartShapePicker
-              onAdd={(added) =>
-                form.setFieldValue("shapes", (prev) =>
-                  uniqBy([...prev, ...added], (item) => `${item.yKey}-${item.source}`),
-                )
-              }
-              data={getKeys(availableKeys.yKeys)
-                .filter((s) => form.getValues().sources[s])
-                .map((key) =>
-                  availableKeys.yKeys[key].map((item) => ({
-                    yKey: item.key,
-                    label: item.label,
-                    source: stringToChartSource(key),
-                  })),
-                )
-                .flat()}
+          <Space h={"md"} />
+          <Flex align={"flex-end"} justify={"flex-end"} gap={"sm"}>
+            <Button onClick={previousStep} variant="light" size="md">
+              {currentStep === 0 ? "Exit" : "Back"}
+            </Button>
+            <Button onClick={nextStep} variant="light" size="md">
+              {currentStep === 0 ? "Next" : "Save"}
+            </Button>
+          </Flex>
+        </Container>
+        <Container fluid flex={1}>
+          {/* TODO: repalce pb by gap */}
+          <Flex gap={"md"} pb={"md"}>
+            <TextInput flex={1} label="Title" withAsterisk {...form.getInputProps("title", { type: "input" })} />
+            <Select
+              label="Habit"
+              withAsterisk
+              data={habitKeysData?.numeric.map((hk) => ({ value: hk.key, label: hk.label })) ?? []}
+              searchable
+              {...form.getInputProps("habitKey", { type: "input" })}
             />
-            <Text pt={"xl"}>Charts added:</Text>
-            <PillGroup>
-              {form.getValues().shapes.map((shape) => (
-                <Pill key={shape.id} withRemoveButton>{`${shape.label} (${shape.source} - ${shape.type})`}</Pill>
-              ))}
-            </PillGroup>
-          </Stepper.Step>
-
-          {/* Step 3 */}
-          <Stepper.Step icon={<IconPresentation height="17px" width="17px" />}>
-            <Container w={"100%"} h={500}>
-              <GenericChartContainer chart={currentChart} startDate={startDate} endDate={endDate} />
-            </Container>
-          </Stepper.Step>
-        </AddChartStepper>
-
-        <Flex align={"space-between"} justify={"space-between"}>
-          <Button onClick={previousStep} variant="light">
-            Back
-          </Button>
-          <Button onClick={nextStep} variant="light">
-            Next
-          </Button>
-        </Flex>
-      </form>
-    </Container>
+            <Select
+              label="What to count"
+              withAsterisk
+              data={countKeysData?.map((k) => ({ value: k, label: k })) ?? []}
+              searchable
+              {...form.getInputProps("countKey", { type: "input" })}
+            />
+          </Flex>
+          {values.chartId && currentStep === 1 ? (
+            <ChartDisplayer
+              chartId={values.chartId}
+              habitKey={values.habitKey}
+              countKey={values.countKey}
+              title={values.title}
+              startDate={startDate}
+              endDate={endDate}
+              aggPeriod={aggPeriod}
+            />
+          ) : (
+            <AddChartPlaceholder />
+          )}
+        </Container>
+      </Flex>
+    </form>
   );
 }

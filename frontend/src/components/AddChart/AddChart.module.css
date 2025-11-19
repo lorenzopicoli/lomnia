@@ -2,25 +2,23 @@
   position: relative;
   padding: var(--mantine-spacing-md);
   transition: border-color 150ms ease;
-  max-width: 350px;
+  /* max-width: 350px; */
   min-height: 100px;
 
   &[data-checked] {
     border-color: var(--mantine-primary-color-filled);
   }
 
+  /* biome-ignore lint/suspicious/noUnknownAtRules: <explanation> */
   @mixin hover {
-    @mixin light {
-      background-color: var(--mantine-color-gray-0);
-    }
-
+    /* biome-ignore lint/suspicious/noUnknownAtRules: <explanation> */
     @mixin dark {
       background-color: var(--mantine-color-dark-6);
     }
   }
 }
 
-.cardCheckboxTitle {
+.cardRadioTitle {
   font-family: var(--mantine-font-family-monospace);
   font-weight: bold;
   font-size: var(--mantine-font-size-md);
@@ -28,7 +26,7 @@
   color: var(--mantine-color-bright);
 }
 
-.cardCheckboxDescription {
+.cardRadioDescription {
   margin-top: 8px;
   color: var(--mantine-color-dimmed);
   font-size: var(--mantine-font-size-xs);
