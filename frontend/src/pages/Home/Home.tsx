@@ -1,15 +1,17 @@
-import { AspectRatio, Container, Flex, Paper, ScrollArea, useMantineTheme } from "@mantine/core";
+import { AspectRatio, Container, Flex, Paper, ScrollArea } from "@mantine/core";
 import { Allotment } from "allotment";
 import { endOfDay } from "date-fns/endOfDay";
 import { parse } from "date-fns/parse";
 import { startOfDay } from "date-fns/startOfDay";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { safeScrollableArea } from "../../constants";
 import DailyHabitEntries from "../../containers/DailyHabitEntries";
 import DailyWeatherOverviewContainer from "../../containers/DailyWeatherOverviewContainer";
 import { DiaryEntryContainer } from "../../containers/DiaryEntryContainer";
 import HeatmapContainer from "../../containers/HeatmapContainer";
 import PlacesVisitedTimelineContainer from "../../containers/PlacesVisitedTimelineContainer";
+import { useConfig } from "../../contexts/ConfigContext";
 import classes from "./Home.module.css";
 
 function Home() {
@@ -42,13 +44,12 @@ function Home() {
     }
   }, [parsedDay]);
 
-  const theme = useMantineTheme();
-  const scrollAreaHeight = "calc(100vh - var(--app-shell-header-height, 0px) - var(--app-shell-footer-height, 0px))";
+  const { theme } = useConfig();
   return (
     <Paper component={Container} fluid h={"100vh"} bg={theme.colors.dark[9]}>
       <Allotment className={classes.splitPane}>
         <Allotment.Pane preferredSize={"75%"}>
-          <ScrollArea h={scrollAreaHeight} type="never">
+          <ScrollArea h={safeScrollableArea} type="never">
             <Flex
               direction={"column"}
               component={Container}
@@ -74,7 +75,7 @@ function Home() {
           </ScrollArea>
         </Allotment.Pane>
         <Allotment.Pane preferredSize={"25%"}>
-          <ScrollArea h={scrollAreaHeight} type="never">
+          <ScrollArea h={safeScrollableArea} type="never">
             <Flex component={Container} fluid pt={"xl"} pr={0}>
               <DailyHabitEntries date={day} />
               <Container pl={0} fluid>

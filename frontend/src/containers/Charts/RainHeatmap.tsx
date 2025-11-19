@@ -5,7 +5,7 @@ import { trpc } from "../../api/trpc";
 import type { ChartProps } from "../../charts/types";
 import { CalendarHeatmap } from "../../components/CalendarHeatmap/CalendarHeatmap";
 import { getCalendarHeatmapSafeDates } from "../../utils/heatmapChartHelpers";
-import { EchartsCommonConfig } from "./commonConfig";
+import { EchartsCommonConfig } from "./EchartsCommonConfig";
 
 export function RainHeatmap(props: ChartProps) {
   const { startDate, endDate } = getCalendarHeatmapSafeDates(props);

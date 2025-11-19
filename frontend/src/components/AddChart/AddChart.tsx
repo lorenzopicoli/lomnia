@@ -3,11 +3,11 @@ import { useForm } from "@mantine/form";
 import { IconAdjustments, IconChartArrowsVertical } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import { subYears } from "date-fns/subYears";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { v4 } from "uuid";
 import { trpc } from "../../api/trpc";
 import { type ChartAreaConfig, type ChartId, ChartSource } from "../../charts/types";
-import { useChartsConfig } from "../../contexts/ChartsConfigContext";
+import { useDashboard } from "../../contexts/DashboardContext";
 import { availableCharts, ChartDisplayer } from "../ChartDisplayer/ChartDisplayer";
 import { AddChartId } from "./AddChartId";
 import { AddChartPlaceholder } from "./AddChartPlaceholder";
@@ -30,7 +30,7 @@ export type AddChartFormValues = {
 const initialSource = ChartSource.Weather;
 export function AddChart(props: AddChartProps) {
   const [currentStep, setCurrentStep] = useState(0);
-  const { aggPeriod } = useChartsConfig();
+  const { aggPeriod } = useDashboard();
 
   const { data: habitKeysData } = useQuery(trpc.getHabitKeys.queryOptions());
   const { data: countKeysData } = useQuery(trpc.getCountKeys.queryOptions());
@@ -63,8 +63,8 @@ export function AddChart(props: AddChartProps) {
     },
   });
 
-  const startDate = subYears(new Date(), 1);
-  const endDate = new Date();
+  const startDate = useMemo(() => subYears(new Date(), 1), []);
+  const endDate = useMemo(() => new Date(), []);
   const values = form.getValues();
 
   const nextStep = () => {
@@ -126,6 +126,7 @@ export function AddChart(props: AddChartProps) {
               </ScrollArea>
             </Stepper.Step>
           </AddChartStepper>
+
           <Space h={"md"} />
           <Flex align={"flex-end"} justify={"flex-end"} gap={"sm"}>
             <Button onClick={previousStep} variant="light" size="md">

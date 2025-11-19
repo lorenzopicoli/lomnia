@@ -3,7 +3,7 @@ import ReactECharts from "echarts-for-react";
 import { useMemo } from "react";
 import { trpc } from "../../api/trpc";
 import type { ChartProps } from "../../charts/types";
-import { EchartsCommonConfig } from "./commonConfig";
+import { EchartsCommonConfig } from "./EchartsCommonConfig";
 
 export function TemperatureExperienced(props: ChartProps) {
   const { data } = useQuery(

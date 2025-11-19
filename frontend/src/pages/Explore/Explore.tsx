@@ -1,13 +1,15 @@
-import { Container, Paper, ScrollArea, useMantineTheme } from "@mantine/core";
+import { Container, Paper, ScrollArea } from "@mantine/core";
 import { Route, Routes, useNavigate } from "react-router-dom";
 import type { ChartAreaConfig } from "../../charts/types";
 import { useChartGridLayout } from "../../charts/useChartGridLayout";
 import { AddChart } from "../../components/AddChart/AddChart";
-import { ChartsConfigProvider } from "../../contexts/ChartsConfigContext";
+import { safeScrollableArea } from "../../constants";
+import { useConfig } from "../../contexts/ConfigContext";
+import { DashboardProvider } from "../../contexts/DashboardContext";
 import { ChartsDashboard } from "./ChartsDashboard";
 
 export function Explore() {
-  const theme = useMantineTheme();
+  const { theme } = useConfig();
   const navigate = useNavigate();
 
   const { onAddCharts } = useChartGridLayout("explore");
@@ -21,12 +23,9 @@ export function Explore() {
   };
 
   return (
-    <ChartsConfigProvider>
+    <DashboardProvider>
       <Paper p={0} component={Container} fluid h={"100vh"} bg={theme.colors.dark[9]}>
-        <ScrollArea
-          h="calc(100vh - var(--app-shell-header-height, 0px) - var(--app-shell-footer-height, 0px))"
-          type="never"
-        >
+        <ScrollArea h={safeScrollableArea} type="never">
           <Routes>
             <Route index element={<ChartsDashboard />} />
             <Route
@@ -36,6 +35,6 @@ export function Explore() {
           </Routes>
         </ScrollArea>
       </Paper>
-    </ChartsConfigProvider>
+    </DashboardProvider>
   );
 }

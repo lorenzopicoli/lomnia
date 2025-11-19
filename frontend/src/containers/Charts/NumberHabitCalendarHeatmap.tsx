@@ -6,7 +6,7 @@ import { trpc } from "../../api/trpc";
 import type { HabitChartProps } from "../../charts/types";
 import { CalendarHeatmap } from "../../components/CalendarHeatmap/CalendarHeatmap";
 import { getCalendarHeatmapSafeDates } from "../../utils/heatmapChartHelpers";
-import { EchartsCommonConfig } from "./commonConfig";
+import { EchartsCommonConfig } from "./EchartsCommonConfig";
 
 export function NumberHabitCalendarHeatmap(props: HabitChartProps) {
   const { startDate, endDate } = getCalendarHeatmapSafeDates(props);

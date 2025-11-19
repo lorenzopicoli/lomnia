@@ -1,4 +1,4 @@
-import { ActionIcon, Container, Paper, ScrollArea, Space, useMantineTheme } from "@mantine/core";
+import { ActionIcon, Container, Paper, ScrollArea, Space } from "@mantine/core";
 import { IconTrash } from "@tabler/icons-react";
 import { useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
@@ -7,13 +7,15 @@ import { ChartDisplayer } from "../../components/ChartDisplayer/ChartDisplayer";
 import { ChartMenu } from "../../components/ChartMenu/ChartMenu";
 import { ChartPlaceholder } from "../../components/ChartPlaceholder/ChartPlaceholder";
 import { ResizableGrid } from "../../components/ResizableGrid/ResizableGrid";
-import { useChartsConfig } from "../../contexts/ChartsConfigContext";
+import { safeScrollableArea } from "../../constants";
+import { useConfig } from "../../contexts/ConfigContext";
+import { useDashboard } from "../../contexts/DashboardContext";
 import { removeNills } from "../../utils/removeNils";
 
 export function ChartsDashboard() {
-  const theme = useMantineTheme();
+  const { theme } = useConfig();
   const navigate = useNavigate();
-  const chartsConfig = useChartsConfig();
+  const chartsConfig = useDashboard();
 
   const { chartsBeingShown, onRemoveChart, isChangingLayout, gridProps } = useChartGridLayout("explore");
   const charts = useMemo(() => {
@@ -28,10 +30,7 @@ export function ChartsDashboard() {
 
   return (
     <Paper component={Container} fluid h={"100vh"} bg={theme.colors.dark[9]}>
-      <ScrollArea
-        h="calc(100vh - var(--app-shell-header-height, 0px) - var(--app-shell-footer-height, 0px))"
-        type="never"
-      >
+      <ScrollArea h={safeScrollableArea} type="never">
         <Container fluid pt={"md"} pr={0} pl={0} m={0} style={{ position: "relative" }}>
           <ChartMenu
             selectedCharts={charts}

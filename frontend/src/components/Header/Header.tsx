@@ -1,7 +1,8 @@
-import { ActionIcon, Button, Center, Code, Container, Flex, Input, useMantineTheme } from "@mantine/core";
+import { ActionIcon, Button, Center, Code, Container, Flex, Input } from "@mantine/core";
 import { IconChevronLeft, IconChevronRight, IconEye, IconEyeOff, IconSearch } from "@tabler/icons-react";
 import { format } from "date-fns/format";
 import { isToday } from "date-fns/isToday";
+import { useConfig } from "../../contexts/ConfigContext";
 
 type HeaderProps = {
   onPreviousDay: () => void;
@@ -16,7 +17,7 @@ type HeaderProps = {
 
 function Header(props: HeaderProps) {
   const formattedDate = format(props.currentDate, "MMMM do, yyyy");
-  const theme = useMantineTheme();
+  const { theme } = useConfig();
 
   const handlePrivateModeChange = () => {
     props.onChangePrivateMode(!props.privateMode);

@@ -1,8 +1,9 @@
-import { Center, Paper, Stack, Text, useMantineTheme } from "@mantine/core";
+import { Center, Paper, Stack, Text } from "@mantine/core";
 import { IconChartHistogram } from "@tabler/icons-react";
+import { useConfig } from "../../contexts/ConfigContext";
 
 export function ChartPlaceholder(props: { text?: string }) {
-  const theme = useMantineTheme();
+  const { theme } = useConfig();
   return (
     <Paper p="xl" radius="lg" bg={theme.colors.dark[8]} h={"100%"}>
       <Center h="100%">

@@ -8,7 +8,7 @@ import { subWeeks } from "date-fns/subWeeks";
 import { subYears } from "date-fns/subYears";
 import { useEffect, useState } from "react";
 import type { ChartAreaConfig } from "../../charts/types";
-import { useChartsConfig } from "../../contexts/ChartsConfigContext";
+import { useDashboard } from "../../contexts/DashboardContext";
 
 export function ChartMenu(props: {
   selectedCharts: ChartAreaConfig[];
@@ -19,7 +19,7 @@ export function ChartMenu(props: {
   onRearrangeCharts: () => void;
 }) {
   const [partialDateRange, setPartialDateRange] = useState<[Date | null, Date | null]>([null, null]);
-  const { isRearranging } = useChartsConfig();
+  const { isRearranging } = useDashboard();
   const handleDateChange: PickerBaseProps<"range">["onChange"] = (dateStr) => {
     const dates: [Date | null, Date | null] = [
       dateStr[0] ? new Date(dateStr[0]) : null,

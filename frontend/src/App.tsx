@@ -12,44 +12,14 @@ import "react-resizable/css/styles.css";
 
 import "maplibre-gl/dist/maplibre-gl.css";
 import "allotment/dist/style.css";
-import { createTheme, MantineProvider, rem } from "@mantine/core";
+import { MantineProvider } from "@mantine/core";
 import * as echarts from "echarts";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { queryClient } from "./api/trpc";
 import { ConfigProvider } from "./contexts/ConfigContext";
-import { EchartsThemes } from "./echartsThemes";
 import Layout from "./pages/Layout";
-
-const theme = createTheme({
-  colors: {
-    violet: [
-      "#f6ecff",
-      "#e7d6fb",
-      "#caabf1",
-      "#ac7ce8",
-      "#9354e0",
-      "#833cdb",
-      "#7b2eda",
-      "#6921c2",
-      "#5d1cae",
-      "#501599",
-    ],
-    ye: ["#fff8e0", "#ffeeca", "#ffdb99", "#ffc762", "#ffb536", "#ffab18", "#ffa503", "#e49000", "#cb7f00", "#b06d00"],
-  },
-  primaryColor: "violet",
-
-  fontFamily: "JetBrains Mono",
-  fontFamilyMonospace: "JetBrains Mono",
-
-  focusRing: "auto",
-
-  headings: {
-    fontFamily: "JetBrains Mono, monospace",
-    sizes: {
-      h1: { fontSize: rem(36) },
-    },
-  },
-});
+import { EchartsThemes } from "./themes/echartsThemes";
+import { mantineTheme } from "./themes/mantineThemes";
 
 echarts.registerTheme("default_dark", EchartsThemes.darkDefault);
 
@@ -62,13 +32,13 @@ const router = createBrowserRouter([
 
 function App() {
   return (
-    <ConfigProvider>
-      <QueryClientProvider client={queryClient}>
-        <MantineProvider theme={theme} defaultColorScheme="dark">
+    <MantineProvider theme={mantineTheme} defaultColorScheme="dark">
+      <ConfigProvider>
+        <QueryClientProvider client={queryClient}>
           <RouterProvider router={router} />
-        </MantineProvider>
-      </QueryClientProvider>
-    </ConfigProvider>
+        </QueryClientProvider>
+      </ConfigProvider>
+    </MantineProvider>
   );
 }
 
