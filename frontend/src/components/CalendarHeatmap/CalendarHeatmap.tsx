@@ -13,7 +13,6 @@ export interface CalendarHeatmapProps extends HeatmapProps {
 
 export function CalendarHeatmap(props: CalendarHeatmapProps) {
   const safeStart = max([subYears(props.endDate, 1), props.startDate]);
-  // const [splitMonths, setSplitMonths] = useState(props.splitMonths ?? false);
   const { ref, width, height } = useElementSize();
   const gap = props.gap ?? 0;
   const RECT_THRESHOLD_OVERRIDE_SPLIT = 7;
@@ -42,6 +41,20 @@ export function CalendarHeatmap(props: CalendarHeatmapProps) {
     return { rectSize: preferredRectSize, safeSplitMonths: props.splitMonths };
   }, [props.endDate, width, height, safeStart, gap, props.splitMonths]);
 
+  const domain: [number, number] = useMemo(() => {
+    let max = 0;
+    let min = 0;
+    for (const el of Object.values(props.data)) {
+      if (el < min) {
+        min = el;
+      }
+      if (el > max) {
+        max = el;
+      }
+    }
+    return [min, max];
+  }, [props.data]);
+
   return (
     <Flex align={"center"} justify={"center"} component={Container} flex={1} fluid ref={ref} w={"100%"} h={"100%"}>
       <Heatmap
@@ -51,6 +64,7 @@ export function CalendarHeatmap(props: CalendarHeatmapProps) {
         withTooltip
         withMonthLabels
         withWeekdayLabels
+        domain={domain}
         {...props}
         splitMonths={safeSplitMonths}
         startDate={safeStart}

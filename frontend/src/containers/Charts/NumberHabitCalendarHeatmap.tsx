@@ -22,7 +22,9 @@ export function NumberHabitCalendarHeatmap(props: HabitChartProps) {
     () =>
       data?.reduce(
         (prev, curr) => {
-          prev[format(new Date(curr.date), "yyyy-MM-dd")] = curr.value;
+          if (curr.value > 0) {
+            prev[format(new Date(curr.date), "yyyy-MM-dd")] = curr.value;
+          }
           return prev;
         },
         {} as Record<string, number>,
