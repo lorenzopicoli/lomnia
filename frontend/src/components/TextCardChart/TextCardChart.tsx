@@ -1,6 +1,6 @@
 import { Container, Flex, Text } from "@mantine/core";
 
-export interface TextCardChartProps {
+interface TextCardChartProps {
   value: string | number;
   title?: string;
   unit?: string;

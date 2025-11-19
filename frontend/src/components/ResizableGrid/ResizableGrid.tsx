@@ -21,7 +21,7 @@ export type ResizableGridProps = {
   children: ReactNode;
 } & ResponsiveProps;
 
-export const GRID_MARGIN = 10;
+const GRID_MARGIN = 10;
 
 export function ResizableGrid(props: ResizableGridProps) {
   const { children, layout, ...otherProps } = props;

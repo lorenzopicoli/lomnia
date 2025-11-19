@@ -4,7 +4,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import type MapViewParams from "../../types/MapViewParams";
 
 type DataPoint = [longitude: number, latitude: number, count: number];
-export type HeatmapProps = {
+type HeatmapProps = {
   onViewChange?: (params: MapViewParams) => void | Promise<void>;
   fitToBounds: boolean;
   points: DataPoint[];

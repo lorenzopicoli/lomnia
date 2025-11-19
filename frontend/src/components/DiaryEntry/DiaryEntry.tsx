@@ -3,7 +3,7 @@ import Markdown from "react-markdown";
 import wikiLinkPlugin from "remark-wiki-link";
 import { Anonymize } from "../Anonymize/Anonymize";
 
-export type DiaryEntryProps = {
+type DiaryEntryProps = {
   content: string;
   tags: string[];
   relativePath: string;

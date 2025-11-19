@@ -12,7 +12,7 @@ import { type NominatimReverseResponse, NominatimReverseResponseSchema } from ".
  * @param lng  - Longitude
  * @param radiusInMeters - Radius to save into the returned structure
  */
-export async function reverseGeocodeFormatted(name: string, lat: number, lng: number, radiusInMeters: number) {
+async function reverseGeocodeFormatted(name: string, lat: number, lng: number, radiusInMeters: number) {
   try {
     const response = await axios.get("https://nominatim.openstreetmap.org/reverse", {
       params: {

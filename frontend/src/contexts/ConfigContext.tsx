@@ -5,11 +5,11 @@ interface Config {
   privateMode: boolean;
 }
 
-export interface ConfigContextType extends Config {
+interface ConfigContextType extends Config {
   updateConfig: (updates: Partial<Config>) => void;
 }
 
-export const ConfigContext = createContext<ConfigContextType | undefined>(undefined);
+const ConfigContext = createContext<ConfigContextType | undefined>(undefined);
 
 export const ConfigProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [config, setConfig] = useState<Config>({

@@ -32,7 +32,7 @@ export enum ChartId {
   Count = "Count",
 }
 
-export const aggregationPeriods = ["month", "day", "week", "hour"] as const;
+const aggregationPeriods = ["month", "day", "week", "hour"] as const;
 export type AggregationPeriod = (typeof aggregationPeriods)[number];
 
 export interface ChartProps {

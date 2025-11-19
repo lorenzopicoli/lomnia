@@ -1,8 +1,8 @@
-import { type MantineColor, ThemeIcon, rem } from "@mantine/core";
+import { type MantineColor, rem, ThemeIcon } from "@mantine/core";
 import type { Icon, IconProps } from "@tabler/icons-react";
 import type { ComponentType, ForwardRefExoticComponent, RefAttributes } from "react";
 
-export type LoIconProps = {
+type LoIconProps = {
   color: MantineColor;
   Icon: ComponentType<IconProps> | ForwardRefExoticComponent<Omit<IconProps, "ref"> & RefAttributes<Icon>>;
 };

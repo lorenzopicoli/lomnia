@@ -6,7 +6,7 @@ import { subYears } from "date-fns/subYears";
 import { useMemo } from "react";
 import { calculateHeatmapChartRectSize } from "../../utils/heatmapChartHelpers";
 
-export interface CalendarHeatmapProps extends HeatmapProps {
+interface CalendarHeatmapProps extends HeatmapProps {
   startDate: Date;
   endDate: Date;
 }

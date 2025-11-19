@@ -23,7 +23,7 @@ import { formatDateTime } from "../utils/formatDateTime";
 import { getRandomColor } from "../utils/getRandomColor";
 import { isNumber } from "../utils/isNumber";
 
-export type DailyWeatherOverviewContainerProps = {
+type DailyWeatherOverviewContainerProps = {
   date: Date;
 };
 

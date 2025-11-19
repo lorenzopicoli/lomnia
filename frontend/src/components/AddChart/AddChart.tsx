@@ -14,7 +14,7 @@ import { AddChartPlaceholder } from "./AddChartPlaceholder";
 import { AddChartSource } from "./AddChartSource";
 import { AddChartStepper } from "./AddChartStepper";
 
-export type AddChartProps = {
+type AddChartProps = {
   onSave: (chart: ChartAreaConfig) => void;
   onDismiss: () => void;
 };

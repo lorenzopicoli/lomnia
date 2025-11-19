@@ -13,9 +13,9 @@ interface ChartsConfig {
   toggleIsRearranging: () => void;
   setAggPeriod: (aggPeriod: AggregationPeriod) => void;
 }
-export interface ChartsConfigContextType extends ChartsConfig {}
+interface ChartsConfigContextType extends ChartsConfig {}
 
-export const ChartsConfigContext = createContext<ChartsConfig | undefined>(undefined);
+const ChartsConfigContext = createContext<ChartsConfig | undefined>(undefined);
 
 export const ChartsConfigProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [dateRange, setDateRange] = useState<[Date, Date]>([subDays(new Date(), 365), new Date()]);
