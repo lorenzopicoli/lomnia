@@ -1,10 +1,10 @@
 import { eq, sql } from "drizzle-orm";
 import type { DateTime } from "luxon";
 import { z } from "zod";
-import config from "../../../config";
-import { type DBTransaction, toPostgisGeoPoint } from "../../../db/types";
-import { locationsTable } from "../../../models";
-import { locationDetailsTable } from "../../../models/LocationDetails";
+import config from "../../config";
+import { type DBTransaction, toPostgisGeoPoint } from "../../db/types";
+import { locationsTable } from "../../models";
+import { locationDetailsTable } from "../../models/LocationDetails";
 import { BaseImporter } from "../BaseImporter";
 import data from "./personal.json";
 

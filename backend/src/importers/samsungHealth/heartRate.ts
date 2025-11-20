@@ -1,10 +1,10 @@
-import { heartRateTable, type NewHeartRate } from "../../../models/HeartRate";
-import { DateTime } from "luxon";
-import { BaseSamsungHealthImporter } from ".";
-import { offsetToTimezone } from "../../../helpers/offsetToTimezone";
-import { db } from "../../../db/connection";
 import { desc } from "drizzle-orm";
-import type { DBTransaction } from "../../../db/types";
+import { DateTime } from "luxon";
+import { db } from "../../db/connection";
+import type { DBTransaction } from "../../db/types";
+import { offsetToTimezone } from "../../helpers/offsetToTimezone";
+import { heartRateTable, type NewHeartRate } from "../../models/HeartRate";
+import { BaseSamsungHealthImporter } from ".";
 import { SamsungHeartRateBinnedDataSchema, SamsungHeartRateCsvRowSchema } from "./schema";
 
 export class SamsungHealthHeartRateImporter extends BaseSamsungHealthImporter<NewHeartRate> {
