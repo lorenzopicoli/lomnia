@@ -8,7 +8,6 @@
     "dev:importer": "tsx watch --clear-screen=false src/importer.ts",
     "add-poi": "tsx src/scripts/poiFormatter.ts",
     "importer": "tsx src/importer.ts",
-    "exporter": "tsx src/exporter.ts",
     "dev:server": "tsx watch --clear-screen=false src/server.ts | pino-pretty",
     "build": "rimraf build && tsc && cp -r src/static build/static && cp -r src/db/migrations build/db/migrations",
     "start": "NODE_ENV=production npm run build && tsx build/src/index.js",

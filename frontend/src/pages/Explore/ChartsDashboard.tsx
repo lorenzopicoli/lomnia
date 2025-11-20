@@ -34,7 +34,6 @@ export function ChartsDashboard() {
         <Container fluid pt={"md"} pr={0} pl={0} m={0} style={{ position: "relative" }}>
           <ChartMenu
             selectedCharts={charts}
-            onRemoveChart={onRemoveChart}
             currentRange={[chartsConfig.startDate, chartsConfig.endDate]}
             onDateChange={chartsConfig.setDateRange}
             onNewChart={handleClickNewChart}

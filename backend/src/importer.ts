@@ -1,5 +1,6 @@
 import "dotenv/config";
-import { ImporterManager } from "./services/importers/ImporterManager";
+import { ImporterManager } from "./importers/ImporterManager";
+
 const main = async () => {
   const importer = new ImporterManager();
   importer.schedule(10000);

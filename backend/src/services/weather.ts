@@ -1,132 +1,72 @@
 import { isValid, parse } from "date-fns";
-import { asc, type SQL, sql } from "drizzle-orm";
-import type { DateTime } from "luxon";
+import { asc, sql } from "drizzle-orm";
 import { db } from "../db/connection";
-import { getKeys } from "../helpers/getKeys";
-import { dailyWeatherTable, type HourlyWeatherColumns, hourlyWeatherTable } from "../models";
-import { getAggregatedXColumn, getAggregatedYColumn, getMinMaxChart } from "./charts/charts";
-import type { AggregationPeriod, ChartServiceParams, ChartServiceReturn } from "./charts/types";
+import { dailyWeatherTable, hourlyWeatherTable } from "../models";
+import type { ChartPeriodInput } from "../types/chartTypes";
+import { getAggregatedXColumn } from "./common/getAggregatedXColumn";
+import { getAggregatedYColumn } from "./common/getAggregatedYColumn";
 
-export async function getWeatherInformation(params: { day: string }) {
-  const { day } = params;
-  if (!isValid(parse(day, "yyyy-MM-dd", new Date()))) {
-    throw new Error("Invalid date");
+export namespace WeatherService {
+  export async function getByDay(params: { day: string }) {
+    const { day } = params;
+    if (!isValid(parse(day, "yyyy-MM-dd", new Date()))) {
+      throw new Error("Invalid date");
+    }
+    const hourly = await db.query.hourlyWeatherTable.findMany({
+      where: sql`(${hourlyWeatherTable.date} AT TIME ZONE ${hourlyWeatherTable.timezone})::date = ${day}`,
+      orderBy: hourlyWeatherTable.date,
+    });
+    const daily = await db.query.dailyWeatherTable.findFirst({
+      where: sql`${dailyWeatherTable.date} = ${day}`,
+    });
+
+    return {
+      hourly,
+      daily,
+    };
   }
-  const hourly = await db.query.hourlyWeatherTable.findMany({
-    where: sql`(${hourlyWeatherTable.date} AT TIME ZONE ${hourlyWeatherTable.timezone})::date = ${day}`,
-    orderBy: hourlyWeatherTable.date,
-  });
-  const daily = await db.query.dailyWeatherTable.findFirst({
-    where: sql`${dailyWeatherTable.date} = ${day}`,
-  });
+}
 
-  return {
-    hourly,
-    daily,
+export namespace WeatherChartService {
+  export const getDailyPrecipitation = async (params: ChartPeriodInput) => {
+    const { aggregationPeriod, start, end } = params;
+    const aggregatedDate = getAggregatedXColumn(dailyWeatherTable.date, aggregationPeriod);
+    const data = db
+      .select({
+        rainSum: getAggregatedYColumn(dailyWeatherTable.rainSum, "max").mapWith(Number),
+        snowfallSum: sql`${getAggregatedYColumn(dailyWeatherTable.snowfallSum, "max")} * 10`.mapWith(Number),
+        date: aggregatedDate.mapWith(String),
+      })
+      .from(dailyWeatherTable)
+      .where(
+        sql`
+      ${dailyWeatherTable.date} >= (${start.toISO()} AT TIME ZONE 'America/Toronto')::date 
+      AND ${dailyWeatherTable.date} <= (${end.toISO()} AT TIME ZONE 'America/Toronto')::date`,
+      )
+      .groupBy(aggregatedDate)
+      .orderBy(asc(aggregatedDate));
+
+    return data;
+  };
+
+  export const getHourlyApparentVsActualTemp = async (params: ChartPeriodInput) => {
+    const { aggregationPeriod, start, end } = params;
+    const aggregatedDate = getAggregatedXColumn(hourlyWeatherTable.date, aggregationPeriod);
+    const data = db
+      .select({
+        apparentTemp: getAggregatedYColumn(hourlyWeatherTable.apparentTemperature, "max").mapWith(Number),
+        actualTemp: getAggregatedYColumn(hourlyWeatherTable.temperature2m, "max").mapWith(Number),
+        date: aggregatedDate.mapWith(String),
+      })
+      .from(hourlyWeatherTable)
+      .where(
+        sql`
+      ${hourlyWeatherTable.date} >= (${start.toISO()} AT TIME ZONE 'America/Toronto')::date 
+      AND ${hourlyWeatherTable.date} <= (${end.toISO()} AT TIME ZONE 'America/Toronto')::date`,
+      )
+      .groupBy(aggregatedDate)
+      .orderBy(asc(aggregatedDate));
+
+    return data;
   };
 }
-export const getWeatherCharts = async (params: ChartServiceParams): ChartServiceReturn => {
-  const { yKeys, xKey, filters, aggregation } = params;
-  const columns = getKeys(hourlyWeatherTable);
-  const isSafeXKey = columns.includes(xKey as (typeof columns)[number]);
-  const isSafeYKeys = yKeys.every((yKey) => columns.includes(yKey as (typeof columns)[number]));
-
-  if (!isSafeXKey || !isSafeYKeys) {
-    throw new Error("Invalid keys");
-  }
-  const xKeyTyped = xKey as HourlyWeatherColumns;
-  const yKeysTyped = yKeys as HourlyWeatherColumns[];
-  const xCol = getAggregatedXColumn(hourlyWeatherTable[xKeyTyped], aggregation?.period);
-  const yCols = yKeysTyped.reduce(
-    (acc, curr) => {
-      acc[curr] = getAggregatedYColumn(hourlyWeatherTable[curr], aggregation?.fun).mapWith(Number);
-      return acc;
-    },
-    {} as Record<HourlyWeatherColumns, SQL>,
-  );
-
-  const data = db
-    .select({
-      ...yCols,
-      [xKey]: xCol,
-    })
-    .from(hourlyWeatherTable)
-    .where(
-      sql`
-      ${hourlyWeatherTable.date} >= (${filters.startDate.toISO()} AT TIME ZONE ${hourlyWeatherTable.timezone})::date 
-      AND ${hourlyWeatherTable.date} <= (${filters.endDate.toISO()} AT TIME ZONE ${hourlyWeatherTable.timezone})::date`,
-    )
-    .$dynamic();
-
-  if (aggregation) {
-    data.groupBy(sql`${xCol}`);
-  }
-
-  data.orderBy(asc(xCol));
-  const result = await data;
-  const formatted: Record<string, { x: number | Date | string; y: number }[]> = {};
-
-  // Slow!
-  for (const entry of result) {
-    const x = entry[xKeyTyped] as string | number;
-    for (const key of getKeys(entry)) {
-      if (key === xKeyTyped) {
-        continue;
-      }
-      if (!formatted[key]) {
-        formatted[key] = [];
-      }
-      formatted[key].push({ x, y: entry[key] as number });
-    }
-  }
-
-  return getMinMaxChart(formatted);
-};
-
-export const getWeatherPrecipitation = async (params: {
-  startDate: DateTime;
-  endDate: DateTime;
-  period: AggregationPeriod;
-}) => {
-  const aggregatedDate = getAggregatedXColumn(dailyWeatherTable.date, params.period);
-  const data = db
-    .select({
-      rainSum: getAggregatedYColumn(dailyWeatherTable.rainSum, "max").mapWith(Number),
-      snowfallSum: sql`${getAggregatedYColumn(dailyWeatherTable.snowfallSum, "max")} * 10`.mapWith(Number),
-      date: aggregatedDate.mapWith(String),
-    })
-    .from(dailyWeatherTable)
-    .where(
-      sql`
-      ${dailyWeatherTable.date} >= (${params.startDate.toISO()} AT TIME ZONE 'America/Toronto')::date 
-      AND ${dailyWeatherTable.date} <= (${params.endDate.toISO()} AT TIME ZONE 'America/Toronto')::date`,
-    )
-    .groupBy(aggregatedDate)
-    .orderBy(asc(aggregatedDate));
-
-  return data;
-};
-
-export const getWeatherApparentVsActual = async (params: {
-  startDate: DateTime;
-  endDate: DateTime;
-  period: AggregationPeriod;
-}) => {
-  const aggregatedDate = getAggregatedXColumn(hourlyWeatherTable.date, params.period);
-  const data = db
-    .select({
-      apparentTemp: getAggregatedYColumn(hourlyWeatherTable.apparentTemperature, "max").mapWith(Number),
-      actualTemp: getAggregatedYColumn(hourlyWeatherTable.temperature2m, "max").mapWith(Number),
-      date: aggregatedDate.mapWith(String),
-    })
-    .from(hourlyWeatherTable)
-    .where(
-      sql`
-      ${hourlyWeatherTable.date} >= (${params.startDate.toISO()} AT TIME ZONE 'America/Toronto')::date 
-      AND ${hourlyWeatherTable.date} <= (${params.endDate.toISO()} AT TIME ZONE 'America/Toronto')::date`,
-    )
-    .groupBy(aggregatedDate)
-    .orderBy(asc(aggregatedDate));
-
-  return data;
-};

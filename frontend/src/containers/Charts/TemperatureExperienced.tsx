@@ -7,10 +7,10 @@ import { EchartsCommonConfig } from "./EchartsCommonConfig";
 
 export function TemperatureExperienced(props: ChartProps) {
   const { data } = useQuery(
-    trpc.getWeatherApparentVsActual.queryOptions({
-      startDate: props.startDate.toISOString(),
-      endDate: props.endDate.toISOString(),
-      period: props.aggPeriod,
+    trpc.charts.weather.getApparentVsActualTemp.queryOptions({
+      start: props.startDate.toISOString(),
+      end: props.endDate.toISOString(),
+      aggregationPeriod: props.aggPeriod,
     }),
   );
 

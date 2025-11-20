@@ -6,9 +6,9 @@ import { subYears } from "date-fns/subYears";
 import { useMemo, useState } from "react";
 import { v4 } from "uuid";
 import { trpc } from "../../api/trpc";
-import { type ChartAreaConfig, type ChartId, ChartSource } from "../../charts/types";
+import { availableCharts, type ChartAreaConfig, type ChartId, ChartSource } from "../../charts/types";
 import { useDashboard } from "../../contexts/DashboardContext";
-import { availableCharts, ChartDisplayer } from "../ChartDisplayer/ChartDisplayer";
+import { ChartDisplayer } from "../ChartDisplayer/ChartDisplayer";
 import { AddChartId } from "./AddChartId";
 import { AddChartPlaceholder } from "./AddChartPlaceholder";
 import { AddChartSource } from "./AddChartSource";
@@ -32,8 +32,8 @@ export function AddChart(props: AddChartProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const { aggPeriod } = useDashboard();
 
-  const { data: habitKeysData } = useQuery(trpc.getHabitKeys.queryOptions());
-  const { data: countKeysData } = useQuery(trpc.getCountKeys.queryOptions());
+  const { data: habitKeysData } = useQuery(trpc.habits.getKeys.queryOptions());
+  const { data: countKeysData } = useQuery(trpc.charts.counts.getCountKeys.queryOptions());
 
   // Form is controlled so it's easier to fetch updated values for chart title and habit keys
   // could change for uncontrolled if that's figured out
@@ -137,7 +137,7 @@ export function AddChart(props: AddChartProps) {
             </Button>
           </Flex>
         </Container>
-        <Container fluid flex={1}>
+        <Container flex={1}>
           {/* TODO: repalce pb by gap */}
           <Flex gap={"md"} pb={"md"}>
             <TextInput flex={1} label="Title" withAsterisk {...form.getInputProps("title", { type: "input" })} />
@@ -156,19 +156,21 @@ export function AddChart(props: AddChartProps) {
               {...form.getInputProps("countKey", { type: "input" })}
             />
           </Flex>
-          {values.chartId && currentStep === 1 ? (
-            <ChartDisplayer
-              chartId={values.chartId}
-              habitKey={values.habitKey}
-              countKey={values.countKey}
-              title={values.title}
-              startDate={startDate}
-              endDate={endDate}
-              aggPeriod={aggPeriod}
-            />
-          ) : (
-            <AddChartPlaceholder />
-          )}
+          <Container fluid h={600} flex={1}>
+            {values.chartId && currentStep === 1 ? (
+              <ChartDisplayer
+                chartId={values.chartId}
+                habitKey={values.habitKey}
+                countKey={values.countKey}
+                title={values.title}
+                startDate={startDate}
+                endDate={endDate}
+                aggPeriod={aggPeriod}
+              />
+            ) : (
+              <AddChartPlaceholder />
+            )}
+          </Container>
         </Container>
       </Flex>
     </form>

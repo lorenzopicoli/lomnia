@@ -12,7 +12,7 @@ type DiaryEntryContainer = {
 export const DiaryEntryContainer = memo((props: DiaryEntryContainer) => {
   const config = useConfig();
   const { data, isLoading } = useQuery(
-    trpc.getDiaryEntriesByDay.queryOptions({
+    trpc.diaryEntries.getByDay.queryOptions({
       day: format(props.date, "yyyy-MM-dd"),
       privateMode: config.privateMode,
     }),

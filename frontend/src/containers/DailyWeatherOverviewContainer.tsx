@@ -51,7 +51,7 @@ const weatherCodeInformation = (code: number) => {
 
 export default function DailyWeatherOverviewContainer(props: DailyWeatherOverviewContainerProps) {
   const { data, isLoading } = useQuery(
-    trpc.getWeatherByDay.queryOptions({
+    trpc.weather.getByDay.queryOptions({
       day: format(startOfDay(props.date), "yyyy-MM-dd"),
     }),
   );

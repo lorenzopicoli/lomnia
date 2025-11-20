@@ -6,7 +6,7 @@ import { startOfDay } from "date-fns/startOfDay";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { safeScrollableArea } from "../../constants";
-import DailyHabitEntries from "../../containers/DailyHabitEntries";
+import { DailyHabitEntriesContainer } from "../../containers/DailyHabitEntries";
 import DailyWeatherOverviewContainer from "../../containers/DailyWeatherOverviewContainer";
 import { DiaryEntryContainer } from "../../containers/DiaryEntryContainer";
 import HeatmapContainer from "../../containers/HeatmapContainer";
@@ -77,7 +77,7 @@ function Home() {
         <Allotment.Pane preferredSize={"25%"}>
           <ScrollArea h={safeScrollableArea} type="never">
             <Flex component={Container} fluid pt={"xl"} pr={0}>
-              <DailyHabitEntries date={day} />
+              <DailyHabitEntriesContainer date={day} />
               <Container pl={0} fluid>
                 <DailyWeatherOverviewContainer date={day} />
               </Container>

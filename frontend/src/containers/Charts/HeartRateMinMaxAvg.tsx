@@ -6,10 +6,10 @@ import type { ChartProps } from "../../charts/types";
 
 export function HeartRateMinMaxAvg(props: ChartProps) {
   const { data } = useQuery(
-    trpc.getHeartRateMinMaxAvg.queryOptions({
-      startDate: props.startDate.toISOString(),
-      endDate: props.endDate.toISOString(),
-      period: props.aggPeriod,
+    trpc.charts.heartRate.minMaxAvg.queryOptions({
+      start: props.startDate.toISOString(),
+      end: props.endDate.toISOString(),
+      aggregationPeriod: props.aggPeriod,
     }),
   );
 

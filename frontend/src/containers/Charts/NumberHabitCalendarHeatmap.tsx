@@ -11,10 +11,10 @@ import { EchartsCommonConfig } from "./EchartsCommonConfig";
 export function NumberHabitCalendarHeatmap(props: HabitChartProps) {
   const { startDate, endDate } = getCalendarHeatmapSafeDates(props);
   const { data } = useQuery(
-    trpc.getNumberHabit.queryOptions({
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
-      period: "day",
+    trpc.charts.habits.numeric.queryOptions({
+      start: startDate.toISOString(),
+      end: endDate.toISOString(),
+      aggregationPeriod: "day",
       habitKey: props.habitKey,
     }),
   );

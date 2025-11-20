@@ -8,10 +8,10 @@ import { EchartsCommonConfig } from "./EchartsCommonConfig";
 
 export function PrecipitationExperienced(props: ChartProps) {
   const { data: precipitationData } = useQuery(
-    trpc.getWeatherPrecipitation.queryOptions({
-      startDate: props.startDate.toISOString(),
-      endDate: props.endDate.toISOString(),
-      period: props.aggPeriod,
+    trpc.charts.weather.getPrecipitation.queryOptions({
+      start: props.startDate.toISOString(),
+      end: props.endDate.toISOString(),
+      aggregationPeriod: props.aggPeriod,
     }),
   );
 

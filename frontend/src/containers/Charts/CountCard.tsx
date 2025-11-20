@@ -6,7 +6,7 @@ import { TextCardChart } from "../../components/TextCardChart/TextCardChart";
 export function CountCard(props: CountCardChartProps) {
   const { countKey } = props;
   const { data } = useQuery(
-    trpc.getCounts.queryOptions({
+    trpc.charts.counts.getCounts.queryOptions({
       countKey,
     }),
   );

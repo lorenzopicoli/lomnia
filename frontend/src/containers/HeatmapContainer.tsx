@@ -35,7 +35,7 @@ export default function HeatmapContainer(props: HeatmapContainerProps) {
   }, [props.startDate]);
 
   const { data } = useQuery(
-    trpc.getHeatmap.queryOptions(
+    trpc.charts.locations.getHeatmap.queryOptions(
       {
         ...mapViewParams,
         startDate: startDate.toISOString(),

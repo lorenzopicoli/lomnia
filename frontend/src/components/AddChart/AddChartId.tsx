@@ -1,6 +1,6 @@
 import { Flex, Group, Radio, Text } from "@mantine/core";
 import type { UseFormReturnType } from "@mantine/form";
-import { availableCharts } from "../ChartDisplayer/ChartDisplayer";
+import { availableCharts } from "../../charts/types";
 import type { AddChartFormValues } from "./AddChart";
 import styles from "./AddChart.module.css";
 

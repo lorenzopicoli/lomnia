@@ -14,7 +14,6 @@ export function ChartMenu(props: {
   selectedCharts: ChartAreaConfig[];
   currentRange: [Date, Date];
   onDateChange: (range: [Date, Date]) => void;
-  onRemoveChart: (chartId: string) => void;
   onNewChart: () => void;
   onRearrangeCharts: () => void;
 }) {
@@ -47,9 +46,6 @@ export function ChartMenu(props: {
         break;
     }
     setPartialDateRange(range);
-  };
-  const handleRemove = (chart: ChartAreaConfig) => () => {
-    props.onRemoveChart(chart.uniqueId);
   };
   const handleRearrange = () => {
     props.onRearrangeCharts();

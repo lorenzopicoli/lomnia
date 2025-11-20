@@ -12,10 +12,10 @@ type DailyHabitEntriesProps = {
   date: Date;
 };
 
-export default function DailyHabitEntriesContainer(props: DailyHabitEntriesProps) {
+export function DailyHabitEntriesContainer(props: DailyHabitEntriesProps) {
   const config = useConfig();
   const { data, isLoading } = useQuery(
-    trpc.getHabitsByDay.queryOptions({
+    trpc.habits.getByDay.queryOptions({
       day: format(props.date, "yyyy-MM-dd"),
       privateMode: config.privateMode,
     }),

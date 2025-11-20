@@ -10,10 +10,10 @@ import { EchartsCommonConfig } from "./EchartsCommonConfig";
 export function RainHeatmap(props: ChartProps) {
   const { startDate, endDate } = getCalendarHeatmapSafeDates(props);
   const { data } = useQuery(
-    trpc.getWeatherPrecipitation.queryOptions({
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
-      period: "day",
+    trpc.charts.weather.getPrecipitation.queryOptions({
+      start: startDate.toISOString(),
+      end: endDate.toISOString(),
+      aggregationPeriod: "day",
     }),
   );
   const formattedData = useMemo(
