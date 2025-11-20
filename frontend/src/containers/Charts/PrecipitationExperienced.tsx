@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import type { EChartsOption } from "echarts";
-import ReactECharts from "echarts-for-react";
 import { useMemo } from "react";
 import { trpc } from "../../api/trpc";
 import type { ChartProps } from "../../charts/types";
+import { Echarts } from "../../components/Echarts/Echarts";
 import { EchartsCommonConfig } from "./EchartsCommonConfig";
 
 export function PrecipitationExperienced(props: ChartProps) {
@@ -74,13 +74,5 @@ export function PrecipitationExperienced(props: ChartProps) {
     };
   }, [precipitationData]);
 
-  return (
-    <ReactECharts
-      theme={"default_dark"}
-      style={{ height: "100%", width: "100%" }}
-      option={option}
-      notMerge
-      lazyUpdate
-    />
-  );
+  return <Echarts option={option} />;
 }

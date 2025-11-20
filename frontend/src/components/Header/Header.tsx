@@ -1,4 +1,4 @@
-import { ActionIcon, Button, Center, Code, Container, Flex, Input } from "@mantine/core";
+import { ActionIcon, Button, Center, Code, Container, Flex, Input, Text } from "@mantine/core";
 import { IconChevronLeft, IconChevronRight, IconEye, IconEyeOff, IconSearch } from "@tabler/icons-react";
 import { format } from "date-fns/format";
 import { isToday } from "date-fns/isToday";
@@ -23,30 +23,43 @@ function Header(props: HeaderProps) {
     props.onChangePrivateMode(!props.privateMode);
   };
 
-  return (
-    <Flex component={Container} fluid justify={"space-between"} align={"center"} bg={theme.colors.dark[9]} h={"100%"}>
-      <Flex component={Container} justify={"center"} align={"center"} bg={theme.colors.dark[9]} h={"100%"}>
+  const ContentLeft = () => {
+    return (
+      <>
         <Button variant="subtle" onClick={props.onGoToHome}>
           Home
         </Button>
         <Button variant="subtle" onClick={props.onGoToExplore}>
           Explore
         </Button>
-      </Flex>
-      <Flex flex={1} component={"h2"} gap={"lg"} justify={"center"} align={"center"}>
+      </>
+    );
+  };
+
+  const ContentCenter = () => {
+    return (
+      <>
         <Button onClick={props.onPreviousDay} variant="subtle">
+          {" "}
           <Center>
             <IconChevronLeft />
           </Center>
         </Button>
-        {formattedDate}
+        <Text fw={"bold"} size="xl">
+          {formattedDate}
+        </Text>
         <Button onClick={props.onNextDay} disabled={isToday(props.currentDate)} variant="subtle">
           <Center>
             <IconChevronRight />
           </Center>
         </Button>
-      </Flex>
-      <Flex align={"center"} gap="md">
+      </>
+    );
+  };
+
+  const ContentRight = () => {
+    return (
+      <>
         <Input
           radius={10}
           placeholder="Search..."
@@ -62,6 +75,28 @@ function Header(props: HeaderProps) {
         >
           {!props.privateMode ? <IconEye /> : <IconEyeOff />}
         </ActionIcon>
+      </>
+    );
+  };
+
+  return (
+    <Flex
+      component={Container}
+      direction={"column"}
+      fluid
+      justify={"space-between"}
+      align={"center"}
+      bg={theme.colors.dark[9]}
+      h={"100%"}
+    >
+      <Flex component={Container} justify={"center"} align={"center"} bg={theme.colors.dark[9]} h={"100%"}>
+        <ContentLeft />
+      </Flex>
+      <Flex flex={1} component={"h2"} gap={"lg"} justify={"center"} align={"center"}>
+        <ContentCenter />
+      </Flex>
+      <Flex align={"center"} gap="md">
+        <ContentRight />
       </Flex>
     </Flex>
   );

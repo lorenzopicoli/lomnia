@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import ReactECharts from "echarts-for-react";
 import { useMemo } from "react";
 import { trpc } from "../../api/trpc";
 import type { ChartProps } from "../../charts/types";
+import { Echarts } from "../../components/Echarts/Echarts";
 import { EchartsCommonConfig } from "./EchartsCommonConfig";
 
 export function TemperatureExperienced(props: ChartProps) {
@@ -123,7 +123,5 @@ export function TemperatureExperienced(props: ChartProps) {
     };
   }, [data]);
 
-  return (
-    <ReactECharts theme={"default_dark"} style={{ height: "100%" }} option={option} notMerge={true} lazyUpdate={true} />
-  );
+  return <Echarts option={option} />;
 }

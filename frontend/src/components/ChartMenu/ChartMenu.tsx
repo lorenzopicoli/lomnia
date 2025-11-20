@@ -61,8 +61,7 @@ export function ChartMenu(props: {
         <Flex flex={1}>
           <Menu.Target>
             <Button variant="subtle">
-              {format(props.currentRange[0], "MMMM do, yyyy HH:mm")} to{" "}
-              {format(props.currentRange[1], "MMMM do, yyyy HH:mm")}
+              {format(props.currentRange[0], "MMMM do, yyyy")} - {format(props.currentRange[1], "MMMM do, yyyy")}
             </Button>
           </Menu.Target>
         </Flex>

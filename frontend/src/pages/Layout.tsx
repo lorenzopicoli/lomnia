@@ -52,8 +52,12 @@ function Layout() {
   const handleSearch = () => null;
 
   return (
-    <AppShell header={{ height: 60, offset: true }} withBorder={true}>
-      <AppShell.Header>
+    <AppShell
+      navbar={{ width: { sm: 200, lg: 50 }, breakpoint: "sm" }}
+      header={{ height: 60, offset: true }}
+      withBorder={true}
+    >
+      {/* <AppShell.Header>
         <Header
           onChangePrivateMode={handleChangePrivateMode}
           onNextDay={handleNextDay}
@@ -64,7 +68,19 @@ function Layout() {
           onGoToExplore={handleGoToExplore}
           onGoToHome={handleGoToHome}
         />
-      </AppShell.Header>
+      </AppShell.Header> */}
+      <AppShell.Navbar>
+        <Header
+          onChangePrivateMode={handleChangePrivateMode}
+          onNextDay={handleNextDay}
+          onPreviousDay={handlePreviousDayClick}
+          currentDate={day}
+          onSearch={handleSearch}
+          privateMode={config.privateMode}
+          onGoToExplore={handleGoToExplore}
+          onGoToHome={handleGoToHome}
+        />
+      </AppShell.Navbar>
       <AppShell.Main>
         <Routes>
           <Route index element={<Home />} />
