@@ -33,7 +33,6 @@ export function ChartsDashboard() {
       <ScrollArea h={safeScrollableArea} type="never">
         <Container fluid pt={"md"} pr={0} pl={0} m={0} style={{ position: "relative" }}>
           <ChartMenu
-            selectedCharts={charts}
             currentRange={[chartsConfig.startDate, chartsConfig.endDate]}
             onDateChange={chartsConfig.setDateRange}
             onNewChart={handleClickNewChart}

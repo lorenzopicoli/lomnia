@@ -24,7 +24,7 @@ export function Explore() {
 
   return (
     <DashboardProvider>
-      <Paper p={0} component={Container} fluid h={"100vh"} bg={theme.colors.dark[9]}>
+      <Paper p={0} component={Container} fluid h={"100vh"} bg={theme.colors.dark[8]}>
         <ScrollArea h={safeScrollableArea} type="never">
           <Routes>
             <Route index element={<ChartsDashboard />} />

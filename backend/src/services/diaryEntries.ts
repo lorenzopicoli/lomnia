@@ -7,7 +7,7 @@ export namespace DiaryEntriesService {
   function removeUnwantedContent(markdownText: string): string {
     // Remove everything after ## Birthdays. That's where I keep some dataview blocks in my
     // personal notes
-    return markdownText.split("## Birthdays")[0];
+    return markdownText.replace("Diary & notes", "").split("## Birthdays")[0];
   }
 
   export async function getByDay(params: { day: string; privateMode: boolean }) {

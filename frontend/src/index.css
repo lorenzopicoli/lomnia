@@ -24,7 +24,7 @@ body {
   overflow: hidden;
 }
 :root[data-mantine-color-scheme="dark"] {
-  --mantine-color-body: rgb(20, 20, 20) !important;
+  --mantine-color-body: rgb(20, 20, 20);
 }
 
 /* Hides the lib resize icon */

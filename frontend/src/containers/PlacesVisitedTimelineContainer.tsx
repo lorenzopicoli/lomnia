@@ -54,7 +54,11 @@ export default function PlacesVisitedTimelineContainer(props: PlacesVisitedTimel
           bullet={<IconLocation size={12} />}
           title={place.placeOfInterest?.displayName ?? "Moving"}
         >
-          <VisitedPlaceTimelineItem index={i} place={place} onHovered={handleItemHover} />
+          <VisitedPlaceTimelineItem
+            index={i}
+            place={place}
+            // onHovered={handleItemHover}
+          />
         </Timeline.Item>
       ))}
     </Timeline>

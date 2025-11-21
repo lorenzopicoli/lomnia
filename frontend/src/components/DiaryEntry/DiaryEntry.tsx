@@ -12,7 +12,7 @@ type DiaryEntryProps = {
 
 function DiaryEntry(props: DiaryEntryProps) {
   return (
-    <Container fluid mt={-20}>
+    <Container p={0} fluid mt={-20}>
       <Anonymize>
         <Markdown
           remarkPlugins={[wikiLinkPlugin]}

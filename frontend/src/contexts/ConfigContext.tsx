@@ -1,4 +1,4 @@
-import { type DefaultMantineColor, type MantineTheme, type StyleProp, useMantineTheme } from "@mantine/core";
+import { type MantineTheme, useMantineTheme } from "@mantine/core";
 import type React from "react";
 import { createContext, type ReactNode, useContext, useMemo, useState } from "react";
 
@@ -6,7 +6,6 @@ interface Config {
   privateMode: boolean;
   theme: MantineTheme;
   echartsTheme: string;
-  dashboardChartCardBg: StyleProp<DefaultMantineColor>;
 }
 
 interface ConfigContextType extends Config {
@@ -19,7 +18,6 @@ export const ConfigProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const theme = useMantineTheme();
   const [config, setConfig] = useState<Omit<Config, "theme" | "echartsTheme">>({
     privateMode: false,
-    dashboardChartCardBg: theme.colors.dark[8],
   });
   const echartsTheme = "default_dark";
 

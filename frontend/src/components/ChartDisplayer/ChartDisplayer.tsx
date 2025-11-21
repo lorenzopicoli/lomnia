@@ -6,7 +6,7 @@ import { NumberHabitCalendarHeatmap } from "../../containers/Charts/NumberHabitC
 import { PrecipitationExperienced } from "../../containers/Charts/PrecipitationExperienced";
 import { RainHeatmap } from "../../containers/Charts/RainHeatmap";
 import { TemperatureExperienced } from "../../containers/Charts/TemperatureExperienced";
-import { useConfig } from "../../contexts/ConfigContext";
+import { cardDarkBackground } from "../../themes/mantineThemes";
 import { ChartPlaceholder } from "../ChartPlaceholder/ChartPlaceholder";
 
 interface ChartDisplayerProps extends AllChartsProps {
@@ -14,9 +14,8 @@ interface ChartDisplayerProps extends AllChartsProps {
 }
 
 export function ChartDisplayer(props: ChartDisplayerProps) {
-  const { dashboardChartCardBg } = useConfig();
   return (
-    <Card withBorder bg={dashboardChartCardBg} shadow="sm" radius="md" w={"100%"} h={"100%"}>
+    <Card bg={cardDarkBackground} radius="md" w={"100%"} h={"100%"}>
       <ChartSwitcher {...props} />
     </Card>
   );

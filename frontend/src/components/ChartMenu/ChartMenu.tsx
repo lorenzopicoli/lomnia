@@ -7,11 +7,9 @@ import { subMonths } from "date-fns/subMonths";
 import { subWeeks } from "date-fns/subWeeks";
 import { subYears } from "date-fns/subYears";
 import { useEffect, useState } from "react";
-import type { ChartAreaConfig } from "../../charts/types";
 import { useDashboard } from "../../contexts/DashboardContext";
 
 export function ChartMenu(props: {
-  selectedCharts: ChartAreaConfig[];
   currentRange: [Date, Date];
   onDateChange: (range: [Date, Date]) => void;
   onNewChart: () => void;
@@ -57,8 +55,8 @@ export function ChartMenu(props: {
   }, [props, partialDateRange]);
   return (
     <Menu shadow="md" width={200}>
-      <Flex direction={"row"}>
-        <Flex flex={1}>
+      <Flex justify={"flex-end"} direction={"row"}>
+        <Flex>
           <Menu.Target>
             <Button variant="subtle">
               {format(props.currentRange[0], "MMMM do, yyyy")} - {format(props.currentRange[1], "MMMM do, yyyy")}
