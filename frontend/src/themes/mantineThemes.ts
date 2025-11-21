@@ -4,18 +4,17 @@ export const cardDarkBackground = "rgba(43,45,66, 0.5)";
 export const mantineTheme = createTheme({
   colors: {
     violet: [
-      "#f6ecff",
-      "#e7d6fb",
-      "#caabf1",
-      "#ac7ce8",
-      "#9354e0",
-      "#833cdb",
-      "#7b2eda",
-      "#6921c2",
-      "#5d1cae",
-      "#501599",
+      "#f2efff",
+      "#e0dcf5",
+      "#beb6e4",
+      "#9a8ed4",
+      "#7c6cc7",
+      "#6957bf",
+      "#5f4cbc",
+      "#5441b0",
+      "#463695",
+      "#3b2d84",
     ],
-    ye: ["#fff8e0", "#ffeeca", "#ffdb99", "#ffc762", "#ffb536", "#ffab18", "#ffa503", "#e49000", "#cb7f00", "#b06d00"],
     dark: [
       "#e0ded8",
       "#c7c4bd",
@@ -30,7 +29,7 @@ export const mantineTheme = createTheme({
     ],
   },
   primaryColor: "violet",
-
+  cursorType: "pointer",
   fontFamily: "JetBrains Mono",
   fontFamilyMonospace: "JetBrains Mono",
 

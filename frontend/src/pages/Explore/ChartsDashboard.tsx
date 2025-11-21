@@ -1,10 +1,10 @@
-import { ActionIcon, Container, Paper, ScrollArea, Space } from "@mantine/core";
+import { ActionIcon, Container, Flex, Paper, ScrollArea, Text } from "@mantine/core";
 import { IconTrash } from "@tabler/icons-react";
 import { useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useChartGridLayout } from "../../charts/useChartGridLayout";
+import { ChartDashboardMenu } from "../../components/ChartDashboardMenu/ChartDashboardMenu";
 import { ChartDisplayer } from "../../components/ChartDisplayer/ChartDisplayer";
-import { ChartMenu } from "../../components/ChartMenu/ChartMenu";
 import { ChartPlaceholder } from "../../components/ChartPlaceholder/ChartPlaceholder";
 import { ResizableGrid } from "../../components/ResizableGrid/ResizableGrid";
 import { safeScrollableArea } from "../../constants";
@@ -31,15 +31,21 @@ export function ChartsDashboard() {
   return (
     <Paper component={Container} fluid h={"100vh"} bg={theme.colors.dark[9]}>
       <ScrollArea h={safeScrollableArea} type="never">
-        <Container fluid pt={"md"} pr={0} pl={0} m={0} style={{ position: "relative" }}>
-          <ChartMenu
-            currentRange={[chartsConfig.startDate, chartsConfig.endDate]}
-            onDateChange={chartsConfig.setDateRange}
-            onNewChart={handleClickNewChart}
-            onRearrangeCharts={chartsConfig.toggleIsRearranging}
-          />
+        <Container fluid pt={"md"} pr={"md"} pl={"md"} m={0}>
+          <Flex justify={"space-between"} align={"center"}>
+            <Text fs={"italic"} opacity={0.4}>
+              Lomnia
+            </Text>
+            <ChartDashboardMenu
+              currentRange={[chartsConfig.startDate, chartsConfig.endDate]}
+              currentPeriod={chartsConfig.period}
+              onDateChange={chartsConfig.setDateRange}
+              onNewChart={handleClickNewChart}
+              onPeriodSelected={chartsConfig.onPeriodSelected}
+              onRearrangeCharts={chartsConfig.toggleIsRearranging}
+            />
+          </Flex>
 
-          <Space h={50} />
           {charts.length > 0 ? (
             <ResizableGrid
               {...gridProps}

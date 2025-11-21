@@ -29,7 +29,7 @@ export default function HomeMain(props: HomeMainProps) {
     endDate: endOfDay(day),
   });
 
-  const handlePickerChange = (value: string | undefined) => {
+  const handlePickerChange = (value: string | null) => {
     onSetDay(value ? new Date(value) : new Date());
   };
 
