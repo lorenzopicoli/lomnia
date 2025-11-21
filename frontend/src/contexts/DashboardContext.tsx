@@ -1,5 +1,6 @@
 import { useToggle } from "@mantine/hooks";
 import { subDays } from "date-fns";
+import { differenceInDays } from "date-fns/differenceInDays";
 import type React from "react";
 import { createContext, type ReactNode, useContext, useRef, useState } from "react";
 import type { AggregationPeriod } from "../charts/types";
@@ -51,17 +52,17 @@ function readParams() {
 
 function writePeriod(period: Period, aggPeriod: AggregationPeriod) {
   const params = new URLSearchParams();
-  params.set("aggPeriod", aggPeriod);
   params.set("period", period);
+  params.set("aggPeriod", aggPeriod);
 
   window.history.replaceState({}, "", `${window.location.pathname}?${params}`);
 }
 
-function writeStartEnd(start: Date, end: Date, period: AggregationPeriod) {
+function writeStartEnd(start: Date, end: Date, aggPeriod: AggregationPeriod) {
   const params = new URLSearchParams();
   params.set("start", start.toISOString().slice(0, 10));
   params.set("end", end.toISOString().slice(0, 10));
-  params.set("period", period);
+  params.set("aggPeriod", aggPeriod);
 
   window.history.replaceState({}, "", `${window.location.pathname}?${params}`);
 }
@@ -94,6 +95,19 @@ export const DashboardProvider: React.FC<{ children: ReactNode }> = ({ children 
   const [aggPeriod, setAggPeriod] = useState<AggregationPeriod>(initial.agg);
 
   const setDateRange = (range: [Date, Date]) => {
+    let aggPeriod: AggregationPeriod = "day";
+    const daysDiff = Math.abs(differenceInDays(range[0], range[1]));
+    if (daysDiff <= 8) {
+      aggPeriod = "hour";
+    } else if (daysDiff <= 32) {
+      aggPeriod = "day";
+    } else if (daysDiff <= 800) {
+      aggPeriod = "week";
+    } else {
+      aggPeriod = "month";
+    }
+
+    setAggPeriod(aggPeriod);
     setPeriod(null);
     setDateRangeInternal(range);
 
@@ -104,7 +118,24 @@ export const DashboardProvider: React.FC<{ children: ReactNode }> = ({ children 
 
   const onPeriodSelected = (id: Period) => {
     const range = getPeriod(id);
+    let aggPeriod: AggregationPeriod = "day";
+    switch (id) {
+      case "all":
+        aggPeriod = "month";
+        break;
+      case "year":
+        aggPeriod = "week";
+        break;
+      case "month":
+        aggPeriod = "day";
+        break;
+      case "week":
+        aggPeriod = "hour";
+        break;
+    }
+
     setPeriod(id);
+    setAggPeriod(aggPeriod);
     setDateRangeInternal(range);
 
     if (didInitRef.current) {

@@ -28,6 +28,9 @@ export function PrecipitationExperienced(props: ChartProps) {
           ["Rain", "Snow"],
           (x) => x.toDateString(),
           (y, series) => {
+            if (y === 0) {
+              return "";
+            }
             const formattedY = y.toFixed(1);
             switch (series) {
               case "Rain":
@@ -40,6 +43,9 @@ export function PrecipitationExperienced(props: ChartProps) {
           },
           (_x, ys) => {
             const sum = ys.reduce((acc, cur) => acc + cur, 0).toFixed(1);
+            if (ys.filter((y) => y > 0).length <= 1) {
+              return "";
+            }
             return `<b>Total: ${sum} mm</b>`;
           },
         ),
