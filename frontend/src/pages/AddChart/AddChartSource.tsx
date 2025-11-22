@@ -7,7 +7,7 @@ import styles from "./AddChart.module.css";
 export function AddChartSource(props: { sources: ChartSource[]; form: UseFormReturnType<AddChartFormValues> }) {
   const { sources, form } = props;
   return (
-    <Flex direction={"row"} gap={"md"} p={"sm"} wrap="wrap" justify={"space-between"}>
+    <Flex direction={"row"} gap={"md"} wrap="wrap" justify={"space-between"}>
       {sources.map((source) => {
         const { title, description } = chartSourceTitleAndDescription(source);
         return (

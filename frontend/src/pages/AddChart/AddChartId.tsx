@@ -7,7 +7,7 @@ import styles from "./AddChart.module.css";
 export function AddChartId(props: { form: UseFormReturnType<AddChartFormValues> }) {
   const { form } = props;
   return (
-    <Flex direction={"row"} gap={"md"} p={"sm"} wrap="wrap" justify={"space-between"}>
+    <Flex direction={"row"} gap={"md"} wrap="wrap" justify={"space-between"}>
       {availableCharts
         .filter((chart) => chart.sources.includes(form.values.source))
         .map((chart) => {

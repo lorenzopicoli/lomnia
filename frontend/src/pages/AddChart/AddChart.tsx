@@ -6,11 +6,17 @@ import { subYears } from "date-fns/subYears";
 import { useMemo, useState } from "react";
 import { v4 } from "uuid";
 import { trpc } from "../../api/trpc";
-import { availableCharts, type ChartAreaConfig, type ChartId, ChartSource } from "../../charts/types";
+import {
+  availableCharts,
+  type ChartAreaConfig,
+  type ChartId,
+  ChartSource,
+  chartParamByChartId,
+} from "../../charts/types";
 import { ChartDisplayer } from "../../components/ChartDisplayer/ChartDisplayer";
+import { ChartPlaceholder } from "../../components/ChartPlaceholder/ChartPlaceholder";
 import { useDashboard } from "../../contexts/DashboardContext";
 import { AddChartId } from "./AddChartId";
-import { AddChartPlaceholder } from "./AddChartPlaceholder";
 import { AddChartSource } from "./AddChartSource";
 import { AddChartStepper } from "./AddChartStepper";
 
@@ -106,6 +112,9 @@ export function AddChart(props: AddChartProps) {
     setCurrentStep(currentStep - 1);
   };
 
+  const stepperIconSize = 17;
+  const chartPreviewHeight = 400;
+
   return (
     <form>
       <Space h={50} />
@@ -113,38 +122,52 @@ export function AddChart(props: AddChartProps) {
         <Container maw={"100%"} miw={"30%"} flex={0}>
           <AddChartStepper active={currentStep} size="sm">
             {/* Step 1 */}
-            <Stepper.Step icon={<IconCloud height="17px" width="17px" />}>
-              <ScrollArea h="70vh">
+            <Stepper.Step icon={<IconCloud height={stepperIconSize} width={stepperIconSize} />}>
+              <ScrollArea p={"sm"} h="70vh">
                 <AddChartSource sources={Object.values(ChartSource)} form={form} />
               </ScrollArea>
             </Stepper.Step>
 
             {/* Step 2 */}
-            <Stepper.Step icon={<IconChartAreaLine height="17px" width="17px" />}>
-              <ScrollArea h="70vh">
+            <Stepper.Step icon={<IconChartAreaLine height={stepperIconSize} width={stepperIconSize} />}>
+              <ScrollArea p={"sm"} h="70vh">
                 <AddChartId form={form} />
               </ScrollArea>
             </Stepper.Step>
 
             {/* Step 3 */}
-            <Stepper.Step icon={<IconPencilCog height="17px" width="17px" />}>
-              <ScrollArea h="70vh">
-                <Flex gap={"md"} pb={"md"}>
+            <Stepper.Step icon={<IconPencilCog height={stepperIconSize} width={stepperIconSize} />}>
+              <ScrollArea p={"sm"} h="70vh">
+                <Flex direction={"column"} gap={"md"} pb={"md"}>
                   <TextInput flex={1} label="Title" withAsterisk {...form.getInputProps("title", { type: "input" })} />
-                  <Select
-                    label="Habit"
-                    withAsterisk
-                    data={habitKeysData?.numeric.map((hk) => ({ value: hk.key, label: hk.label })) ?? []}
-                    searchable
-                    {...form.getInputProps("habitKey", { type: "input" })}
-                  />
-                  <Select
-                    label="What to count"
-                    withAsterisk
-                    data={countKeysData?.map((k) => ({ value: k, label: k })) ?? []}
-                    searchable
-                    {...form.getInputProps("countKey", { type: "input" })}
-                  />
+                  {values.chartId
+                    ? chartParamByChartId[values.chartId].map((feature) => {
+                        switch (feature) {
+                          case "countKey":
+                            return (
+                              <Select
+                                key={feature}
+                                label="What to count"
+                                withAsterisk
+                                data={countKeysData?.map((k) => ({ value: k, label: k })) ?? []}
+                                searchable
+                                {...form.getInputProps("countKey", { type: "input" })}
+                              />
+                            );
+                          case "habitKey":
+                            return (
+                              <Select
+                                key={feature}
+                                label="Habit"
+                                withAsterisk
+                                data={habitKeysData?.numeric.map((hk) => ({ value: hk.key, label: hk.label })) ?? []}
+                                searchable
+                                {...form.getInputProps("habitKey", { type: "input" })}
+                              />
+                            );
+                        }
+                      })
+                    : null}
                 </Flex>
               </ScrollArea>
             </Stepper.Step>
@@ -161,19 +184,19 @@ export function AddChart(props: AddChartProps) {
           </Flex>
         </Container>
         <Container maw={"100%"} flex={1}>
-          <Container fluid h={600} flex={1}>
+          <Container fluid h={chartPreviewHeight} flex={1}>
             {values.chartId && currentStep > 0 ? (
               <ChartDisplayer
                 chartId={values.chartId}
                 habitKey={values.habitKey}
                 countKey={values.countKey}
-                title={values.title}
+                title={values.title || "Title"}
                 startDate={startDate}
                 endDate={endDate}
                 aggPeriod={aggPeriod}
               />
             ) : (
-              <AddChartPlaceholder />
+              <ChartPlaceholder text="Nothing to display yet" subText="Continue to see a preview of your chart here" />
             )}
           </Container>
         </Container>

@@ -28,9 +28,19 @@ export enum ChartId {
   PrecipitationExperienced = "precipitationExperienced ",
   RainHeatmap = "rainHeatmap",
   NumberHabitCalendarHeatmap = "numberHabitCalendarHeatmap",
-  MetaValue = "metaValue",
   Count = "Count",
 }
+
+export type ChartParams = "habitKey" | "countKey";
+
+export const chartParamByChartId: Record<ChartId, ChartParams[]> = {
+  [ChartId.TemperatureExperienced]: [],
+  [ChartId.HeartRateMinMaxAvg]: [],
+  [ChartId.PrecipitationExperienced]: [],
+  [ChartId.RainHeatmap]: [],
+  [ChartId.NumberHabitCalendarHeatmap]: ["habitKey"],
+  [ChartId.Count]: ["countKey"],
+};
 
 const aggregationPeriods = ["month", "day", "week", "hour"] as const;
 export type AggregationPeriod = (typeof aggregationPeriods)[number];

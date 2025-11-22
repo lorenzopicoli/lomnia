@@ -50,14 +50,14 @@ function ChartSwitcher(props: ChartDisplayerProps) {
     case ChartId.NumberHabitCalendarHeatmap: {
       const habitKey = props.habitKey;
       if (!habitKey) {
-        return <ChartPlaceholder text="Select a habit key to see data in here" />;
+        return <ChartPlaceholder noBg text="Select a habit key to see data in here" />;
       }
       return <NumberHabitCalendarHeatmap {...props} habitKey={habitKey} />;
     }
     case ChartId.Count: {
       const countKey = props.countKey;
       if (!countKey) {
-        return <ChartPlaceholder text="Select a count key to see data in here" />;
+        return <ChartPlaceholder noBg text="Select a count key to see data in here" />;
       }
       return <CountCard {...props} countKey={countKey} />;
     }
