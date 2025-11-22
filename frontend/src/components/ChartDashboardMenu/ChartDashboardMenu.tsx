@@ -1,6 +1,6 @@
-import { ActionIcon, Flex, Group, Menu, Radio } from "@mantine/core";
+import { ActionIcon, Breadcrumbs, Flex, Group, Menu, Radio } from "@mantine/core";
 import { DatePicker, type PickerBaseProps } from "@mantine/dates";
-import { IconCalendar, IconCheck, IconSettings } from "@tabler/icons-react";
+import { IconCalendar, IconCheck, IconPlus, IconSettings } from "@tabler/icons-react";
 import { useState } from "react";
 import { type Period, useDashboard } from "../../contexts/DashboardContext";
 
@@ -12,6 +12,7 @@ export function ChartDashboardMenu(props: {
   onNewChart: () => void;
   onRearrangeCharts: () => void;
 }) {
+  const { onNewChart, onDateChange, onPeriodSelected, onRearrangeCharts, currentPeriod } = props;
   const [partialDateRange, setPartialDateRange] = useState<[Date | null, Date | null]>([null, null]);
   const handleDateChange: PickerBaseProps<"range">["onChange"] = (dateStr) => {
     const dates: [Date | null, Date | null] = [
@@ -20,7 +21,7 @@ export function ChartDashboardMenu(props: {
     ];
     setPartialDateRange(dates);
     if (dates[0] !== null && dates[1] !== null) {
-      props.onDateChange(dates as [Date, Date]);
+      onDateChange(dates as [Date, Date]);
     }
   };
   const { isRearranging } = useDashboard();
@@ -30,24 +31,24 @@ export function ChartDashboardMenu(props: {
       case "month":
       case "year":
       case "all":
-        props.onPeriodSelected(id);
+        onPeriodSelected(id);
         break;
     }
   };
   const handleRearrange = () => {
-    props.onRearrangeCharts();
+    onRearrangeCharts();
   };
 
   const PeriodPicker = () => {
     return (
       <Radio.Group onChange={handlePeriodChange}>
         <Group>
-          <Radio checked={props.currentPeriod === "week"} label="Last week" value="week" />
-          <Radio checked={props.currentPeriod === "month"} label="Last month" value="month" />
-          <Radio checked={props.currentPeriod === "year"} label="Last year" value="year" />
-          <Radio checked={props.currentPeriod === "all"} label="All" value="all" />
+          <Radio checked={currentPeriod === "week"} label="Last week" value="week" />
+          <Radio checked={currentPeriod === "month"} label="Last month" value="month" />
+          <Radio checked={currentPeriod === "year"} label="Last year" value="year" />
+          <Radio checked={currentPeriod === "all"} label="All" value="all" />
           <Menu.Target>
-            <ActionIcon m={0} variant="transparent" size="lg">
+            <ActionIcon m={0} variant="subtle" size="">
               <IconCalendar />
             </ActionIcon>
           </Menu.Target>
@@ -59,10 +60,17 @@ export function ChartDashboardMenu(props: {
   return (
     <Menu shadow="md" width={200}>
       <Flex justify={"flex-end"} direction={"row"} gap={"lg"}>
-        <PeriodPicker />
-        <ActionIcon m={0} variant="transparent" size="lg" onClick={handleRearrange}>
-          {!isRearranging ? <IconSettings /> : <IconCheck />}
-        </ActionIcon>
+        <Breadcrumbs separator="|" separatorMargin={"md"}>
+          <PeriodPicker />
+          <Flex gap={"lg"} align={"center"}>
+            <ActionIcon m={0} variant="transparent" size="md" onClick={handleRearrange}>
+              {!isRearranging ? <IconSettings /> : <IconCheck />}
+            </ActionIcon>
+            <ActionIcon m={0} variant="filled" size="lg" radius={"xl"} onClick={onNewChart}>
+              <IconPlus />
+            </ActionIcon>
+          </Flex>
+        </Breadcrumbs>
       </Flex>
 
       <Menu.Dropdown w={300}>

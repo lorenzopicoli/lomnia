@@ -14,7 +14,7 @@ export const weatherChartRouter = t.router({
   getApparentVsActualTemp: loggedProcedure.input(ChartPeriodInput.required()).query((opts) => {
     return WeatherChartService.getHourlyApparentVsActualTemp(opts.input);
   }),
-  getPrecipitation: loggedProcedure.input(ChartPeriodInput.required()).query((opts) => {
+  getDailyPrecipitation: loggedProcedure.input(ChartPeriodInput.required()).query((opts) => {
     return WeatherChartService.getDailyPrecipitation(opts.input);
   }),
 });

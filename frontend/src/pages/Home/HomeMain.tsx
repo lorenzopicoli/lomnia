@@ -3,6 +3,7 @@ import { DatePicker } from "@mantine/dates";
 import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 import { format } from "date-fns";
 import { endOfDay } from "date-fns/endOfDay";
+import { isToday } from "date-fns/isToday";
 import { startOfDay } from "date-fns/startOfDay";
 import { useCallback, useEffect, useState } from "react";
 import { safeScrollableArea } from "../../constants";
@@ -76,7 +77,7 @@ export default function HomeMain(props: HomeMainProps) {
                 <IconChevronLeft />
               </ActionIcon>
               <Space w={"lg"} />
-              <ActionIcon variant="transparent" onClick={onNextDay}>
+              <ActionIcon variant="transparent" onClick={onNextDay} disabled={isToday(day)}>
                 <IconChevronRight />
               </ActionIcon>
             </Flex>

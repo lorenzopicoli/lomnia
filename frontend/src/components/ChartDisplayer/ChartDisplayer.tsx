@@ -1,4 +1,4 @@
-import { Card } from "@mantine/core";
+import { Card, Text } from "@mantine/core";
 import { type AllChartsProps, ChartId } from "../../charts/types";
 import { CountCard } from "../../containers/Charts/CountCard";
 import { HeartRateMinMaxAvg } from "../../containers/Charts/HeartRateMinMaxAvg";
@@ -15,8 +15,24 @@ interface ChartDisplayerProps extends AllChartsProps {
 
 export function ChartDisplayer(props: ChartDisplayerProps) {
   return (
-    <Card bg={cardDarkBackground} radius="md" w={"100%"} h={"100%"}>
-      <ChartSwitcher {...props} />
+    <Card
+      bg={cardDarkBackground}
+      // bg={"transparent"}
+      // withBorder
+      radius="md"
+      w={"100%"}
+      h={"100%"}
+    >
+      <Card.Section style={{ textAlign: "center" }} w={"100%"} pl={"md"} pt={"md"}>
+        {props.title ? (
+          <Text fw={"bolder"} size="sm">
+            {props.title}
+          </Text>
+        ) : null}
+      </Card.Section>
+      <Card.Section flex={1} pl={"md"} pr={"md"} pb={"md"}>
+        <ChartSwitcher {...props} />
+      </Card.Section>
     </Card>
   );
 }

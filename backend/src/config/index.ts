@@ -101,7 +101,7 @@ export default {
     },
     files: {
       obsidian: {
-        enabled: false,
+        enabled: true,
       },
     },
   },

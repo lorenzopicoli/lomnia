@@ -10,7 +10,7 @@ import { EchartsCommonConfig } from "./EchartsCommonConfig";
 export function RainHeatmap(props: ChartProps) {
   const { startDate, endDate } = getCalendarHeatmapSafeDates(props);
   const { data } = useQuery(
-    trpc.charts.weather.getPrecipitation.queryOptions({
+    trpc.charts.weather.getDailyPrecipitation.queryOptions({
       start: startDate.toISOString(),
       end: endDate.toISOString(),
       aggregationPeriod: "day",

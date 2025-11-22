@@ -8,7 +8,7 @@ import { EchartsCommonConfig } from "./EchartsCommonConfig";
 
 export function PrecipitationExperienced(props: ChartProps) {
   const { data: precipitationData } = useQuery(
-    trpc.charts.weather.getPrecipitation.queryOptions({
+    trpc.charts.weather.getDailyPrecipitation.queryOptions({
       start: props.startDate.toISOString(),
       end: props.endDate.toISOString(),
       aggregationPeriod: props.aggPeriod,
@@ -58,7 +58,9 @@ export function PrecipitationExperienced(props: ChartProps) {
       },
 
       yAxis: {
-        name: "mm",
+        axisLabel: {
+          formatter: "{value}mm",
+        },
       },
 
       series: [

@@ -1,4 +1,3 @@
-import { Container } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns/format";
 import { useMemo } from "react";
@@ -33,17 +32,16 @@ export function NumberHabitCalendarHeatmap(props: HabitChartProps) {
   );
 
   return (
-    <Container fluid h={"100%"}>
-      {props.title}
-      <CalendarHeatmap
-        data={formattedData ?? {}}
-        startDate={startDate}
-        endDate={endDate}
-        colors={EchartsCommonConfig.colorSteps.generic}
-        gap={5}
-        getTooltipLabel={({ date, value }) => `${date} – ${value ?? 0}`}
-        splitMonths
-      />
-    </Container>
+    // <Container fluid h={"100%"}>
+    <CalendarHeatmap
+      data={formattedData ?? {}}
+      startDate={startDate}
+      endDate={endDate}
+      colors={EchartsCommonConfig.colorSteps.generic}
+      gap={5}
+      getTooltipLabel={({ date, value }) => `${date} – ${value ?? 0}`}
+      splitMonths
+    />
+    // </Container>
   );
 }

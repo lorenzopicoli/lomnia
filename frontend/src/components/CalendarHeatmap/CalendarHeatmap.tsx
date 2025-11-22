@@ -1,5 +1,4 @@
 import { Heatmap, type HeatmapProps } from "@mantine/charts";
-import { Container, Flex } from "@mantine/core";
 import { useElementSize } from "@mantine/hooks";
 import { max } from "date-fns";
 import { subYears } from "date-fns/subYears";
@@ -56,7 +55,17 @@ export function CalendarHeatmap(props: CalendarHeatmapProps) {
   }, [props.data]);
 
   return (
-    <Flex align={"center"} justify={"center"} component={Container} flex={1} fluid ref={ref} w={"100%"} h={"100%"}>
+    <div
+      ref={ref}
+      style={{
+        width: "100%",
+        height: "100%",
+        overflow: "hidden",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
       <Heatmap
         gap={gap}
         rectSize={rectSize}
@@ -70,6 +79,6 @@ export function CalendarHeatmap(props: CalendarHeatmapProps) {
         startDate={safeStart}
         endDate={props.endDate}
       />
-    </Flex>
+    </div>
   );
 }

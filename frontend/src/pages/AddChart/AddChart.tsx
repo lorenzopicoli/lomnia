@@ -1,14 +1,14 @@
 import { Button, Container, Flex, ScrollArea, Select, Space, Stepper, TextInput } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { IconAdjustments, IconChartArrowsVertical } from "@tabler/icons-react";
+import { IconChartAreaLine, IconCloud, IconPencilCog } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import { subYears } from "date-fns/subYears";
 import { useMemo, useState } from "react";
 import { v4 } from "uuid";
 import { trpc } from "../../api/trpc";
 import { availableCharts, type ChartAreaConfig, type ChartId, ChartSource } from "../../charts/types";
+import { ChartDisplayer } from "../../components/ChartDisplayer/ChartDisplayer";
 import { useDashboard } from "../../contexts/DashboardContext";
-import { ChartDisplayer } from "../ChartDisplayer/ChartDisplayer";
 import { AddChartId } from "./AddChartId";
 import { AddChartPlaceholder } from "./AddChartPlaceholder";
 import { AddChartSource } from "./AddChartSource";
@@ -50,7 +50,7 @@ export function AddChart(props: AddChartProps) {
           return { missingSource: "Missing source" };
         }
       }
-      if (currentStep === 1) {
+      if (currentStep === 2) {
         if (!values.chartId) {
           return { missingChartId: "Select a chart" };
         }
@@ -72,7 +72,7 @@ export function AddChart(props: AddChartProps) {
       return;
     }
 
-    if (currentStep < 1) {
+    if (currentStep < 2) {
       setCurrentStep(currentStep + 1);
       return;
     }
@@ -109,20 +109,43 @@ export function AddChart(props: AddChartProps) {
   return (
     <form>
       <Space h={50} />
-      <Flex w="100%" p={0} gap={"lg"}>
-        <Container w={"40%"}>
+      <Flex w="100%" p={0} gap={"sm"}>
+        <Container maw={"100%"} miw={"30%"} flex={0}>
           <AddChartStepper active={currentStep} size="sm">
             {/* Step 1 */}
-            <Stepper.Step icon={<IconAdjustments height="17px" width="17px" />}>
+            <Stepper.Step icon={<IconCloud height="17px" width="17px" />}>
               <ScrollArea h="70vh">
                 <AddChartSource sources={Object.values(ChartSource)} form={form} />
               </ScrollArea>
             </Stepper.Step>
 
             {/* Step 2 */}
-            <Stepper.Step icon={<IconChartArrowsVertical height="17px" width="17px" />}>
+            <Stepper.Step icon={<IconChartAreaLine height="17px" width="17px" />}>
               <ScrollArea h="70vh">
                 <AddChartId form={form} />
+              </ScrollArea>
+            </Stepper.Step>
+
+            {/* Step 3 */}
+            <Stepper.Step icon={<IconPencilCog height="17px" width="17px" />}>
+              <ScrollArea h="70vh">
+                <Flex gap={"md"} pb={"md"}>
+                  <TextInput flex={1} label="Title" withAsterisk {...form.getInputProps("title", { type: "input" })} />
+                  <Select
+                    label="Habit"
+                    withAsterisk
+                    data={habitKeysData?.numeric.map((hk) => ({ value: hk.key, label: hk.label })) ?? []}
+                    searchable
+                    {...form.getInputProps("habitKey", { type: "input" })}
+                  />
+                  <Select
+                    label="What to count"
+                    withAsterisk
+                    data={countKeysData?.map((k) => ({ value: k, label: k })) ?? []}
+                    searchable
+                    {...form.getInputProps("countKey", { type: "input" })}
+                  />
+                </Flex>
               </ScrollArea>
             </Stepper.Step>
           </AddChartStepper>
@@ -133,31 +156,13 @@ export function AddChart(props: AddChartProps) {
               {currentStep === 0 ? "Exit" : "Back"}
             </Button>
             <Button onClick={nextStep} variant="light" size="md">
-              {currentStep === 0 ? "Next" : "Save"}
+              {currentStep === 2 ? "Save" : "Next"}
             </Button>
           </Flex>
         </Container>
-        <Container flex={1}>
-          {/* TODO: repalce pb by gap */}
-          <Flex gap={"md"} pb={"md"}>
-            <TextInput flex={1} label="Title" withAsterisk {...form.getInputProps("title", { type: "input" })} />
-            <Select
-              label="Habit"
-              withAsterisk
-              data={habitKeysData?.numeric.map((hk) => ({ value: hk.key, label: hk.label })) ?? []}
-              searchable
-              {...form.getInputProps("habitKey", { type: "input" })}
-            />
-            <Select
-              label="What to count"
-              withAsterisk
-              data={countKeysData?.map((k) => ({ value: k, label: k })) ?? []}
-              searchable
-              {...form.getInputProps("countKey", { type: "input" })}
-            />
-          </Flex>
+        <Container maw={"100%"} flex={1}>
           <Container fluid h={600} flex={1}>
-            {values.chartId && currentStep === 1 ? (
+            {values.chartId && currentStep > 0 ? (
               <ChartDisplayer
                 chartId={values.chartId}
                 habitKey={values.habitKey}

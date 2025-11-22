@@ -40,7 +40,7 @@ export function TemperatureExperienced(props: ChartProps) {
       },
       yAxis: {
         axisLabel: {
-          formatter: "{value} °C",
+          formatter: "{value}°C",
         },
       },
 

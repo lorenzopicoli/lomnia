@@ -1,7 +1,7 @@
 import z from "zod";
 import { LuxonDateTime } from "./zodTypes";
 
-export const aggregationPeriods = ["hour", "day", "week", "month"] as const;
+export const aggregationPeriods = ["hour", "day", "week", "month", "year"] as const;
 export const AggregationPeriod = z.enum(aggregationPeriods);
 export type AggregationPeriod = z.infer<typeof AggregationPeriod>;
 

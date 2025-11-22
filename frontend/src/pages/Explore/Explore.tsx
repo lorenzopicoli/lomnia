@@ -2,10 +2,10 @@ import { Container, Paper, ScrollArea } from "@mantine/core";
 import { Route, Routes, useNavigate } from "react-router-dom";
 import type { ChartAreaConfig } from "../../charts/types";
 import { useChartGridLayout } from "../../charts/useChartGridLayout";
-import { AddChart } from "../../components/AddChart/AddChart";
 import { safeScrollableArea } from "../../constants";
 import { useConfig } from "../../contexts/ConfigContext";
 import { DashboardProvider } from "../../contexts/DashboardContext";
+import { AddChart } from "../AddChart/AddChart";
 import { ChartsDashboard } from "./ChartsDashboard";
 
 export function Explore() {
@@ -24,7 +24,7 @@ export function Explore() {
 
   return (
     <DashboardProvider>
-      <Paper p={0} component={Container} fluid h={"100vh"} bg={theme.colors.dark[8]}>
+      <Paper p={0} component={Container} fluid h={"100vh"} bg={theme.colors.dark[9]}>
         <ScrollArea h={safeScrollableArea} type="never">
           <Routes>
             <Route index element={<ChartsDashboard />} />

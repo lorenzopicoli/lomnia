@@ -13,7 +13,7 @@
   @mixin hover {
     /* biome-ignore lint/suspicious/noUnknownAtRules: <explanation> */
     @mixin dark {
-      background-color: var(--mantine-color-dark-6);
+      background-color: var(--mantine-color-dark-8);
     }
   }
 }
