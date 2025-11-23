@@ -1,15 +1,14 @@
-import { date, integer, jsonb, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
-import { filesTable } from "./File";
-import { importJobsTable } from "./ImportJob";
 import type { getTableColumns } from "drizzle-orm";
+import { boolean, integer, jsonb, pgEnum, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { importJobsTable } from "./ImportJob";
+
+export const periodOfDayEnum = pgEnum("period_of_day", ["morning", "afternoon", "evening", "over_night"]);
 
 export const habitsTable = pgTable("habits", {
   id: serial("id").primaryKey(),
   importJobId: integer("import_job_id")
     .references(() => importJobsTable.id)
     .notNull(),
-  fileId: integer("file_id").references(() => filesTable.id),
-
   /**
    * It's expected to be of the type HabitsKey
    */
@@ -25,18 +24,41 @@ export const habitsTable = pgTable("habits", {
    * value: 1 instead of value: { "value": 1 }
    */
   value: jsonb("value"),
-
   /**
    * Date in the user timezone of when this habit was recorded.
-   * TODO: add a timezone column to this table
    */
-  date: date("date").notNull(),
-
+  date: timestamp("date").notNull(),
+  /**
+   * The source where this habit was recorded, not necessarily how it was imported
+   * ie. "obsidian" instead of "filesImporter"
+   */
+  source: text("source").notNull(),
+  /**
+   * Timezone of the user when this was recorded
+   */
+  timezone: text("timezone").notNull(),
+  /**
+   * Any additional comments made during record
+   */
+  comments: text("comments"),
+  /**
+   * Time at which the habit was recorded
+   */
+  recordedAt: timestamp("recorded_at"),
+  /**
+   * If defined, the habit happened during a certain part of the day and not at
+   * the time of the date property
+   */
+  periodOfDay: periodOfDayEnum("period_of_day"),
+  /**
+   * If defined, the habit happened at some point in the day, or during the full day,
+   * the time of the date property should be discarded
+   */
+  isFullDay: boolean("is_full_day"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at"),
 });
 
 export type Habit = typeof habitsTable.$inferSelect;
 export type NewHabit = typeof habitsTable.$inferInsert;
-
 export type HabitColumns = keyof ReturnType<typeof getTableColumns<typeof habitsTable>>;

@@ -1,5 +1,4 @@
 import crypto from "node:crypto";
-import * as fsSync from "node:fs";
 import * as fs from "node:fs/promises";
 import path from "node:path";
 import { isAfter, isBefore, isValid, parseISO } from "date-fns";
@@ -151,7 +150,7 @@ export class ObsidianImporter {
       .then((r) => r[0]);
 
     // Reset tables
-    await tx.delete(habitsTable).where(sql`file_id IN (SELECT id FROM files WHERE source='obsidian')`);
+    await tx.delete(habitsTable).where(sql`source='obsidian'`);
     await tx.delete(filesTable).where(eq(filesTable.source, "obsidian"));
 
     const mdFiles = await this.getFilePaths();
@@ -207,18 +206,22 @@ export class ObsidianImporter {
           // don't care about the timezone as long as the date is fine
           const date = DateTime.fromISO(file.metadata.date as string, {
             setZone: true,
-          });
+            // zone: "America/Toronto",
+          }).setZone("America/Toronto", { keepLocalTime: true });
 
           importedCount++;
           updateEntryDates(file.fileCreatedAt);
 
           habitsForFile.push({
             createdAt: new Date(),
-            fileId: dbFile.id,
             importJobId: placeholderJob.id,
-            date: date.toSQLDate() as string,
+            date: date.toJSDate(),
+            recordedAt: date.toJSDate(),
             key,
             value: file.metadata[key],
+            source: "obsidian",
+            timezone: "America/Toronto",
+            isFullDay: true,
           });
         }
       }
