@@ -1,23 +1,17 @@
-import { Button, Container, Flex, ScrollArea, Select, Space, Stepper, TextInput } from "@mantine/core";
+import { Button, Container, Flex, Space, Stepper } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { IconChartAreaLine, IconCloud, IconPencilCog } from "@tabler/icons-react";
-import { useQuery } from "@tanstack/react-query";
 import { subYears } from "date-fns/subYears";
 import { useMemo, useState } from "react";
 import { v4 } from "uuid";
-import { trpc } from "../../api/trpc";
-import {
-  availableCharts,
-  type ChartAreaConfig,
-  type ChartId,
-  ChartSource,
-  chartParamByChartId,
-} from "../../charts/types";
+import { availableCharts, type ChartAreaConfig, type ChartId, ChartSource } from "../../charts/types";
 import { ChartDisplayer } from "../../components/ChartDisplayer/ChartDisplayer";
+import { ChartFeatures } from "../../components/ChartFeatures/ChartFeatures";
 import { ChartPlaceholder } from "../../components/ChartPlaceholder/ChartPlaceholder";
 import { useDashboard } from "../../contexts/DashboardContext";
 import { AddChartId } from "./AddChartId";
 import { AddChartSource } from "./AddChartSource";
+import { AddChartStep } from "./AddChartStep";
 import { AddChartStepper } from "./AddChartStepper";
 
 type AddChartProps = {
@@ -37,9 +31,6 @@ const initialSource = ChartSource.Weather;
 export function AddChart(props: AddChartProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const { aggPeriod } = useDashboard();
-
-  const { data: habitKeysData } = useQuery(trpc.habits.getKeys.queryOptions());
-  const { data: countKeysData } = useQuery(trpc.charts.counts.getCountKeys.queryOptions());
 
   // Form is controlled so it's easier to fetch updated values for chart title and habit keys
   // could change for uncontrolled if that's figured out
@@ -114,76 +105,50 @@ export function AddChart(props: AddChartProps) {
 
   const stepperIconSize = 17;
   const chartPreviewHeight = 400;
+  const isFirstStep = currentStep === 0;
+  const isLastStep = currentStep === 2;
 
   return (
     <form>
       <Space h={50} />
       <Flex w="100%" p={0} gap={"sm"}>
         <Container maw={"100%"} miw={"30%"} flex={0}>
-          <AddChartStepper active={currentStep} size="sm">
+          <AddChartStepper active={currentStep}>
             {/* Step 1 */}
             <Stepper.Step icon={<IconCloud height={stepperIconSize} width={stepperIconSize} />}>
-              <ScrollArea p={"sm"} h="70vh">
+              <AddChartStep>
                 <AddChartSource sources={Object.values(ChartSource)} form={form} />
-              </ScrollArea>
+              </AddChartStep>
             </Stepper.Step>
 
             {/* Step 2 */}
             <Stepper.Step icon={<IconChartAreaLine height={stepperIconSize} width={stepperIconSize} />}>
-              <ScrollArea p={"sm"} h="70vh">
+              <AddChartStep>
                 <AddChartId form={form} />
-              </ScrollArea>
+              </AddChartStep>
             </Stepper.Step>
 
             {/* Step 3 */}
             <Stepper.Step icon={<IconPencilCog height={stepperIconSize} width={stepperIconSize} />}>
-              <ScrollArea p={"sm"} h="70vh">
-                <Flex direction={"column"} gap={"md"} pb={"md"}>
-                  <TextInput flex={1} label="Title" withAsterisk {...form.getInputProps("title", { type: "input" })} />
-                  {values.chartId
-                    ? chartParamByChartId[values.chartId].map((feature) => {
-                        switch (feature) {
-                          case "countKey":
-                            return (
-                              <Select
-                                key={feature}
-                                label="What to count"
-                                withAsterisk
-                                data={countKeysData?.map((k) => ({ value: k, label: k })) ?? []}
-                                searchable
-                                {...form.getInputProps("countKey", { type: "input" })}
-                              />
-                            );
-                          case "habitKey":
-                            return (
-                              <Select
-                                key={feature}
-                                label="Habit"
-                                withAsterisk
-                                data={habitKeysData?.numeric.map((hk) => ({ value: hk.key, label: hk.label })) ?? []}
-                                searchable
-                                {...form.getInputProps("habitKey", { type: "input" })}
-                              />
-                            );
-                        }
-                      })
-                    : null}
-                </Flex>
-              </ScrollArea>
+              <AddChartStep>
+                {values.chartId ? <ChartFeatures form={form} chartId={values.chartId} /> : null}
+              </AddChartStep>
             </Stepper.Step>
           </AddChartStepper>
 
-          <Space h={"md"} />
-          <Flex align={"flex-end"} justify={"flex-end"} gap={"sm"}>
+          {/* Back / Next */}
+          <Flex pr={"sm"} pl={"sm"} align={"flex-end"} justify={"flex-end"} gap={"sm"}>
             <Button onClick={previousStep} variant="light" size="md">
-              {currentStep === 0 ? "Exit" : "Back"}
+              {isFirstStep ? "Exit" : "Back"}
             </Button>
-            <Button onClick={nextStep} variant="light" size="md">
-              {currentStep === 2 ? "Save" : "Next"}
+            <Button flex={1} onClick={nextStep} variant="filled" size="md">
+              {isLastStep ? "Save" : "Next"}
             </Button>
           </Flex>
         </Container>
-        <Container maw={"100%"} flex={1}>
+
+        {/* Preview */}
+        <Container mt={65} maw={"100%"} flex={1}>
           <Container fluid h={chartPreviewHeight} flex={1}>
             {values.chartId && currentStep > 0 ? (
               <ChartDisplayer

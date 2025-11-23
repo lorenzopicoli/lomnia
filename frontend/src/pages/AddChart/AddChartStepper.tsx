@@ -1,4 +1,4 @@
-import { rem, Stepper, type StepperProps } from "@mantine/core";
+import { Stepper, type StepperProps } from "@mantine/core";
 
 export function AddChartStepper(props: StepperProps) {
   return (
@@ -6,11 +6,6 @@ export function AddChartStepper(props: StepperProps) {
       styles={{
         stepBody: {
           display: "none",
-        },
-        separator: {
-          marginLeft: rem(-2),
-          marginRight: rem(-2),
-          height: rem(1),
         },
       }}
       {...props}

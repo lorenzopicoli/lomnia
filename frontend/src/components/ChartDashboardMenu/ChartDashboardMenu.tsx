@@ -63,12 +63,20 @@ export function ChartDashboardMenu(props: {
         <Breadcrumbs separator="|" separatorMargin={"md"}>
           <PeriodPicker />
           <Flex gap={"lg"} align={"center"}>
-            <ActionIcon m={0} variant="transparent" size="md" onClick={handleRearrange}>
-              {!isRearranging ? <IconSettings /> : <IconCheck />}
-            </ActionIcon>
-            <ActionIcon m={0} variant="filled" size="lg" radius={"xl"} onClick={onNewChart}>
-              <IconPlus />
-            </ActionIcon>
+            {!isRearranging ? (
+              <>
+                <ActionIcon m={0} variant="transparent" size="md" onClick={handleRearrange}>
+                  <IconSettings />
+                </ActionIcon>
+                <ActionIcon m={0} variant="filled" size="lg" radius={"xl"} onClick={onNewChart}>
+                  <IconPlus />
+                </ActionIcon>
+              </>
+            ) : (
+              <ActionIcon m={0} variant="filled" size="lg" radius={"xl"} onClick={handleRearrange}>
+                <IconCheck />
+              </ActionIcon>
+            )}
           </Flex>
         </Breadcrumbs>
       </Flex>

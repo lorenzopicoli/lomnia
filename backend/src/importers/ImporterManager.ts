@@ -41,11 +41,11 @@ export class ImporterManager {
 
   public async runOnce() {
     this.lastStart = DateTime.now();
+    await this.runFilesImporters();
     await this.runLocationImporters();
     await this.runLocationDetailsImporters();
     await this.runHealthImporters();
     await this.internetPresenceImporters();
-    await this.runFilesImporters();
 
     if (this.frequencyInMs) {
       this.schedule(this.frequencyInMs);
