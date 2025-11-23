@@ -10,10 +10,24 @@ interface TextCardChartProps {
 export function TextCardChart(props: TextCardChartProps) {
   const { title, description, value, unit } = props;
   return (
-    <Flex component={Container} fluid gap={"sm"}>
-      {title ? <Text size="md">{title}</Text> : null}
-      <Text size="lg">{value + (unit ?? "")}</Text>
-      <Text size="sm">{description}</Text>
+    <Flex
+      ta={"center"}
+      w={"100%"}
+      h={"100%"}
+      align={"center"}
+      justify={"center"}
+      component={Container}
+      fluid
+      direction={"column"}
+      gap={"sm"}
+    >
+      {title ? <Text size="sm">{title}</Text> : null}
+      <Flex ta={"center"} align={"center"} justify={"center"} component={Container} fluid>
+        <Text fw={"bold"} fz={50}>
+          {value + (unit ?? "")}
+        </Text>
+      </Flex>
+      {description ? <Text size="sm">{description}</Text> : null}
     </Flex>
   );
 }

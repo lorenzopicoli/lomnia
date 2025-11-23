@@ -4,7 +4,7 @@ import { IconChartAreaLine, IconCloud, IconPencilCog } from "@tabler/icons-react
 import { subYears } from "date-fns/subYears";
 import { useMemo, useState } from "react";
 import { v4 } from "uuid";
-import { availableCharts, type ChartAreaConfig, type ChartId, ChartSource } from "../../charts/types";
+import { availableCharts, type ChartAreaConfig, ChartId, ChartSource } from "../../charts/types";
 import { ChartDisplayer } from "../../components/ChartDisplayer/ChartDisplayer";
 import { ChartFeatures } from "../../components/ChartFeatures/ChartFeatures";
 import { ChartPlaceholder } from "../../components/ChartPlaceholder/ChartPlaceholder";
@@ -24,13 +24,36 @@ export type AddChartFormValues = {
   chartId: ChartId | null;
   habitKey?: string;
   countKey?: string;
+  compactNumbers?: boolean;
   title: string;
 };
 
 const initialSource = ChartSource.Weather;
+const stepperIconSize = 17;
+
+/**
+ * How this chart should behave in the preview container. Think of this like
+ * some sane defaults to make the chart look presentable when adding/configuring it
+ */
+export const chartPreviewSize: Record<ChartId, { height: string | number; width: string | number }> = {
+  [ChartId.TemperatureExperienced]: { height: "100%", width: "100%" },
+  [ChartId.HeartRateMinMaxAvg]: { height: "100%", width: "100%" },
+  [ChartId.PrecipitationExperienced]: { height: "100%", width: "100%" },
+  [ChartId.RainHeatmap]: { height: 200, width: "100%" },
+  [ChartId.NumberHabitCalendarHeatmap]: { height: 200, width: "100%" },
+  [ChartId.Count]: { height: 250, width: 250 },
+};
+
 export function AddChart(props: AddChartProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const { aggPeriod } = useDashboard();
+
+  const startDate = useMemo(() => subYears(new Date(), 1), []);
+  const endDate = useMemo(() => new Date(), []);
+
+  const chartPreviewMaxHeight = 400;
+  const isFirstStep = currentStep === 0;
+  const isLastStep = currentStep === 2;
 
   // Form is controlled so it's easier to fetch updated values for chart title and habit keys
   // could change for uncontrolled if that's figured out
@@ -59,21 +82,9 @@ export function AddChart(props: AddChartProps) {
       return {};
     },
   });
-
-  const startDate = useMemo(() => subYears(new Date(), 1), []);
-  const endDate = useMemo(() => new Date(), []);
   const values = form.getValues();
 
-  const nextStep = () => {
-    if (form.validate().hasErrors) {
-      return;
-    }
-
-    if (currentStep < 2) {
-      setCurrentStep(currentStep + 1);
-      return;
-    }
-
+  const submit = () => {
     if (!values.chartId) {
       return;
     }
@@ -89,10 +100,23 @@ export function AddChart(props: AddChartProps) {
       habitKey: values.habitKey,
       countKey: values.countKey,
       title: values.title,
+      compactNumbers: values.compactNumbers,
     };
 
     // This should be on submit
     props.onSave(chartToSave);
+  };
+
+  const nextStep = () => {
+    if (form.validate().hasErrors) {
+      return;
+    }
+
+    if (currentStep >= 2) {
+      submit();
+    } else {
+      setCurrentStep(Math.min(currentStep + 1, 2));
+    }
   };
   const previousStep = () => {
     if (currentStep === 0) {
@@ -102,11 +126,6 @@ export function AddChart(props: AddChartProps) {
 
     setCurrentStep(currentStep - 1);
   };
-
-  const stepperIconSize = 17;
-  const chartPreviewHeight = 400;
-  const isFirstStep = currentStep === 0;
-  const isLastStep = currentStep === 2;
 
   return (
     <form>
@@ -149,17 +168,20 @@ export function AddChart(props: AddChartProps) {
 
         {/* Preview */}
         <Container mt={65} maw={"100%"} flex={1}>
-          <Container fluid h={chartPreviewHeight} flex={1}>
+          <Container fluid w={"100%"} h={chartPreviewMaxHeight} flex={1}>
             {values.chartId && currentStep > 0 ? (
-              <ChartDisplayer
-                chartId={values.chartId}
-                habitKey={values.habitKey}
-                countKey={values.countKey}
-                title={values.title || "Title"}
-                startDate={startDate}
-                endDate={endDate}
-                aggPeriod={aggPeriod}
-              />
+              <div style={{ ...chartPreviewSize[values.chartId] }}>
+                <ChartDisplayer
+                  chartId={values.chartId}
+                  habitKey={values.habitKey}
+                  countKey={values.countKey}
+                  title={values.title || "Title"}
+                  startDate={startDate}
+                  compactNumbers={values.compactNumbers}
+                  endDate={endDate}
+                  aggPeriod={aggPeriod}
+                />
+              </div>
             ) : (
               <ChartPlaceholder text="Nothing to display yet" subText="Continue to see a preview of your chart here" />
             )}

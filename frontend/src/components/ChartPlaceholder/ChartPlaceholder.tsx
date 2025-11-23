@@ -8,7 +8,7 @@ export function ChartPlaceholder(props: { text?: string; subText?: string; noBg?
       <Center h="100%">
         <Stack align="center">
           <IconChartHistogram size={40} opacity={0.4} />
-          <Text size="lg" fw={600} c="dimmed">
+          <Text ta={"center"} size="lg" fw={600} c="dimmed">
             {props.text ? props.text : "Your chart will appear here"}
           </Text>
 

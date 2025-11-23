@@ -1,4 +1,4 @@
-import { Flex, Select, TextInput } from "@mantine/core";
+import { Checkbox, Flex, Select, TextInput } from "@mantine/core";
 import type { UseFormReturnType } from "@mantine/form";
 import { useQuery } from "@tanstack/react-query";
 import { trpc } from "../../api/trpc";
@@ -7,6 +7,7 @@ import { type ChartId, chartParamByChartId } from "../../charts/types";
 type FormValues = {
   habitKey?: string;
   countKey?: string;
+  compactNumbers?: boolean;
   title: string;
 };
 
@@ -17,7 +18,7 @@ export function ChartFeatures<T extends FormValues>(props: { chartId: ChartId; f
   const { data: countKeysData } = useQuery(trpc.charts.counts.getCountKeys.queryOptions());
 
   return (
-    <Flex direction={"column"} gap={"md"} pb={"md"}>
+    <Flex direction={"column"} gap={"lg"} pb={"md"}>
       <TextInput flex={1} label="Title" withAsterisk {...form.getInputProps("title", { type: "input" })} />
       {chartId
         ? chartParamByChartId[chartId].map((feature) => {
@@ -42,6 +43,14 @@ export function ChartFeatures<T extends FormValues>(props: { chartId: ChartId; f
                     data={habitKeysData?.numeric.map((hk) => ({ value: hk.key, label: hk.label })) ?? []}
                     searchable
                     {...form.getInputProps("habitKey", { type: "input" })}
+                  />
+                );
+              case "compactNumbers":
+                return (
+                  <Checkbox
+                    key={feature}
+                    label="Use compact number notation (1.2k, 3.4M…)"
+                    {...form.getInputProps("compactNumbers", { type: "checkbox" })}
                   />
                 );
               default:
