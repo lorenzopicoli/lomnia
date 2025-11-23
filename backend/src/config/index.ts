@@ -1,5 +1,10 @@
 export default {
   importers: {
+    habits: {
+      hares: {
+        enabled: true,
+      },
+    },
     location: {
       generic: {
         enabled: false,

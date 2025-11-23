@@ -3,6 +3,7 @@ import config from "../config";
 import { Logger } from "../services/Logger";
 import { GoogleTakeoutLocationsImporter } from "./google/locationTakeout";
 import { GoogleLocationsTimelineImporter } from "./google/locationTimelineExport";
+import { HaresJSONImporter } from "./hares";
 import { ExternalLocationsImporter } from "./locations";
 import { NominatimImport } from "./nominatim";
 import { ObsidianImporter } from "./obsidian";
@@ -41,11 +42,12 @@ export class ImporterManager {
 
   public async runOnce() {
     this.lastStart = DateTime.now();
-    await this.runFilesImporters();
-    await this.runLocationImporters();
-    await this.runLocationDetailsImporters();
-    await this.runHealthImporters();
-    await this.internetPresenceImporters();
+    // await this.runFilesImporters();
+    await this.runHabitImporters();
+    // await this.runLocationImporters();
+    // await this.runLocationDetailsImporters();
+    // await this.runHealthImporters();
+    // await this.internetPresenceImporters();
 
     if (this.frequencyInMs) {
       this.schedule(this.frequencyInMs);
@@ -174,6 +176,15 @@ export class ImporterManager {
       await obsidianImporter.import();
     } else {
       this.logger.debug("Skipping Obsidian import");
+    }
+  }
+
+  private async runHabitImporters() {
+    if (config.importers.habits.hares.enabled) {
+      const haresImporter = new HaresJSONImporter();
+      await haresImporter.startJob();
+    } else {
+      this.logger.debug("Skipping Hares import");
     }
   }
 
