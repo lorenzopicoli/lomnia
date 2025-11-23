@@ -1,17 +1,30 @@
 import z from "zod";
+import { DiaryEntriesService } from "../services/diaryEntries";
+import { HabitsService } from "../services/habits/habits";
 import { LocationChartService } from "../services/locations";
+import { WeatherChartService } from "../services/weather";
 import { loggedProcedure } from "./common/loggedProcedure";
 import { t } from "./trpc";
 
+const countKeys = [
+  "totalWeatherEnties",
+  "dailyWeatherEntries",
+  "hourlyWeatherEntries",
+  "totalLocationEntries",
+  "totalFileEntries",
+  "uniqueHabits",
+  "totalHabitsEntries",
+] as const;
+
 export const chartCountsRouter = t.router({
   getCountKeys: loggedProcedure.query(async () => {
-    return ["totalWeatherEnties", "dailyWeatherEntries", "hourlyWeatherEntries", "totalLocationEntries"];
+    return countKeys;
   }),
   getCounts: loggedProcedure
     .input(
       z
         .object({
-          countKey: z.string(),
+          countKey: z.enum(countKeys),
         })
         .partial()
         .required({
@@ -19,9 +32,23 @@ export const chartCountsRouter = t.router({
         }),
     )
     .query((opts) => {
-      if (opts.input.countKey === "totalLocationEntries") {
-        return LocationChartService.getCount();
+      switch (opts.input.countKey) {
+        case "totalLocationEntries":
+          return LocationChartService.getCount();
+        case "dailyWeatherEntries":
+          return WeatherChartService.getDailyCount();
+        case "hourlyWeatherEntries":
+          return WeatherChartService.getHourlyCount();
+        case "totalWeatherEnties":
+          return WeatherChartService.getTotalCount();
+        case "totalFileEntries":
+          return DiaryEntriesService.getCount();
+        case "uniqueHabits":
+          return HabitsService.uniqueHabitsCount();
+        case "totalHabitsEntries":
+          return HabitsService.getCount();
+        default:
+          return 0;
       }
-      return 10000;
     }),
 });

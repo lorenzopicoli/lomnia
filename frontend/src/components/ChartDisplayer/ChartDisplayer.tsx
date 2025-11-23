@@ -13,7 +13,29 @@ interface ChartDisplayerProps extends AllChartsProps {
   chartId: ChartId;
 }
 
+const chartOptions = {
+  [ChartId.HeartRateMinMaxAvg]: {
+    componentHandlesTitle: false,
+  },
+  [ChartId.PrecipitationExperienced]: {
+    componentHandlesTitle: false,
+  },
+  [ChartId.TemperatureExperienced]: {
+    componentHandlesTitle: false,
+  },
+  [ChartId.RainHeatmap]: {
+    componentHandlesTitle: false,
+  },
+  [ChartId.NumberHabitCalendarHeatmap]: {
+    componentHandlesTitle: false,
+  },
+  [ChartId.Count]: {
+    componentHandlesTitle: true,
+  },
+} as const;
+
 export function ChartDisplayer(props: ChartDisplayerProps) {
+  const { componentHandlesTitle } = chartOptions[props.chartId];
   return (
     <Card
       bg={cardDarkBackground}
@@ -24,7 +46,7 @@ export function ChartDisplayer(props: ChartDisplayerProps) {
       h={"100%"}
     >
       <Card.Section style={{ textAlign: "center" }} w={"100%"} pl={"md"} pt={"md"}>
-        {props.title ? (
+        {props.title && !componentHandlesTitle ? (
           <Text fw={"bolder"} size="sm">
             {props.title}
           </Text>
@@ -57,7 +79,7 @@ function ChartSwitcher(props: ChartDisplayerProps) {
     case ChartId.Count: {
       const countKey = props.countKey;
       if (!countKey) {
-        return <ChartPlaceholder noBg text="Select a count key to see data in here" />;
+        return <ChartPlaceholder noBg text="Select a key" />;
       }
       return <CountCard {...props} countKey={countKey} />;
     }

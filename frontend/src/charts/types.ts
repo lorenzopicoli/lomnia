@@ -17,6 +17,10 @@ export type ChartAreaConfig = {
    */
   countKey?: string;
   /**
+   * Use compact number notation (1.2k, 3.4M…)
+   */
+  compactNumbers?: boolean;
+  /**
    * A random uuid that uniquely identifies this instance of the chart
    */
   uniqueId: string;
@@ -31,7 +35,7 @@ export enum ChartId {
   Count = "Count",
 }
 
-export type ChartParams = "habitKey" | "countKey";
+export type ChartParams = "habitKey" | "countKey" | "compactNumbers";
 
 export const chartParamByChartId: Record<ChartId, ChartParams[]> = {
   [ChartId.TemperatureExperienced]: [],
@@ -39,7 +43,7 @@ export const chartParamByChartId: Record<ChartId, ChartParams[]> = {
   [ChartId.PrecipitationExperienced]: [],
   [ChartId.RainHeatmap]: [],
   [ChartId.NumberHabitCalendarHeatmap]: ["habitKey"],
-  [ChartId.Count]: ["countKey"],
+  [ChartId.Count]: ["countKey", "compactNumbers"],
 };
 
 const aggregationPeriods = ["month", "day", "week", "hour"] as const;
@@ -59,6 +63,7 @@ export interface CountCardChartProps extends ChartProps {
   unit?: string;
   description?: string;
   countKey: string;
+  compactNumbers?: boolean;
 }
 
 export type AllChartsProps = ChartProps & Partial<HabitChartProps> & Partial<CountCardChartProps>;

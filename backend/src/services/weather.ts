@@ -1,5 +1,5 @@
 import { isValid, parse } from "date-fns";
-import { asc, sql } from "drizzle-orm";
+import { asc, count, sql } from "drizzle-orm";
 import { db } from "../db/connection";
 import { dailyWeatherTable, hourlyWeatherTable } from "../models";
 import type { ChartPeriodInput } from "../types/chartTypes";
@@ -69,4 +69,27 @@ export namespace WeatherChartService {
 
     return data;
   };
+
+  export async function getDailyCount() {
+    return db
+      .select({
+        count: count(),
+      })
+      .from(dailyWeatherTable)
+      .then((r) => r[0].count);
+  }
+
+  export async function getHourlyCount() {
+    return db
+      .select({
+        count: count(),
+      })
+      .from(hourlyWeatherTable)
+      .then((r) => r[0].count);
+  }
+
+  export async function getTotalCount() {
+    const [daily, hourly] = await Promise.all([getDailyCount(), getHourlyCount()]);
+    return daily + hourly;
+  }
 }

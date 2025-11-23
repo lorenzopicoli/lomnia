@@ -1,6 +1,7 @@
 import { isValid, parse } from "date-fns";
-import { sql } from "drizzle-orm";
+import { count, sql } from "drizzle-orm";
 import { db } from "../db/connection";
+import { filesTable } from "../models";
 import { anonymize } from "./anonymize";
 
 export namespace DiaryEntriesService {
@@ -38,5 +39,14 @@ export namespace DiaryEntriesService {
       ...entry,
       content,
     };
+  }
+
+  export async function getCount() {
+    return db
+      .select({
+        count: count(),
+      })
+      .from(filesTable)
+      .then((r) => r[0].count);
   }
 }

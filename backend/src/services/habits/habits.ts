@@ -1,5 +1,5 @@
 import { isValid, parse } from "date-fns";
-import { asc, sql } from "drizzle-orm";
+import { asc, count, countDistinct, sql } from "drizzle-orm";
 import z from "zod";
 import { db } from "../../db/connection";
 import { type Habit, habitsTable } from "../../models/Habit";
@@ -62,6 +62,23 @@ export namespace HabitsService {
         })),
       );
   };
+
+  export async function getCount() {
+    return db
+      .select({
+        count: count(),
+      })
+      .from(habitsTable)
+      .then((r) => r[0].count);
+  }
+  export async function uniqueHabitsCount() {
+    return db
+      .select({
+        count: countDistinct(habitsTable.key),
+      })
+      .from(habitsTable)
+      .then((r) => r[0].count);
+  }
 }
 
 export namespace HabitsChartService {
