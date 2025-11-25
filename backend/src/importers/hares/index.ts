@@ -80,6 +80,7 @@ export class HaresJSONImporter extends BaseImporter {
         // TODO fix this
         periodOfDay: entry.periodOfDay as any,
         isFullDay: false,
+        createdAt: new Date(),
       };
       await tx
         .insert(habitsTable)

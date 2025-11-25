@@ -50,6 +50,7 @@
     "date-fns-tz": "^3.2.0",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.44.7",
+    "drizzle-zod": "^0.8.3",
     "fastify": "^5.6.2",
     "front-matter": "^4.0.2",
     "geo-tz": "^8.1.4",

@@ -1,15 +1,46 @@
 import "dotenv/config";
 import { db } from "./db/connection";
 import { habitsTable } from "./models";
-import { HabitEvaluationService } from "./services/habits/HabitRuleEvaluationService";
+import {
+  extractedHabitFeaturesTable,
+  habitFeaturesTable,
+  insertExtractedHabitFeatureSchema,
+  validateHabitFeature,
+} from "./models/HabitFeature";
+import { HabitFeatureEvaluation } from "./services/habits/HabitFeatureEvaluation";
 
 const main = async () => {
   // const importer = new ImporterManager();
   // importer.schedule(10000);
   const habits = await db.select().from(habitsTable).orderBy(habitsTable.date);
-  for (const h of habits) {
-    HabitEvaluationService.evaluateEntry(h);
-  }
+  const habitFeatures = await db.select().from(habitFeaturesTable).orderBy(habitFeaturesTable.createdAt);
+  console.log("a", habitFeatures);
+
+  const validated = habitFeatures.map(validateHabitFeature);
+  const habitEvaluation = new HabitFeatureEvaluation(validated);
+
+  await Promise.all(
+    habits.map(async (h) => {
+      const a = habitEvaluation.extractHabitFeatures(h);
+
+      const bla = a.map((value) =>
+        insertExtractedHabitFeatureSchema.parse({
+          ...value,
+          habitId: h.id,
+        }),
+      );
+      if (!bla.length) {
+        console.log("Nothing");
+        return;
+      }
+      await db.insert(extractedHabitFeaturesTable).values(bla);
+      if (a.length > 0) {
+        console.log("Habit", h);
+        console.log("Features", a);
+      }
+    }),
+  );
+
   // Keep the process running
   setInterval(() => {}, 1 << 30);
 };
