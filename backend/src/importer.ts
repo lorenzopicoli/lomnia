@@ -8,6 +8,7 @@ import {
   validateHabitFeature,
 } from "./models/HabitFeature";
 import { HabitFeatureEvaluation } from "./services/habits/HabitFeatureEvaluation";
+import { HabitsService } from "./services/habits/habits";
 
 const main = async () => {
   // const importer = new ImporterManager();
@@ -22,15 +23,21 @@ const main = async () => {
   await Promise.all(
     habits.map(async (h) => {
       const a = habitEvaluation.extractHabitFeatures(h);
-
+      const range = HabitsService.habitToRange(h);
+      if (!range.start.toJSDate() || !range.end.toJSDate()) {
+        console.log("R", range, h);
+      }
       const bla = a.map((value) =>
         insertExtractedHabitFeatureSchema.parse({
           ...value,
+          timezone: h.timezone,
+          startDate: range.start.toJSDate() ?? null,
+          endDate: range.end.toJSDate() ?? null,
           habitId: h.id,
         }),
       );
       if (!bla.length) {
-        console.log("Nothing");
+        // console.log("Nothing");
         return;
       }
       await db.insert(extractedHabitFeaturesTable).values(bla);

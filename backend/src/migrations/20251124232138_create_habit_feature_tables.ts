@@ -4,7 +4,7 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable("habit_features", (table) => {
     table.increments();
     table.timestamps();
-    table.text("name").nullable();
+    table.text("name").nullable().unique().index();
 
     table.jsonb("rules").notNullable();
   });
@@ -14,6 +14,9 @@ export async function up(knex: Knex): Promise<void> {
     table.integer("habit_feature_id").notNullable().references("habit_features.id").index();
     table.integer("habit_id").notNullable().references("habits.id").index();
 
+    table.datetime("start_date").notNullable().index();
+    table.datetime("end_date").notNullable().index();
+    table.text("timezone").notNullable();
     table.jsonb("value").notNullable();
     table.jsonb("original_value").notNullable();
   });

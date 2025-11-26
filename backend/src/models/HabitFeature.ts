@@ -106,6 +106,20 @@ export const extractedHabitFeaturesTable = pgTable("extracted_habit_features", {
     .notNull(),
   value: jsonb("value").$type<string | number | boolean | string[]>().notNull(),
   originalValue: jsonb("original_value").$type<string | number | boolean | string[]>().notNull(),
+  /**
+   * The date at which the habit started, inclusive and in UTC
+   */
+  startDate: timestamp("start_date").notNull(),
+  /**
+   * The date at which the habit ended, inclusive and in UTC
+   */
+  endDate: timestamp("end_date").notNull(),
+
+  /**
+   * Timezone where the habit was recorded
+   */
+  timezone: text("timezone").notNull(),
+
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at"),
 });

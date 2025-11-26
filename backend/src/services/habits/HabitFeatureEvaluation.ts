@@ -38,6 +38,7 @@ export class HabitFeatureEvaluation {
         case "text_value": {
           const habitValues = habit.value;
           if (!Array.isArray(habitValues)) {
+            meetsConditions = false;
             break;
           }
           meetsConditions = condition.value.some((v) => habitValues.includes(v));

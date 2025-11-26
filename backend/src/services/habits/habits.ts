@@ -1,8 +1,10 @@
 import { isValid, parse } from "date-fns";
-import { asc, count, countDistinct, sql } from "drizzle-orm";
+import { asc, count, countDistinct, eq, sql } from "drizzle-orm";
+import { DateTime } from "luxon";
 import z from "zod";
 import { db } from "../../db/connection";
 import { type Habit, habitsTable } from "../../models/Habit";
+import { extractedHabitFeaturesTable, habitFeaturesTable } from "../../models/HabitFeature";
 import { ChartPeriodInput } from "../../types/chartTypes";
 import { anonymize } from "../anonymize";
 import { getAggregatedXColumn } from "../common/getAggregatedXColumn";
@@ -46,14 +48,82 @@ export namespace HabitsService {
     return formatHabitResponse(entries, privateMode);
   }
 
+  /**
+   * Converts a Habit row into a time range [start, end]
+   */
+  export function habitToRange(habit: Habit): {
+    start: DateTime;
+    end: DateTime;
+  } {
+    const tz = habit.timezone;
+
+    if (habit.recordedAt && !habit.periodOfDay && !habit.isFullDay) {
+      const dt = DateTime.fromJSDate(habit.recordedAt, { zone: tz });
+      return {
+        start: dt,
+        end: dt,
+      };
+    }
+
+    const date = DateTime.fromJSDate(habit.date, { zone: tz });
+
+    if (habit.isFullDay) {
+      const start = date.startOf("day");
+      const end = start.endOf("day");
+      return { start, end };
+    }
+
+    if (habit.periodOfDay) {
+      const { start, end } = getPeriodRange(date, habit.periodOfDay);
+      return { start, end };
+    }
+
+    throw new Error("Failed to get habit range");
+  }
+
+  /**
+   * Converts a Luxon DateTime (day) + periodOfDay into a start/end range.
+   */
+  function getPeriodRange(date: DateTime, period: Habit["periodOfDay"]) {
+    switch (period) {
+      case "morning":
+        return {
+          start: date.set({ hour: 6, minute: 0, second: 0 }),
+          end: date.set({ hour: 11, minute: 59, second: 59 }),
+        };
+
+      case "afternoon":
+        return {
+          start: date.set({ hour: 12, minute: 0, second: 0 }),
+          end: date.set({ hour: 17, minute: 59, second: 59 }),
+        };
+
+      case "evening":
+        return {
+          start: date.set({ hour: 18, minute: 0, second: 0 }),
+          end: date.set({ hour: 23, minute: 59, second: 59 }),
+        };
+
+      case "over_night":
+        return {
+          start: date.set({ hour: 0, minute: 0, second: 0 }),
+          end: date.plus({ days: 1 }).set({ hour: 5, minute: 59, second: 59 }),
+        };
+
+      default:
+        throw new Error(`Unknown periodOfDay: ${period}`);
+    }
+  }
+
   export const getNumericHabitKeys = async () => {
     return db
       .select({
-        key: habitsTable.key,
+        key: habitFeaturesTable.name,
       })
-      .from(habitsTable)
-      .where(sql`${habitsTable.key} IS NOT NULL AND jsonb_typeof(value) = 'number'`)
-      .groupBy(habitsTable.key)
+      .from(habitFeaturesTable)
+      .leftJoin(extractedHabitFeaturesTable, eq(extractedHabitFeaturesTable.habitFeatureId, habitFeaturesTable.id))
+      .where(sql`jsonb_typeof(${extractedHabitFeaturesTable.value}) = 'number'`)
+      .groupBy(habitFeaturesTable.name)
       .then((keys) =>
         keys.map((k) => ({
           key: k.key,
@@ -90,18 +160,19 @@ export namespace HabitsChartService {
       return [];
     }
 
-    const aggregatedDate = getAggregatedXColumn(habitsTable.date, aggregationPeriod);
+    const aggregatedDate = getAggregatedXColumn(extractedHabitFeaturesTable.startDate, aggregationPeriod);
     const data = db
       .select({
-        value: getAggregatedYColumn(sql`${habitsTable.value}::integer`, "sum").mapWith(Number),
+        value: getAggregatedYColumn(sql`${extractedHabitFeaturesTable.value}::integer`, "sum").mapWith(Number),
         date: aggregatedDate.mapWith(String),
       })
-      .from(habitsTable)
+      .from(extractedHabitFeaturesTable)
+      .innerJoin(habitFeaturesTable, eq(extractedHabitFeaturesTable.habitFeatureId, habitFeaturesTable.id))
       .where(
         sql`
-      ${habitsTable.key} = ${habitKey} AND
-      ${habitsTable.date} >= (${start.toISO()} AT TIME ZONE 'America/Toronto')::date 
-      AND ${habitsTable.date} <= (${end.toISO()} AT TIME ZONE 'America/Toronto')::date`,
+      ${habitFeaturesTable.name} = ${habitKey} AND
+      ${extractedHabitFeaturesTable.startDate} >= ${start.toISO()}  
+      AND ${extractedHabitFeaturesTable.endDate} <= ${end.toISO()}`,
       )
       .groupBy(aggregatedDate)
       .orderBy(asc(aggregatedDate));
