@@ -1,5 +1,6 @@
 import { DateTime } from "luxon";
 import config from "../config";
+import { HabitFeatureExtraction } from "../services/habits/HabitFeatureExtraction";
 import { Logger } from "../services/Logger";
 import { GoogleTakeoutLocationsImporter } from "./google/locationTakeout";
 import { GoogleLocationsTimelineImporter } from "./google/locationTimelineExport";
@@ -7,6 +8,7 @@ import { HaresJSONImporter } from "./hares";
 import { ExternalLocationsImporter } from "./locations";
 import { NominatimImport } from "./nominatim";
 import { ObsidianImporter } from "./obsidian";
+import { ObsidianHabitsJSONImporter } from "./obsidianHabits";
 import { OpenMeteoImport } from "./openMeteo";
 import { OwntracksImporter } from "./owntracks";
 import { PiholeSchemaRequestImporter } from "./pihole";
@@ -42,7 +44,7 @@ export class ImporterManager {
 
   public async runOnce() {
     this.lastStart = DateTime.now();
-    // await this.runFilesImporters();
+    await this.runFilesImporters();
     await this.runHabitImporters();
     // await this.runLocationImporters();
     // await this.runLocationDetailsImporters();
@@ -186,6 +188,17 @@ export class ImporterManager {
     } else {
       this.logger.debug("Skipping Hares import");
     }
+
+    if (config.importers.habits.obsidianHabitsJson.enabled) {
+      const obsidianHabitsJsonImporter = new ObsidianHabitsJSONImporter();
+      await obsidianHabitsJsonImporter.startJob();
+    } else {
+      this.logger.debug("Skipping Hares import");
+    }
+
+    await HabitFeatureExtraction.extractAndSaveHabitsFeatures().catch((e) => {
+      this.logger.error("Failed to extract habit features", { e });
+    });
   }
 
   private clearTimeout() {

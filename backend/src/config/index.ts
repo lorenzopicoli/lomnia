@@ -4,6 +4,9 @@ export default {
       hares: {
         enabled: true,
       },
+      obsidianHabitsJson: {
+        enabled: true,
+      },
     },
     location: {
       generic: {

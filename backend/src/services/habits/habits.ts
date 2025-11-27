@@ -9,7 +9,6 @@ import { ChartPeriodInput } from "../../types/chartTypes";
 import { anonymize } from "../anonymize";
 import { getAggregatedXColumn } from "../common/getAggregatedXColumn";
 import { getAggregatedYColumn } from "../common/getAggregatedYColumn";
-import { habitLabel, habitTransformers } from "./personal";
 
 export const HabitChartPeriodInput = z.object({
   ...ChartPeriodInput.shape,
@@ -23,9 +22,8 @@ export namespace HabitsService {
       .filter((h) => !!h.value)
       .map((h) => {
         const key = h.key;
-        const transformer = (habitTransformers as any)[key];
-        const value = transformer ? transformer(h.value) : h.value;
-        const label = (habitLabel as any)[h.key];
+        const value = h.value;
+        const label = h.key;
 
         return {
           ...h,
