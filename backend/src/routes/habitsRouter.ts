@@ -12,7 +12,7 @@ export const habitsRouter = t.router({
       }),
     )
     .query((opts) => {
-      return HabitsService.byDay(opts.input);
+      return HabitsService.byDay(opts.input) ?? [];
     }),
 
   getKeys: loggedProcedure.query(async () => {

@@ -25,7 +25,7 @@ export function DailyHabitEntriesContainer(props: DailyHabitEntriesProps) {
     return "Loading...";
   }
 
-  if (!data) {
+  if (!data || data.length === 0) {
     return null;
   }
 

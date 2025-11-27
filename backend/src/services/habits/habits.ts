@@ -40,7 +40,7 @@ export namespace HabitsService {
       throw new Error("Invalid day");
     }
     const entries = await db.query.habitsTable.findMany({
-      where: sql`date::date = ${day}`,
+      where: sql`(date at time zone ${habitsTable.timezone})::date = ${day}`,
     });
 
     return formatHabitResponse(entries, privateMode);
