@@ -46,8 +46,8 @@ export class ImporterManager {
     this.lastStart = DateTime.now();
     await this.runFilesImporters();
     await this.runHabitImporters();
-    // await this.runLocationImporters();
-    // await this.runLocationDetailsImporters();
+    await this.runLocationImporters();
+    await this.runLocationDetailsImporters();
     // await this.runHealthImporters();
     // await this.internetPresenceImporters();
 
