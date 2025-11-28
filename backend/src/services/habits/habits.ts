@@ -1,5 +1,5 @@
 import { isValid, parse } from "date-fns";
-import { asc, count, countDistinct, eq, sql } from "drizzle-orm";
+import { asc, count, countDistinct, desc, eq, sql } from "drizzle-orm";
 import { DateTime } from "luxon";
 import z from "zod";
 import { db } from "../../db/connection";
@@ -44,6 +44,18 @@ export namespace HabitsService {
     });
 
     return formatHabitResponse(entries, privateMode);
+  }
+
+  export async function getRawHabits(params: { limit: number; page: number }) {
+    const { limit, page } = params;
+
+    const entries = await db.query.habitsTable.findMany({
+      offset: page * limit,
+      limit,
+      orderBy: desc(habitsTable.recordedAt),
+    });
+
+    return entries;
   }
 
   /**

@@ -15,6 +15,17 @@ export const habitsRouter = t.router({
       return HabitsService.byDay(opts.input) ?? [];
     }),
 
+  getRawHabitsTable: loggedProcedure
+    .input(
+      z.object({
+        page: z.number().min(0),
+        limit: z.number().min(1),
+      }),
+    )
+    .query((opts) => {
+      return HabitsService.getRawHabits(opts.input) ?? [];
+    }),
+
   getKeys: loggedProcedure.query(async () => {
     return {
       numeric: await HabitsService.getNumericHabitKeys(),
