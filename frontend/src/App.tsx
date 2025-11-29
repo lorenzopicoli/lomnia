@@ -15,6 +15,8 @@ import "allotment/dist/style.css";
 import { MantineProvider } from "@mantine/core";
 import * as echarts from "echarts";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { QueryParamProvider } from "use-query-params";
+import { ReactRouter6Adapter } from "use-query-params/adapters/react-router-6";
 import { queryClient } from "./api/trpc";
 import { ConfigProvider } from "./contexts/ConfigContext";
 import Layout from "./pages/Layout";
@@ -26,7 +28,11 @@ echarts.registerTheme("default_dark", EchartsThemes.darkDefault);
 const router = createBrowserRouter([
   {
     path: "/*",
-    element: <Layout />,
+    element: (
+      <QueryParamProvider adapter={ReactRouter6Adapter}>
+        <Layout />
+      </QueryParamProvider>
+    ),
   },
 ]);
 

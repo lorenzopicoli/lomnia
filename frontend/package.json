@@ -41,6 +41,7 @@
     "react-router-dom": "^7.9.6",
     "recharts": "^3.4.1",
     "remark-wiki-link": "^2.0.1",
+    "use-query-params": "^2.2.2",
     "uuid": "^13.0.0"
   },
   "devDependencies": {

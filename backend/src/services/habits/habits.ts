@@ -46,11 +46,19 @@ export namespace HabitsService {
     return formatHabitResponse(entries, privateMode);
   }
 
-  export async function getRawHabits(params: { limit: number; page: number }) {
-    const { limit, page } = params;
+  export async function getRawHabits(params: { limit: number; page: number; search?: string }) {
+    const { limit, page, search } = params;
+    const searchQuery = `%${search}%`;
 
+    const searchQueryFilter = sql`
+      ${habitsTable.comments} ILIKE ${searchQuery} 
+      OR ${habitsTable.key} ILIKE ${searchQuery}
+      OR ${habitsTable.periodOfDay} ILIKE ${searchQuery}
+      OR ${habitsTable.source} ILIKE ${searchQuery}
+      OR ${habitsTable.value}::text ILIKE ${searchQuery}`;
     const entries = await db.query.habitsTable.findMany({
-      offset: page * limit,
+      where: !search ? sql`1=1` : searchQueryFilter,
+      offset: (page - 1) * limit,
       limit,
       orderBy: desc(habitsTable.recordedAt),
     });

@@ -19,6 +19,7 @@ export const habitsRouter = t.router({
     .input(
       z.object({
         page: z.number().min(0),
+        search: z.string().optional(),
         limit: z.number().min(1),
       }),
     )
