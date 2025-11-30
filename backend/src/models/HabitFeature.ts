@@ -13,7 +13,7 @@ export const habitFeatureConditionSchema = z.object({
   /**
    * The value to compare against the field. Since all support fields are string, right now I compare against string only
    */
-  value: z.array(z.string()),
+  value: z.string(),
 });
 
 export type HabitFeatureCondition = z.infer<typeof habitFeatureConditionSchema>;
