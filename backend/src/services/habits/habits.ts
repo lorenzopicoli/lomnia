@@ -50,20 +50,76 @@ export namespace HabitsService {
     const { limit, page, search } = params;
     const searchQuery = `%${search}%`;
 
-    const searchQueryFilter = sql`
-      ${habitsTable.comments} ILIKE ${searchQuery} 
-      OR ${habitsTable.key} ILIKE ${searchQuery}
+    const whereClause = !search
+      ? sql`1=1`
+      : sql`
+      ${habitsTable.key} ILIKE ${searchQuery}
       OR ${habitsTable.periodOfDay} ILIKE ${searchQuery}
       OR ${habitsTable.source} ILIKE ${searchQuery}
-      OR ${habitsTable.value}::text ILIKE ${searchQuery}`;
-    const entries = await db.query.habitsTable.findMany({
-      where: !search ? sql`1=1` : searchQueryFilter,
-      offset: (page - 1) * limit,
-      limit,
-      orderBy: desc(habitsTable.recordedAt),
-    });
+      OR ${habitsTable.value}::text ILIKE ${searchQuery}
+    `;
 
-    return entries;
+    const [entries, [{ count }]] = await Promise.all([
+      db.query.habitsTable.findMany({
+        extras: {
+          recordedAt: sql`${habitsTable.recordedAt} at time zone ${habitsTable.timezone}`.as("recordedAt"),
+          date: sql`${habitsTable.date} at time zone ${habitsTable.timezone}`.as("date"),
+        },
+        where: whereClause,
+        offset: (page - 1) * limit,
+        limit,
+        orderBy: desc(habitsTable.recordedAt),
+      }),
+
+      db.select({ count: sql<number>`COUNT(*)` }).from(habitsTable).where(whereClause),
+    ]);
+
+    return {
+      entries,
+      total: Number(count),
+      page,
+      limit,
+    };
+  }
+
+  export async function getFeatures(params: { limit: number; page: number; search?: string }) {
+    const { limit, page, search } = params;
+    const searchQuery = `%${search}%`;
+
+    const whereClause = !search
+      ? sql`1=1`
+      : sql`
+      ${habitFeaturesTable.name} ILIKE ${searchQuery}
+    `;
+
+    const baseQuery = db
+      .select({
+        id: habitFeaturesTable.id,
+        name: habitFeaturesTable.name,
+        createdAt: habitFeaturesTable.createdAt,
+        matchedHabitEntries: countDistinct(extractedHabitFeaturesTable.habitId).as("matchedHabitEntries"),
+      })
+      .from(habitFeaturesTable)
+      .leftJoin(extractedHabitFeaturesTable, eq(extractedHabitFeaturesTable.habitFeatureId, habitFeaturesTable.id))
+      .where(whereClause)
+      .groupBy(habitFeaturesTable.id)
+      .$dynamic();
+
+    const [entries, [{ count }]] = await Promise.all([
+      baseQuery
+        .orderBy(desc(habitFeaturesTable.createdAt))
+        .limit(limit)
+        .offset((page - 1) * limit),
+
+      db.select({ count: sql<number>`COUNT(*)` }).from(habitFeaturesTable).where(whereClause),
+    ]);
+
+    return {
+      entries,
+      total: Number(count),
+      page,
+      limit,
+    };
   }
 
   /**

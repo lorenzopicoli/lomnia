@@ -2,9 +2,10 @@ import { AppShell } from '@mantine/core'
 import { Route, Routes, useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar/Navbar'
 import { useConfig } from '../contexts/ConfigContext'
+import { AddHabitFeature } from './AddHabitFeature/AddHabitFeature'
 import { Explore } from './Explore/Explore'
+import { HabitsPage } from './Habits/Habits'
 import Home from './Home/Home'
-import { RawHabits } from './RawHabits/RawHabits'
 
 function Layout() {
   const navigate = useNavigate()
@@ -54,7 +55,8 @@ function Layout() {
         <Routes>
           <Route index element={<Home />} />
           <Route path={'/explore/*'} element={<Explore />} />
-          <Route path={'/habits/*'} element={<RawHabits />} />
+          <Route path={'/habits/features/add'} element={<AddHabitFeature />} />
+          <Route path={'/habits/*'} element={<HabitsPage />} />
         </Routes>
       </AppShell.Main>
     </AppShell>
