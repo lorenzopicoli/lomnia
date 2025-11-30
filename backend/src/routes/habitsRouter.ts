@@ -1,4 +1,7 @@
 import z from "zod";
+import { db } from "../db/connection";
+import { habitFeatureRuleSchema, habitsTable } from "../models";
+import { HabitFeatureEvaluation } from "../services/habits/HabitFeatureEvaluation";
 import { HabitChartPeriodInput, HabitsChartService, HabitsService } from "../services/habits/habits";
 import { loggedProcedure } from "./common/loggedProcedure";
 import { t } from "./trpc";
@@ -38,6 +41,19 @@ export const habitsRouter = t.router({
     .query((opts) => {
       return HabitsService.getFeatures(opts.input) ?? [];
     }),
+
+  previewFeaturesExtraction: loggedProcedure.input(z.array(habitFeatureRuleSchema)).query(async (opts) => {
+    const habits = await db.select().from(habitsTable).orderBy(habitsTable.date);
+    const evaluation = new HabitFeatureEvaluation([{ id: -1, name: "name", rules: opts.input }]);
+    const features = [];
+    for (const habit of habits) {
+      features.push(...evaluation.extractHabitFeatures(habit).flatMap((r) => ({ habit, feature: r })));
+      if (features.length >= 100) {
+        break;
+      }
+    }
+    return features;
+  }),
 
   getKeys: loggedProcedure.query(async () => {
     return {

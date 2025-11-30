@@ -2,11 +2,10 @@ import { isNil } from "lodash";
 import type { Habit } from "../../models";
 import type { HabitFeature, HabitFeatureCondition, HabitFeatureExtraction } from "../../models/HabitFeature";
 
+type HabitFeatureInput = Omit<HabitFeature, "createdAt" | "updatedAt">;
+
 export class HabitFeatureEvaluation {
-  private features: HabitFeature[];
-  constructor(features: HabitFeature[]) {
-    this.features = features;
-  }
+  constructor(private features: HabitFeatureInput[]) {}
 
   public extractHabitFeatures(habit: Habit) {
     const values: {
@@ -41,7 +40,7 @@ export class HabitFeatureEvaluation {
             meetsConditions = false;
             break;
           }
-          meetsConditions = condition.value.some((v) => habitValues.includes(v));
+          meetsConditions = habitValues.includes(condition.value);
           break;
         }
       }
@@ -57,7 +56,7 @@ export class HabitFeatureEvaluation {
     switch (extraction.type) {
       case "array_values": {
         const habitValues = Array.isArray(habit.value) ? habit.value : [habit.value];
-        return habitValues.map((value) => ({ value, originalValue: value }));
+        return habitValues.map((value) => ({ value, originalValue: habitValues }));
       }
       case "constant":
         return [{ value: extraction.constantValue, originalValue: habit.value }];
