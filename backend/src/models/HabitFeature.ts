@@ -41,11 +41,11 @@ export const habitFeatureExtractionSchema = z.object({
   /**
    * Depending on the evaluation type, it might require a mapping (usually to categorize text entries).
    */
-  mapping: z.record(z.string(), z.string().or(z.number())).optional(),
+  mapping: z.record(z.string(), z.string().or(z.number()).or(z.boolean())).optional(),
   /**
    * If couldn't map a value using the mapping dictionary, fall back to a value
    */
-  mappingFallbackTo: z.string().or(z.number()).optional(),
+  mappingFallbackTo: z.string().or(z.number()).or(z.boolean()).optional(),
   /**
    * Constant value to set instead of extracting anything
    */

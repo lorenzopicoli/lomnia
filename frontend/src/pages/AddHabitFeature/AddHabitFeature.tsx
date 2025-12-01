@@ -2,7 +2,6 @@ import {
   Accordion,
   ActionIcon,
   alpha,
-  Box,
   Button,
   Card,
   Container,
@@ -36,8 +35,8 @@ export type HabitFeatureCondition = {
 
 export type HabitFeatureExtraction = {
   type: "array_values" | "constant" | "map_values" | "entry_value";
-  mapping?: Record<string, string | number>;
-  mappingFallbackTo?: string | number;
+  mapping?: Record<string, string | number | boolean>;
+  mappingFallbackTo?: string | number | boolean;
   constantValue?: number | string | boolean;
 };
 
@@ -131,6 +130,8 @@ export function Extraction(props: {
     onExtractionChanged({
       ...extraction,
       constantValue: newType === "constant" ? extraction.constantValue : undefined,
+      mapping: newType === "map_values" ? (extraction.mapping ?? {}) : undefined,
+      mappingFallbackTo: newType === "map_values" ? extraction.mappingFallbackTo : undefined,
       type: newType,
     });
   };
@@ -157,6 +158,41 @@ export function Extraction(props: {
     });
   };
 
+  const handleMappingKeyChange = (oldKey: string, newKey: string) => {
+    const mapping = { ...(extraction.mapping ?? {}) };
+    const value = mapping[oldKey];
+    delete mapping[oldKey];
+    if (newKey) {
+      mapping[newKey] = value;
+    }
+    onExtractionChanged({ ...extraction, mapping });
+  };
+
+  const handleMappingValueChange = (key: string, newValue: string) => {
+    const mapping = { ...(extraction.mapping ?? {}) };
+    mapping[key] = formatValue(newValue);
+    onExtractionChanged({ ...extraction, mapping });
+  };
+
+  const handleRemoveMapping = (key: string) => {
+    const mapping = { ...(extraction.mapping ?? {}) };
+    delete mapping[key];
+    onExtractionChanged({ ...extraction, mapping });
+  };
+
+  const handleAddMapping = () => {
+    const mapping = { ...(extraction.mapping ?? {}), "": "" };
+    onExtractionChanged({ ...extraction, mapping });
+  };
+
+  const handleFallbackChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value;
+    onExtractionChanged({
+      ...extraction,
+      mappingFallbackTo: formatValue(raw),
+    });
+  };
+
   return (
     <Stack gap={"sm"}>
       <Text size="sm">Extract</Text>
@@ -176,22 +212,29 @@ export function Extraction(props: {
       ) : null}
       {extraction.type === "map_values" ? (
         <Stack>
-          {Object.entries(extraction.mapping ?? { "": "" }).map(([key, value]) => (
-            <Flex key={key + String(value)} align="center" gap={"sm"}>
-              <TextInput flex={1} label={"From"} value={key} onChange={() => {}} />
-              {/* mt is necessary to match the label */}
-              <Box mt="xl">
+          <Stack gap={"sm"}>
+            {Object.entries(extraction.mapping ?? {}).map(([key, value], idx) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+              <Flex key={idx} align="center" gap={"sm"}>
+                <TextInput flex={1} value={key} onChange={(e) => handleMappingKeyChange(key, e.target.value)} />
                 <IconArrowRightCircle />
-              </Box>
-              <TextInput flex={1} label={"To"} value={value} onChange={() => {}} />
-
-              <ActionIcon mt={"lg"} flex={0} variant="subtle" onClick={() => {}}>
-                <IconTrash size={20} color={alpha(theme.colors.red[9], 0.8)} />
-              </ActionIcon>
-            </Flex>
-          ))}
-          <DashedButton label="Add mapping" onClick={() => {}} />
-          <TextInput label={"Fallback"} value={""} onChange={() => {}} />
+                <TextInput
+                  flex={1}
+                  value={String(value)}
+                  onChange={(e) => handleMappingValueChange(key, e.target.value)}
+                />
+                <ActionIcon flex={0} variant="subtle" onClick={() => handleRemoveMapping(key)}>
+                  <IconTrash size={20} color={alpha(theme.colors.red[9], 0.8)} />
+                </ActionIcon>
+              </Flex>
+            ))}
+          </Stack>
+          <DashedButton label="Add mapping" onClick={handleAddMapping} />
+          <TextInput
+            label={"Fallback"}
+            value={String(extraction.mappingFallbackTo ?? "")}
+            onChange={handleFallbackChange}
+          />
         </Stack>
       ) : null}
     </Stack>
