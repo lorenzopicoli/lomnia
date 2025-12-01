@@ -46,7 +46,6 @@ export const habitsRouter = t.router({
   }),
 
   saveHabitFeature: loggedProcedure.input(habitFeatureSchema).mutation(async (opts) => {
-    console.log("In", opts.input);
     const feature = await validateNewHabitFeature(opts.input);
     await HabitsService.createFeature(feature);
     await HabitFeatureExtraction.extractAndSaveHabitsFeatures();
