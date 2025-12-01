@@ -1,7 +1,6 @@
 import z from "zod";
-import { db } from "../db/connection";
-import { habitFeatureRuleSchema, habitsTable } from "../models";
-import { HabitFeatureEvaluation } from "../services/habits/HabitFeatureEvaluation";
+import { habitFeatureRuleSchema, habitFeatureSchema, validateNewHabitFeature } from "../models";
+import { HabitFeatureExtraction } from "../services/habits/HabitFeatureExtraction";
 import { HabitChartPeriodInput, HabitsChartService, HabitsService } from "../services/habits/habits";
 import { loggedProcedure } from "./common/loggedProcedure";
 import { t } from "./trpc";
@@ -43,16 +42,14 @@ export const habitsRouter = t.router({
     }),
 
   previewFeaturesExtraction: loggedProcedure.input(z.array(habitFeatureRuleSchema)).query(async (opts) => {
-    const habits = await db.select().from(habitsTable).orderBy(habitsTable.date);
-    const evaluation = new HabitFeatureEvaluation([{ id: -1, name: "name", rules: opts.input }]);
-    const features = [];
-    for (const habit of habits) {
-      features.push(...evaluation.extractHabitFeatures(habit).flatMap((r) => ({ habit, feature: r })));
-      if (features.length >= 100) {
-        break;
-      }
-    }
-    return features;
+    return HabitFeatureExtraction.preview(opts.input);
+  }),
+
+  saveHabitFeature: loggedProcedure.input(habitFeatureSchema).mutation(async (opts) => {
+    console.log("In", opts.input);
+    const feature = await validateNewHabitFeature(opts.input);
+    await HabitsService.createFeature(feature);
+    await HabitFeatureExtraction.extractAndSaveHabitsFeatures();
   }),
 
   getKeys: loggedProcedure.query(async () => {

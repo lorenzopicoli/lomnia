@@ -6,6 +6,7 @@ import "@mantine/dates/styles.css";
 import "@mantine/code-highlight/styles.css";
 import "@mantine/spotlight/styles.css";
 import "@mantine/charts/styles.css";
+import "@mantine/notifications/styles.css";
 
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
@@ -13,6 +14,7 @@ import "react-resizable/css/styles.css";
 import "maplibre-gl/dist/maplibre-gl.css";
 import "allotment/dist/style.css";
 import { MantineProvider } from "@mantine/core";
+import { Notifications } from "@mantine/notifications";
 import * as echarts from "echarts";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { QueryParamProvider } from "use-query-params";
@@ -39,6 +41,7 @@ const router = createBrowserRouter([
 function App() {
   return (
     <MantineProvider theme={mantineTheme} defaultColorScheme="dark">
+      <Notifications position="top-center" />
       <ConfigProvider>
         <QueryClientProvider client={queryClient}>
           <RouterProvider router={router} />

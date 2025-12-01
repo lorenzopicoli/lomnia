@@ -3,6 +3,7 @@ import { db } from "../../db/connection";
 import { habitsTable } from "../../models";
 import {
   extractedHabitFeaturesTable,
+  type HabitFeature,
   habitFeaturesTable,
   insertExtractedHabitFeatureSchema,
   type ValidatedNewExtractedHabitFeature,
@@ -50,5 +51,19 @@ export namespace HabitFeatureExtraction {
       }
     });
     logger.info("Done habits feature extraction");
+  }
+
+  export async function preview(rules: HabitFeature["rules"]) {
+    const habits = await db.select().from(habitsTable).orderBy(habitsTable.date);
+    const evaluation = new HabitFeatureEvaluation([{ id: -1, name: "name", rules }]);
+    const features = [];
+    for (const habit of habits) {
+      features.push(...evaluation.extractHabitFeatures(habit).flatMap((r) => ({ habit, feature: r })));
+      if (features.length >= 100) {
+        break;
+      }
+    }
+
+    return features;
   }
 }

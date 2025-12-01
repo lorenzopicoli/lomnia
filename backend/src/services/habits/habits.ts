@@ -4,7 +4,11 @@ import { DateTime } from "luxon";
 import z from "zod";
 import { db } from "../../db/connection";
 import { type Habit, habitsTable } from "../../models/Habit";
-import { extractedHabitFeaturesTable, habitFeaturesTable } from "../../models/HabitFeature";
+import {
+  extractedHabitFeaturesTable,
+  habitFeaturesTable,
+  type ValidatedNewHabitFeature,
+} from "../../models/HabitFeature";
 import { ChartPeriodInput } from "../../types/chartTypes";
 import { anonymize } from "../anonymize";
 import { getAggregatedXColumn } from "../common/getAggregatedXColumn";
@@ -120,6 +124,10 @@ export namespace HabitsService {
       page,
       limit,
     };
+  }
+
+  export async function createFeature(feature: ValidatedNewHabitFeature) {
+    await db.insert(habitFeaturesTable).values(feature);
   }
 
   /**
