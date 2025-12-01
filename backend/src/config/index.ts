@@ -1,5 +1,13 @@
 export default {
   importers: {
+    habits: {
+      hares: {
+        enabled: true,
+      },
+      obsidianHabitsJson: {
+        enabled: true,
+      },
+    },
     location: {
       generic: {
         enabled: false,

@@ -39,14 +39,16 @@ export function ChartDashboardMenu(props: {
     onRearrangeCharts();
   };
 
+  console.log("a", currentPeriod);
+
   const PeriodPicker = () => {
     return (
-      <Radio.Group onChange={handlePeriodChange}>
+      <Radio.Group value={currentPeriod} onChange={handlePeriodChange}>
         <Group>
-          <Radio checked={currentPeriod === "week"} label="Last week" value="week" />
-          <Radio checked={currentPeriod === "month"} label="Last month" value="month" />
-          <Radio checked={currentPeriod === "year"} label="Last year" value="year" />
-          <Radio checked={currentPeriod === "all"} label="All" value="all" />
+          <Radio label="Last week" value="week" />
+          <Radio label="Last month" value="month" />
+          <Radio label="Last year" value="year" />
+          <Radio label="All" value="all" />
           <Menu.Target>
             <ActionIcon m={0} variant="subtle" size="">
               <IconCalendar />

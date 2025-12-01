@@ -1,32 +1,62 @@
 import crypto from "node:crypto";
-import * as fsSync from "node:fs";
 import * as fs from "node:fs/promises";
 import path from "node:path";
 import { isAfter, isBefore, isValid, parseISO } from "date-fns";
-import { eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import fm from "front-matter";
 import { glob } from "glob";
-import { DateTime } from "luxon";
+import { z } from "zod";
 import { db } from "../../db/connection";
 import type { DBTransaction } from "../../db/types";
 import { EnvVar, getEnvVarOrError } from "../../helpers/envVars";
 import { getKeys } from "../../helpers/getKeys";
 import { filesTable } from "../../models/File";
-import { habitsTable, type NewHabit } from "../../models/Habit";
 import { type ImportJob, importJobsTable } from "../../models/ImportJob";
-import {
-  diaryEntryValidation,
-  HabitKeys,
-  knownObsidianMetadataKeyToEnumMap,
-  type ObsidianFileMetadata,
-  type ObsidianMetadataKey,
-  obsidianMetadataValidationSchema,
-} from "./personal";
 
+enum ObsidianMetadata {
+  CreatedAt = "createdAt",
+  UpdatedAt = "updatedAt",
+  Tags = "tags",
+  Aliases = "aliases",
+  Date = "date",
+  Authors = "authors",
+}
+
+const obsdianMetadataKeys = ["created_at", "updated_at", "tags", "aliases", "Date", "authors"] as const;
+type ObsidianMetadataKey = (typeof obsdianMetadataKeys)[number];
+
+const knownObsidianMetadataKeyToEnumMap: Record<Lowercase<ObsidianMetadataKey>, ObsidianMetadata> = {
+  authors: ObsidianMetadata.Authors,
+  date: ObsidianMetadata.Date,
+  created_at: ObsidianMetadata.CreatedAt,
+  updated_at: ObsidianMetadata.UpdatedAt,
+  tags: ObsidianMetadata.Tags,
+  aliases: ObsidianMetadata.Aliases,
+};
+
+const obsidianMetadataValidationSchema = z
+  .object({
+    [ObsidianMetadata.CreatedAt]: z.iso.datetime(),
+    [ObsidianMetadata.UpdatedAt]: z.iso.datetime(),
+    [ObsidianMetadata.Tags]: z.array(z.string()).default([]),
+    [ObsidianMetadata.Aliases]: z.array(z.string()),
+    [ObsidianMetadata.Date]: z.iso.datetime(),
+    [ObsidianMetadata.Authors]: z.array(z.string()),
+  })
+  .partial()
+  .required({
+    [ObsidianMetadata.Tags]: true,
+  });
+
+type ObsidianFileMetadata = z.infer<typeof obsidianMetadataValidationSchema>;
+
+/**
+ * TODO: Use base importer as base class
+ */
 export class ObsidianImporter {
   private obsidianFolderPath: string;
   private sourceId = "obsidian-v1";
-  private destinationTable = "files/habits";
+  private destinationTable = "files";
   private entryDateKey = "frontmatter.date";
   private jobStart = new Date();
   private placeholderDate = new Date(1997, 6, 6);
@@ -56,12 +86,13 @@ export class ObsidianImporter {
 
   private mapFileMetadata(attributes: unknown): ObsidianFileMetadata | null {
     const typedAttributes = attributes as Record<string, unknown>;
-    const mappedMetadata: { [key in ObsidianMetadataKey]?: unknown } = {};
+    const mappedMetadata: Record<string, unknown> = {};
     for (const key of getKeys(typedAttributes)) {
-      const mapped: ObsidianMetadataKey | undefined = knownObsidianMetadataKeyToEnumMap[key.toLowerCase()];
+      // assume the right type and check it against the dictionary
+      const typedKey = key.toLowerCase() as Lowercase<ObsidianMetadataKey>;
+      const mapped = knownObsidianMetadataKeyToEnumMap[typedKey];
 
       if (!mapped) {
-        console.log("New metadata?", key);
         continue;
       }
 
@@ -82,7 +113,7 @@ export class ObsidianImporter {
     const typedMetadata = obsidianMetadataValidationSchema.safeParse(mappedMetadata);
 
     if (typedMetadata.error || !typedMetadata) {
-      console.log("Zod error, please fix before proceeding", typedMetadata.error);
+      console.log("", typedMetadata.error);
       return null;
     }
 
@@ -151,7 +182,6 @@ export class ObsidianImporter {
       .then((r) => r[0]);
 
     // Reset tables
-    await tx.delete(habitsTable).where(sql`file_id IN (SELECT id FROM files WHERE source='obsidian')`);
     await tx.delete(filesTable).where(eq(filesTable.source, "obsidian"));
 
     const mdFiles = await this.getFilePaths();
@@ -163,7 +193,7 @@ export class ObsidianImporter {
       }
       const file = await this.processFile(filePath, rawContent);
 
-      const dbFile = await tx
+      await tx
         .insert(filesTable)
         .values({
           ...file,
@@ -177,54 +207,7 @@ export class ObsidianImporter {
       updateEntryDates(file.fileCreatedAt);
       const isDiary = file.tags.includes("diary/personal");
 
-      if (filePath.indexOf("02-Diary") > -1 && !file.tags.some((t) => t.indexOf("diary/") > -1)) {
-        console.log("Detected file inside diary folder not tagged with diary tag", filePath, file.metadata.tags);
-      }
-
       if (!isDiary) {
-        continue;
-      }
-
-      const validation = diaryEntryValidation(file.metadata, filePath);
-
-      if (validation.validationMessage) {
-        // TODO: send on telegram
-        console.log(validation.validationMessage);
-        logs.push(`Validation error at file "${filePath}": ${validation.validationMessage}`);
-      }
-
-      if (!validation.isValid) {
-        continue;
-      }
-      const habitsForFile: NewHabit[] = [];
-      for (const key of getKeys(file.metadata)) {
-        const habitKeys = Object.values(HabitKeys) as string[];
-
-        if (habitKeys.includes(key)) {
-          // Cases where date is null should already be covered in the validation above
-          // The yaml reader formats the date in UTC, use setZone to force timezone to be UTC
-          // which will avoid conversions. Since we save in date format (not timestamp) we
-          // don't care about the timezone as long as the date is fine
-          const date = DateTime.fromISO(file.metadata.date as string, {
-            setZone: true,
-          });
-
-          importedCount++;
-          updateEntryDates(file.fileCreatedAt);
-
-          habitsForFile.push({
-            createdAt: new Date(),
-            fileId: dbFile.id,
-            importJobId: placeholderJob.id,
-            date: date.toSQLDate() as string,
-            key,
-            value: file.metadata[key],
-          });
-        }
-      }
-
-      if (habitsForFile.length > 0) {
-        await tx.insert(habitsTable).values(habitsForFile);
       }
     }
 

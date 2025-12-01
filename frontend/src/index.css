@@ -23,7 +23,7 @@ body {
   min-height: 100vh;
   overflow: hidden;
 }
-:root[data-mantine-color-scheme="dark"] {
+:root[data-mantine-color-scheme='dark'] {
   --mantine-color-body: rgb(20, 20, 20);
 }
 
@@ -40,4 +40,17 @@ body {
   height: 0px;
   width: 0px;
   background-image: none;
+}
+
+.global-accordion-control:hover {
+  background-color: color-mix(
+    in srgb,
+    var(--mantine-color-dark-7) 40%,
+    transparent
+  );
+}
+
+.global-input,
+.global-text-input {
+  background-color: var(--mantine-color-dark-7);
 }
