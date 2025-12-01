@@ -1,95 +1,85 @@
-import { ActionIcon, Container, Flex, Space, Stack } from '@mantine/core'
-import {
-  IconChecklist,
-  IconEye,
-  IconEyeOff,
-  IconHome,
-  IconHomeFilled,
-  IconLayoutDashboard,
-  IconLayoutDashboardFilled,
-  IconSettings,
-  IconSettingsFilled,
-} from '@tabler/icons-react'
-import { Route, Routes } from 'react-router-dom'
-import { cardDarkBackground } from '../../themes/mantineThemes'
+import { ActionIcon, Container, Flex, Space, Stack } from "@mantine/core";
+import { IconChecklist, IconEye, IconEyeOff, IconHome, IconLayoutDashboard, IconSettings } from "@tabler/icons-react";
+import { useLocation } from "react-router-dom";
+import { cardDarkBackground } from "../../themes/mantineThemes";
 
 type HeaderProps = {
-  onChangePrivateMode: (privateMode: boolean) => void
-  onGoToExplore: () => void
-  onGoToHome: () => void
-  onGoToSettings: () => void
-  onGoToHabits: () => void
-  privateMode: boolean
-}
+  onChangePrivateMode: (privateMode: boolean) => void;
+  onGoToExplore: () => void;
+  onGoToHome: () => void;
+  onGoToSettings: () => void;
+  onGoToHabits: () => void;
+  privateMode: boolean;
+};
 
 export default function Navbar(props: HeaderProps) {
+  const location = useLocation();
+
   const handlePrivateModeChange = () => {
-    props.onChangePrivateMode(!props.privateMode)
-  }
+    props.onChangePrivateMode(!props.privateMode);
+  };
 
   const MainPages = () => {
+    const isHome = location.pathname === "/";
+    const isExplore = location.pathname.startsWith("/explore");
+    const isHabits = location.pathname.startsWith("/habits");
+
     return (
-      <Stack gap={'lg'}>
-        <ActionIcon variant="transparent" onClick={props.onGoToHome}>
-          <Routes>
-            <Route path={'/'} element={<IconHomeFilled />} />
-            <Route path={'*'} element={<IconHome />} />
-          </Routes>
+      <Stack gap={"lg"}>
+        <ActionIcon bdrs={"lg"} size={"lg"} variant={isHome ? "light" : "transparent"} onClick={props.onGoToHome}>
+          <IconHome />
         </ActionIcon>
-        <ActionIcon variant="transparent" onClick={props.onGoToExplore}>
-          <Routes>
-            <Route
-              path={'/explore/*'}
-              element={<IconLayoutDashboardFilled />}
-            />
-            <Route path={'*'} element={<IconLayoutDashboard />} />
-          </Routes>
+
+        <ActionIcon bdrs={"lg"} size={"lg"} variant={isExplore ? "light" : "transparent"} onClick={props.onGoToExplore}>
+          <IconLayoutDashboard />
         </ActionIcon>
-        <ActionIcon variant="transparent" onClick={props.onGoToHabits}>
-          <Routes>
-            <Route path={'/habits/*'} element={<IconChecklist />} />
-            <Route path={'*'} element={<IconChecklist />} />
-          </Routes>
+
+        <ActionIcon bdrs={"lg"} size={"lg"} variant={isHabits ? "light" : "transparent"} onClick={props.onGoToHabits}>
+          <IconChecklist />
         </ActionIcon>
       </Stack>
-    )
-  }
+    );
+  };
 
   const Settings = () => {
+    const isSettings = location.pathname.startsWith("/settings");
+
     return (
       <>
-        <ActionIcon variant={'transparent'} onClick={handlePrivateModeChange}>
+        <ActionIcon variant={"transparent"} onClick={handlePrivateModeChange}>
           {!props.privateMode ? <IconEye /> : <IconEyeOff />}
         </ActionIcon>
-        <ActionIcon variant="transparent" onClick={props.onGoToSettings}>
-          <Routes>
-            <Route path={'/settings/*'} element={<IconSettingsFilled />} />
-            <Route path={'*'} element={<IconSettings />} />
-          </Routes>
+        <ActionIcon
+          bdrs={"lg"}
+          size={"lg"}
+          variant={isSettings ? "light" : "transparent"}
+          onClick={props.onGoToSettings}
+        >
+          <IconSettings />
         </ActionIcon>
       </>
-    )
-  }
+    );
+  };
 
   return (
     <Flex
       component={Container}
       p={0}
-      w={'100%'}
-      direction={'column'}
+      w={"100%"}
+      direction={"column"}
       fluid
       style={{ borderTopRightRadius: 20, borderBottomRightRadius: 20 }}
       bg={cardDarkBackground}
-      h={'100%'}
+      h={"100%"}
     >
-      <Space h={'xl'} />
-      <Flex flex={1} direction={'column'} component={Container} p={0}>
+      <Space h={"xl"} />
+      <Flex flex={1} direction={"column"} component={Container} p={0}>
         <MainPages />
       </Flex>
-      <Flex direction={'column'} component={Container} p={0} gap={'md'}>
+      <Flex direction={"column"} component={Container} p={0} gap={"md"}>
         <Settings />
       </Flex>
-      <Space h={'lg'} />
+      <Space h={"lg"} />
     </Flex>
-  )
+  );
 }

@@ -127,7 +127,7 @@ export namespace HabitsService {
   }
 
   export async function createFeature(feature: ValidatedNewHabitFeature) {
-    await db.insert(habitFeaturesTable).values(feature);
+    await db.insert(habitFeaturesTable).values({ ...feature, createdAt: new Date() });
   }
 
   /**
