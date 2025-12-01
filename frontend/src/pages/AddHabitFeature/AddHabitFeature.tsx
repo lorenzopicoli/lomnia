@@ -19,7 +19,7 @@ import {
 import { useDebouncedValue } from "@mantine/hooks";
 import { IconPlus, IconTrash } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
-import { type ChangeEvent, type ChangeEventHandler, useEffect, useMemo, useState } from "react";
+import { type ChangeEvent, type ChangeEventHandler, useCallback, useEffect, useMemo, useState } from "react";
 import { v4 } from "uuid";
 import { type RouterOutputs, trpc } from "../../api/trpc";
 import { Table, type TableColumn } from "../../components/Table/Table";
@@ -178,38 +178,77 @@ export function RulesList(props: {
   onRuleChanged: (newRule: HabitFeatureRule, index: number) => void;
   onRuleRemoved: (index: number) => void;
 }) {
+  return (
+    <Accordion defaultValue={"rule-0"}>
+      {props.rules.map((rule, i) => (
+        <RuleItem
+          // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+          key={`rule-${i}`}
+          rule={rule}
+          index={i}
+          onRuleChanged={props.onRuleChanged}
+          onRuleRemoved={props.onRuleRemoved}
+        />
+      ))}
+    </Accordion>
+  );
+}
+
+function RuleItem(props: {
+  rule: HabitFeatureRule;
+  index: number;
+  onRuleChanged: (newRule: HabitFeatureRule, index: number) => void;
+  onRuleRemoved: (index: number) => void;
+}) {
+  const { rule, index, onRuleChanged, onRuleRemoved } = props;
   const { theme } = useConfig();
-  const newConditionSkeleton = (_conditions: HabitFeatureCondition[]) => ({
-    field: "key" as const,
-    value: "",
-  });
 
-  const handleNewCondition = (rule: HabitFeatureRule, index: number) => {
-    props.onRuleChanged({ ...rule, conditions: [...rule.conditions, newConditionSkeleton(rule.conditions)] }, index);
-  };
-  const handleConditionChange =
-    (rule: HabitFeatureRule, ruleIndex: number) => (newCondition: HabitFeatureCondition, conditionIndex: number) => {
+  const handleNameChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      onRuleChanged({ ...rule, name: e.target.value }, index);
+    },
+    [rule, index, onRuleChanged],
+  );
+
+  const handleConditionChanged = useCallback(
+    (newCondition: HabitFeatureCondition, conditionIndex: number) => {
       const updatedConditions = rule.conditions.map((c, idx) => (idx === conditionIndex ? newCondition : c));
+      onRuleChanged({ ...rule, conditions: updatedConditions }, index);
+    },
+    [rule, index, onRuleChanged],
+  );
 
-      props.onRuleChanged({ ...rule, conditions: updatedConditions }, ruleIndex);
-    };
-  const handleConditionRemoved = (rule: HabitFeatureRule, ruleIndex: number) => (conditionIndex: number) => {
-    const updatedConditions = rule.conditions.filter((_, idx) => idx !== conditionIndex);
+  const handleConditionRemoved = useCallback(
+    (conditionIndex: number) => {
+      const updatedConditions = rule.conditions.filter((_, idx) => idx !== conditionIndex);
+      onRuleChanged({ ...rule, conditions: updatedConditions }, index);
+    },
+    [rule, index, onRuleChanged],
+  );
 
-    props.onRuleChanged({ ...rule, conditions: updatedConditions }, ruleIndex);
-  };
-  const handleRuleNameChanged = (rule: HabitFeatureRule, index: number) => (e: ChangeEvent<HTMLInputElement>) => {
-    const name = e.target.value;
-    props.onRuleChanged({ ...rule, name }, index);
-  };
-  const handleRuleExtractionChanged =
-    (rule: HabitFeatureRule, index: number) => (extraction: HabitFeatureExtraction) => {
-      props.onRuleChanged({ ...rule, extraction }, index);
-    };
+  const handleAddCondition = useCallback(() => {
+    onRuleChanged(
+      {
+        ...rule,
+        conditions: [...rule.conditions, { field: "key" as const, value: "" }],
+      },
+      index,
+    );
+  }, [rule, index, onRuleChanged]);
 
-  const items = props.rules.map((rule, i) => (
-    // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-    <Accordion.Item key={`rule-${i}`} value={`rule-${i}`}>
+  const handleExtractionChanged = useCallback(
+    (extraction: HabitFeatureExtraction) => {
+      onRuleChanged({ ...rule, extraction }, index);
+    },
+    [rule, index, onRuleChanged],
+  );
+
+  const handleRemove = useCallback(() => {
+    onRuleRemoved(index);
+  }, [index, onRuleRemoved]);
+
+  return (
+    <Accordion.Item value={`rule-${index}`}>
       <Accordion.Control
         bg={alpha(theme.colors.violet[9], 0.5)}
         style={{ borderTopLeftRadius: "5px", borderTopRightRadius: "5px" }}
@@ -219,25 +258,22 @@ export function RulesList(props: {
       <Accordion.Panel pt={"md"} pb={"md"}>
         <Stack gap={"lg"}>
           <Group>
-            <TextInput flex={1} value={rule.name ?? ""} onChange={handleRuleNameChanged(rule, i)} />
-            <ActionIcon flex={0} variant="subtle" onClick={() => props.onRuleRemoved(i)}>
+            <TextInput flex={1} value={rule.name ?? ""} onChange={handleNameChange} />
+            <ActionIcon flex={0} variant="subtle" onClick={handleRemove}>
               <IconTrash size={20} color={alpha(theme.colors.red[9], 0.8)} />
             </ActionIcon>
           </Group>
           <ConditionsList
             conditions={rule.conditions ?? []}
-            onConditionChanged={handleConditionChange(rule, i)}
-            onConditionRemoved={handleConditionRemoved(rule, i)}
+            onConditionChanged={handleConditionChanged}
+            onConditionRemoved={handleConditionRemoved}
           />
-
-          <DashedButton onClick={() => handleNewCondition(rule, i)} label="Add Condition (AND)" />
-          <Extraction extraction={rule.extraction} onExtractionChanged={handleRuleExtractionChanged(rule, i)} />
+          <DashedButton onClick={handleAddCondition} label="Add Condition (AND)" />
+          <Extraction extraction={rule.extraction} onExtractionChanged={handleExtractionChanged} />
         </Stack>
       </Accordion.Panel>
     </Accordion.Item>
-  ));
-
-  return <Accordion defaultValue={"rule-0"}>{items}</Accordion>;
+  );
 }
 
 export function HabitFeatureBuilder(props: {
