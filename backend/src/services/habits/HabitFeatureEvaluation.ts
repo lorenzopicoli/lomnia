@@ -29,10 +29,10 @@ export class HabitFeatureEvaluation {
     for (const condition of conditions) {
       switch (condition.field) {
         case "key":
-          meetsConditions = condition.value.includes(habit.key);
+          meetsConditions = condition.value === habit.key;
           break;
         case "source":
-          meetsConditions = condition.value.includes(habit.source);
+          meetsConditions = condition.value === habit.source;
           break;
         case "text_value": {
           const habitValues = habit.value;

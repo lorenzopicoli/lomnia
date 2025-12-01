@@ -45,11 +45,22 @@ export const habitsRouter = t.router({
     return HabitFeatureExtraction.preview(opts.input);
   }),
 
-  saveHabitFeature: loggedProcedure.input(habitFeatureSchema).mutation(async (opts) => {
-    const feature = await validateNewHabitFeature(opts.input);
-    await HabitsService.createFeature(feature);
-    await HabitFeatureExtraction.extractAndSaveHabitsFeatures();
-  }),
+  saveHabitFeature: loggedProcedure
+    .input(
+      z.object({
+        ...habitFeatureSchema.shape,
+        id: z.number().optional(),
+      }),
+    )
+    .mutation(async (opts) => {
+      const feature = await validateNewHabitFeature(opts.input);
+      if (opts.input.id) {
+        await HabitsService.updateFeature(opts.input.id, feature);
+      } else {
+        await HabitsService.createFeature(feature);
+      }
+      await HabitFeatureExtraction.extractAndSaveHabitsFeatures();
+    }),
 
   getFeatureById: loggedProcedure.input(z.number().min(0)).query((opts) => {
     return HabitsService.featureById(opts.input) ?? [];

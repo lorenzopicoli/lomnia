@@ -41,7 +41,7 @@ const router = createBrowserRouter([
 function App() {
   return (
     <MantineProvider theme={mantineTheme} defaultColorScheme="dark">
-      <Notifications position="top-center" />
+      <Notifications color="green" position="top-center" />
       <ConfigProvider>
         <QueryClientProvider client={queryClient}>
           <RouterProvider router={router} />

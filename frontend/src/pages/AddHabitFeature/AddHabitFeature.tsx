@@ -18,8 +18,8 @@ export function AddHabitFeature() {
   const { featureId } = useParams<{ featureId?: string }>();
 
   const isEditing = !!featureId;
-  const { data: featureToEdit, isLoading } = useQuery(
-    trpc.habits.getFeatureById.queryOptions(+(featureId || 0), { enabled: isEditing }),
+  const { data: featureToEdit, isFetching } = useQuery(
+    trpc.habits.getFeatureById.queryOptions(+(featureId || 0), { enabled: isEditing, gcTime: 0 }),
   );
 
   const [rules, setRules] = useState<HabitFeatureRule[]>([]);
@@ -30,7 +30,7 @@ export function AddHabitFeature() {
           pathname: "/habits/features",
         });
         notifications.show({
-          title: "Habit Feature Created",
+          title: isEditing ? "Habit Feature Updated" : "Habit Feature Created",
           message: "You can now create charts using the new feature",
         });
       },
@@ -46,12 +46,12 @@ export function AddHabitFeature() {
 
   const handleSave = useCallback(
     (feature: HabitFeature) => {
-      saveHabitFeature(feature);
+      saveHabitFeature({ ...feature, id: featureToEdit?.id });
     },
-    [saveHabitFeature],
+    [saveHabitFeature, featureToEdit?.id],
   );
 
-  if (isLoading) {
+  if (isFetching) {
     return <>Loading...</>;
   }
 

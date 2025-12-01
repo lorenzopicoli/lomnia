@@ -36,11 +36,9 @@ export function Extraction(props: {
     return parsed;
   };
 
-  console.log("rule", extraction);
   const handleConstantChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value;
 
-    console.log("r", formatValue(raw), typeof formatValue(raw));
     onExtractionChanged({
       ...extraction,
       constantValue: formatValue(raw),

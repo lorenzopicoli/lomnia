@@ -137,6 +137,12 @@ export namespace HabitsService {
   export async function createFeature(feature: ValidatedNewHabitFeature) {
     await db.insert(habitFeaturesTable).values({ ...feature, createdAt: new Date() });
   }
+  export async function updateFeature(id: number, feature: ValidatedNewHabitFeature) {
+    await db
+      .update(habitFeaturesTable)
+      .set({ ...feature, updatedAt: new Date() })
+      .where(eq(habitFeaturesTable.id, id));
+  }
 
   /**
    * Converts a Habit row into a time range [start, end]
