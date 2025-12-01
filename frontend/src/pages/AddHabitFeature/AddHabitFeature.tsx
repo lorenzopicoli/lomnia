@@ -2,6 +2,7 @@ import {
   Accordion,
   ActionIcon,
   alpha,
+  Box,
   Button,
   Card,
   Container,
@@ -17,7 +18,7 @@ import {
   Title,
 } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
-import { IconPlus, IconTrash } from "@tabler/icons-react";
+import { IconArrowRightCircle, IconPlus, IconTrash } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import { type ChangeEvent, type ChangeEventHandler, useCallback, useEffect, useMemo, useState } from "react";
 import { v4 } from "uuid";
@@ -123,6 +124,7 @@ export function Extraction(props: {
   onExtractionChanged: (extraction: HabitFeatureExtraction) => void;
 }) {
   const { extraction, onExtractionChanged } = props;
+  const { theme } = useConfig();
 
   const handleTypeChanged = (value: string | null) => {
     const newType = (value as any) ?? "constant";
@@ -133,9 +135,7 @@ export function Extraction(props: {
     });
   };
 
-  const handleConstantChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = e.target.value;
-
+  const formatValue = (raw: string) => {
     let parsed: string | number | boolean = raw;
 
     if (raw === "true") {
@@ -145,10 +145,15 @@ export function Extraction(props: {
     } else if (isNumber(raw)) {
       parsed = Number(raw);
     }
+    return parsed;
+  };
+
+  const handleConstantChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value;
 
     onExtractionChanged({
       ...extraction,
-      constantValue: parsed,
+      constantValue: formatValue(raw),
     });
   };
 
@@ -168,6 +173,26 @@ export function Extraction(props: {
       />
       {extraction.type === "constant" ? (
         <TextInput value={String(extraction.constantValue ?? "")} onChange={handleConstantChanged} />
+      ) : null}
+      {extraction.type === "map_values" ? (
+        <Stack>
+          {Object.entries(extraction.mapping ?? { "": "" }).map(([key, value]) => (
+            <Flex key={key + String(value)} align="center" gap={"sm"}>
+              <TextInput flex={1} label={"From"} value={key} onChange={() => {}} />
+              {/* mt is necessary to match the label */}
+              <Box mt="xl">
+                <IconArrowRightCircle />
+              </Box>
+              <TextInput flex={1} label={"To"} value={value} onChange={() => {}} />
+
+              <ActionIcon mt={"lg"} flex={0} variant="subtle" onClick={() => {}}>
+                <IconTrash size={20} color={alpha(theme.colors.red[9], 0.8)} />
+              </ActionIcon>
+            </Flex>
+          ))}
+          <DashedButton label="Add mapping" onClick={() => {}} />
+          <TextInput label={"Fallback"} value={""} onChange={() => {}} />
+        </Stack>
       ) : null}
     </Stack>
   );
