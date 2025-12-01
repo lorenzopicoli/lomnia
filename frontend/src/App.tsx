@@ -14,6 +14,7 @@ import "react-resizable/css/styles.css";
 import "maplibre-gl/dist/maplibre-gl.css";
 import "allotment/dist/style.css";
 import { MantineProvider } from "@mantine/core";
+import { ModalsProvider } from "@mantine/modals";
 import { Notifications } from "@mantine/notifications";
 import * as echarts from "echarts";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
@@ -41,12 +42,29 @@ const router = createBrowserRouter([
 function App() {
   return (
     <MantineProvider theme={mantineTheme} defaultColorScheme="dark">
-      <Notifications color="green" position="top-center" />
-      <ConfigProvider>
-        <QueryClientProvider client={queryClient}>
-          <RouterProvider router={router} />
-        </QueryClientProvider>
-      </ConfigProvider>
+      <ModalsProvider
+        modalProps={{
+          styles: {
+            content: {
+              backgroundColor: "var(--mantine-color-dark-7)",
+            },
+            header: {
+              backgroundColor: "var(--mantine-color-dark-7)",
+            },
+            body: {
+              backgroundColor: "var(--mantine-color-dark-7)",
+            },
+          },
+        }}
+      >
+        <Notifications color="green" position="top-center" />
+
+        <ConfigProvider>
+          <QueryClientProvider client={queryClient}>
+            <RouterProvider router={router} />
+          </QueryClientProvider>
+        </ConfigProvider>
+      </ModalsProvider>
     </MantineProvider>
   );
 }

@@ -1,6 +1,8 @@
-import { ActionIcon, alpha, Group } from "@mantine/core";
+import { ActionIcon, alpha, Group, Text } from "@mantine/core";
+import { modals } from "@mantine/modals";
+import { notifications } from "@mantine/notifications";
 import { IconPencil, IconTrash } from "@tabler/icons-react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { NumberParam, StringParam, useQueryParams } from "use-query-params";
 import { type RouterOutputs, trpc } from "../api/trpc";
@@ -15,14 +17,42 @@ export function HabitsFeaturesTable(props: { onEditFeature?: (id: number) => voi
     search: StringParam,
     page: NumberParam,
   });
-
-  const { data, isLoading } = useQuery(
+  const {
+    data,
+    refetch: refetchData,
+    isLoading,
+  } = useQuery(
     trpc.habits.getFeaturesTable.queryOptions({
       page: params.page ?? 1,
       search,
       limit: 100,
     }),
   );
+  const { mutate: deleteHabitFeature } = useMutation(
+    trpc.habits.deleteHabitFeature.mutationOptions({
+      onSuccess() {
+        refetchData();
+        notifications.show({
+          color: theme.colors.green[9],
+          title: "Habit Feature Deleted",
+          message: "",
+        });
+      },
+    }),
+  );
+
+  const handleDeleteFeature = (id: number) => {
+    modals.openConfirmModal({
+      title: "Are you sure?",
+      children: <Text size="sm">Deleting this habit feature means you won't be able to query this data anymore</Text>,
+      confirmProps: {
+        color: theme.colors.red[9],
+      },
+      labels: { confirm: "Delete", cancel: "Cancel" },
+      onConfirm: () => deleteHabitFeature(id),
+      onCancel: () => {},
+    });
+  };
   const { page, entries, total, limit } = data ?? {};
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: reset pagination if search changes
@@ -57,7 +87,7 @@ export function HabitsFeaturesTable(props: { onEditFeature?: (id: number) => voi
           <ActionIcon flex={0} variant="subtle" onClick={() => onEditFeature?.(feature.id)}>
             <IconPencil size={20} />
           </ActionIcon>
-          <ActionIcon flex={0} variant="subtle" onClick={() => {}}>
+          <ActionIcon flex={0} variant="subtle" onClick={() => handleDeleteFeature(feature.id)}>
             <IconTrash size={20} color={alpha(theme.colors.red[9], 0.8)} />
           </ActionIcon>
         </Group>

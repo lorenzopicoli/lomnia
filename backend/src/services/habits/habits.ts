@@ -144,6 +144,13 @@ export namespace HabitsService {
       .where(eq(habitFeaturesTable.id, id));
   }
 
+  export async function deleteFeature(id: number) {
+    await db.transaction(async (tx) => {
+      await tx.delete(extractedHabitFeaturesTable).where(eq(extractedHabitFeaturesTable.habitFeatureId, id));
+      await tx.delete(habitFeaturesTable).where(eq(habitFeaturesTable.id, id));
+    });
+  }
+
   /**
    * Converts a Habit row into a time range [start, end]
    */

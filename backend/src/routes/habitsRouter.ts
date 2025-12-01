@@ -62,6 +62,11 @@ export const habitsRouter = t.router({
       await HabitFeatureExtraction.extractAndSaveHabitsFeatures();
     }),
 
+  deleteHabitFeature: loggedProcedure.input(z.number()).mutation(async (opts) => {
+    await HabitsService.deleteFeature(opts.input);
+    await HabitFeatureExtraction.extractAndSaveHabitsFeatures();
+  }),
+
   getFeatureById: loggedProcedure.input(z.number().min(0)).query((opts) => {
     return HabitsService.featureById(opts.input) ?? [];
   }),

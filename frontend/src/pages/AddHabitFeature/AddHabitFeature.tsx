@@ -30,6 +30,7 @@ export function AddHabitFeature() {
           pathname: "/habits/features",
         });
         notifications.show({
+          color: theme.colors.green[9],
           title: isEditing ? "Habit Feature Updated" : "Habit Feature Created",
           message: "You can now create charts using the new feature",
         });
