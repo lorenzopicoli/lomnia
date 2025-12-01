@@ -1,5 +1,4 @@
 import { Card, Text, Title } from "@mantine/core";
-import { useDebouncedValue } from "@mantine/hooks";
 import { useQuery } from "@tanstack/react-query";
 import { v4 } from "uuid";
 import { type RouterOutputs, trpc } from "../../api/trpc";
@@ -10,9 +9,8 @@ import { useConfig } from "../../contexts/ConfigContext";
 export function AddHabitFeaturePreview(props: { rules: HabitFeatureRule[] }) {
   const { theme } = useConfig();
   const { rules } = props;
-  const [debouncedRules] = useDebouncedValue(rules, 200);
 
-  const { data, isLoading } = useQuery(trpc.habits.previewFeaturesExtraction.queryOptions(debouncedRules));
+  const { data, isLoading } = useQuery(trpc.habits.previewFeaturesExtraction.queryOptions(rules));
   const columns: TableColumn<RouterOutputs["habits"]["previewFeaturesExtraction"][number]>[] = [
     {
       key: "Habit ID",

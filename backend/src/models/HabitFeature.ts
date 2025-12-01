@@ -86,7 +86,7 @@ export const habitFeaturesTable = pgTable("habit_features", {
   /**
    * The name of the feature that is being evaluated
    */
-  name: text("name"),
+  name: text("name").notNull(),
   /**
    * A list of rules that compose this feature. Each rule has conditions that must all be true to extract the value
    * Having a list of rules effectivelly gives the ability to do "OR" conditions

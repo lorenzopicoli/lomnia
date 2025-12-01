@@ -38,6 +38,14 @@ export namespace HabitsService {
       });
   };
 
+  export async function featureById(id: number) {
+    return db
+      .select()
+      .from(habitFeaturesTable)
+      .where(eq(habitFeaturesTable.id, id))
+      .then((r) => r[0]);
+  }
+
   export async function byDay(params: { day: string; privateMode: boolean }) {
     const { day, privateMode } = params;
     if (!isValid(parse(day, "yyyy-MM-dd", new Date()))) {
