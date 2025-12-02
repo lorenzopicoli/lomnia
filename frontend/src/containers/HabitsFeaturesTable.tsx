@@ -10,7 +10,7 @@ import { type RouterOutputs, trpc } from "../api/trpc";
 import { Table, type TableColumn } from "../components/Table/Table";
 import { useConfig } from "../contexts/ConfigContext";
 
-type HabitFeature = RouterOutputs["habits"]["getFeaturesTable"]["entries"][number];
+type HabitFeature = RouterOutputs["habitFeatures"]["getTable"]["entries"][number];
 export function HabitsFeaturesTable(props: { search?: string }) {
   const { theme } = useConfig();
   const { search } = props;
@@ -23,14 +23,14 @@ export function HabitsFeaturesTable(props: { search?: string }) {
     refetch: refetchData,
     isLoading,
   } = useQuery(
-    trpc.habits.getFeaturesTable.queryOptions({
+    trpc.habitFeatures.getTable.queryOptions({
       page: params.page ?? 1,
       search,
       limit: 100,
     }),
   );
   const { mutate: deleteHabitFeature } = useMutation(
-    trpc.habits.deleteHabitFeature.mutationOptions({
+    trpc.habitFeatures.delete.mutationOptions({
       onSuccess() {
         refetchData();
         notifications.show({

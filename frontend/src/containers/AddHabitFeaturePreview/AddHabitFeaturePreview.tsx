@@ -10,8 +10,8 @@ export function AddHabitFeaturePreview(props: { rules: HabitFeatureRule[] }) {
   const { theme } = useConfig();
   const { rules } = props;
 
-  const { data, isLoading } = useQuery(trpc.habits.previewFeaturesExtraction.queryOptions(rules));
-  const columns: TableColumn<RouterOutputs["habits"]["previewFeaturesExtraction"][number]>[] = [
+  const { data, isLoading } = useQuery(trpc.habitFeatures.previewFeaturesExtraction.queryOptions(rules));
+  const columns: TableColumn<RouterOutputs["habitFeatures"]["previewFeaturesExtraction"][number]>[] = [
     {
       key: "Habit ID",
       header: "Habit ID",

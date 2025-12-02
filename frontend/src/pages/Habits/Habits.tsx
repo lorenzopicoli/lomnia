@@ -2,7 +2,7 @@ import { ActionIcon, Button, Container, Flex, Input, Paper, Stack } from "@manti
 import { useDebouncedValue } from "@mantine/hooks";
 import { IconPlus, IconSearch, IconTable, IconTransform } from "@tabler/icons-react";
 import type { ChangeEvent } from "react";
-import { Link, Route, Routes, useNavigate } from "react-router-dom";
+import { Link, Route, Routes } from "react-router-dom";
 import { StringParam, useQueryParams } from "use-query-params";
 import { HabitsFeaturesTable } from "../../containers/HabitsFeaturesTable";
 import { RawHabitsTable } from "../../containers/RawHabitsTable";
@@ -10,7 +10,6 @@ import { useConfig } from "../../contexts/ConfigContext";
 
 export function HabitsPage() {
   const { theme } = useConfig();
-  const navigate = useNavigate();
   const [params, setParams] = useQueryParams({
     search: StringParam,
   });

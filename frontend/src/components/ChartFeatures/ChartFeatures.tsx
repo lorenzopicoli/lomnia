@@ -14,7 +14,7 @@ type FormValues = {
 export function ChartFeatures<T extends FormValues>(props: { chartId: ChartId; form: UseFormReturnType<T> }) {
   const { chartId, form } = props;
 
-  const { data: habitKeysData } = useQuery(trpc.habits.getKeys.queryOptions());
+  const { data: habitKeysData } = useQuery(trpc.habitFeatures.getKeys.queryOptions());
   const { data: countKeysData } = useQuery(trpc.charts.counts.getCountKeys.queryOptions());
 
   return (

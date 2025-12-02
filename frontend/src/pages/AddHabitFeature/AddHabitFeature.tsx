@@ -19,12 +19,12 @@ export function AddHabitFeature() {
 
   const isEditing = !!featureId;
   const { data: featureToEdit, isFetching } = useQuery(
-    trpc.habits.getFeatureById.queryOptions(+(featureId || 0), { enabled: isEditing, gcTime: 0 }),
+    trpc.habitFeatures.getById.queryOptions(+(featureId || 0), { enabled: isEditing, gcTime: 0 }),
   );
 
   const [rules, setRules] = useState<HabitFeatureRule[]>([]);
   const { mutate: saveHabitFeature } = useMutation(
-    trpc.habits.saveHabitFeature.mutationOptions({
+    trpc.habitFeatures.save.mutationOptions({
       onSuccess() {
         navigate({
           pathname: "/habits/features",

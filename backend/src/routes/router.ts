@@ -1,6 +1,7 @@
 import { chartCountsRouter } from "./chartCountsRouter";
 import { diaryEntriesRouter } from "./diaryEntiesRouter";
-import { habitsChartRouter, habitsRouter } from "./habitsRouter";
+import { habitFeaturesChartRouter, habitFeaturesRouter } from "./habitFeatureRouter";
+import { habitsRouter } from "./habitsRouter";
 import { heartRateChartRouter } from "./heartRateRouter";
 import { locationChartRouter } from "./locationRouter";
 import { t } from "./trpc";
@@ -10,9 +11,10 @@ export const appRouter = t.router({
   weather: weatherRouter,
   diaryEntries: diaryEntriesRouter,
   habits: habitsRouter,
+  habitFeatures: habitFeaturesRouter,
   charts: {
     weather: weatherChartRouter,
-    habits: habitsChartRouter,
+    habits: habitFeaturesChartRouter,
     heartRate: heartRateChartRouter,
     locations: locationChartRouter,
     counts: chartCountsRouter,
