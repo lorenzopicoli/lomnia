@@ -1,7 +1,6 @@
 import { isValid, parse } from "date-fns";
-import { asc, count, countDistinct, desc, eq, sql } from "drizzle-orm";
+import { count, countDistinct, desc, eq, sql } from "drizzle-orm";
 import { DateTime } from "luxon";
-import z from "zod";
 import { db } from "../../db/connection";
 import { type Habit, habitsTable } from "../../models/Habit";
 import {
@@ -9,16 +8,7 @@ import {
   habitFeaturesTable,
   type ValidatedNewHabitFeature,
 } from "../../models/HabitFeature";
-import { ChartAggregationInput } from "../../types/chartTypes";
 import { anonymize } from "../anonymize";
-import { getAggregatedXColumn } from "../common/getAggregatedXColumn";
-import { getAggregatedYColumn } from "../common/getAggregatedYColumn";
-
-export const HabitChartPeriodInput = z.object({
-  ...ChartAggregationInput.shape,
-  habitKey: z.string(),
-});
-export type HabitChartPeriodInput = z.infer<typeof HabitChartPeriodInput>;
 
 export namespace HabitsService {
   const formatHabitResponse = (habits: Habit[], shouldAnonymize: boolean): (Habit & { label: string })[] => {
@@ -252,36 +242,4 @@ export namespace HabitsService {
       .from(habitsTable)
       .then((r) => r[0].count);
   }
-}
-
-export namespace HabitsChartService {
-  export const numeric = async (params: HabitChartPeriodInput) => {
-    const { habitKey, start, end, aggregation } = params;
-    const supportedKeys = await HabitsService.getNumericHabitKeys();
-
-    if (!supportedKeys.find((k) => k.key === params.habitKey)) {
-      return [];
-    }
-
-    const aggregatedDate = getAggregatedXColumn(extractedHabitFeaturesTable.startDate, aggregation.period);
-    const data = db
-      .select({
-        value: getAggregatedYColumn(sql`${extractedHabitFeaturesTable.value}::integer`, aggregation.function).mapWith(
-          Number,
-        ),
-        date: aggregatedDate.mapWith(String),
-      })
-      .from(extractedHabitFeaturesTable)
-      .innerJoin(habitFeaturesTable, eq(extractedHabitFeaturesTable.habitFeatureId, habitFeaturesTable.id))
-      .where(
-        sql`
-      ${habitFeaturesTable.name} = ${habitKey} AND
-      ${extractedHabitFeaturesTable.startDate} >= ${start.toISO()}  
-      AND ${extractedHabitFeaturesTable.endDate} <= ${end.toISO()}`,
-      )
-      .groupBy(aggregatedDate)
-      .orderBy(asc(aggregatedDate));
-
-    return data;
-  };
 }

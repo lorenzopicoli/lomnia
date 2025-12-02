@@ -1,7 +1,11 @@
 import z from "zod";
 import { habitFeatureRuleSchema, habitFeatureSchema, validateNewHabitFeature } from "../models";
 import { HabitFeatureExtraction } from "../services/habits/HabitFeatureExtraction";
-import { HabitChartPeriodInput, HabitsChartService, HabitsService } from "../services/habits/habits";
+import {
+  HabitFeatureChartPeriodInput,
+  HabitFeaturesChartService,
+  HabitFeaturesService,
+} from "../services/habits/habitFeature";
 import { loggedProcedure } from "./common/loggedProcedure";
 import { t } from "./trpc";
 
@@ -15,7 +19,7 @@ export const habitFeaturesRouter = t.router({
       }),
     )
     .query((opts) => {
-      return HabitsService.getFeatures(opts.input) ?? [];
+      return HabitFeaturesService.getTableData(opts.input) ?? [];
     }),
 
   previewFeaturesExtraction: loggedProcedure.input(z.array(habitFeatureRuleSchema)).query(async (opts) => {
@@ -32,31 +36,31 @@ export const habitFeaturesRouter = t.router({
     .mutation(async (opts) => {
       const feature = await validateNewHabitFeature(opts.input);
       if (opts.input.id) {
-        await HabitsService.updateFeature(opts.input.id, feature);
+        await HabitFeaturesService.update(opts.input.id, feature);
       } else {
-        await HabitsService.createFeature(feature);
+        await HabitFeaturesService.create(feature);
       }
       await HabitFeatureExtraction.extractAndSaveHabitsFeatures();
     }),
 
   delete: loggedProcedure.input(z.number()).mutation(async (opts) => {
-    await HabitsService.deleteFeature(opts.input);
+    await HabitFeaturesService.deleteFeature(opts.input);
     await HabitFeatureExtraction.extractAndSaveHabitsFeatures();
   }),
 
   getById: loggedProcedure.input(z.number().min(0)).query((opts) => {
-    return HabitsService.featureById(opts.input) ?? [];
+    return HabitFeaturesService.byId(opts.input) ?? [];
   }),
 
   getKeys: loggedProcedure.query(async () => {
     return {
-      numeric: await HabitsService.getNumericHabitKeys(),
+      numeric: await HabitFeaturesService.getNumericKeys(),
     };
   }),
 });
 
 export const habitFeaturesChartRouter = t.router({
-  numeric: loggedProcedure.input(HabitChartPeriodInput).query((opts) => {
-    return HabitsChartService.numeric(opts.input);
+  numeric: loggedProcedure.input(HabitFeatureChartPeriodInput).query((opts) => {
+    return HabitFeaturesChartService.numeric(opts.input);
   }),
 });
