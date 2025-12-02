@@ -2,6 +2,7 @@ import { ActionIcon, Breadcrumbs, Flex, Group, Menu, Radio } from "@mantine/core
 import { DatePicker, type PickerBaseProps } from "@mantine/dates";
 import { IconCalendar, IconCheck, IconPlus, IconSettings } from "@tabler/icons-react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { type Period, useDashboard } from "../../contexts/DashboardContext";
 
 export function ChartDashboardMenu(props: {
@@ -9,10 +10,9 @@ export function ChartDashboardMenu(props: {
   onDateChange: (range: [Date, Date]) => void;
   onPeriodSelected: (id: Period) => void;
   currentPeriod: Period | null;
-  onNewChart: () => void;
   onRearrangeCharts: () => void;
 }) {
-  const { onNewChart, onDateChange, onPeriodSelected, onRearrangeCharts, currentPeriod } = props;
+  const { onDateChange, onPeriodSelected, onRearrangeCharts, currentPeriod } = props;
   const [partialDateRange, setPartialDateRange] = useState<[Date | null, Date | null]>([null, null]);
   const handleDateChange: PickerBaseProps<"range">["onChange"] = (dateStr) => {
     const dates: [Date | null, Date | null] = [
@@ -38,8 +38,6 @@ export function ChartDashboardMenu(props: {
   const handleRearrange = () => {
     onRearrangeCharts();
   };
-
-  console.log("a", currentPeriod);
 
   const PeriodPicker = () => {
     return (
@@ -70,7 +68,7 @@ export function ChartDashboardMenu(props: {
                 <ActionIcon m={0} variant="transparent" size="md" onClick={handleRearrange}>
                   <IconSettings />
                 </ActionIcon>
-                <ActionIcon m={0} variant="filled" size="lg" radius={"xl"} onClick={onNewChart}>
+                <ActionIcon component={Link} to="/explore/add-chart" m={0} variant="filled" size="lg" radius={"xl"}>
                   <IconPlus />
                 </ActionIcon>
               </>

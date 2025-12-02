@@ -1,14 +1,11 @@
 import { ActionIcon, Container, Flex, Space, Stack } from "@mantine/core";
 import { IconChecklist, IconEye, IconEyeOff, IconHome, IconLayoutDashboard, IconSettings } from "@tabler/icons-react";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { cardDarkBackground } from "../../themes/mantineThemes";
 
 type HeaderProps = {
   onChangePrivateMode: (privateMode: boolean) => void;
-  onGoToExplore: () => void;
-  onGoToHome: () => void;
-  onGoToSettings: () => void;
-  onGoToHabits: () => void;
+
   privateMode: boolean;
 };
 
@@ -26,15 +23,21 @@ export default function Navbar(props: HeaderProps) {
 
     return (
       <Stack gap={"lg"}>
-        <ActionIcon bdrs={"lg"} size={"lg"} variant={isHome ? "light" : "transparent"} onClick={props.onGoToHome}>
+        <ActionIcon component={Link} to="/" bdrs={"lg"} size={"lg"} variant={isHome ? "light" : "transparent"}>
           <IconHome />
         </ActionIcon>
 
-        <ActionIcon bdrs={"lg"} size={"lg"} variant={isExplore ? "light" : "transparent"} onClick={props.onGoToExplore}>
+        <ActionIcon
+          component={Link}
+          to="/explore"
+          bdrs={"lg"}
+          size={"lg"}
+          variant={isExplore ? "light" : "transparent"}
+        >
           <IconLayoutDashboard />
         </ActionIcon>
 
-        <ActionIcon bdrs={"lg"} size={"lg"} variant={isHabits ? "light" : "transparent"} onClick={props.onGoToHabits}>
+        <ActionIcon component={Link} to="/habits" bdrs={"lg"} size={"lg"} variant={isHabits ? "light" : "transparent"}>
           <IconChecklist />
         </ActionIcon>
       </Stack>
@@ -53,7 +56,8 @@ export default function Navbar(props: HeaderProps) {
           bdrs={"lg"}
           size={"lg"}
           variant={isSettings ? "light" : "transparent"}
-          onClick={props.onGoToSettings}
+          component={Link}
+          to="/settings"
         >
           <IconSettings />
         </ActionIcon>

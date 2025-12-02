@@ -2,7 +2,7 @@ import { ActionIcon, Button, Container, Flex, Input, Paper, Stack } from "@manti
 import { useDebouncedValue } from "@mantine/hooks";
 import { IconPlus, IconSearch, IconTable, IconTransform } from "@tabler/icons-react";
 import type { ChangeEvent } from "react";
-import { Route, Routes, useNavigate } from "react-router-dom";
+import { Link, Route, Routes, useNavigate } from "react-router-dom";
 import { StringParam, useQueryParams } from "use-query-params";
 import { HabitsFeaturesTable } from "../../containers/HabitsFeaturesTable";
 import { RawHabitsTable } from "../../containers/RawHabitsTable";
@@ -19,27 +19,6 @@ export function HabitsPage() {
   const [debouncedParams] = useDebouncedValue(params, 300);
   const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
     setParams({ search: event.currentTarget.value });
-  };
-
-  const handleGoToFeatures = () => {
-    navigate({
-      pathname: "/habits/features",
-    });
-  };
-  const handleGoToAddFeatures = () => {
-    navigate({
-      pathname: "/habits/features/add",
-    });
-  };
-  const handleGoToEditFeature = (id: number) => {
-    navigate({
-      pathname: `/habits/features/edit/${id}`,
-    });
-  };
-  const handleGoToHabits = () => {
-    navigate({
-      pathname: "/habits",
-    });
   };
 
   return (
@@ -60,7 +39,12 @@ export function HabitsPage() {
             <Route
               index
               element={
-                <Button variant="subtle" leftSection={<IconTransform size={16} />} onClick={handleGoToFeatures}>
+                <Button
+                  variant="subtle"
+                  leftSection={<IconTransform size={16} />}
+                  component={Link}
+                  to="/habits/features"
+                >
                   Habits Features
                 </Button>
               }
@@ -69,10 +53,10 @@ export function HabitsPage() {
               path={"features"}
               element={
                 <Flex p={0} m={0} align={"center"} gap={"lg"}>
-                  <ActionIcon m={0} variant="filled" size="lg" radius={"xl"} onClick={handleGoToAddFeatures}>
+                  <ActionIcon m={0} variant="filled" size="lg" radius={"xl"} component={Link} to="/habits/features/add">
                     <IconPlus />
                   </ActionIcon>
-                  <Button variant="subtle" leftSection={<IconTable size={16} />} onClick={handleGoToHabits}>
+                  <Button variant="subtle" leftSection={<IconTable size={16} />} component={Link} to="/habits">
                     Raw Habits
                   </Button>
                 </Flex>
@@ -83,12 +67,7 @@ export function HabitsPage() {
 
         <Routes>
           <Route index element={<RawHabitsTable search={debouncedParams.search ?? undefined} />} />
-          <Route
-            path={"features"}
-            element={
-              <HabitsFeaturesTable onEditFeature={handleGoToEditFeature} search={debouncedParams.search ?? undefined} />
-            }
-          />
+          <Route path={"features"} element={<HabitsFeaturesTable search={debouncedParams.search ?? undefined} />} />
         </Routes>
       </Stack>
     </Paper>

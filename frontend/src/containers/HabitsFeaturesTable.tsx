@@ -4,15 +4,16 @@ import { notifications } from "@mantine/notifications";
 import { IconPencil, IconTrash } from "@tabler/icons-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
+import { Link } from "react-router-dom";
 import { NumberParam, StringParam, useQueryParams } from "use-query-params";
 import { type RouterOutputs, trpc } from "../api/trpc";
 import { Table, type TableColumn } from "../components/Table/Table";
 import { useConfig } from "../contexts/ConfigContext";
 
 type HabitFeature = RouterOutputs["habits"]["getFeaturesTable"]["entries"][number];
-export function HabitsFeaturesTable(props: { onEditFeature?: (id: number) => void; search?: string }) {
+export function HabitsFeaturesTable(props: { search?: string }) {
   const { theme } = useConfig();
-  const { search, onEditFeature } = props;
+  const { search } = props;
   const [params, setParams] = useQueryParams({
     search: StringParam,
     page: NumberParam,
@@ -84,7 +85,7 @@ export function HabitsFeaturesTable(props: { onEditFeature?: (id: number) => voi
       width: 200,
       render: (feature) => (
         <Group>
-          <ActionIcon flex={0} variant="subtle" onClick={() => onEditFeature?.(feature.id)}>
+          <ActionIcon component={Link} to={`/habits/features/edit/${feature.id}`} flex={0} variant="subtle">
             <IconPencil size={20} />
           </ActionIcon>
           <ActionIcon flex={0} variant="subtle" onClick={() => handleDeleteFeature(feature.id)}>

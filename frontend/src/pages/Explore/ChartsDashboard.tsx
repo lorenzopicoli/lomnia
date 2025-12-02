@@ -1,7 +1,6 @@
 import { ActionIcon, Container, Flex, Paper, ScrollArea, Text } from "@mantine/core";
 import { IconTrash } from "@tabler/icons-react";
-import { useCallback, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useMemo } from "react";
 import { useChartGridLayout } from "../../charts/useChartGridLayout";
 import { ChartDashboardMenu } from "../../components/ChartDashboardMenu/ChartDashboardMenu";
 import { ChartDisplayer } from "../../components/ChartDisplayer/ChartDisplayer";
@@ -14,19 +13,12 @@ import { removeNills } from "../../utils/removeNils";
 
 export function ChartsDashboard() {
   const { theme } = useConfig();
-  const navigate = useNavigate();
   const chartsConfig = useDashboard();
 
   const { chartsBeingShown, onRemoveChart, isChangingLayout, gridProps } = useChartGridLayout("explore");
   const charts = useMemo(() => {
     return Object.values(chartsBeingShown).filter(removeNills);
   }, [chartsBeingShown]);
-
-  const handleClickNewChart = useCallback(() => {
-    navigate({
-      pathname: "/explore/add-chart",
-    });
-  }, [navigate]);
 
   return (
     <Paper component={Container} fluid h={"100vh"} bg={theme.colors.dark[9]}>
@@ -40,7 +32,6 @@ export function ChartsDashboard() {
               currentRange={[chartsConfig.startDate, chartsConfig.endDate]}
               currentPeriod={chartsConfig.period}
               onDateChange={chartsConfig.setDateRange}
-              onNewChart={handleClickNewChart}
               onPeriodSelected={chartsConfig.onPeriodSelected}
               onRearrangeCharts={chartsConfig.toggleIsRearranging}
             />
