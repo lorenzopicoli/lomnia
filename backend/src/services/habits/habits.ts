@@ -9,13 +9,13 @@ import {
   habitFeaturesTable,
   type ValidatedNewHabitFeature,
 } from "../../models/HabitFeature";
-import { ChartPeriodInput } from "../../types/chartTypes";
+import { ChartAggregationInput } from "../../types/chartTypes";
 import { anonymize } from "../anonymize";
 import { getAggregatedXColumn } from "../common/getAggregatedXColumn";
 import { getAggregatedYColumn } from "../common/getAggregatedYColumn";
 
 export const HabitChartPeriodInput = z.object({
-  ...ChartPeriodInput.shape,
+  ...ChartAggregationInput.shape,
   habitKey: z.string(),
 });
 export type HabitChartPeriodInput = z.infer<typeof HabitChartPeriodInput>;
@@ -256,17 +256,19 @@ export namespace HabitsService {
 
 export namespace HabitsChartService {
   export const numeric = async (params: HabitChartPeriodInput) => {
-    const { habitKey, start, end, aggregationPeriod } = params;
+    const { habitKey, start, end, aggregation } = params;
     const supportedKeys = await HabitsService.getNumericHabitKeys();
 
     if (!supportedKeys.find((k) => k.key === params.habitKey)) {
       return [];
     }
 
-    const aggregatedDate = getAggregatedXColumn(extractedHabitFeaturesTable.startDate, aggregationPeriod);
+    const aggregatedDate = getAggregatedXColumn(extractedHabitFeaturesTable.startDate, aggregation.period);
     const data = db
       .select({
-        value: getAggregatedYColumn(sql`${extractedHabitFeaturesTable.value}::integer`, "sum").mapWith(Number),
+        value: getAggregatedYColumn(sql`${extractedHabitFeaturesTable.value}::integer`, aggregation.function).mapWith(
+          Number,
+        ),
         date: aggregatedDate.mapWith(String),
       })
       .from(extractedHabitFeaturesTable)

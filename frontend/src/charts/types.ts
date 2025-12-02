@@ -17,6 +17,10 @@ export type ChartAreaConfig = {
    */
   countKey?: string;
   /**
+   * How to aggregate data
+   */
+  aggFun?: AggregationFunction;
+  /**
    * Use compact number notation (1.2k, 3.4M…)
    */
   compactNumbers?: boolean;
@@ -35,24 +39,35 @@ export enum ChartId {
   Count = "Count",
 }
 
-export type ChartParams = "habitKey" | "countKey" | "compactNumbers";
+export type ChartParams = "habitKey" | "countKey" | "compactNumbers" | "aggFun";
 
 export const chartParamByChartId: Record<ChartId, ChartParams[]> = {
   [ChartId.TemperatureExperienced]: [],
   [ChartId.HeartRateMinMaxAvg]: [],
   [ChartId.PrecipitationExperienced]: [],
   [ChartId.RainHeatmap]: [],
-  [ChartId.NumberHabitCalendarHeatmap]: ["habitKey"],
+  [ChartId.NumberHabitCalendarHeatmap]: ["habitKey", "aggFun"],
   [ChartId.Count]: ["countKey", "compactNumbers"],
 };
 
 const aggregationPeriods = ["month", "day", "week", "hour"] as const;
 export type AggregationPeriod = (typeof aggregationPeriods)[number];
 
+export const aggregationFunctions = ["avg", "median", "max", "min", "sum"] as const;
+export const aggregationFunctionLabels = [
+  { value: "avg", label: "avg" },
+  { value: "median", label: "median" },
+  { value: "max", label: "max" },
+  { value: "min", label: "min" },
+  { value: "sum", label: "sum" },
+] as const;
+export type AggregationFunction = (typeof aggregationFunctions)[number];
+
 export interface ChartProps {
   startDate: Date;
   endDate: Date;
   aggPeriod: AggregationPeriod;
+  aggFun?: AggregationFunction;
   title?: string;
 }
 export interface HabitChartProps extends ChartProps {

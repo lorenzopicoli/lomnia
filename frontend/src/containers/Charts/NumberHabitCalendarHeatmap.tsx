@@ -13,7 +13,10 @@ export function NumberHabitCalendarHeatmap(props: HabitChartProps) {
     trpc.charts.habits.numeric.queryOptions({
       start: startDate.toISOString(),
       end: endDate.toISOString(),
-      aggregationPeriod: "day",
+      aggregation: {
+        period: "day",
+        function: props.aggFun ?? "sum",
+      },
       habitKey: props.habitKey,
     }),
   );

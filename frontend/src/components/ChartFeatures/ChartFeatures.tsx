@@ -2,7 +2,7 @@ import { Checkbox, Flex, Select, TextInput } from "@mantine/core";
 import type { UseFormReturnType } from "@mantine/form";
 import { useQuery } from "@tanstack/react-query";
 import { trpc } from "../../api/trpc";
-import { type ChartId, chartParamByChartId } from "../../charts/types";
+import { aggregationFunctionLabels, type ChartId, chartParamByChartId } from "../../charts/types";
 
 type FormValues = {
   habitKey?: string;
@@ -43,6 +43,17 @@ export function ChartFeatures<T extends FormValues>(props: { chartId: ChartId; f
                     data={habitKeysData?.numeric.map((hk) => ({ value: hk.key, label: hk.label })) ?? []}
                     searchable
                     {...form.getInputProps("habitKey", { type: "input" })}
+                  />
+                );
+              case "aggFun":
+                return (
+                  <Select
+                    key={feature}
+                    label="Aggregate"
+                    withAsterisk
+                    data={aggregationFunctionLabels}
+                    searchable
+                    {...form.getInputProps("aggFun", { type: "input" })}
                   />
                 );
               case "compactNumbers":

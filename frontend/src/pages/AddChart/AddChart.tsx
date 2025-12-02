@@ -4,7 +4,13 @@ import { IconChartAreaLine, IconCloud, IconPencilCog } from "@tabler/icons-react
 import { subYears } from "date-fns/subYears";
 import { useMemo, useState } from "react";
 import { v4 } from "uuid";
-import { availableCharts, type ChartAreaConfig, ChartId, ChartSource } from "../../charts/types";
+import {
+  type AggregationFunction,
+  availableCharts,
+  type ChartAreaConfig,
+  ChartId,
+  ChartSource,
+} from "../../charts/types";
 import { ChartDisplayer } from "../../components/ChartDisplayer/ChartDisplayer";
 import { ChartFeatures } from "../../components/ChartFeatures/ChartFeatures";
 import { ChartPlaceholder } from "../../components/ChartPlaceholder/ChartPlaceholder";
@@ -24,6 +30,7 @@ export type AddChartFormValues = {
   chartId: ChartId | null;
   habitKey?: string;
   countKey?: string;
+  aggFun?: AggregationFunction;
   compactNumbers?: boolean;
   title: string;
 };
@@ -100,6 +107,7 @@ export function AddChart(props: AddChartProps) {
       habitKey: values.habitKey,
       countKey: values.countKey,
       title: values.title,
+      aggFun: values.aggFun,
       compactNumbers: values.compactNumbers,
     };
 
@@ -180,6 +188,7 @@ export function AddChart(props: AddChartProps) {
                   compactNumbers={values.compactNumbers}
                   endDate={endDate}
                   aggPeriod={aggPeriod}
+                  aggFun={values.aggFun}
                 />
               </div>
             ) : (
