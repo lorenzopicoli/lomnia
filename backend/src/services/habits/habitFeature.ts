@@ -1,4 +1,5 @@
-import { asc, countDistinct, desc, eq, sql } from "drizzle-orm";
+import { and, asc, countDistinct, desc, eq, lt, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import z from "zod";
 import { db } from "../../db/connection";
 import {
@@ -99,6 +100,24 @@ export namespace HabitFeaturesService {
         })),
       );
   };
+
+  export const getTextKeys = async () => {
+    return db
+      .select({
+        key: habitFeaturesTable.name,
+      })
+      .from(habitFeaturesTable)
+      .leftJoin(extractedHabitFeaturesTable, eq(extractedHabitFeaturesTable.habitFeatureId, habitFeaturesTable.id))
+      .where(sql`jsonb_typeof(${extractedHabitFeaturesTable.value}) = 'string'`)
+      .groupBy(habitFeaturesTable.name)
+      .then((keys) =>
+        keys.map((k) => ({
+          key: k.key,
+          label: k.key,
+          description: k.key,
+        })),
+      );
+  };
 }
 
 export namespace HabitFeaturesChartService {
@@ -128,6 +147,37 @@ export namespace HabitFeaturesChartService {
       )
       .groupBy(aggregatedDate)
       .orderBy(asc(aggregatedDate));
+
+    return data;
+  };
+
+  export const coocurrences = async (params: HabitFeatureChartPeriodInput) => {
+    const { habitKey, start, end } = params;
+    const supportedKeys = await HabitFeaturesService.getTextKeys();
+
+    if (!supportedKeys.find((k) => k.key === params.habitKey)) {
+      return [];
+    }
+
+    const a = alias(extractedHabitFeaturesTable, "a");
+    const b = alias(extractedHabitFeaturesTable, "b");
+    const data = await db
+      .select({
+        source: sql`LEAST(${a.value}, ${b.value})`,
+        target: sql`GREATEST(${a.value}, ${b.value})`,
+        value: sql<number>`COUNT(*)`,
+      })
+      .from(a)
+      .innerJoin(b, and(eq(a.habitId, b.habitId), lt(a.value, b.value)))
+      .innerJoin(habitFeaturesTable, eq(a.habitFeatureId, habitFeaturesTable.id))
+      .where(sql`
+      ${habitFeaturesTable.name} = ${habitKey} AND
+      ${a.startDate} >= ${start.toISO()}  
+      AND ${a.endDate} <= ${end.toISO()}
+    `)
+      .groupBy(sql`LEAST(${a.value}, ${b.value})`, sql`GREATEST(${a.value}, ${b.value})`)
+      .orderBy(desc(sql`COUNT(*)`))
+      .limit(20);
 
     return data;
   };

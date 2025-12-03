@@ -55,6 +55,7 @@ export const habitFeaturesRouter = t.router({
   getKeys: loggedProcedure.query(async () => {
     return {
       numeric: await HabitFeaturesService.getNumericKeys(),
+      text: await HabitFeaturesService.getTextKeys(),
     };
   }),
 });
@@ -62,5 +63,8 @@ export const habitFeaturesRouter = t.router({
 export const habitFeaturesChartRouter = t.router({
   numeric: loggedProcedure.input(HabitFeatureChartPeriodInput).query((opts) => {
     return HabitFeaturesChartService.numeric(opts.input);
+  }),
+  cooccurrences: loggedProcedure.input(HabitFeatureChartPeriodInput).query((opts) => {
+    return HabitFeaturesChartService.coocurrences(opts.input);
   }),
 });

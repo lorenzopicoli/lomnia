@@ -36,6 +36,7 @@ export enum ChartId {
   PrecipitationExperienced = "precipitationExperienced ",
   RainHeatmap = "rainHeatmap",
   NumberHabitCalendarHeatmap = "numberHabitCalendarHeatmap",
+  TextHabitCoocurrencesChord = "textHabitCoocurrencesChord ",
   Count = "Count",
 }
 
@@ -47,6 +48,7 @@ export const chartParamByChartId: Record<ChartId, ChartParams[]> = {
   [ChartId.PrecipitationExperienced]: [],
   [ChartId.RainHeatmap]: [],
   [ChartId.NumberHabitCalendarHeatmap]: ["habitKey", "aggFun"],
+  [ChartId.TextHabitCoocurrencesChord]: ["habitKey"],
   [ChartId.Count]: ["countKey", "compactNumbers"],
 };
 
@@ -96,6 +98,7 @@ export enum ChartElement {
   CalendarHeatmap = "calendarHeatmap",
   Bar = "bar",
   Value = "value",
+  Chord = "chord",
 }
 
 export function chartSourceTitleAndDescription(source: ChartSource): {
@@ -161,6 +164,13 @@ export const availableCharts = [
     description: "See how often and by how much you do a certain habit in a calendar",
     sources: [ChartSource.Habit],
     elements: [ChartElement.CalendarHeatmap],
+  },
+  {
+    id: ChartId.TextHabitCoocurrencesChord,
+    title: "Habits co-ocurrence",
+    description: "See how often values in text habits co-occur",
+    sources: [ChartSource.Habit],
+    elements: [ChartElement.Chord],
   },
   {
     id: ChartId.Count,

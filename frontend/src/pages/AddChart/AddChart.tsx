@@ -49,6 +49,7 @@ export const chartPreviewSize: Record<ChartId, { height: string | number; width:
   [ChartId.RainHeatmap]: { height: 200, width: "100%" },
   [ChartId.NumberHabitCalendarHeatmap]: { height: 200, width: "100%" },
   [ChartId.Count]: { height: 250, width: 250 },
+  [ChartId.TextHabitCoocurrencesChord]: { height: "100%", width: "100%" },
 };
 
 export function AddChart(props: AddChartProps) {

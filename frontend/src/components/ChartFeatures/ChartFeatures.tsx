@@ -34,17 +34,21 @@ export function ChartFeatures<T extends FormValues>(props: { chartId: ChartId; f
                     {...form.getInputProps("countKey", { type: "input" })}
                   />
                 );
-              case "habitKey":
+              case "habitKey": {
+                // TODO: How to avoid always showing all?
+                const numeric = habitKeysData?.numeric.map((hk) => ({ value: hk.key, label: hk.label }));
+                const text = habitKeysData?.text.map((hk) => ({ value: hk.key, label: hk.label }));
                 return (
                   <Select
                     key={feature}
                     label="Habit"
                     withAsterisk
-                    data={habitKeysData?.numeric.map((hk) => ({ value: hk.key, label: hk.label })) ?? []}
+                    data={[...(numeric ?? []), ...(text ?? [])]}
                     searchable
                     {...form.getInputProps("habitKey", { type: "input" })}
                   />
                 );
+              }
               case "aggFun":
                 return (
                   <Select

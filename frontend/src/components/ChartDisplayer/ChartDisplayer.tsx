@@ -6,6 +6,7 @@ import { NumberHabitCalendarHeatmap } from "../../containers/Charts/NumberHabitC
 import { PrecipitationExperienced } from "../../containers/Charts/PrecipitationExperienced";
 import { RainHeatmap } from "../../containers/Charts/RainHeatmap";
 import { TemperatureExperienced } from "../../containers/Charts/TemperatureExperienced";
+import { TextHabitCoocurrencesChord } from "../../containers/Charts/TextHabitCoocurrencesChord";
 import { cardDarkBackground } from "../../themes/mantineThemes";
 import { ChartPlaceholder } from "../ChartPlaceholder/ChartPlaceholder";
 
@@ -31,6 +32,9 @@ const chartOptions = {
   },
   [ChartId.Count]: {
     componentHandlesTitle: true,
+  },
+  [ChartId.TextHabitCoocurrencesChord]: {
+    componentHandlesTitle: false,
   },
 } as const;
 
@@ -75,6 +79,13 @@ function ChartSwitcher(props: ChartDisplayerProps) {
         return <ChartPlaceholder noBg text="Select a habit key to see data in here" />;
       }
       return <NumberHabitCalendarHeatmap {...props} habitKey={habitKey} />;
+    }
+    case ChartId.TextHabitCoocurrencesChord: {
+      const habitKey = props.habitKey;
+      if (!habitKey) {
+        return <ChartPlaceholder noBg text="Select a habit key to see data in here" />;
+      }
+      return <TextHabitCoocurrencesChord {...props} habitKey={habitKey} />;
     }
     case ChartId.Count: {
       const countKey = props.countKey;
