@@ -55,6 +55,7 @@
     "front-matter": "^4.0.2",
     "geo-tz": "^8.1.4",
     "glob": "^11.0.3",
+    "i18n-iso-countries": "^7.14.0",
     "lodash": "^4.17.21",
     "luxon": "^3.7.2",
     "node-ssh": "^13.2.1",

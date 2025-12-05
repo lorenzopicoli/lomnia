@@ -21,10 +21,13 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { QueryParamProvider } from "use-query-params";
 import { ReactRouter6Adapter } from "use-query-params/adapters/react-router-6";
 import { queryClient } from "./api/trpc";
+import world from "./charts/world.json";
 import { ConfigProvider } from "./contexts/ConfigContext";
 import Layout from "./pages/Layout";
 import { EchartsThemes } from "./themes/echartsThemes";
 import { mantineTheme } from "./themes/mantineThemes";
+
+echarts.registerMap("world", world as any);
 
 echarts.registerTheme("default_dark", EchartsThemes.darkDefault);
 

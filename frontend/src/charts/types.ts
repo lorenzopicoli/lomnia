@@ -38,6 +38,7 @@ export enum ChartId {
   NumberHabitCalendarHeatmap = "numberHabitCalendarHeatmap",
   TextHabitCoocurrencesChord = "textHabitCoocurrencesChord ",
   Count = "Count",
+  CountriesVisited = "countriesVisited",
 }
 
 export type ChartParams = "habitKey" | "countKey" | "compactNumbers" | "aggFun";
@@ -50,6 +51,7 @@ export const chartParamByChartId: Record<ChartId, ChartParams[]> = {
   [ChartId.NumberHabitCalendarHeatmap]: ["habitKey", "aggFun"],
   [ChartId.TextHabitCoocurrencesChord]: ["habitKey"],
   [ChartId.Count]: ["countKey", "compactNumbers"],
+  [ChartId.CountriesVisited]: [],
 };
 
 const aggregationPeriods = ["month", "day", "week", "hour"] as const;
@@ -89,6 +91,7 @@ export enum ChartSource {
   Weather = "weather",
   Habit = "habit",
   HeartRate = "heartRate",
+  Location = "location",
   Meta = "meta",
 }
 
@@ -99,6 +102,7 @@ export enum ChartElement {
   Bar = "bar",
   Value = "value",
   Chord = "chord",
+  Geo = "geo",
 }
 
 export function chartSourceTitleAndDescription(source: ChartSource): {
@@ -123,8 +127,13 @@ export function chartSourceTitleAndDescription(source: ChartSource): {
       };
     case ChartSource.Meta:
       return {
-        title: "Meta information",
+        title: "Meta Information",
         description: "Data on the system (eg. number of entries collected)",
+      };
+    case ChartSource.Location:
+      return {
+        title: "Location data",
+        description: "Data that was recorded by your GPS",
       };
   }
 }
@@ -178,5 +187,12 @@ export const availableCharts = [
     description: "Displays the number of entries collected from a source",
     sources: [ChartSource.Meta],
     elements: [ChartElement.Value],
+  },
+  {
+    id: ChartId.CountriesVisited,
+    title: "Countries Visited",
+    description: "Explore all the countries you visited in a given time period",
+    sources: [ChartSource.Location],
+    elements: [ChartElement.Geo],
   },
 ];

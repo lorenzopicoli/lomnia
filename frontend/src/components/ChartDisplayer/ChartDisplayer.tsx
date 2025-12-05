@@ -1,6 +1,7 @@
 import { Card, Text } from "@mantine/core";
 import { type AllChartsProps, ChartId } from "../../charts/types";
 import { CountCard } from "../../containers/Charts/CountCard";
+import { CountriesVisited } from "../../containers/Charts/CountriesVisited";
 import { HeartRateMinMaxAvg } from "../../containers/Charts/HeartRateMinMaxAvg";
 import { NumberHabitCalendarHeatmap } from "../../containers/Charts/NumberHabitCalendarHeatmap";
 import { PrecipitationExperienced } from "../../containers/Charts/PrecipitationExperienced";
@@ -34,6 +35,9 @@ const chartOptions = {
     componentHandlesTitle: true,
   },
   [ChartId.TextHabitCoocurrencesChord]: {
+    componentHandlesTitle: false,
+  },
+  [ChartId.CountriesVisited]: {
     componentHandlesTitle: false,
   },
 } as const;
@@ -93,6 +97,9 @@ function ChartSwitcher(props: ChartDisplayerProps) {
         return <ChartPlaceholder noBg text="Select a key" />;
       }
       return <CountCard {...props} countKey={countKey} />;
+    }
+    case ChartId.CountriesVisited: {
+      return <CountriesVisited {...props} />;
     }
   }
 }
