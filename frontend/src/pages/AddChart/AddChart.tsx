@@ -50,7 +50,12 @@ export const chartPreviewSize: Record<ChartId, { height: string | number; width:
   [ChartId.NumberHabitCalendarHeatmap]: { height: 200, width: "100%" },
   [ChartId.Count]: { height: 250, width: 250 },
   [ChartId.TextHabitCoocurrencesChord]: { height: "100%", width: "100%" },
-  [ChartId.CountriesVisited]: { height: "100%", width: "100%" },
+  [ChartId.CountriesVisitedMap]: { height: "100%", width: "100%" },
+  [ChartId.CountriesVisitedBar]: { height: "100%", width: "100%" },
+  [ChartId.CountriesVisitedPie]: { height: "100%", width: "100%" },
+  [ChartId.CitiesVisitedBar]: { height: "100%", width: "100%" },
+  [ChartId.CitiesVisitedPie]: { height: "100%", width: "100%" },
+  [ChartId.PlacesVisitCountBar]: { height: "100%", width: "100%" },
 };
 
 export function AddChart(props: AddChartProps) {

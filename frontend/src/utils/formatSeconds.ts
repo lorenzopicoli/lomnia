@@ -1,6 +1,6 @@
-import { formatDuration, intervalToDuration } from "date-fns";
+import { type DurationUnit, formatDuration, intervalToDuration } from "date-fns";
 
-export function formatSeconds(seconds: number): string {
+export function formatSeconds(seconds: number, format?: DurationUnit[]): string {
   if (!seconds || seconds < 1) return "0s";
 
   const duration = intervalToDuration({
@@ -9,7 +9,7 @@ export function formatSeconds(seconds: number): string {
   });
 
   return formatDuration(duration, {
-    format: ["years", "months", "days", "hours"],
+    format: format ?? ["years", "months", "days", "hours"],
     zero: false,
   });
 }

@@ -133,6 +133,10 @@ export default {
        * Minimum amount of time spent in a place to consider it as "visited"
        */
       minimumTimeInMin: 15,
+      /**
+       * How many places are shown in the chart
+       */
+      limit: 10,
     },
   },
 };

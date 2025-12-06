@@ -67,6 +67,9 @@ export namespace EchartsThemes {
         borderWidth: 0,
         borderColor: "transparent",
       },
+      label: {
+        color: "#ffff",
+      },
     },
     scatter: {
       itemStyle: {
@@ -217,7 +220,7 @@ export namespace EchartsThemes {
         },
       },
       splitArea: {
-        show: true,
+        show: false,
         areaStyle: {
           color: ["rgba(250,250,250,0.3)", "rgba(200,200,200,0.3)"],
         },

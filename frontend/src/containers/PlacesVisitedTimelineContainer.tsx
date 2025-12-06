@@ -3,7 +3,7 @@ import { IconLocation } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import { endOfDay } from "date-fns/endOfDay";
 import { startOfDay } from "date-fns/startOfDay";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { trpc } from "../api/trpc";
 import { VisitedPlaceTimelineItem } from "../components/VisitedPlaceTimelineItem/VisitedPlaceTimelineItem";
 
@@ -27,17 +27,6 @@ export default function PlacesVisitedTimelineContainer(props: PlacesVisitedTimel
     }
   }, [data]);
 
-  const handleItemHover = useCallback(
-    (index: number) => {
-      setActiveIndex(index);
-      const itemEndDate = data?.[index].endDate;
-      if (itemEndDate) {
-        props.onFilterChange?.(new Date(itemEndDate));
-      }
-    },
-    [data, props.onFilterChange],
-  );
-
   if (isLoading) {
     return "Loading...";
   }
@@ -54,11 +43,7 @@ export default function PlacesVisitedTimelineContainer(props: PlacesVisitedTimel
           bullet={<IconLocation size={12} />}
           title={place.placeOfInterest?.displayName ?? "Moving"}
         >
-          <VisitedPlaceTimelineItem
-            index={i}
-            place={place}
-            // onHovered={handleItemHover}
-          />
+          <VisitedPlaceTimelineItem index={i} place={place} />
         </Timeline.Item>
       ))}
     </Timeline>

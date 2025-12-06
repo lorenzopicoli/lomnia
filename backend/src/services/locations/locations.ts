@@ -48,7 +48,7 @@ export class LocationChartServiceInternal {
       .with(islandsCte)
       .select({
         city: sql`${islandsCte.placeKey}`.mapWith(String),
-        timeSpentInSec: sql`${islandsCte.duration}`.mapWith(Number),
+        timeSpentInSec: sum(islandsCte.duration).mapWith(Number),
       })
       .from(islandsCte)
       .where(sql`
@@ -57,7 +57,7 @@ export class LocationChartServiceInternal {
         -- keys within the same bucket
         AND ${islandsCte.duration} > ${config.charts.citiesVisited.minimumTimeInMin * 60}`)
       .groupBy(islandsCte.placeKey)
-      .orderBy(desc(islandsCte.duration));
+      .orderBy(desc(sum(islandsCte.duration)));
   }
   /**
    * Gets all the countries visited within a time range.
@@ -117,7 +117,8 @@ export class LocationChartServiceInternal {
       .leftJoin(locationDetailsTable, eq(locationDetailsTable.id, durationIslands.placeKey))
       .where(sql`${durationIslands.placeKey} IS NOT NULL`)
       .groupBy(locationDetailsTable.id, locationDetailsTable.name)
-      .orderBy(desc(count(durationIslands)));
+      .orderBy(desc(count(durationIslands)))
+      .limit(config.charts.placesVisited.limit);
   }
 
   /**

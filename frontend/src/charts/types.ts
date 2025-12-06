@@ -38,7 +38,12 @@ export enum ChartId {
   NumberHabitCalendarHeatmap = "numberHabitCalendarHeatmap",
   TextHabitCoocurrencesChord = "textHabitCoocurrencesChord ",
   Count = "Count",
-  CountriesVisited = "countriesVisited",
+  CountriesVisitedMap = "countriesVisitedMap",
+  CountriesVisitedBar = "countriesVisitedBar",
+  CountriesVisitedPie = "countriesVisitedPie",
+  CitiesVisitedBar = "citiesVisitedBar",
+  CitiesVisitedPie = "citiesVisitedPie",
+  PlacesVisitCountBar = "placesVisitCountBar",
 }
 
 export type ChartParams = "habitKey" | "countKey" | "compactNumbers" | "aggFun";
@@ -51,7 +56,12 @@ export const chartParamByChartId: Record<ChartId, ChartParams[]> = {
   [ChartId.NumberHabitCalendarHeatmap]: ["habitKey", "aggFun"],
   [ChartId.TextHabitCoocurrencesChord]: ["habitKey"],
   [ChartId.Count]: ["countKey", "compactNumbers"],
-  [ChartId.CountriesVisited]: [],
+  [ChartId.CountriesVisitedMap]: [],
+  [ChartId.CountriesVisitedBar]: [],
+  [ChartId.CountriesVisitedPie]: [],
+  [ChartId.CitiesVisitedBar]: [],
+  [ChartId.CitiesVisitedPie]: [],
+  [ChartId.PlacesVisitCountBar]: [],
 };
 
 const aggregationPeriods = ["month", "day", "week", "hour"] as const;
@@ -100,6 +110,7 @@ export enum ChartElement {
   Area = "area",
   CalendarHeatmap = "calendarHeatmap",
   Bar = "bar",
+  Pie = "pie",
   Value = "value",
   Chord = "chord",
   Geo = "geo",
@@ -189,10 +200,38 @@ export const availableCharts = [
     elements: [ChartElement.Value],
   },
   {
-    id: ChartId.CountriesVisited,
-    title: "Countries Visited",
+    id: ChartId.CountriesVisitedMap,
+    title: "Countries Visited Map",
     description: "Explore all the countries you visited in a given time period",
     sources: [ChartSource.Location],
     elements: [ChartElement.Geo],
+  },
+  {
+    id: ChartId.CountriesVisitedBar,
+    title: "Countries Visited (Bar)",
+    description: "Explore all the countries you visited in a given time period",
+    sources: [ChartSource.Location],
+    elements: [ChartElement.Bar],
+  },
+  {
+    id: ChartId.CountriesVisitedPie,
+    title: "Countries Visited (Pie)",
+    description: "Explore all the countries you visited in a given time period",
+    sources: [ChartSource.Location],
+    elements: [ChartElement.Pie],
+  },
+  {
+    id: ChartId.CitiesVisitedBar,
+    title: "Cities Visited (Bar)",
+    description: "Explore all the cities you visited in a given time period",
+    sources: [ChartSource.Location],
+    elements: [ChartElement.Bar],
+  },
+  {
+    id: ChartId.PlacesVisitCountBar,
+    title: "Places visited (count)",
+    description: "Explore all the places you visited in a given time period",
+    sources: [ChartSource.Location],
+    elements: [ChartElement.Bar],
   },
 ];

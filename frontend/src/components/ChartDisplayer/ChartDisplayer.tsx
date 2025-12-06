@@ -1,9 +1,14 @@
 import { Card, Text } from "@mantine/core";
 import { type AllChartsProps, ChartId } from "../../charts/types";
+import { CitiesVisitedBar } from "../../containers/Charts/CitiesVisitedBar";
+import { CitiesVisitedPie } from "../../containers/Charts/CitiesVisitedPie";
 import { CountCard } from "../../containers/Charts/CountCard";
-import { CountriesVisited } from "../../containers/Charts/CountriesVisited";
+import { CountriesVisitedBar } from "../../containers/Charts/CountriesVisitedBar";
+import { CountriesVisitedMap } from "../../containers/Charts/CountriesVisitedMap";
+import { CountriesVisitedPie } from "../../containers/Charts/CountriesVisitedPie";
 import { HeartRateMinMaxAvg } from "../../containers/Charts/HeartRateMinMaxAvg";
 import { NumberHabitCalendarHeatmap } from "../../containers/Charts/NumberHabitCalendarHeatmap";
+import { PlacesVisitCountBar } from "../../containers/Charts/PlacesVisitCountBar";
 import { PrecipitationExperienced } from "../../containers/Charts/PrecipitationExperienced";
 import { RainHeatmap } from "../../containers/Charts/RainHeatmap";
 import { TemperatureExperienced } from "../../containers/Charts/TemperatureExperienced";
@@ -37,7 +42,22 @@ const chartOptions = {
   [ChartId.TextHabitCoocurrencesChord]: {
     componentHandlesTitle: false,
   },
-  [ChartId.CountriesVisited]: {
+  [ChartId.CountriesVisitedMap]: {
+    componentHandlesTitle: false,
+  },
+  [ChartId.CountriesVisitedBar]: {
+    componentHandlesTitle: false,
+  },
+  [ChartId.CountriesVisitedPie]: {
+    componentHandlesTitle: false,
+  },
+  [ChartId.CitiesVisitedBar]: {
+    componentHandlesTitle: false,
+  },
+  [ChartId.CitiesVisitedPie]: {
+    componentHandlesTitle: false,
+  },
+  [ChartId.PlacesVisitCountBar]: {
     componentHandlesTitle: false,
   },
 } as const;
@@ -98,8 +118,23 @@ function ChartSwitcher(props: ChartDisplayerProps) {
       }
       return <CountCard {...props} countKey={countKey} />;
     }
-    case ChartId.CountriesVisited: {
-      return <CountriesVisited {...props} />;
+    case ChartId.CountriesVisitedMap: {
+      return <CountriesVisitedMap {...props} />;
+    }
+    case ChartId.CountriesVisitedBar: {
+      return <CountriesVisitedBar {...props} />;
+    }
+    case ChartId.CitiesVisitedBar: {
+      return <CitiesVisitedBar {...props} />;
+    }
+    case ChartId.CountriesVisitedPie: {
+      return <CountriesVisitedPie {...props} />;
+    }
+    case ChartId.CitiesVisitedPie: {
+      return <CitiesVisitedPie {...props} />;
+    }
+    case ChartId.PlacesVisitCountBar: {
+      return <PlacesVisitCountBar {...props} />;
     }
   }
 }
