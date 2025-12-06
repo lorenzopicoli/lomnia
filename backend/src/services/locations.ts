@@ -1,6 +1,7 @@
-import { asc, avg, count, eq, max, min, sql } from "drizzle-orm";
+import { asc, avg, count, eq, gt, max, min, sql } from "drizzle-orm";
 import type { PgSelectHKT, PgSelectQueryBuilder } from "drizzle-orm/pg-core";
 import z from "zod";
+import config from "../config";
 import { db } from "../db/connection";
 import type { Point } from "../db/types";
 import { isNumber } from "../helpers/isNumber";
@@ -8,10 +9,34 @@ import { locationsTable } from "../models";
 import { locationDetailsTable } from "../models/LocationDetails";
 import type { DateRange } from "../types/chartTypes";
 import { LuxonDateTime } from "../types/zodTypes";
+import { getCountryName } from "./common/getCountryName";
 
 export namespace LocationService {}
 
 export namespace LocationChartService {
+  export async function getCountriesVisited(params: DateRange) {
+    const { start, end } = params;
+    const countriesVisited = await db
+      .select({
+        country: locationDetailsTable.countryCode,
+        weight: count(locationDetailsTable.countryCode),
+      })
+      .from(locationDetailsTable)
+      .innerJoin(locationsTable, eq(locationDetailsTable.id, locationsTable.locationDetailsId))
+      .where(sql`
+        ${locationsTable.locationFix} >= ${start.toISO()}
+        AND ${locationsTable.locationFix} <= ${end.toISO()}
+        AND ${locationDetailsTable.country} IS NOT NULL
+      `)
+      .groupBy(locationDetailsTable.countryCode)
+      .having(({ weight }) => gt(weight, config.charts.countriesVisited.minPoints));
+
+    return countriesVisited.map((result) => ({
+      ...result,
+      country: result.country ? getCountryName(result.country) : null,
+    }));
+  }
+
   export async function getVisitedPlaces(params: Partial<DateRange>) {
     const accuracyFilter = 20;
     const activityDurationFilter = 10;
