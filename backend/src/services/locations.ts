@@ -1,7 +1,6 @@
-import { asc, avg, count, eq, gt, max, min, sql } from "drizzle-orm";
+import { asc, avg, count, eq, max, min, sql, sum } from "drizzle-orm";
 import type { PgSelectHKT, PgSelectQueryBuilder } from "drizzle-orm/pg-core";
 import z from "zod";
-import config from "../config";
 import { db } from "../db/connection";
 import type { Point } from "../db/types";
 import { isNumber } from "../helpers/isNumber";
@@ -12,35 +11,193 @@ import { LuxonDateTime } from "../types/zodTypes";
 import { getCountryName } from "./common/getCountryName";
 
 export namespace LocationService {}
+export const HeatmapInput = z
+  .object({
+    topLeftLat: z.coerce.number(),
+    topLeftLng: z.coerce.number(),
+    bottomRightLat: z.coerce.number(),
+    bottomRightLng: z.coerce.number(),
+    zoom: z.coerce.number(),
+    startDate: LuxonDateTime,
+    endDate: LuxonDateTime,
+  })
+  .partial()
+  .required({
+    topLeftLat: true,
+    topLeftLng: true,
+    bottomRightLat: true,
+    bottomRightLng: true,
+    zoom: true,
+  });
 
-export namespace LocationChartService {
-  export async function getCountriesVisited(params: DateRange) {
-    const { start, end } = params;
+export class LocationChartServiceInternal {
+  /**
+   * Gets all the countries visited within a time range.
+   * Each country has a weight property which determines how much time was spent in each country
+   * Countries full names are returned
+   */
+  public async getCountriesVisited(params: DateRange) {
+    // const { start, end } = params;
+    // const countriesVisited = await db
+    //   .select({
+    //     country: locationDetailsTable.countryCode,
+    //     weight: count(locationDetailsTable.countryCode),
+    //   })
+    //   .from(locationDetailsTable)
+    //   .innerJoin(locationsTable, eq(locationDetailsTable.id, locationsTable.locationDetailsId))
+    //   .where(sql`
+    //     ${locationsTable.locationFix} >= ${start.toISO()}
+    //     AND ${locationsTable.locationFix} <= ${end.toISO()}
+    //     AND ${locationDetailsTable.country} IS NOT NULL
+    //   `)
+    //   .groupBy(locationDetailsTable.countryCode)
+    //   .having(({ weight }) => gt(weight, config.charts.countriesVisited.minPoints));
+
+    const durationIslands = this.getIslandsCte({
+      range: params,
+      accuracyFilterInMeters: 500,
+      activityDurationFilterInMin: 0,
+    });
+
     const countriesVisited = await db
+      .with(durationIslands)
       .select({
         country: locationDetailsTable.countryCode,
-        weight: count(locationDetailsTable.countryCode),
+        timeSpentInSec: sum(durationIslands.duration).mapWith(Number),
       })
-      .from(locationDetailsTable)
-      .innerJoin(locationsTable, eq(locationDetailsTable.id, locationsTable.locationDetailsId))
-      .where(sql`
-        ${locationsTable.locationFix} >= ${start.toISO()}
-        AND ${locationsTable.locationFix} <= ${end.toISO()}
-        AND ${locationDetailsTable.country} IS NOT NULL
-      `)
-      .groupBy(locationDetailsTable.countryCode)
-      .having(({ weight }) => gt(weight, config.charts.countriesVisited.minPoints));
+      .from(durationIslands)
+      .leftJoin(locationDetailsTable, eq(locationDetailsTable.id, durationIslands.locationDetailsId))
+      .where(sql`${locationDetailsTable.countryCode} IS NOT NULL`)
+      .groupBy(locationDetailsTable.countryCode);
+    // .having(({ timeSpentInSec }) => gt(timeSpentInSec, 24 * 60 * 60));
 
+    // 3. Map country → country name
     return countriesVisited.map((result) => ({
       ...result,
       country: result.country ? getCountryName(result.country) : null,
     }));
+
+    // return countriesVisited.map((result) => ({
+    //   ...result,
+    //   country: result.country ? getCountryName(result.country) : null,
+    // }));
   }
 
-  export async function getVisitedPlaces(params: Partial<DateRange>) {
-    const accuracyFilter = 20;
-    const activityDurationFilter = 10;
-    const { start, end } = params;
+  public async getVisitCountsByPlace(params: Partial<DateRange>) {
+    const durationIslands = this.getIslandsCte({
+      range: params,
+      accuracyFilterInMeters: 20,
+      activityDurationFilterInMin: 10,
+    });
+
+    return db
+      .with(durationIslands)
+      .select({
+        name: locationDetailsTable.name,
+        id: locationDetailsTable.id,
+        visits: count(durationIslands),
+        timeSpentInSec: sum(durationIslands.duration),
+      })
+      .from(durationIslands)
+      .leftJoin(locationDetailsTable, eq(locationDetailsTable.id, durationIslands.locationDetailsId))
+      .where(sql`${durationIslands.locationDetailsId} IS NOT NULL`)
+      .groupBy(locationDetailsTable.id, locationDetailsTable.name)
+      .orderBy(sql`COUNT(*) DESC`);
+  }
+
+  public async getVisitedPlaces(params: Partial<DateRange>) {
+    const durationIslands = this.getIslandsCte({
+      range: params,
+      accuracyFilterInMeters: 20,
+      activityDurationFilterInMin: 10,
+    });
+    return db
+      .with(durationIslands)
+      .select({
+        startDate: durationIslands.startDate,
+        endDate: durationIslands.endDate,
+        velocity: durationIslands.velocity,
+        duration: durationIslands.duration,
+        placeOfInterest: locationDetailsTable,
+        mode: sql`
+        CASE
+            WHEN ${durationIslands.locationDetailsId} IS NOT NULL THEN 'still'
+            WHEN ${durationIslands.velocity} < 5 THEN 'walking'
+            WHEN ${durationIslands.velocity} < 25 THEN 'biking'
+            WHEN ${durationIslands.velocity} < 27 THEN 'metro'
+            ELSE 'driving'
+        END
+      `.mapWith(String),
+      })
+      .from(durationIslands)
+      .leftJoin(locationDetailsTable, eq(locationDetailsTable.id, durationIslands.locationDetailsId))
+      .orderBy(durationIslands.startDate);
+  }
+
+  public async getHeatmap(params: z.infer<typeof HeatmapInput>) {
+    const { zoom, ...filterData } = params;
+    const filters = {
+      ...filterData,
+    };
+    const zoomToGrid = (zoom: number) => {
+      if (zoom <= 10.1) {
+        return "0.0001";
+      }
+      if (zoom <= 12.5) {
+        return "0.00001";
+      }
+      return "0.000001";
+    };
+
+    const weightCap = 10;
+
+    // Using sql.raw to get the grid value instead of sql bindings because
+    // with bindings postgres doesn't realize that the select location expression
+    // is the same as the expression in the group by. And since the value
+    // is hardcoded in the function above there's no SQL injection danger
+    const results = this.withPointFilters(
+      db
+        .select({
+          location: sql<Point>`ST_SnapToGrid(location::geometry, ${sql.raw(zoomToGrid(zoom))}) AS location`.mapWith(
+            locationsTable.location,
+          ),
+          // I should use some sort of softmax function here?
+          weight: sql<number>`
+                CASE
+                    WHEN COUNT(*) > ${weightCap} THEN ${weightCap}
+                    ELSE COUNT(*)
+                END AS weight`.mapWith(Number),
+        })
+        .from(locationsTable)
+        .$dynamic(),
+      filters,
+    ).groupBy(sql`ST_SnapToGrid(location::geometry, ${sql.raw(zoomToGrid(zoom))})`);
+
+    return results;
+  }
+
+  public async getCount() {
+    return db
+      .select({
+        count: count(),
+      })
+      .from(locationsTable)
+      .then((r) => r[0].count);
+  }
+
+  // =============== PRIVATE ===================
+  private getIslandsCte(params: {
+    range: Partial<DateRange>;
+    activityDurationFilterInMin: number;
+    accuracyFilterInMeters: number;
+  }) {
+    // const accuracyFilter = 20;
+    // const activityDurationFilter = 10;
+    const {
+      range: { start, end },
+      activityDurationFilterInMin,
+      accuracyFilterInMeters,
+    } = params;
 
     // Prepare the locations table to be groupped in gaps/islands. Also applies base filters
     // Gap and Islands https://stackoverflow.com/questions/55654156/group-consecutive-rows-based-on-one-column
@@ -64,7 +221,7 @@ export namespace LocationChartService {
         .where(
           sql`
             ${locationsTable.locationDetailsId} IS NOT NULL
-            AND ${locationsTable.accuracy} < ${accuracyFilter}
+            AND ${locationsTable.accuracy} < ${accuracyFilterInMeters}
             ${start ? sql`AND ${locationsTable.locationFix} >= ${start.toISO()}` : sql``}
             ${end ? sql`AND  ${locationsTable.locationFix} <= ${end.toISO()}` : sql``}
       `,
@@ -110,7 +267,7 @@ export namespace LocationChartService {
         `.as("di_total_seq"),
           partitionSeq: sql`
             row_number() over (
-                partition by ${baseActivitiesIslands.duration} > (60 * ${activityDurationFilter})
+                partition by ${baseActivitiesIslands.duration} > (60 * ${activityDurationFilterInMin})
                 order by ${baseActivitiesIslands.startDate} asc, 
                 ${baseActivitiesIslands.locationDetailsId} asc
             )
@@ -142,99 +299,10 @@ export namespace LocationChartService {
         .orderBy(min(activitiesIslands.startDate)),
     );
 
-    return db
-      .with(durationIslands)
-      .select({
-        startDate: durationIslands.startDate,
-        endDate: durationIslands.endDate,
-        velocity: durationIslands.velocity,
-        duration: durationIslands.duration,
-        placeOfInterest: locationDetailsTable,
-        mode: sql`
-        CASE
-            WHEN ${durationIslands.locationDetailsId} IS NOT NULL THEN 'still'
-            WHEN ${durationIslands.velocity} < 5 THEN 'walking'
-            WHEN ${durationIslands.velocity} < 25 THEN 'biking'
-            WHEN ${durationIslands.velocity} < 27 THEN 'metro'
-            ELSE 'driving'
-        END
-      `.mapWith(String),
-      })
-      .from(durationIslands)
-      .leftJoin(locationDetailsTable, eq(locationDetailsTable.id, durationIslands.locationDetailsId))
-      .orderBy(durationIslands.startDate);
+    return durationIslands;
   }
 
-  export const HeatmapInput = z
-    .object({
-      topLeftLat: z.coerce.number(),
-      topLeftLng: z.coerce.number(),
-      bottomRightLat: z.coerce.number(),
-      bottomRightLng: z.coerce.number(),
-      zoom: z.coerce.number(),
-      startDate: LuxonDateTime,
-      endDate: LuxonDateTime,
-    })
-    .partial()
-    .required({
-      topLeftLat: true,
-      topLeftLng: true,
-      bottomRightLat: true,
-      bottomRightLng: true,
-      zoom: true,
-    });
-  export async function getHeatmap(params: z.infer<typeof HeatmapInput>) {
-    const { zoom, ...filterData } = params;
-    const filters = {
-      ...filterData,
-    };
-    const zoomToGrid = (zoom: number) => {
-      if (zoom <= 10.1) {
-        return "0.0001";
-      }
-      if (zoom <= 12.5) {
-        return "0.00001";
-      }
-      return "0.000001";
-    };
-
-    const weightCap = 10;
-
-    // Using sql.raw to get the grid value instead of sql bindings because
-    // with bindings postgres doesn't realize that the select location expression
-    // is the same as the expression in the group by. And since the value
-    // is hardcoded in the function above there's no SQL injection danger
-    const results = withPointFilters(
-      db
-        .select({
-          location: sql<Point>`ST_SnapToGrid(location::geometry, ${sql.raw(zoomToGrid(zoom))}) AS location`.mapWith(
-            locationsTable.location,
-          ),
-          // I should use some sort of softmax function here?
-          weight: sql<number>`
-                CASE
-                    WHEN COUNT(*) > ${weightCap} THEN ${weightCap}
-                    ELSE COUNT(*)
-                END AS weight`.mapWith(Number),
-        })
-        .from(locationsTable)
-        .$dynamic(),
-      filters,
-    ).groupBy(sql`ST_SnapToGrid(location::geometry, ${sql.raw(zoomToGrid(zoom))})`);
-
-    return results;
-  }
-
-  export async function getCount() {
-    return db
-      .select({
-        count: count(),
-      })
-      .from(locationsTable)
-      .then((r) => r[0].count);
-  }
-
-  function withPointFilters<T extends PgSelectQueryBuilder<PgSelectHKT, typeof locationsTable._.name>>(
+  private withPointFilters<T extends PgSelectQueryBuilder<PgSelectHKT, typeof locationsTable._.name>>(
     qb: T,
     filters: Omit<z.infer<typeof HeatmapInput>, "zoom">,
   ) {
@@ -261,3 +329,5 @@ export namespace LocationChartService {
     );
   }
 }
+
+export const LocationChartService = new LocationChartServiceInternal();

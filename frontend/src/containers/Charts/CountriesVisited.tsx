@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { trpc } from "../../api/trpc";
 import type { ChartProps } from "../../charts/types";
 import { Echarts } from "../../components/Echarts/Echarts";
+import { formatSeconds } from "../../utils/formatSeconds";
 import { isNumber } from "../../utils/isNumber";
 
 export function CountriesVisited(props: ChartProps) {
@@ -20,13 +21,16 @@ export function CountriesVisited(props: ChartProps) {
       .filter((d) => d.country)
       .map((d) => ({
         name: d.country,
-        value: d.weight,
+        value: d.timeSpentInSec,
       }));
 
     return {
       tooltip: {
         trigger: "item",
-        formatter: (params: any) => (isNumber(params.value) ? `${params.name}: ${params.value}` : `${params.name}: 0`),
+        formatter: (params: any) => {
+          const sec = params.value;
+          return `${params.name}: ${isNumber(sec) ? formatSeconds(sec) : "0s"}`;
+        },
       },
 
       visualMap: {
