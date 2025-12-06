@@ -42,7 +42,7 @@ export function CountriesVisited(props: ChartProps) {
           name: "Visited Countries",
           type: "map",
           map: "world",
-          roam: true,
+          roam: false,
           emphasis: {
             label: { show: true },
             itemStyle: { borderWidth: 1.5 },

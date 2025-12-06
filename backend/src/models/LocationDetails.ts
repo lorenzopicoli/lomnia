@@ -1,7 +1,7 @@
-import { pgTable, serial, text, decimal, integer, pgEnum, jsonb } from "drizzle-orm/pg-core";
+import type { getTableColumns } from "drizzle-orm";
+import { decimal, integer, jsonb, pgEnum, pgTable, serial, text } from "drizzle-orm/pg-core";
 import { geography } from "../db/types";
 import { importJobsTable } from "./ImportJob";
-import type { getTableColumns } from "drizzle-orm";
 
 export const locationDetailsSource = pgEnum("locations_details_source", ["external", "userPOIJson"]);
 
@@ -35,6 +35,8 @@ export const locationDetailsTable = pgTable("location_details", {
   extraTags: jsonb("extra_tags"),
   nameDetails: jsonb("name_details"),
   name: text("name"),
+
+  radius: integer("radius"),
 
   houseNumber: text("house_number"),
   road: text("road"),
