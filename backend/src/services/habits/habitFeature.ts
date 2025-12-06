@@ -168,13 +168,13 @@ export namespace HabitFeaturesChartService {
         value: sql<number>`COUNT(*)`,
       })
       .from(a)
-      .innerJoin(b, and(eq(a.habitId, b.habitId), lt(a.value, b.value)))
+      .innerJoin(b, and(eq(a.habitId, b.habitId), lt(a.id, b.id)))
       .innerJoin(habitFeaturesTable, eq(a.habitFeatureId, habitFeaturesTable.id))
       .where(sql`
       ${habitFeaturesTable.name} = ${habitKey} AND
       ${a.startDate} >= ${start.toISO()}  
       AND ${a.endDate} <= ${end.toISO()}
-    `)
+  `)
       .groupBy(sql`LEAST(${a.value}, ${b.value})`, sql`GREATEST(${a.value}, ${b.value})`)
       .orderBy(desc(sql`COUNT(*)`))
       .limit(20);
