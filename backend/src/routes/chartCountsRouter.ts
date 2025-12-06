@@ -1,7 +1,7 @@
 import z from "zod";
 import { DiaryEntriesService } from "../services/diaryEntries";
 import { HabitsService } from "../services/habits/habits";
-import { LocationChartService } from "../services/locations";
+import { LocationChartService } from "../services/locations/locations";
 import { WeatherChartService } from "../services/weather";
 import { loggedProcedure } from "./common/loggedProcedure";
 import { t } from "./trpc";

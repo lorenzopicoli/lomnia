@@ -1,5 +1,5 @@
 import z from "zod";
-import { HeatmapInput, LocationChartService } from "../services/locations";
+import { HeatmapInput, LocationChartService } from "../services/locations/locations";
 import { DateRange } from "../types/chartTypes";
 import { loggedProcedure } from "./common/loggedProcedure";
 import { t } from "./trpc";
@@ -16,12 +16,16 @@ export const locationChartRouter = t.router({
     return points.map((r) => [r.location.lng, r.location.lat, r.weight] as [number, number, number]);
   }),
 
-  getVisitedPlaces: loggedProcedure.input(DateRange).query((opts) => {
-    return LocationChartService.getVisitedPlaces(opts.input);
+  getTimeline: loggedProcedure.input(DateRange).query((opts) => {
+    return LocationChartService.getTimeline(opts.input);
   }),
 
   getCountriesVisited: loggedProcedure.input(DateRange).query((opts) => {
     return LocationChartService.getCountriesVisited(opts.input);
+  }),
+
+  getCitiesVisited: loggedProcedure.input(DateRange).query((opts) => {
+    return LocationChartService.getCitiesVisited(opts.input);
   }),
 
   getVisitCountsByPlace: loggedProcedure.input(DateRange).query((opts) => {

@@ -116,10 +116,23 @@ export default {
   charts: {
     countriesVisited: {
       /**
-       * Minimum amount of points to consider a country as "visited"
+       * Minimum amount of time spent in a country to consider a country as "visited"
        * Useful to filter out points recorded while flying over a country for example
        */
-      minPoints: 100,
+      minimumTimeInMin: 24 * 60,
+    },
+    citiesVisited: {
+      /**
+       * Minimum amount of time spent in a city to consider as "visited"
+       * Useful to filter out points recorded while flying over a country for example
+       */
+      minimumTimeInMin: 2 * 60,
+    },
+    placesVisited: {
+      /**
+       * Minimum amount of time spent in a place to consider it as "visited"
+       */
+      minimumTimeInMin: 15,
     },
   },
 };

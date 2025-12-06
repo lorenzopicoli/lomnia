@@ -14,7 +14,7 @@ type PlacesVisitedTimelineContainerProps = {
 
 export default function PlacesVisitedTimelineContainer(props: PlacesVisitedTimelineContainerProps) {
   const { data, isLoading } = useQuery(
-    trpc.charts.locations.getVisitedPlaces.queryOptions({
+    trpc.charts.locations.getTimeline.queryOptions({
       start: startOfDay(props.date).toISOString(),
       end: endOfDay(props.date).toISOString(),
     }),

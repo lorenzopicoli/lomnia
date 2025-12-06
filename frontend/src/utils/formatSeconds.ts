@@ -5,12 +5,11 @@ export function formatSeconds(seconds: number): string {
 
   const duration = intervalToDuration({
     start: 0,
-    end: seconds * 1000, // date-fns works in ms
+    end: seconds * 1000,
   });
 
-  // Remove empty units so you don’t get “0 seconds”
   return formatDuration(duration, {
-    format: ["days", "hours", "minutes", "seconds"],
+    format: ["years", "months", "days", "hours"],
     zero: false,
   });
 }

@@ -27,7 +27,7 @@ export function CountriesVisited(props: ChartProps) {
     return {
       tooltip: {
         trigger: "item",
-        formatter: (params: any) => {
+        formatter: (params: { value: number; name: string }) => {
           const sec = params.value;
           return `${params.name}: ${isNumber(sec) ? formatSeconds(sec) : "0s"}`;
         },
@@ -39,6 +39,7 @@ export function CountriesVisited(props: ChartProps) {
         text: ["High", "Low"],
         realtime: false,
         calculable: true,
+        formatter: (value: number) => (isNumber(value) ? formatSeconds(value) : "0s"),
       },
 
       series: [
