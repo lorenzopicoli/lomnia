@@ -113,4 +113,13 @@ export default {
       },
     },
   },
+  charts: {
+    countriesVisited: {
+      /**
+       * Minimum amount of points to consider a country as "visited"
+       * Useful to filter out points recorded while flying over a country for example
+       */
+      minPoints: 100,
+    },
+  },
 };

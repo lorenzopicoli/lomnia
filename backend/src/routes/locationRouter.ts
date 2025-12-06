@@ -19,4 +19,8 @@ export const locationChartRouter = t.router({
   getVisitedPlaces: loggedProcedure.input(DateRange).query((opts) => {
     return LocationChartService.getVisitedPlaces(opts.input);
   }),
+
+  getCountriesVisited: loggedProcedure.input(DateRange).query((opts) => {
+    return LocationChartService.getCountriesVisited(opts.input);
+  }),
 });
