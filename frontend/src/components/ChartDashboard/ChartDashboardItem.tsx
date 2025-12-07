@@ -23,6 +23,7 @@ function ChartsDashboardItemInternal(props: { data: RouterOutputs["dashboards"][
     data.content as any,
     handleSaveDashboard,
   );
+
   const charts = useMemo(() => {
     return Object.values(chartsBeingShown).filter(removeNills);
   }, [chartsBeingShown]);
@@ -67,9 +68,13 @@ function ChartsDashboardItemInternal(props: { data: RouterOutputs["dashboards"][
 }
 
 export function ChartsDashboardItem(props: { dashboardId: number }) {
-  const { data: dashboard } = useQuery(trpc.dashboards.get.queryOptions(props.dashboardId));
+  const { data: dashboard, isFetching } = useQuery(
+    trpc.dashboards.get.queryOptions(props.dashboardId, {
+      gcTime: 0,
+    }),
+  );
 
-  if (!dashboard) {
+  if (!dashboard || isFetching) {
     return <>Loading...</>;
   }
   return <ChartsDashboardItemInternal data={dashboard} />;
