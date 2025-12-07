@@ -1,14 +1,17 @@
-import { Flex, Tabs, Text } from "@mantine/core";
-import { IconPlus } from "@tabler/icons-react";
+import { ActionIcon, alpha, Flex, Group, Tabs, Text, TextInput } from "@mantine/core";
+import { useDebouncedCallback } from "@mantine/hooks";
+import { IconPlus, IconTrash } from "@tabler/icons-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { type ChangeEvent, useEffect } from "react";
 import { trpc } from "../../api/trpc";
 import { emptyDashboardContent } from "../../charts/useChartGridLayout";
 import { ChartDashboardMenu } from "../../components/ChartDashboardMenu/ChartDashboardMenu";
+import { useConfig } from "../../contexts/ConfigContext";
 import { useDashboard } from "../../contexts/DashboardContext";
 import { ChartsDashboardItem } from "./ChartDashboardItem";
 
 export function ChartsDashboardList() {
+  const { theme } = useConfig();
   const {
     startDate,
     dashboardId,
@@ -20,14 +23,41 @@ export function ChartsDashboardList() {
     onPeriodSelected,
     toggleIsRearranging,
   } = useDashboard();
-  const { data: backendData, refetch } = useQuery(trpc.dashboards.getAll.queryOptions());
-  const { mutate: createDashboard } = useMutation(
+  const { data: backendData, refetch, isFetching } = useQuery(trpc.dashboards.getAll.queryOptions());
+  const { mutate: saveDashboard } = useMutation(
     trpc.dashboards.save.mutationOptions({
-      onSuccess: () => {
+      onSuccess: (data) => {
         refetch();
+        if (data?.id) {
+          setDashboardId(data.id);
+        }
       },
     }),
   );
+  const { mutate: deleteDashboard } = useMutation(
+    trpc.dashboards.delete.mutationOptions({
+      onSuccess: () => {
+        refetch();
+        const another = backendData?.find((d) => d.id !== dashboardId);
+        if (another) {
+          setDashboardId(another.id);
+        }
+        toggleIsRearranging();
+      },
+    }),
+  );
+  const handleChangeDashboardName = useDebouncedCallback((e: ChangeEvent<HTMLInputElement>) => {
+    const name = e.target.value;
+    if (dashboardId) {
+      saveDashboard({ name, id: dashboardId });
+    }
+  }, 500);
+
+  const handleRemoveDashboard = () => {
+    if (dashboardId) {
+      deleteDashboard(dashboardId);
+    }
+  };
 
   // Set the dashboard id to be the first one if nothing is coming from the context (should mean that this is the first ever load)
   // since nothing is even in local storage
@@ -37,12 +67,18 @@ export function ChartsDashboardList() {
     }
   }, [backendData, setDashboardId, dashboardId]);
 
+  useEffect(() => {
+    if (backendData?.length === 0 && !isFetching) {
+      saveDashboard({ name: "New dashboard", content: emptyDashboardContent as any });
+    }
+  }, [backendData?.length, saveDashboard, isFetching]);
+
   if (!backendData) {
     return <>Loading...</>;
   }
 
   const handleNewDashboard = () => {
-    createDashboard({ name: "New dashboard", content: emptyDashboardContent as any });
+    saveDashboard({ name: "New dashboard", content: emptyDashboardContent as any });
   };
 
   return (
@@ -63,8 +99,36 @@ export function ChartsDashboardList() {
       <Tabs keepMounted={false} value={String(dashboardId)} onChange={(value) => value && setDashboardId(+value)}>
         <Tabs.List>
           {backendData.map((dashboard) => (
-            <Tabs.Tab key={dashboard.id} value={String(dashboard.id)}>
-              {dashboard.name}
+            <Tabs.Tab
+              disabled={isRearranging && dashboardId !== dashboard.id}
+              key={dashboard.id}
+              value={String(dashboard.id)}
+            >
+              {isRearranging && dashboardId === dashboard.id ? (
+                <Group gap={"xs"}>
+                  <TextInput
+                    defaultValue={dashboard.name}
+                    onClick={(e) => e.stopPropagation()} // prevent switching tabs while editing
+                    size={"xs"}
+                    onChange={handleChangeDashboardName}
+                    styles={{
+                      input: {
+                        fontSize: "inherit",
+                      },
+                    }}
+                  />
+                  <ActionIcon
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onClick={handleRemoveDashboard}
+                    size={"lg"}
+                    variant="light"
+                  >
+                    <IconTrash size={20} color={alpha(theme.colors.red[9], 0.8)} />
+                  </ActionIcon>
+                </Group>
+              ) : (
+                dashboard.name
+              )}
             </Tabs.Tab>
           ))}
           {isRearranging || backendData.length === 0 ? (

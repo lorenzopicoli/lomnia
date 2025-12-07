@@ -15,7 +15,7 @@ export const dashboardsRouter = t.router({
   save: loggedProcedure
     .input(
       z.object({
-        content: DashboardSchema,
+        content: DashboardSchema.optional(),
         name: z.string().optional(),
         id: z.number().optional(),
       }),
@@ -26,15 +26,22 @@ export const dashboardsRouter = t.router({
         content,
         name,
       };
+      let savedId = id;
       if (id) {
         await DashboardService.update(id, dashboard);
       } else if (name) {
-        const dashboard = {
+        // Force name and content on creation
+        const schema = z.object({
+          name: z.string(),
+          content: DashboardSchema,
+        });
+        const dashboard = z.parse(schema, {
           content,
           name,
-        };
-        await DashboardService.create(dashboard);
+        });
+        savedId = await DashboardService.create(dashboard);
       }
+      return savedId ? await DashboardService.get(savedId) : null;
     }),
 
   delete: loggedProcedure.input(z.number()).mutation(async (opts) => {

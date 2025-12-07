@@ -4,10 +4,14 @@ import { dashboardsTable, type NewDashboard } from "../models/Dashboard";
 
 export namespace DashboardService {
   export async function create(dashboard: NewDashboard) {
-    await db.insert(dashboardsTable).values(dashboard);
+    const result = await db.insert(dashboardsTable).values(dashboard).returning({ id: dashboardsTable.id });
+    return result[0]?.id;
   }
   export async function getAll() {
-    return await db.select({ id: dashboardsTable.id, name: dashboardsTable.name }).from(dashboardsTable);
+    return await db
+      .select({ id: dashboardsTable.id, name: dashboardsTable.name })
+      .from(dashboardsTable)
+      .orderBy(dashboardsTable.name);
   }
   export async function get(id: number) {
     return await db

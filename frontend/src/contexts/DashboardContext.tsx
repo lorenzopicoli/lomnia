@@ -133,8 +133,13 @@ export const DashboardProvider: React.FC<{ children: ReactNode }> = ({ children 
       return { start: new Date(params.start), end: new Date(params.end) };
     }
 
+    if (params.period) {
+      const range = getPeriod(params.period as Period);
+      return { start: range[0], end: range[1] };
+    }
+    // period (not params.period) contains the default value
     const range = getPeriod(period);
-    onPeriodSelected("year");
+    onPeriodSelected(period);
     return { start: range[0], end: range[1] };
   }, [params.start, params.end, params, period, onPeriodSelected]);
 

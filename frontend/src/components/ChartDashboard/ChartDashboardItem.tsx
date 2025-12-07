@@ -1,4 +1,4 @@
-import { ActionIcon, Container } from "@mantine/core";
+import { ActionIcon, alpha, Container } from "@mantine/core";
 import { IconTrash } from "@tabler/icons-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
@@ -48,14 +48,14 @@ function ChartsDashboardItemInternal(props: { data: RouterOutputs["dashboards"][
                 />
               </Container>
               {isRearranging ? (
-                <Container pos={"absolute"} top={0} right={0} p={0}>
+                <Container pos={"absolute"} top={0} right={0} p={"sm"}>
                   <ActionIcon
                     onMouseDown={(e) => e.stopPropagation()}
                     onClick={() => onRemoveChart(chart.uniqueId)}
                     size={"lg"}
                     variant="light"
                   >
-                    <IconTrash size={20} />
+                    <IconTrash size={20} color={alpha(theme.colors.red[9], 0.8)} />
                   </ActionIcon>
                 </Container>
               ) : null}
