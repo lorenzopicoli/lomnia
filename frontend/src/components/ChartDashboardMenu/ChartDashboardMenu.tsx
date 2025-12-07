@@ -7,12 +7,13 @@ import { type Period, useDashboard } from "../../contexts/DashboardContext";
 
 export function ChartDashboardMenu(props: {
   currentRange: [Date, Date];
+  currentDashboardId: number;
   onDateChange: (range: [Date, Date]) => void;
   onPeriodSelected: (id: Period) => void;
   currentPeriod: Period | null;
   onRearrangeCharts: () => void;
 }) {
-  const { onDateChange, onPeriodSelected, onRearrangeCharts, currentPeriod } = props;
+  const { onDateChange, onPeriodSelected, onRearrangeCharts, currentPeriod, currentDashboardId } = props;
   const [partialDateRange, setPartialDateRange] = useState<[Date | null, Date | null]>([null, null]);
   const handleDateChange: PickerBaseProps<"range">["onChange"] = (dateStr) => {
     const dates: [Date | null, Date | null] = [
@@ -68,7 +69,14 @@ export function ChartDashboardMenu(props: {
                 <ActionIcon m={0} variant="transparent" size="md" onClick={handleRearrange}>
                   <IconSettings />
                 </ActionIcon>
-                <ActionIcon component={Link} to="/explore/add-chart" m={0} variant="filled" size="lg" radius={"xl"}>
+                <ActionIcon
+                  component={Link}
+                  to={`/dashboard/${currentDashboardId}/add-chart`}
+                  m={0}
+                  variant="filled"
+                  size="lg"
+                  radius={"xl"}
+                >
                   <IconPlus />
                 </ActionIcon>
               </>

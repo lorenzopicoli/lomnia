@@ -1,8 +1,8 @@
 import { Flex, Group, Radio, Text } from "@mantine/core";
 import type { UseFormReturnType } from "@mantine/form";
 import { availableCharts } from "../../charts/types";
-import type { AddChartFormValues } from "./AddChart";
 import styles from "./AddChart.module.css";
+import type { AddChartFormValues } from "./AddChartContainer";
 
 export function AddChartId(props: { form: UseFormReturnType<AddChartFormValues> }) {
   const { form } = props;

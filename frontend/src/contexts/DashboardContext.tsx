@@ -1,8 +1,8 @@
-import { useToggle } from "@mantine/hooks";
+import { useLocalStorage, useToggle } from "@mantine/hooks";
 import { subDays } from "date-fns";
 import { differenceInDays } from "date-fns/differenceInDays";
 import type React from "react";
-import { createContext, type ReactNode, useCallback, useContext, useMemo } from "react";
+import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo } from "react";
 import { NumberParam, StringParam, useQueryParams } from "use-query-params";
 import type { AggregationPeriod } from "../charts/types";
 
@@ -39,6 +39,41 @@ function getPeriod(id: Period): [Date, Date] {
   }
 }
 
+function getAggPeriodForPeriod(id: Period) {
+  let aggPeriod: AggregationPeriod = "day";
+  switch (id) {
+    case "all":
+      aggPeriod = "month";
+      break;
+    case "year":
+      aggPeriod = "week";
+      break;
+    case "month":
+      aggPeriod = "day";
+      break;
+    case "week":
+      aggPeriod = "hour";
+      break;
+  }
+  return aggPeriod;
+}
+
+export function getAggPeriodForRange(range: [Date, Date]) {
+  let aggPeriod: AggregationPeriod = "day";
+  const daysDiff = Math.abs(differenceInDays(range[0], range[1]));
+
+  if (daysDiff <= 8) {
+    aggPeriod = "hour";
+  } else if (daysDiff <= 32) {
+    aggPeriod = "day";
+  } else if (daysDiff <= 800) {
+    aggPeriod = "week";
+  } else {
+    aggPeriod = "month";
+  }
+  return aggPeriod;
+}
+const LAST_DASHBOARD_KEY = "last-dashboard";
 export const DashboardProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [params, setParams] = useQueryParams({
     start: StringParam,
@@ -48,20 +83,14 @@ export const DashboardProvider: React.FC<{ children: ReactNode }> = ({ children 
     dashboardId: NumberParam,
   });
   const [isRearranging, toggleIsRearranging] = useToggle([false, true]);
+  const [lastDashboardId, setLastDashboardId] = useLocalStorage<number | null>({
+    key: LAST_DASHBOARD_KEY,
+    defaultValue: null,
+    getInitialValueInEffect: false,
+  });
 
   const setDateRange = (range: [Date, Date]) => {
-    let aggPeriod: AggregationPeriod = "day";
-    const daysDiff = Math.abs(differenceInDays(range[0], range[1]));
-    if (daysDiff <= 8) {
-      aggPeriod = "hour";
-    } else if (daysDiff <= 32) {
-      aggPeriod = "day";
-    } else if (daysDiff <= 800) {
-      aggPeriod = "week";
-    } else {
-      aggPeriod = "month";
-    }
-
+    const aggPeriod = getAggPeriodForRange(range);
     setParams({
       start: range[0].toISOString(),
       end: range[1].toISOString(),
@@ -72,22 +101,7 @@ export const DashboardProvider: React.FC<{ children: ReactNode }> = ({ children 
 
   const onPeriodSelected = useCallback(
     (id: Period) => {
-      let aggPeriod: AggregationPeriod = "day";
-      switch (id) {
-        case "all":
-          aggPeriod = "month";
-          break;
-        case "year":
-          aggPeriod = "week";
-          break;
-        case "month":
-          aggPeriod = "day";
-          break;
-        case "week":
-          aggPeriod = "hour";
-          break;
-      }
-
+      const aggPeriod = getAggPeriodForPeriod(id);
       setParams({
         start: null,
         end: null,
@@ -107,27 +121,32 @@ export const DashboardProvider: React.FC<{ children: ReactNode }> = ({ children 
   const setDashboardId = useCallback(
     (dashboardId: number) => {
       setParams({ dashboardId });
+      setLastDashboardId(dashboardId);
     },
-    [setParams],
+    [setParams, setLastDashboardId],
   );
+  const aggPeriod = (params.aggPeriod ?? "day") as AggregationPeriod;
+  const period = ((params.period ?? "year") as Period) ?? null;
+  const dashboardId = params.dashboardId ?? lastDashboardId ?? null;
   const internalDateRange = useMemo(() => {
     if (params.start && params.end) {
       return { start: new Date(params.start), end: new Date(params.end) };
     }
 
-    if (params.period) {
-      const range = getPeriod(params.period as Period);
-
-      return { start: range[0], end: range[1] };
-    }
-
+    const range = getPeriod(period);
     onPeriodSelected("year");
-  }, [params.start, params.period, params.end, onPeriodSelected]);
+    return { start: range[0], end: range[1] };
+  }, [params.start, params.end, params, period, onPeriodSelected]);
 
-  const aggPeriod = (params.aggPeriod ?? "day") as AggregationPeriod;
-  const period = (params.period as Period) ?? null;
-  const dashboardId = params.dashboardId ?? null;
+  // Set initial dashboardId in params if it's available from local storage
+  useEffect(() => {
+    if (!params.dashboardId && lastDashboardId) {
+      setDashboardId(lastDashboardId);
+    }
+  }, [params.dashboardId, lastDashboardId, setDashboardId]);
 
+  // Should always be available because on first load if nothing is in the URL we set period to year
+  // which should set the range
   if (!internalDateRange) {
     return <>Loading...</>;
   }

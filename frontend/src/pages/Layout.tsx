@@ -21,7 +21,7 @@ function Layout() {
       <AppShell.Main>
         <Routes>
           <Route index element={<Home />} />
-          <Route path={"/explore/*"} element={<Explore />} />
+          <Route path={"/dashboard/*"} element={<Explore />} />
           <Route path={"/habits/features/add"} element={<AddHabitFeature />} />
           <Route path="/habits/features/edit/:featureId" element={<AddHabitFeature />} />
           <Route path={"/habits/*"} element={<HabitsPage />} />

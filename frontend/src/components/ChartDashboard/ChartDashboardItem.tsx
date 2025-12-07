@@ -1,8 +1,9 @@
 import { ActionIcon, Container } from "@mantine/core";
 import { IconTrash } from "@tabler/icons-react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import type { RouterOutputs } from "../../api/trpc";
-import { useChartGridLayout } from "../../charts/useChartGridLayout";
+import { type RouterOutputs, trpc } from "../../api/trpc";
+import { type DashboardLayout, useChartGridLayout } from "../../charts/useChartGridLayout";
 import { ChartDisplayer } from "../../components/ChartDisplayer/ChartDisplayer";
 import { ChartPlaceholder } from "../../components/ChartPlaceholder/ChartPlaceholder";
 import { ResizableGrid } from "../../components/ResizableGrid/ResizableGrid";
@@ -10,11 +11,18 @@ import { useConfig } from "../../contexts/ConfigContext";
 import { useDashboard } from "../../contexts/DashboardContext";
 import { removeNills } from "../../utils/removeNils";
 
-export function ChartsDashboardItem(props: { data: RouterOutputs["dashboards"]["getAll"][number] }) {
+function ChartsDashboardItemInternal(props: { data: RouterOutputs["dashboards"]["get"] }) {
   const { theme } = useConfig();
   const { data } = props;
   const { startDate, endDate, aggPeriod, isRearranging } = useDashboard();
-  const { chartsBeingShown, onRemoveChart, isChangingLayout, gridProps } = useChartGridLayout(data.id);
+  const { mutate: saveDashboard } = useMutation(trpc.dashboards.save.mutationOptions());
+  const handleSaveDashboard = (layout: DashboardLayout) => {
+    saveDashboard({ id: data.id, content: layout as any });
+  };
+  const { chartsBeingShown, onRemoveChart, isChangingLayout, gridProps } = useChartGridLayout(
+    data.content as any,
+    handleSaveDashboard,
+  );
   const charts = useMemo(() => {
     return Object.values(chartsBeingShown).filter(removeNills);
   }, [chartsBeingShown]);
@@ -56,4 +64,13 @@ export function ChartsDashboardItem(props: { data: RouterOutputs["dashboards"]["
       ))}
     </ResizableGrid>
   ) : null;
+}
+
+export function ChartsDashboardItem(props: { dashboardId: number }) {
+  const { data: dashboard } = useQuery(trpc.dashboards.get.queryOptions(props.dashboardId));
+
+  if (!dashboard) {
+    return <>Loading...</>;
+  }
+  return <ChartsDashboardItemInternal data={dashboard} />;
 }

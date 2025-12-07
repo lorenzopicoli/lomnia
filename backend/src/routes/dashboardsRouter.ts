@@ -8,6 +8,9 @@ export const dashboardsRouter = t.router({
   getAll: loggedProcedure.query(() => {
     return DashboardService.getAll() ?? [];
   }),
+  get: loggedProcedure.input(z.number()).query((opts) => {
+    return DashboardService.get(opts.input) ?? [];
+  }),
 
   save: loggedProcedure
     .input(

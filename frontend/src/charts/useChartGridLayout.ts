@@ -1,8 +1,6 @@
-import { useMutation } from "@tanstack/react-query";
 import { omitBy } from "lodash";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { Layout, Layouts } from "react-grid-layout";
-import { trpc } from "../api/trpc";
 import type { ResizableGridProps } from "../components/ResizableGrid/ResizableGrid";
 import type { ChartAreaConfig } from "./types";
 
@@ -15,11 +13,17 @@ export const emptyDashboardContent = {
   placement: { lg: [], md: [], sm: [], xs: [], xxs: [] } as ChartLayout,
 };
 
+export interface DashboardLayout {
+  idToChart: { [key: string]: ChartAreaConfig };
+  placement: ChartLayout;
+}
+
 /**
  *
  * Manages and persists the chart grid and configuration
  *
- * @param gridId A unique identifier to make sure that the stored layout doesn´t conflict
+ * @param initialContent the initial content from the backend. This hook only handles managing the data
+ * @param saveChanges callback to update the backend on changes
  * @returns isChangingLayout - true if the user is in the process of moving or resizing tiles
  * @returns onAddCharts - function to be called to add charts to the grid. It'll automatically
  * add them to the bottom of the gird
@@ -29,29 +33,21 @@ export const emptyDashboardContent = {
  * @returns layout - exposes the object that gets saved in the local storage
  * @returns gridProps - props that should be passed as is to the underlying react-grid-layout
  */
-export function useChartGridLayout(dashboardId: number | null): {
+export function useChartGridLayout(
+  initialContent: DashboardLayout | null,
+  saveChanges?: (layout: DashboardLayout) => void,
+): {
   isChangingLayout: boolean;
   onAddCharts: (charts: ChartAreaConfig[]) => void;
   onRemoveChart: (chartUniqueId: string) => void;
   chartsBeingShown: { [key: string]: ChartAreaConfig };
-  layout: {
-    idToChart: { [key: string]: ChartAreaConfig };
-    placement: ChartLayout;
-  };
+  layout: DashboardLayout;
   gridProps: Pick<
     ResizableGridProps,
     "layout" | "onLayoutChange" | "onDragStart" | "onDragStop" | "onResizeStart" | "onResizeStop"
   >;
 } {
-  const { mutate: updateBackend } = useMutation(trpc.dashboards.save.mutationOptions());
-
-  const [layout, setLayout] = useState(emptyDashboardContent);
-
-  useEffect(() => {
-    if (dashboardId) {
-      updateBackend({ id: dashboardId, content: layout as any });
-    }
-  }, [layout, updateBackend, dashboardId]);
+  const [layout, setLayout] = useState(initialContent ?? emptyDashboardContent);
 
   const [isChangingLayout, setIsChangingLayout] = useState<boolean>(false);
 
@@ -61,7 +57,11 @@ export function useChartGridLayout(dashboardId: number | null): {
     },
     [layout.idToChart],
   );
-  const handleStopGridChange = useCallback(() => setIsChangingLayout(false), []);
+  const handleStopGridChange = useCallback(() => {
+    setIsChangingLayout(false);
+    saveChanges?.(layout);
+  }, [saveChanges, layout]);
+
   const handleStartGridChange = useCallback(() => setIsChangingLayout(true), []);
   const onRemoveChart = useCallback(
     (uniqueId: string) => {
@@ -78,12 +78,14 @@ export function useChartGridLayout(dashboardId: number | null): {
         }
       }
 
-      setLayout({
+      const result = {
         idToChart: omitBy(layout.idToChart, (o) => o.uniqueId === uniqueId),
         placement: newLayout,
-      });
+      };
+      setLayout(result);
+      saveChanges?.(result);
     },
-    [layout],
+    [layout, saveChanges],
   );
   const onAddCharts = useCallback(
     (charts: ChartAreaConfig[]) => {
@@ -137,10 +139,11 @@ export function useChartGridLayout(dashboardId: number | null): {
           lastElement = newPane;
         }
       }
-
-      setLayout({ idToChart: newIdToCharts, placement: newLayout });
+      const result = { idToChart: newIdToCharts, placement: newLayout };
+      setLayout(result);
+      saveChanges?.(result);
     },
-    [layout],
+    [layout, saveChanges],
   );
   const gridLayout = useMemo(() => {
     return layout.placement;

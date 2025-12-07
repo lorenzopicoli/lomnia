@@ -12,13 +12,13 @@ export function ChartsDashboardList() {
   const {
     startDate,
     dashboardId,
-    setDashboardId,
     endDate,
     period,
+    isRearranging,
+    setDashboardId,
     setDateRange,
     onPeriodSelected,
     toggleIsRearranging,
-    isRearranging,
   } = useDashboard();
   const { data: backendData, refetch } = useQuery(trpc.dashboards.getAll.queryOptions());
   const { mutate: createDashboard } = useMutation(
@@ -29,12 +29,13 @@ export function ChartsDashboardList() {
     }),
   );
 
+  // Set the dashboard id to be the first one if nothing is coming from the context (should mean that this is the first ever load)
+  // since nothing is even in local storage
   useEffect(() => {
     if (!dashboardId && backendData?.[0]) {
       setDashboardId(backendData[0].id);
     }
   }, [backendData, setDashboardId, dashboardId]);
-  // const [activeTab, setActiveTab] = useState<string | null>();
 
   if (!backendData) {
     return <>Loading...</>;
@@ -51,6 +52,7 @@ export function ChartsDashboardList() {
           Lomnia
         </Text>
         <ChartDashboardMenu
+          currentDashboardId={dashboardId ?? -1}
           currentRange={[startDate, endDate]}
           currentPeriod={period}
           onDateChange={setDateRange}
@@ -58,7 +60,7 @@ export function ChartsDashboardList() {
           onRearrangeCharts={toggleIsRearranging}
         />
       </Flex>
-      <Tabs value={String(dashboardId)} onChange={(value) => value && setDashboardId(+value)}>
+      <Tabs keepMounted={false} value={String(dashboardId)} onChange={(value) => value && setDashboardId(+value)}>
         <Tabs.List>
           {backendData.map((dashboard) => (
             <Tabs.Tab key={dashboard.id} value={String(dashboard.id)}>
@@ -74,7 +76,7 @@ export function ChartsDashboardList() {
 
         {backendData.map((dashboard) => (
           <Tabs.Panel key={dashboard.id} value={String(dashboard.id)}>
-            <ChartsDashboardItem data={dashboard} />
+            <ChartsDashboardItem dashboardId={dashboard.id} />
           </Tabs.Panel>
         ))}
       </Tabs>

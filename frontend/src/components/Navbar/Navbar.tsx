@@ -18,7 +18,7 @@ export default function Navbar(props: HeaderProps) {
 
   const MainPages = () => {
     const isHome = location.pathname === "/";
-    const isExplore = location.pathname.startsWith("/explore");
+    const isExplore = location.pathname.startsWith("/dashboard");
     const isHabits = location.pathname.startsWith("/habits");
 
     return (
@@ -29,7 +29,7 @@ export default function Navbar(props: HeaderProps) {
 
         <ActionIcon
           component={Link}
-          to="/explore"
+          to="/dashboard"
           bdrs={"lg"}
           size={"lg"}
           variant={isExplore ? "light" : "transparent"}
