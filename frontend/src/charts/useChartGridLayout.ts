@@ -1,3 +1,4 @@
+import { useDebouncedCallback } from "@mantine/hooks";
 import { omitBy } from "lodash";
 import { useCallback, useMemo, useState } from "react";
 import type { Layout, Layouts } from "react-grid-layout";
@@ -50,17 +51,21 @@ export function useChartGridLayout(
   const [layout, setLayout] = useState(initialContent ?? emptyDashboardContent);
 
   const [isChangingLayout, setIsChangingLayout] = useState<boolean>(false);
+  const debouncedSaveChanges = useDebouncedCallback(async (layout: DashboardLayout) => {
+    saveChanges?.(layout);
+  }, 500);
 
   const onLayoutChange: ResizableGridProps["onLayoutChange"] = useCallback(
     (_currentLayout: Layout[], newLayout: Layouts) => {
-      setLayout({ idToChart: layout.idToChart, placement: newLayout });
+      const resultingLayout = { idToChart: layout.idToChart, placement: newLayout };
+      setLayout(resultingLayout);
+      debouncedSaveChanges?.(resultingLayout);
     },
-    [layout.idToChart],
+    [layout.idToChart, layout, debouncedSaveChanges],
   );
   const handleStopGridChange = useCallback(() => {
     setIsChangingLayout(false);
-    saveChanges?.(layout);
-  }, [saveChanges, layout]);
+  }, []);
 
   const handleStartGridChange = useCallback(() => setIsChangingLayout(true), []);
   const onRemoveChart = useCallback(
@@ -83,9 +88,9 @@ export function useChartGridLayout(
         placement: newLayout,
       };
       setLayout(result);
-      saveChanges?.(result);
+      debouncedSaveChanges?.(result);
     },
-    [layout, saveChanges],
+    [layout, debouncedSaveChanges],
   );
   const onAddCharts = useCallback(
     (charts: ChartAreaConfig[]) => {
@@ -141,9 +146,9 @@ export function useChartGridLayout(
       }
       const result = { idToChart: newIdToCharts, placement: newLayout };
       setLayout(result);
-      saveChanges?.(result);
+      debouncedSaveChanges?.(result);
     },
-    [layout, saveChanges],
+    [layout, debouncedSaveChanges],
   );
   const gridLayout = useMemo(() => {
     return layout.placement;
