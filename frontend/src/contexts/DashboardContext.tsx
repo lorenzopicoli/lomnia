@@ -3,7 +3,7 @@ import { subDays } from "date-fns";
 import { differenceInDays } from "date-fns/differenceInDays";
 import type React from "react";
 import { createContext, type ReactNode, useCallback, useContext, useMemo } from "react";
-import { StringParam, useQueryParams } from "use-query-params";
+import { NumberParam, StringParam, useQueryParams } from "use-query-params";
 import type { AggregationPeriod } from "../charts/types";
 
 export type Period = "week" | "month" | "year" | "all";
@@ -14,11 +14,13 @@ interface DashboardState {
   isRearranging: boolean;
   aggPeriod: AggregationPeriod;
   period: Period | null;
+  dashboardId: number | null;
 
   setDateRange: (range: [Date, Date]) => void;
   toggleIsRearranging: () => void;
   setAggPeriod: (aggPeriod: AggregationPeriod) => void;
   onPeriodSelected: (id: Period) => void;
+  setDashboardId: (id: number) => void;
 }
 
 const DashboardContext = createContext<DashboardState | undefined>(undefined);
@@ -43,6 +45,7 @@ export const DashboardProvider: React.FC<{ children: ReactNode }> = ({ children 
     end: StringParam,
     aggPeriod: StringParam,
     period: StringParam,
+    dashboardId: NumberParam,
   });
   const [isRearranging, toggleIsRearranging] = useToggle([false, true]);
 
@@ -101,7 +104,12 @@ export const DashboardProvider: React.FC<{ children: ReactNode }> = ({ children 
     },
     [setParams],
   );
-
+  const setDashboardId = useCallback(
+    (dashboardId: number) => {
+      setParams({ dashboardId });
+    },
+    [setParams],
+  );
   const internalDateRange = useMemo(() => {
     if (params.start && params.end) {
       return { start: new Date(params.start), end: new Date(params.end) };
@@ -118,6 +126,7 @@ export const DashboardProvider: React.FC<{ children: ReactNode }> = ({ children 
 
   const aggPeriod = (params.aggPeriod ?? "day") as AggregationPeriod;
   const period = (params.period as Period) ?? null;
+  const dashboardId = params.dashboardId ?? null;
 
   if (!internalDateRange) {
     return <>Loading...</>;
@@ -133,6 +142,8 @@ export const DashboardProvider: React.FC<{ children: ReactNode }> = ({ children 
         setDateRange,
         onPeriodSelected,
         period,
+        dashboardId,
+        setDashboardId,
         startDate: internalDateRange.start,
         endDate: internalDateRange.end,
       }}

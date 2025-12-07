@@ -1,12 +1,18 @@
-import { useLocalStorage } from "@mantine/hooks";
+import { useMutation } from "@tanstack/react-query";
 import { omitBy } from "lodash";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Layout, Layouts } from "react-grid-layout";
+import { trpc } from "../api/trpc";
 import type { ResizableGridProps } from "../components/ResizableGrid/ResizableGrid";
 import type { ChartAreaConfig } from "./types";
 
 type ChartLayout = {
   [breakpoint: string]: Layout[];
+};
+
+export const emptyDashboardContent = {
+  idToChart: {} as { [key: string]: ChartAreaConfig },
+  placement: { lg: [], md: [], sm: [], xs: [], xxs: [] } as ChartLayout,
 };
 
 /**
@@ -23,7 +29,7 @@ type ChartLayout = {
  * @returns layout - exposes the object that gets saved in the local storage
  * @returns gridProps - props that should be passed as is to the underlying react-grid-layout
  */
-export function useChartGridLayout(gridId: string): {
+export function useChartGridLayout(dashboardId: number | null): {
   isChangingLayout: boolean;
   onAddCharts: (charts: ChartAreaConfig[]) => void;
   onRemoveChart: (chartUniqueId: string) => void;
@@ -37,20 +43,23 @@ export function useChartGridLayout(gridId: string): {
     "layout" | "onLayoutChange" | "onDragStart" | "onDragStop" | "onResizeStart" | "onResizeStop"
   >;
 } {
-  const [layout, setLayout] = useLocalStorage({
-    key: `${gridId}-layout`,
-    defaultValue: {
-      idToChart: {} as { [key: string]: ChartAreaConfig },
-      placement: { lg: [], md: [], sm: [], xs: [], xxs: [] } as ChartLayout,
-    },
-  });
+  const { mutate: updateBackend } = useMutation(trpc.dashboards.save.mutationOptions());
+
+  const [layout, setLayout] = useState(emptyDashboardContent);
+
+  useEffect(() => {
+    if (dashboardId) {
+      updateBackend({ id: dashboardId, content: layout as any });
+    }
+  }, [layout, updateBackend, dashboardId]);
+
   const [isChangingLayout, setIsChangingLayout] = useState<boolean>(false);
 
   const onLayoutChange: ResizableGridProps["onLayoutChange"] = useCallback(
     (_currentLayout: Layout[], newLayout: Layouts) => {
       setLayout({ idToChart: layout.idToChart, placement: newLayout });
     },
-    [layout.idToChart, setLayout],
+    [layout.idToChart],
   );
   const handleStopGridChange = useCallback(() => setIsChangingLayout(false), []);
   const handleStartGridChange = useCallback(() => setIsChangingLayout(true), []);
@@ -74,7 +83,7 @@ export function useChartGridLayout(gridId: string): {
         placement: newLayout,
       });
     },
-    [layout, setLayout],
+    [layout],
   );
   const onAddCharts = useCallback(
     (charts: ChartAreaConfig[]) => {
@@ -131,7 +140,7 @@ export function useChartGridLayout(gridId: string): {
 
       setLayout({ idToChart: newIdToCharts, placement: newLayout });
     },
-    [layout, setLayout],
+    [layout],
   );
   const gridLayout = useMemo(() => {
     return layout.placement;

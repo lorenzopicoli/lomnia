@@ -4,18 +4,18 @@ import type { ChartAreaConfig } from "../../charts/types";
 import { useChartGridLayout } from "../../charts/useChartGridLayout";
 import { safeScrollableArea } from "../../constants";
 import { useConfig } from "../../contexts/ConfigContext";
-import { DashboardProvider } from "../../contexts/DashboardContext";
+import { DashboardProvider, useDashboard } from "../../contexts/DashboardContext";
 import { AddChart } from "../AddChart/AddChart";
 import { ChartsDashboard } from "./ChartsDashboard";
 
-export function Explore() {
+function ExploreInternal() {
   const { theme } = useConfig();
   const navigate = useNavigate();
-
-  const { onAddCharts } = useChartGridLayout("explore");
+  const { dashboardId } = useDashboard();
+  const { onAddCharts } = useChartGridLayout(dashboardId);
   const handleAddChart = (chart: ChartAreaConfig) => {
     onAddCharts([chart]);
-    navigate("/explore");
+    // navigate("/explore");
   };
 
   const handleDismissAddChart = () => {
@@ -23,18 +23,21 @@ export function Explore() {
   };
 
   return (
+    <Paper p={0} component={Container} fluid h={"100vh"} bg={theme.colors.dark[9]}>
+      <ScrollArea h={safeScrollableArea} type="never">
+        <Routes>
+          <Route index element={<ChartsDashboard />} />
+          <Route path={"add-chart"} element={<AddChart onDismiss={handleDismissAddChart} onSave={handleAddChart} />} />
+        </Routes>
+      </ScrollArea>
+    </Paper>
+  );
+}
+
+export function Explore() {
+  return (
     <DashboardProvider>
-      <Paper p={0} component={Container} fluid h={"100vh"} bg={theme.colors.dark[9]}>
-        <ScrollArea h={safeScrollableArea} type="never">
-          <Routes>
-            <Route index element={<ChartsDashboard />} />
-            <Route
-              path={"add-chart"}
-              element={<AddChart onDismiss={handleDismissAddChart} onSave={handleAddChart} />}
-            />
-          </Routes>
-        </ScrollArea>
-      </Paper>
+      <ExploreInternal />
     </DashboardProvider>
   );
 }
