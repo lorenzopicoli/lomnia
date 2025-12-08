@@ -43,7 +43,7 @@ export function useAllDashboards() {
 
   const createDashboard = useCallback(
     (name = "New dashboard") => {
-      saveDashboard({ name, content: emptyDashboardContent as any });
+      saveDashboard({ name, content: emptyDashboardContent });
     },
     [saveDashboard],
   );

@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { trpc } from "../api/trpc";
-import type { DashboardLayout } from "../charts/useChartGridLayout";
+import type { BackendDashboardLayout } from "../charts/useChartGridLayout";
 
 export function useDashboardContent(
   dashboardId: number | null,
@@ -30,9 +30,9 @@ export function useDashboardContent(
     }),
   );
 
-  const updateDashboardContent = (content: DashboardLayout) => {
+  const updateDashboardContent = (content: BackendDashboardLayout) => {
     if (dashboardId) {
-      saveDashboard({ id: dashboardId, content: content as any });
+      saveDashboard({ id: dashboardId, content });
     }
   };
 

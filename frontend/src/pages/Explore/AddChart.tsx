@@ -21,7 +21,7 @@ export function AddChart() {
       navigate("/dashboard");
     },
   });
-  const { onAddCharts } = useChartGridLayout(dashboard?.content as any, updateDashboardContent);
+  const { onAddCharts } = useChartGridLayout(dashboard?.content ?? null, updateDashboardContent);
 
   const handleAddChart = (chart: ChartAreaConfig) => {
     onAddCharts([chart]);

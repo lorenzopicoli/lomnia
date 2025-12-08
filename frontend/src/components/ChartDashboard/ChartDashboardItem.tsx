@@ -18,7 +18,7 @@ export function ChartsDashboardItem(props: { dashboardId: number }) {
   const { isConfiguring } = useCurrentDashboard();
   const { dashboard, updateDashboardContent } = useDashboardContent(dashboardId);
   const { chartsBeingShown, onRemoveChart, isChangingLayout, gridProps } = useChartGridLayout(
-    dashboard?.content as any,
+    dashboard?.content ?? null,
     updateDashboardContent,
   );
 

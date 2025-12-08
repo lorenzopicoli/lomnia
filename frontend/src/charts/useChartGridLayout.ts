@@ -2,6 +2,7 @@ import { useDebouncedCallback } from "@mantine/hooks";
 import { omitBy } from "lodash";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Layout, Layouts } from "react-grid-layout";
+import type { RouterOutputs } from "../api/trpc";
 import type { ResizableGridProps } from "../components/ResizableGrid/ResizableGrid";
 import type { ChartAreaConfig } from "./types";
 
@@ -10,14 +11,15 @@ type ChartLayout = {
 };
 
 export const emptyDashboardContent = {
-  idToChart: {} as { [key: string]: ChartAreaConfig },
-  placement: { lg: [], md: [], sm: [], xs: [], xxs: [] } as ChartLayout,
-};
+  idToChart: {},
+  placement: { lg: [], md: [], sm: [], xs: [], xxs: [] },
+} as BackendDashboardLayout;
 
-export interface DashboardLayout {
+interface DashboardLayout {
   idToChart: { [key: string]: ChartAreaConfig };
   placement: ChartLayout;
 }
+export type BackendDashboardLayout = RouterOutputs["dashboards"]["get"]["content"];
 
 /**
  *
@@ -35,8 +37,8 @@ export interface DashboardLayout {
  * @returns gridProps - props that should be passed as is to the underlying react-grid-layout
  */
 export function useChartGridLayout(
-  authorativeContent: DashboardLayout | null,
-  saveChanges?: (layout: DashboardLayout) => void,
+  authorativeContent: BackendDashboardLayout | null,
+  saveChanges?: (layout: BackendDashboardLayout) => void,
 ): {
   isChangingLayout: boolean;
   onAddCharts: (charts: ChartAreaConfig[]) => void;
@@ -48,20 +50,22 @@ export function useChartGridLayout(
     "layout" | "onLayoutChange" | "onDragStart" | "onDragStop" | "onResizeStart" | "onResizeStop"
   >;
 } {
-  const [layout, setLayout] = useState(authorativeContent ?? emptyDashboardContent);
+  const [layout, setLayout] = useState<DashboardLayout>(
+    (authorativeContent as DashboardLayout) ?? emptyDashboardContent,
+  );
 
   // Sync layout when authorativeContent changes
   // realistically, whenever the server results update, we also update the local state which does the
   // optimistic update
   useEffect(() => {
     if (authorativeContent) {
-      setLayout(authorativeContent);
+      setLayout(authorativeContent as DashboardLayout);
     }
   }, [authorativeContent]);
 
   const [isChangingLayout, setIsChangingLayout] = useState<boolean>(false);
   const debouncedSaveChanges = useDebouncedCallback(async (layout: DashboardLayout) => {
-    saveChanges?.(layout);
+    saveChanges?.(layout as BackendDashboardLayout);
   }, 500);
 
   const onLayoutChange: ResizableGridProps["onLayoutChange"] = useCallback(
