@@ -3,6 +3,7 @@ import { habitFeatureRuleSchema, habitFeatureSchema, validateNewHabitFeature } f
 import { HabitFeatureExtraction } from "../services/habits/HabitFeatureExtraction";
 import {
   HabitFeatureChartPeriodInput,
+  HabitFeatureChartPeriodNoAggInput,
   HabitFeaturesChartService,
   HabitFeaturesService,
 } from "../services/habits/habitFeature";
@@ -63,6 +64,9 @@ export const habitFeaturesRouter = t.router({
 export const habitFeaturesChartRouter = t.router({
   numeric: loggedProcedure.input(HabitFeatureChartPeriodInput).query((opts) => {
     return HabitFeaturesChartService.numeric(opts.input);
+  }),
+  textGroup: loggedProcedure.input(HabitFeatureChartPeriodNoAggInput).query((opts) => {
+    return HabitFeaturesChartService.textGroup(opts.input);
   }),
   cooccurrences: loggedProcedure.input(HabitFeatureChartPeriodInput).query((opts) => {
     return HabitFeaturesChartService.coocurrences(opts.input);

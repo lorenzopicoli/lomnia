@@ -44,6 +44,7 @@ export enum ChartId {
   CitiesVisitedBar = "citiesVisitedBar",
   CitiesVisitedPie = "citiesVisitedPie",
   PlacesVisitCountBar = "placesVisitCountBar",
+  TextHabitBar = "textHabitBar",
 }
 
 export type ChartParams = "habitKey" | "countKey" | "compactNumbers" | "aggFun";
@@ -62,6 +63,7 @@ export const chartParamByChartId: Record<ChartId, ChartParams[]> = {
   [ChartId.CitiesVisitedBar]: [],
   [ChartId.CitiesVisitedPie]: [],
   [ChartId.PlacesVisitCountBar]: [],
+  [ChartId.TextHabitBar]: ["habitKey"],
 };
 
 const aggregationPeriods = ["month", "day", "week", "hour"] as const;
@@ -232,6 +234,13 @@ export const availableCharts = [
     title: "Places visited (count)",
     description: "Explore all the places you visited in a given time period",
     sources: [ChartSource.Location],
+    elements: [ChartElement.Bar],
+  },
+  {
+    id: ChartId.TextHabitBar,
+    title: "Bar Chart of Text Habit Features",
+    description: "Explore the occurences of a text in your habit features",
+    sources: [ChartSource.Habit],
     elements: [ChartElement.Bar],
   },
 ];

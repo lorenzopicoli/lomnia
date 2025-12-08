@@ -59,7 +59,7 @@ export const DashboardFiltersProvider: React.FC<{ children: ReactNode }> = ({ ch
     [setParams],
   );
   const aggPeriod = (params.aggPeriod ?? "day") as AggregationPeriod;
-  const period = ((params.period ?? "year") as Period) ?? null;
+  const period = (params.period ?? null) as Period | null;
   const internalDateRange = useMemo(() => {
     if (params.start && params.end) {
       return { start: new Date(params.start), end: new Date(params.end) };
@@ -69,11 +69,12 @@ export const DashboardFiltersProvider: React.FC<{ children: ReactNode }> = ({ ch
       const range = getRangeFromPeriod(params.period as Period);
       return { start: range[0], end: range[1] };
     }
+    const defaultPeriod = "year";
     // period (not params.period) contains the default value
-    const range = getRangeFromPeriod(period);
-    onPeriodSelected(period);
+    const range = getRangeFromPeriod(defaultPeriod);
+    onPeriodSelected(defaultPeriod);
     return { start: range[0], end: range[1] };
-  }, [params.start, params.end, params, period, onPeriodSelected]);
+  }, [params.start, params.end, params, onPeriodSelected]);
 
   // Should always be available because on first load if nothing is in the URL we set period to year
   // which should set the range

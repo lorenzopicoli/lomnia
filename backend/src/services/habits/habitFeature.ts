@@ -1,13 +1,14 @@
-import { and, asc, countDistinct, desc, eq, lt, sql } from "drizzle-orm";
+import { and, asc, count, countDistinct, desc, eq, lt, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import z from "zod";
+import config from "../../config";
 import { db } from "../../db/connection";
 import {
   extractedHabitFeaturesTable,
   habitFeaturesTable,
   type ValidatedNewHabitFeature,
 } from "../../models/HabitFeature";
-import { ChartAggregationInput } from "../../types/chartTypes";
+import { ChartAggregationInput, DateRange } from "../../types/chartTypes";
 import { getAggregatedXColumn } from "../common/getAggregatedXColumn";
 import { getAggregatedYColumn } from "../common/getAggregatedYColumn";
 
@@ -15,7 +16,12 @@ export const HabitFeatureChartPeriodInput = z.object({
   ...ChartAggregationInput.shape,
   habitKey: z.string(),
 });
+export const HabitFeatureChartPeriodNoAggInput = z.object({
+  ...DateRange.shape,
+  habitKey: z.string(),
+});
 export type HabitFeatureChartPeriodInput = z.infer<typeof HabitFeatureChartPeriodInput>;
+export type HabitFeatureChartPeriodNoAggInput = z.infer<typeof HabitFeatureChartPeriodNoAggInput>;
 export namespace HabitFeaturesService {
   export async function byId(id: number) {
     return db
@@ -147,6 +153,34 @@ export namespace HabitFeaturesChartService {
       )
       .groupBy(aggregatedDate)
       .orderBy(asc(aggregatedDate));
+
+    return data;
+  };
+
+  export const textGroup = async (params: HabitFeatureChartPeriodNoAggInput) => {
+    const { habitKey, start, end } = params;
+    const supportedKeys = await HabitFeaturesService.getTextKeys();
+
+    if (!supportedKeys.find((k) => k.key === params.habitKey)) {
+      return [];
+    }
+
+    const data = db
+      .select({
+        value: sql`${extractedHabitFeaturesTable.value}::text`.mapWith((v) => String(v).replace(/^"|"$/g, "")),
+        count: count(extractedHabitFeaturesTable.value),
+      })
+      .from(extractedHabitFeaturesTable)
+      .innerJoin(habitFeaturesTable, eq(extractedHabitFeaturesTable.habitFeatureId, habitFeaturesTable.id))
+      .where(
+        sql`
+      ${habitFeaturesTable.name} = ${habitKey} AND
+      ${extractedHabitFeaturesTable.startDate} >= ${start.toISO()}  
+      AND ${extractedHabitFeaturesTable.endDate} <= ${end.toISO()}`,
+      )
+      .groupBy(sql`${extractedHabitFeaturesTable.value}::text`)
+      .orderBy(desc(count(extractedHabitFeaturesTable.value)))
+      .limit(config.charts.habitTextBar.limit);
 
     return data;
   };
