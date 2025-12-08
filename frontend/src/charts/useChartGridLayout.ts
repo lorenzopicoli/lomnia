@@ -1,6 +1,6 @@
 import { useDebouncedCallback } from "@mantine/hooks";
 import { omitBy } from "lodash";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Layout, Layouts } from "react-grid-layout";
 import type { ResizableGridProps } from "../components/ResizableGrid/ResizableGrid";
 import type { ChartAreaConfig } from "./types";
@@ -23,7 +23,7 @@ export interface DashboardLayout {
  *
  * Manages and persists the chart grid and configuration
  *
- * @param initialContent the initial content from the backend. This hook only handles managing the data
+ * @param authorativeContent the content from the backend. This hook only handles managing the data
  * @param saveChanges callback to update the backend on changes
  * @returns isChangingLayout - true if the user is in the process of moving or resizing tiles
  * @returns onAddCharts - function to be called to add charts to the grid. It'll automatically
@@ -35,7 +35,7 @@ export interface DashboardLayout {
  * @returns gridProps - props that should be passed as is to the underlying react-grid-layout
  */
 export function useChartGridLayout(
-  initialContent: DashboardLayout | null,
+  authorativeContent: DashboardLayout | null,
   saveChanges?: (layout: DashboardLayout) => void,
 ): {
   isChangingLayout: boolean;
@@ -48,7 +48,16 @@ export function useChartGridLayout(
     "layout" | "onLayoutChange" | "onDragStart" | "onDragStop" | "onResizeStart" | "onResizeStop"
   >;
 } {
-  const [layout, setLayout] = useState(initialContent ?? emptyDashboardContent);
+  const [layout, setLayout] = useState(authorativeContent ?? emptyDashboardContent);
+
+  // Sync layout when authorativeContent changes
+  // realistically, whenever the server results update, we also update the local state which does the
+  // optimistic update
+  useEffect(() => {
+    if (authorativeContent) {
+      setLayout(authorativeContent);
+    }
+  }, [authorativeContent]);
 
   const [isChangingLayout, setIsChangingLayout] = useState<boolean>(false);
   const debouncedSaveChanges = useDebouncedCallback(async (layout: DashboardLayout) => {
