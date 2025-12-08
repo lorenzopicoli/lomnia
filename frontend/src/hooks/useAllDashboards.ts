@@ -3,7 +3,7 @@ import { trpc } from "../api/trpc";
 import { emptyDashboardContent } from "../charts/useChartGridLayout";
 import { useCurrentDashboard } from "../contexts/DashboardContext";
 
-export function useDashboardOperations() {
+export function useAllDashboards() {
   const { dashboardId, setDashboardId, setIsConfiguring } = useCurrentDashboard();
 
   const {

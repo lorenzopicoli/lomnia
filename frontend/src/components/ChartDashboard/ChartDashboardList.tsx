@@ -5,7 +5,7 @@ import { type ChangeEvent, useEffect } from "react";
 import { ChartDashboardMenu } from "../../components/ChartDashboardMenu/ChartDashboardMenu";
 import { useConfig } from "../../contexts/ConfigContext";
 import { useCurrentDashboard } from "../../contexts/DashboardContext";
-import { useDashboardOperations } from "../../hooks/useDashboardOperations";
+import { useAllDashboards } from "../../hooks/useAllDashboards";
 import { ChartsDashboardItem } from "./ChartDashboardItem";
 
 export function ChartsDashboardList() {
@@ -13,7 +13,7 @@ export function ChartsDashboardList() {
 
   const { dashboardId, isConfiguring, setDashboardId } = useCurrentDashboard();
   const { allDashboards, isFetchingAllDashboards, createDashboard, renameDashboard, removeDashboard } =
-    useDashboardOperations();
+    useAllDashboards();
   const handleChangeDashboardName = useDebouncedCallback((e: ChangeEvent<HTMLInputElement>) => {
     const name = e.target.value;
     if (dashboardId) {
