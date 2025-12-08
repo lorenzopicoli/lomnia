@@ -8,13 +8,15 @@ import { ChartDisplayer } from "../../components/ChartDisplayer/ChartDisplayer";
 import { ChartPlaceholder } from "../../components/ChartPlaceholder/ChartPlaceholder";
 import { ResizableGrid } from "../../components/ResizableGrid/ResizableGrid";
 import { useConfig } from "../../contexts/ConfigContext";
-import { useDashboard } from "../../contexts/DashboardContext";
+import { useCurrentDashboard } from "../../contexts/DashboardContext";
+import { useDashboardFilters } from "../../contexts/DashboardFiltersContext";
 import { removeNills } from "../../utils/removeNils";
 
 function ChartsDashboardItemInternal(props: { data: RouterOutputs["dashboards"]["get"] }) {
   const { theme } = useConfig();
   const { data } = props;
-  const { startDate, endDate, aggPeriod, isRearranging } = useDashboard();
+  const { startDate, endDate, aggPeriod } = useDashboardFilters();
+  const { isConfiguring } = useCurrentDashboard();
   const { mutate: saveDashboard } = useMutation(trpc.dashboards.save.mutationOptions());
   const handleSaveDashboard = (layout: DashboardLayout) => {
     saveDashboard({ id: data.id, content: layout as any });
@@ -29,7 +31,7 @@ function ChartsDashboardItemInternal(props: { data: RouterOutputs["dashboards"][
   }, [chartsBeingShown]);
 
   return charts.length > 0 ? (
-    <ResizableGrid {...gridProps} isResizable={isRearranging} isDraggable={isRearranging} rowHeight={100}>
+    <ResizableGrid {...gridProps} isResizable={isConfiguring} isDraggable={isConfiguring} rowHeight={100}>
       {charts.map((chart) => (
         <div key={chart.uniqueId}>
           {isChangingLayout ? (
@@ -38,7 +40,7 @@ function ChartsDashboardItemInternal(props: { data: RouterOutputs["dashboards"][
             </Container>
           ) : (
             <Container fluid h={"100%"} p={0}>
-              <Container fluid h={"100%"} p={0} opacity={isRearranging ? 0.5 : 1}>
+              <Container fluid h={"100%"} p={0} opacity={isConfiguring ? 0.5 : 1}>
                 <ChartDisplayer
                   {...chart}
                   chartId={chart.id}
@@ -47,7 +49,7 @@ function ChartsDashboardItemInternal(props: { data: RouterOutputs["dashboards"][
                   aggPeriod={aggPeriod}
                 />
               </Container>
-              {isRearranging ? (
+              {isConfiguring ? (
                 <Container pos={"absolute"} top={0} right={0} p={"sm"}>
                   <ActionIcon
                     onMouseDown={(e) => e.stopPropagation()}

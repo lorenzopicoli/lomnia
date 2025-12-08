@@ -3,17 +3,12 @@ import { DatePicker, type PickerBaseProps } from "@mantine/dates";
 import { IconCalendar, IconCheck, IconPlus, IconSettings } from "@tabler/icons-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { type Period, useDashboard } from "../../contexts/DashboardContext";
+import { useCurrentDashboard } from "../../contexts/DashboardContext";
+import { useDashboardFilters } from "../../contexts/DashboardFiltersContext";
 
-export function ChartDashboardMenu(props: {
-  currentRange: [Date, Date];
-  currentDashboardId: number;
-  onDateChange: (range: [Date, Date]) => void;
-  onPeriodSelected: (id: Period) => void;
-  currentPeriod: Period | null;
-  onRearrangeCharts: () => void;
-}) {
-  const { onDateChange, onPeriodSelected, onRearrangeCharts, currentPeriod, currentDashboardId } = props;
+export function ChartDashboardMenu() {
+  const { period, setDateRange, onPeriodSelected } = useDashboardFilters();
+  const { dashboardId, isConfiguring, setIsConfiguring } = useCurrentDashboard();
   const [partialDateRange, setPartialDateRange] = useState<[Date | null, Date | null]>([null, null]);
   const handleDateChange: PickerBaseProps<"range">["onChange"] = (dateStr) => {
     const dates: [Date | null, Date | null] = [
@@ -22,10 +17,9 @@ export function ChartDashboardMenu(props: {
     ];
     setPartialDateRange(dates);
     if (dates[0] !== null && dates[1] !== null) {
-      onDateChange(dates as [Date, Date]);
+      setDateRange(dates as [Date, Date]);
     }
   };
-  const { isRearranging } = useDashboard();
   const handlePeriodChange = (id: string) => {
     switch (id) {
       case "week":
@@ -37,12 +31,12 @@ export function ChartDashboardMenu(props: {
     }
   };
   const handleRearrange = () => {
-    onRearrangeCharts();
+    setIsConfiguring(!isConfiguring);
   };
 
   const PeriodPicker = () => {
     return (
-      <Radio.Group value={currentPeriod} onChange={handlePeriodChange}>
+      <Radio.Group value={period} onChange={handlePeriodChange}>
         <Group>
           <Radio label="Last week" value="week" />
           <Radio label="Last month" value="month" />
@@ -64,14 +58,14 @@ export function ChartDashboardMenu(props: {
         <Breadcrumbs separator="|" separatorMargin={"md"}>
           <PeriodPicker />
           <Flex gap={"lg"} align={"center"}>
-            {!isRearranging ? (
+            {!isConfiguring ? (
               <>
                 <ActionIcon m={0} variant="transparent" size="md" onClick={handleRearrange}>
                   <IconSettings />
                 </ActionIcon>
                 <ActionIcon
                   component={Link}
-                  to={`/dashboard/${currentDashboardId}/add-chart`}
+                  to={`/dashboard/${dashboardId}/add-chart`}
                   m={0}
                   variant="filled"
                   size="lg"

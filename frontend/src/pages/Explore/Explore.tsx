@@ -3,6 +3,7 @@ import { Route, Routes } from "react-router-dom";
 import { safeScrollableArea } from "../../constants";
 import { useConfig } from "../../contexts/ConfigContext";
 import { DashboardProvider } from "../../contexts/DashboardContext";
+import { DashboardFiltersProvider } from "../../contexts/DashboardFiltersContext";
 import { AddChart } from "./AddChart";
 import { ChartsDashboard } from "./ChartsDashboard";
 
@@ -18,7 +19,9 @@ function ExploreInternal() {
             index
             element={
               <DashboardProvider>
-                <ChartsDashboard />
+                <DashboardFiltersProvider>
+                  <ChartsDashboard />
+                </DashboardFiltersProvider>
               </DashboardProvider>
             }
           />

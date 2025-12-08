@@ -7,22 +7,13 @@ import { trpc } from "../../api/trpc";
 import { emptyDashboardContent } from "../../charts/useChartGridLayout";
 import { ChartDashboardMenu } from "../../components/ChartDashboardMenu/ChartDashboardMenu";
 import { useConfig } from "../../contexts/ConfigContext";
-import { useDashboard } from "../../contexts/DashboardContext";
+import { useCurrentDashboard } from "../../contexts/DashboardContext";
 import { ChartsDashboardItem } from "./ChartDashboardItem";
 
 export function ChartsDashboardList() {
   const { theme } = useConfig();
-  const {
-    startDate,
-    dashboardId,
-    endDate,
-    period,
-    isRearranging,
-    setDashboardId,
-    setDateRange,
-    onPeriodSelected,
-    toggleIsRearranging,
-  } = useDashboard();
+
+  const { dashboardId, isConfiguring, setDashboardId, setIsConfiguring } = useCurrentDashboard();
   const { data: backendData, refetch, isFetching } = useQuery(trpc.dashboards.getAll.queryOptions());
   const { mutate: saveDashboard } = useMutation(
     trpc.dashboards.save.mutationOptions({
@@ -42,7 +33,7 @@ export function ChartsDashboardList() {
         if (another) {
           setDashboardId(another.id);
         }
-        toggleIsRearranging();
+        setIsConfiguring(false);
       },
     }),
   );
@@ -87,24 +78,17 @@ export function ChartsDashboardList() {
         <Text fs={"italic"} opacity={0.4}>
           Lomnia
         </Text>
-        <ChartDashboardMenu
-          currentDashboardId={dashboardId ?? -1}
-          currentRange={[startDate, endDate]}
-          currentPeriod={period}
-          onDateChange={setDateRange}
-          onPeriodSelected={onPeriodSelected}
-          onRearrangeCharts={toggleIsRearranging}
-        />
+        <ChartDashboardMenu />
       </Flex>
       <Tabs keepMounted={false} value={String(dashboardId)} onChange={(value) => value && setDashboardId(+value)}>
         <Tabs.List>
           {backendData.map((dashboard) => (
             <Tabs.Tab
-              disabled={isRearranging && dashboardId !== dashboard.id}
+              disabled={isConfiguring && dashboardId !== dashboard.id}
               key={dashboard.id}
               value={String(dashboard.id)}
             >
-              {isRearranging && dashboardId === dashboard.id ? (
+              {isConfiguring && dashboardId === dashboard.id ? (
                 <Group gap={"xs"}>
                   <TextInput
                     defaultValue={dashboard.name}
@@ -131,7 +115,7 @@ export function ChartsDashboardList() {
               )}
             </Tabs.Tab>
           ))}
-          {isRearranging || backendData.length === 0 ? (
+          {isConfiguring || backendData.length === 0 ? (
             <Tabs.Tab onClick={handleNewDashboard} leftSection={<IconPlus />} value="##new-dashboard">
               Add Dashboard
             </Tabs.Tab>
