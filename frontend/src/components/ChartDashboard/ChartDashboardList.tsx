@@ -10,10 +10,9 @@ import { ChartsDashboardItem } from "./ChartDashboardItem";
 
 export function ChartsDashboardList() {
   const { theme } = useConfig();
-
   const { dashboardId, isConfiguring, setDashboardId } = useCurrentDashboard();
-  const { allDashboards, isFetchingAllDashboards, createDashboard, renameDashboard, removeDashboard } =
-    useAllDashboards();
+  const { allDashboards, createDashboard, renameDashboard, removeDashboard } = useAllDashboards();
+
   const handleChangeDashboardName = useDebouncedCallback((e: ChangeEvent<HTMLInputElement>) => {
     const name = e.target.value;
     if (dashboardId) {
@@ -34,12 +33,6 @@ export function ChartsDashboardList() {
       setDashboardId(allDashboards[0].id);
     }
   }, [setDashboardId, dashboardId, allDashboards?.[0]]);
-
-  useEffect(() => {
-    if (allDashboards?.length === 0 && !isFetchingAllDashboards) {
-      createDashboard();
-    }
-  }, [isFetchingAllDashboards, createDashboard, allDashboards?.length]);
 
   if (!allDashboards) {
     return <>Loading...</>;

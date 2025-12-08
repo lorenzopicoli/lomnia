@@ -1,4 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { useCallback, useEffect } from "react";
 import { trpc } from "../api/trpc";
 import { emptyDashboardContent } from "../charts/useChartGridLayout";
 import { useCurrentDashboard } from "../contexts/DashboardContext";
@@ -40,9 +41,12 @@ export function useAllDashboards() {
     }),
   );
 
-  const createDashboard = (name = "New dashboard") => {
-    saveDashboard({ name, content: emptyDashboardContent as any });
-  };
+  const createDashboard = useCallback(
+    (name = "New dashboard") => {
+      saveDashboard({ name, content: emptyDashboardContent as any });
+    },
+    [saveDashboard],
+  );
 
   const renameDashboard = (name: string, id: number) => {
     saveDashboard({ name, id });
@@ -52,6 +56,13 @@ export function useAllDashboards() {
     deleteDashboard(id);
   };
 
+  // If no dashboards were found on the server and we aren't fetching (ie. we got an answer)
+  // then force the creation of a first dashboard
+  useEffect(() => {
+    if (allDashboards?.length === 0 && !isFetchingAllDashboards) {
+      createDashboard();
+    }
+  }, [isFetchingAllDashboards, createDashboard, allDashboards?.length]);
   return {
     allDashboards,
     isFetchingAllDashboards,
