@@ -1,32 +1,27 @@
 import { notifications } from "@mantine/notifications";
-import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
-import { trpc } from "../../api/trpc";
 import type { ChartAreaConfig } from "../../charts/types";
-import { type DashboardLayout, useChartGridLayout } from "../../charts/useChartGridLayout";
+import { useChartGridLayout } from "../../charts/useChartGridLayout";
 import { AddChartContainer } from "../../containers/AddChart/AddChartContainer";
 import { useConfig } from "../../contexts/ConfigContext";
+import { useDashboardContent } from "../../hooks/useDashboardContent";
 
-function AddChartInternal(props: { dashboardId: number; dashboardContent: any }) {
+export function AddChart() {
   const navigate = useNavigate();
   const { theme } = useConfig();
-  const { dashboardId, dashboardContent } = props;
-  const { mutate: saveChart } = useMutation(
-    trpc.dashboards.save.mutationOptions({
-      onSuccess: () => {
-        notifications.show({
-          color: theme.colors.green[9],
-          title: "Chart added successfully",
-          message: "",
-        });
-        navigate("/dashboard");
-      },
-    }),
-  );
-  const handleSaveDashboard = (layout: DashboardLayout) => {
-    saveChart({ id: dashboardId, content: layout as any });
-  };
-  const { onAddCharts } = useChartGridLayout(dashboardContent ?? null, handleSaveDashboard);
+  const { dashboardId: paramDashboardId } = useParams<{ dashboardId: string }>();
+  const parsedDashboardId = paramDashboardId ? parseInt(paramDashboardId, 10) : null;
+  const { dashboard, updateDashboardContent } = useDashboardContent(parsedDashboardId, {
+    onSuccessfulSave: () => {
+      notifications.show({
+        color: theme.colors.green[9],
+        title: "Chart added successfully",
+        message: "",
+      });
+      navigate("/dashboard");
+    },
+  });
+  const { onAddCharts } = useChartGridLayout(dashboard?.content as any, updateDashboardContent);
 
   const handleAddChart = (chart: ChartAreaConfig) => {
     onAddCharts([chart]);
@@ -37,17 +32,4 @@ function AddChartInternal(props: { dashboardId: number; dashboardContent: any })
   };
 
   return <AddChartContainer onDismiss={handleDismissAddChart} onSave={handleAddChart} />;
-}
-
-export function AddChart() {
-  const { dashboardId } = useParams<{ dashboardId: string }>();
-  const parsedDashboardId = dashboardId ? parseInt(dashboardId, 10) : null;
-
-  const { data: dashboard } = useQuery(trpc.dashboards.get.queryOptions(parsedDashboardId ?? -1));
-
-  if (!dashboard || !parsedDashboardId) {
-    return <>Loading...</>;
-  }
-
-  return <AddChartInternal dashboardId={parsedDashboardId} dashboardContent={dashboard.content} />;
 }

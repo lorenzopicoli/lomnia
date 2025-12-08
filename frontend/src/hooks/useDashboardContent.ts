@@ -2,7 +2,12 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { trpc } from "../api/trpc";
 import type { DashboardLayout } from "../charts/useChartGridLayout";
 
-export function useDashboardContent(dashboardId: number | null) {
+export function useDashboardContent(
+  dashboardId: number | null,
+  params?: {
+    onSuccessfulSave?: () => void;
+  },
+) {
   const queryEnabled = dashboardId !== null;
 
   const {
@@ -20,6 +25,7 @@ export function useDashboardContent(dashboardId: number | null) {
     trpc.dashboards.save.mutationOptions({
       onSuccess: () => {
         refetch();
+        params?.onSuccessfulSave?.();
       },
     }),
   );
