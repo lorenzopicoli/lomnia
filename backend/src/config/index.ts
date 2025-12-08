@@ -136,7 +136,13 @@ export default {
       /**
        * How many places are shown in the chart
        */
-      limit: 10,
+      limit: 20,
+    },
+    habitTextBar: {
+      /**
+       * How many values are shown in the chart
+       */
+      limit: 20,
     },
   },
 };

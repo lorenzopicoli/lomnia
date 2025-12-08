@@ -35,10 +35,6 @@ export function TextHabitBar(props: HabitChartProps) {
       xAxis: {
         type: "category",
         data: mapData.map((d) => d.name),
-        axisLabel: {
-          interval: 0,
-          rotate: 45,
-        },
       },
 
       series: [

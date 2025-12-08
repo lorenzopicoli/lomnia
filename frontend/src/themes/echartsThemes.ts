@@ -211,6 +211,8 @@ export namespace EchartsThemes {
         show: true,
         color: "#ffffff",
         hideOverlap: true,
+        interval: 0,
+        rotate: 45,
       },
       splitLine: {
         show: false,
