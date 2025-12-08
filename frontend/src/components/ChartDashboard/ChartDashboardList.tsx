@@ -1,30 +1,15 @@
-import { ActionIcon, alpha, Flex, Group, Tabs, Text, TextInput } from "@mantine/core";
-import { useDebouncedCallback } from "@mantine/hooks";
-import { IconPlus, IconTrash } from "@tabler/icons-react";
-import { type ChangeEvent, useEffect } from "react";
+import { Flex, Tabs, Text } from "@mantine/core";
+import { IconPlus } from "@tabler/icons-react";
+import { useEffect } from "react";
 import { ChartDashboardMenu } from "../../components/ChartDashboardMenu/ChartDashboardMenu";
-import { useConfig } from "../../contexts/ConfigContext";
 import { useCurrentDashboard } from "../../contexts/DashboardContext";
 import { useAllDashboards } from "../../hooks/useAllDashboards";
 import { ChartsDashboardItem } from "./ChartDashboardItem";
+import { DashboardTabTab } from "./ChartDashboardTabTab";
 
 export function ChartsDashboardList() {
-  const { theme } = useConfig();
   const { dashboardId, isConfiguring, setDashboardId } = useCurrentDashboard();
   const { allDashboards, createDashboard, renameDashboard, removeDashboard } = useAllDashboards();
-
-  const handleChangeDashboardName = useDebouncedCallback((e: ChangeEvent<HTMLInputElement>) => {
-    const name = e.target.value;
-    if (dashboardId) {
-      renameDashboard(name, dashboardId);
-    }
-  }, 500);
-
-  const handleRemoveDashboard = () => {
-    if (dashboardId) {
-      removeDashboard(dashboardId);
-    }
-  };
 
   // Set the dashboard id to be the first one if nothing is coming from the context (should mean that this is the first ever load)
   // since nothing is even in local storage
@@ -58,31 +43,12 @@ export function ChartsDashboardList() {
               key={dashboard.id}
               value={String(dashboard.id)}
             >
-              {isConfiguring && dashboardId === dashboard.id ? (
-                <Group gap={"xs"}>
-                  <TextInput
-                    defaultValue={dashboard.name}
-                    onClick={(e) => e.stopPropagation()} // prevent switching tabs while editing
-                    size={"xs"}
-                    onChange={handleChangeDashboardName}
-                    styles={{
-                      input: {
-                        fontSize: "inherit",
-                      },
-                    }}
-                  />
-                  <ActionIcon
-                    onMouseDown={(e) => e.stopPropagation()}
-                    onClick={handleRemoveDashboard}
-                    size={"lg"}
-                    variant="light"
-                  >
-                    <IconTrash size={20} color={alpha(theme.colors.red[9], 0.8)} />
-                  </ActionIcon>
-                </Group>
-              ) : (
-                dashboard.name
-              )}
+              <DashboardTabTab
+                dashboardName={dashboard.name}
+                isEditing={isConfiguring && dashboardId === dashboard.id}
+                onRename={(name) => renameDashboard(name, dashboard.id)}
+                onRemove={() => removeDashboard(dashboard.id)}
+              />
             </Tabs.Tab>
           ))}
           {isConfiguring || allDashboards.length === 0 ? (
