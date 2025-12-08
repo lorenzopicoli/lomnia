@@ -4,7 +4,7 @@ import { z } from "zod";
 const ChartSchema = z
   .object({
     id: z.string(),
-    uniqueId: z.string().uuid(),
+    uniqueId: z.uuid(),
     title: z.string(),
   })
   .loose();
@@ -22,15 +22,13 @@ const LayoutItemSchema = z
   })
   .loose();
 
-const PlacementSchema = z
-  .object({
-    lg: z.array(LayoutItemSchema),
-    md: z.array(LayoutItemSchema),
-    sm: z.array(LayoutItemSchema),
-    xs: z.array(LayoutItemSchema),
-    xxs: z.array(LayoutItemSchema),
-  })
-  .loose();
+const PlacementSchema = z.object({
+  lg: z.array(LayoutItemSchema),
+  md: z.array(LayoutItemSchema),
+  sm: z.array(LayoutItemSchema),
+  xs: z.array(LayoutItemSchema),
+  xxs: z.array(LayoutItemSchema),
+});
 
 export const DashboardSchema = z.object({
   idToChart: z.record(z.uuid(), ChartSchema),
