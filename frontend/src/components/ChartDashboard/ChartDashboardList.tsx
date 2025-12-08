@@ -1,75 +1,52 @@
 import { ActionIcon, alpha, Flex, Group, Tabs, Text, TextInput } from "@mantine/core";
 import { useDebouncedCallback } from "@mantine/hooks";
 import { IconPlus, IconTrash } from "@tabler/icons-react";
-import { useMutation, useQuery } from "@tanstack/react-query";
 import { type ChangeEvent, useEffect } from "react";
-import { trpc } from "../../api/trpc";
-import { emptyDashboardContent } from "../../charts/useChartGridLayout";
 import { ChartDashboardMenu } from "../../components/ChartDashboardMenu/ChartDashboardMenu";
 import { useConfig } from "../../contexts/ConfigContext";
 import { useCurrentDashboard } from "../../contexts/DashboardContext";
+import { useDashboardOperations } from "../../hooks/useDashboardOperations";
 import { ChartsDashboardItem } from "./ChartDashboardItem";
 
 export function ChartsDashboardList() {
   const { theme } = useConfig();
 
-  const { dashboardId, isConfiguring, setDashboardId, setIsConfiguring } = useCurrentDashboard();
-  const { data: backendData, refetch, isFetching } = useQuery(trpc.dashboards.getAll.queryOptions());
-  const { mutate: saveDashboard } = useMutation(
-    trpc.dashboards.save.mutationOptions({
-      onSuccess: (data) => {
-        refetch();
-        if (data?.id) {
-          setDashboardId(data.id);
-        }
-      },
-    }),
-  );
-  const { mutate: deleteDashboard } = useMutation(
-    trpc.dashboards.delete.mutationOptions({
-      onSuccess: () => {
-        refetch();
-        const another = backendData?.find((d) => d.id !== dashboardId);
-        if (another) {
-          setDashboardId(another.id);
-        }
-        setIsConfiguring(false);
-      },
-    }),
-  );
+  const { dashboardId, isConfiguring, setDashboardId } = useCurrentDashboard();
+  const { allDashboards, isFetchingAllDashboards, createDashboard, renameDashboard, removeDashboard } =
+    useDashboardOperations();
   const handleChangeDashboardName = useDebouncedCallback((e: ChangeEvent<HTMLInputElement>) => {
     const name = e.target.value;
     if (dashboardId) {
-      saveDashboard({ name, id: dashboardId });
+      renameDashboard(name, dashboardId);
     }
   }, 500);
 
   const handleRemoveDashboard = () => {
     if (dashboardId) {
-      deleteDashboard(dashboardId);
+      removeDashboard(dashboardId);
     }
   };
 
   // Set the dashboard id to be the first one if nothing is coming from the context (should mean that this is the first ever load)
   // since nothing is even in local storage
   useEffect(() => {
-    if (!dashboardId && backendData?.[0]) {
-      setDashboardId(backendData[0].id);
+    if (!dashboardId && allDashboards?.[0]) {
+      setDashboardId(allDashboards[0].id);
     }
-  }, [backendData, setDashboardId, dashboardId]);
+  }, [setDashboardId, dashboardId, allDashboards?.[0]]);
 
   useEffect(() => {
-    if (backendData?.length === 0 && !isFetching) {
-      saveDashboard({ name: "New dashboard", content: emptyDashboardContent as any });
+    if (allDashboards?.length === 0 && !isFetchingAllDashboards) {
+      createDashboard();
     }
-  }, [backendData?.length, saveDashboard, isFetching]);
+  }, [isFetchingAllDashboards, createDashboard, allDashboards?.length]);
 
-  if (!backendData) {
+  if (!allDashboards) {
     return <>Loading...</>;
   }
 
   const handleNewDashboard = () => {
-    saveDashboard({ name: "New dashboard", content: emptyDashboardContent as any });
+    createDashboard();
   };
 
   return (
@@ -82,7 +59,7 @@ export function ChartsDashboardList() {
       </Flex>
       <Tabs keepMounted={false} value={String(dashboardId)} onChange={(value) => value && setDashboardId(+value)}>
         <Tabs.List>
-          {backendData.map((dashboard) => (
+          {allDashboards.map((dashboard) => (
             <Tabs.Tab
               disabled={isConfiguring && dashboardId !== dashboard.id}
               key={dashboard.id}
@@ -115,14 +92,14 @@ export function ChartsDashboardList() {
               )}
             </Tabs.Tab>
           ))}
-          {isConfiguring || backendData.length === 0 ? (
+          {isConfiguring || allDashboards.length === 0 ? (
             <Tabs.Tab onClick={handleNewDashboard} leftSection={<IconPlus />} value="##new-dashboard">
               Add Dashboard
             </Tabs.Tab>
           ) : null}
         </Tabs.List>
 
-        {backendData.map((dashboard) => (
+        {allDashboards.map((dashboard) => (
           <Tabs.Panel key={dashboard.id} value={String(dashboard.id)}>
             <ChartsDashboardItem dashboardId={dashboard.id} />
           </Tabs.Panel>
