@@ -1,0 +1,46 @@
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { trpc } from "../api/trpc";
+import type { BackendDashboardLayout } from "../charts/useChartGridLayout";
+
+export function useDashboardContent(
+  dashboardId: number | null,
+  params?: {
+    onSuccessfulSave?: () => void;
+  },
+) {
+  const queryEnabled = dashboardId !== null;
+
+  const {
+    data: dashboard,
+    isFetching,
+    refetch,
+  } = useQuery(
+    trpc.dashboards.get.queryOptions(dashboardId ?? -1, {
+      enabled: queryEnabled,
+      gcTime: 0,
+    }),
+  );
+
+  const { mutate: saveDashboard, isPending: isSaving } = useMutation(
+    trpc.dashboards.save.mutationOptions({
+      onSuccess: () => {
+        refetch();
+        params?.onSuccessfulSave?.();
+      },
+    }),
+  );
+
+  const updateDashboardContent = (content: BackendDashboardLayout) => {
+    if (dashboardId) {
+      saveDashboard({ id: dashboardId, content });
+    }
+  };
+
+  return {
+    dashboard,
+    isLoading: isFetching,
+    isSaving,
+    updateDashboardContent,
+    refetch,
+  };
+}

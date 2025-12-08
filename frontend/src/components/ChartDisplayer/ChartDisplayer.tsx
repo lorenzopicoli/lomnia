@@ -63,6 +63,9 @@ const chartOptions = {
 } as const;
 
 export function ChartDisplayer(props: ChartDisplayerProps) {
+  if (!chartOptions[props.chartId]) {
+    return <ChartPlaceholder noBg text={`Couldn't find the chart for "${props.chartId}"`} />;
+  }
   const { componentHandlesTitle } = chartOptions[props.chartId];
   return (
     <Card

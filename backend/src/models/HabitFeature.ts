@@ -3,7 +3,6 @@ import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 import { habitsTable } from "./Habit";
 
-// Zod schemas for JSONB validation
 export const habitFeatureConditionSchema = z.object({
   /**
    * The field that the condition is referring to.
@@ -80,7 +79,6 @@ export const habitFeatureSchema = z.object({
   rules: z.array(habitFeatureRuleSchema),
 });
 
-// Drizzle table definitions
 export const habitFeaturesTable = pgTable("habit_features", {
   id: serial("id").primaryKey(),
   /**

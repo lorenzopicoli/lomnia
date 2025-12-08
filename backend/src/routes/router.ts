@@ -1,4 +1,5 @@
 import { chartCountsRouter } from "./chartCountsRouter";
+import { dashboardsRouter } from "./dashboardsRouter";
 import { diaryEntriesRouter } from "./diaryEntiesRouter";
 import { habitFeaturesChartRouter, habitFeaturesRouter } from "./habitFeatureRouter";
 import { habitsRouter } from "./habitsRouter";
@@ -12,6 +13,7 @@ export const appRouter = t.router({
   diaryEntries: diaryEntriesRouter,
   habits: habitsRouter,
   habitFeatures: habitFeaturesRouter,
+  dashboards: dashboardsRouter,
   charts: {
     weather: weatherChartRouter,
     habits: habitFeaturesChartRouter,

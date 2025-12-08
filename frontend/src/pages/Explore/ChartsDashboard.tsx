@@ -1,84 +1,16 @@
-import { ActionIcon, Container, Flex, Paper, ScrollArea, Text } from "@mantine/core";
-import { IconTrash } from "@tabler/icons-react";
-import { useMemo } from "react";
-import { useChartGridLayout } from "../../charts/useChartGridLayout";
-import { ChartDashboardMenu } from "../../components/ChartDashboardMenu/ChartDashboardMenu";
-import { ChartDisplayer } from "../../components/ChartDisplayer/ChartDisplayer";
-import { ChartPlaceholder } from "../../components/ChartPlaceholder/ChartPlaceholder";
-import { ResizableGrid } from "../../components/ResizableGrid/ResizableGrid";
+import { Container, Paper, ScrollArea } from "@mantine/core";
+import { ChartsDashboardList } from "../../components/ChartDashboard/ChartDashboardList";
 import { safeScrollableArea } from "../../constants";
 import { useConfig } from "../../contexts/ConfigContext";
-import { useDashboard } from "../../contexts/DashboardContext";
-import { removeNills } from "../../utils/removeNils";
 
 export function ChartsDashboard() {
   const { theme } = useConfig();
-  const chartsConfig = useDashboard();
-
-  const { chartsBeingShown, onRemoveChart, isChangingLayout, gridProps } = useChartGridLayout("explore");
-  const charts = useMemo(() => {
-    return Object.values(chartsBeingShown).filter(removeNills);
-  }, [chartsBeingShown]);
 
   return (
     <Paper component={Container} fluid h={"100vh"} bg={theme.colors.dark[9]}>
       <ScrollArea h={safeScrollableArea} type="never">
         <Container fluid pt={"md"} pr={"md"} pl={"md"} m={0}>
-          <Flex justify={"space-between"} align={"center"}>
-            <Text fs={"italic"} opacity={0.4}>
-              Lomnia
-            </Text>
-            <ChartDashboardMenu
-              currentRange={[chartsConfig.startDate, chartsConfig.endDate]}
-              currentPeriod={chartsConfig.period}
-              onDateChange={chartsConfig.setDateRange}
-              onPeriodSelected={chartsConfig.onPeriodSelected}
-              onRearrangeCharts={chartsConfig.toggleIsRearranging}
-            />
-          </Flex>
-
-          {charts.length > 0 ? (
-            <ResizableGrid
-              {...gridProps}
-              isResizable={chartsConfig.isRearranging}
-              isDraggable={chartsConfig.isRearranging}
-              rowHeight={100}
-            >
-              {charts.map((chart) => (
-                <div key={chart.uniqueId}>
-                  {isChangingLayout ? (
-                    <Container fluid h={"100%"} p={0} bg={theme.colors.dark[8]}>
-                      <ChartPlaceholder text={chart.title} />
-                    </Container>
-                  ) : (
-                    <Container fluid h={"100%"} p={0}>
-                      <Container fluid h={"100%"} p={0} opacity={chartsConfig.isRearranging ? 0.5 : 1}>
-                        <ChartDisplayer
-                          {...chart}
-                          chartId={chart.id}
-                          startDate={chartsConfig.startDate}
-                          endDate={chartsConfig.endDate}
-                          aggPeriod={chartsConfig.aggPeriod}
-                        />
-                      </Container>
-                      {chartsConfig.isRearranging ? (
-                        <Container pos={"absolute"} top={0} right={0} p={0}>
-                          <ActionIcon
-                            onMouseDown={(e) => e.stopPropagation()}
-                            onClick={() => onRemoveChart(chart.uniqueId)}
-                            size={"lg"}
-                            variant="light"
-                          >
-                            <IconTrash size={20} />
-                          </ActionIcon>
-                        </Container>
-                      ) : null}
-                    </Container>
-                  )}
-                </div>
-              ))}
-            </ResizableGrid>
-          ) : null}
+          <ChartsDashboardList />
         </Container>
       </ScrollArea>
     </Paper>

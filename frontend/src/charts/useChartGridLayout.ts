@@ -1,7 +1,8 @@
-import { useLocalStorage } from "@mantine/hooks";
+import { useDebouncedCallback } from "@mantine/hooks";
 import { omitBy } from "lodash";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Layout, Layouts } from "react-grid-layout";
+import type { RouterOutputs } from "../api/trpc";
 import type { ResizableGridProps } from "../components/ResizableGrid/ResizableGrid";
 import type { ChartAreaConfig } from "./types";
 
@@ -9,11 +10,23 @@ type ChartLayout = {
   [breakpoint: string]: Layout[];
 };
 
+export const emptyDashboardContent = {
+  idToChart: {},
+  placement: { lg: [], md: [], sm: [], xs: [], xxs: [] },
+} as BackendDashboardLayout;
+
+interface DashboardLayout {
+  idToChart: { [key: string]: ChartAreaConfig };
+  placement: ChartLayout;
+}
+export type BackendDashboardLayout = RouterOutputs["dashboards"]["get"]["content"];
+
 /**
  *
  * Manages and persists the chart grid and configuration
  *
- * @param gridId A unique identifier to make sure that the stored layout doesn´t conflict
+ * @param authorativeContent the content from the backend. This hook only handles managing the data
+ * @param saveChanges callback to update the backend on changes
  * @returns isChangingLayout - true if the user is in the process of moving or resizing tiles
  * @returns onAddCharts - function to be called to add charts to the grid. It'll automatically
  * add them to the bottom of the gird
@@ -23,36 +36,50 @@ type ChartLayout = {
  * @returns layout - exposes the object that gets saved in the local storage
  * @returns gridProps - props that should be passed as is to the underlying react-grid-layout
  */
-export function useChartGridLayout(gridId: string): {
+export function useChartGridLayout(
+  authorativeContent: BackendDashboardLayout | null,
+  saveChanges?: (layout: BackendDashboardLayout) => void,
+): {
   isChangingLayout: boolean;
   onAddCharts: (charts: ChartAreaConfig[]) => void;
   onRemoveChart: (chartUniqueId: string) => void;
   chartsBeingShown: { [key: string]: ChartAreaConfig };
-  layout: {
-    idToChart: { [key: string]: ChartAreaConfig };
-    placement: ChartLayout;
-  };
+  layout: DashboardLayout;
   gridProps: Pick<
     ResizableGridProps,
     "layout" | "onLayoutChange" | "onDragStart" | "onDragStop" | "onResizeStart" | "onResizeStop"
   >;
 } {
-  const [layout, setLayout] = useLocalStorage({
-    key: `${gridId}-layout`,
-    defaultValue: {
-      idToChart: {} as { [key: string]: ChartAreaConfig },
-      placement: { lg: [], md: [], sm: [], xs: [], xxs: [] } as ChartLayout,
-    },
-  });
+  const [layout, setLayout] = useState<DashboardLayout>(
+    (authorativeContent as DashboardLayout) ?? emptyDashboardContent,
+  );
+
+  // Sync layout when authorativeContent changes
+  // realistically, whenever the server results update, we also update the local state which does the
+  // optimistic update
+  useEffect(() => {
+    if (authorativeContent) {
+      setLayout(authorativeContent as DashboardLayout);
+    }
+  }, [authorativeContent]);
+
   const [isChangingLayout, setIsChangingLayout] = useState<boolean>(false);
+  const debouncedSaveChanges = useDebouncedCallback(async (layout: DashboardLayout) => {
+    saveChanges?.(layout as BackendDashboardLayout);
+  }, 500);
 
   const onLayoutChange: ResizableGridProps["onLayoutChange"] = useCallback(
     (_currentLayout: Layout[], newLayout: Layouts) => {
-      setLayout({ idToChart: layout.idToChart, placement: newLayout });
+      const resultingLayout = { idToChart: layout.idToChart, placement: newLayout };
+      setLayout(resultingLayout);
+      debouncedSaveChanges?.(resultingLayout);
     },
-    [layout.idToChart, setLayout],
+    [layout.idToChart, layout, debouncedSaveChanges],
   );
-  const handleStopGridChange = useCallback(() => setIsChangingLayout(false), []);
+  const handleStopGridChange = useCallback(() => {
+    setIsChangingLayout(false);
+  }, []);
+
   const handleStartGridChange = useCallback(() => setIsChangingLayout(true), []);
   const onRemoveChart = useCallback(
     (uniqueId: string) => {
@@ -69,12 +96,14 @@ export function useChartGridLayout(gridId: string): {
         }
       }
 
-      setLayout({
+      const result = {
         idToChart: omitBy(layout.idToChart, (o) => o.uniqueId === uniqueId),
         placement: newLayout,
-      });
+      };
+      setLayout(result);
+      debouncedSaveChanges?.(result);
     },
-    [layout, setLayout],
+    [layout, debouncedSaveChanges],
   );
   const onAddCharts = useCallback(
     (charts: ChartAreaConfig[]) => {
@@ -128,10 +157,11 @@ export function useChartGridLayout(gridId: string): {
           lastElement = newPane;
         }
       }
-
-      setLayout({ idToChart: newIdToCharts, placement: newLayout });
+      const result = { idToChart: newIdToCharts, placement: newLayout };
+      setLayout(result);
+      debouncedSaveChanges?.(result);
     },
-    [layout, setLayout],
+    [layout, debouncedSaveChanges],
   );
   const gridLayout = useMemo(() => {
     return layout.placement;

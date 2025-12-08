@@ -1,40 +1,36 @@
 import { Container, Paper, ScrollArea } from "@mantine/core";
-import { Route, Routes, useNavigate } from "react-router-dom";
-import type { ChartAreaConfig } from "../../charts/types";
-import { useChartGridLayout } from "../../charts/useChartGridLayout";
+import { Route, Routes } from "react-router-dom";
 import { safeScrollableArea } from "../../constants";
 import { useConfig } from "../../contexts/ConfigContext";
 import { DashboardProvider } from "../../contexts/DashboardContext";
-import { AddChart } from "../AddChart/AddChart";
+import { DashboardFiltersProvider } from "../../contexts/DashboardFiltersContext";
+import { AddChart } from "./AddChart";
 import { ChartsDashboard } from "./ChartsDashboard";
 
-export function Explore() {
+function ExploreInternal() {
   const { theme } = useConfig();
-  const navigate = useNavigate();
-
-  const { onAddCharts } = useChartGridLayout("explore");
-  const handleAddChart = (chart: ChartAreaConfig) => {
-    onAddCharts([chart]);
-    navigate("/explore");
-  };
-
-  const handleDismissAddChart = () => {
-    navigate("/explore");
-  };
 
   return (
-    <DashboardProvider>
-      <Paper p={0} component={Container} fluid h={"100vh"} bg={theme.colors.dark[9]}>
-        <ScrollArea h={safeScrollableArea} type="never">
-          <Routes>
-            <Route index element={<ChartsDashboard />} />
-            <Route
-              path={"add-chart"}
-              element={<AddChart onDismiss={handleDismissAddChart} onSave={handleAddChart} />}
-            />
-          </Routes>
-        </ScrollArea>
-      </Paper>
-    </DashboardProvider>
+    <Paper p={0} component={Container} fluid h={"100vh"} bg={theme.colors.dark[9]}>
+      <ScrollArea h={safeScrollableArea} type="never">
+        <Routes>
+          <Route path={":dashboardId/add-chart"} element={<AddChart />} />
+          <Route
+            index
+            element={
+              <DashboardProvider>
+                <DashboardFiltersProvider>
+                  <ChartsDashboard />
+                </DashboardFiltersProvider>
+              </DashboardProvider>
+            }
+          />
+        </Routes>
+      </ScrollArea>
+    </Paper>
   );
+}
+
+export function Explore() {
+  return <ExploreInternal />;
 }

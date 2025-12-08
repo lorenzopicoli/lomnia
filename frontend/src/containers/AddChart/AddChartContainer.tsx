@@ -14,7 +14,7 @@ import {
 import { ChartDisplayer } from "../../components/ChartDisplayer/ChartDisplayer";
 import { ChartFeatures } from "../../components/ChartFeatures/ChartFeatures";
 import { ChartPlaceholder } from "../../components/ChartPlaceholder/ChartPlaceholder";
-import { useDashboard } from "../../contexts/DashboardContext";
+import { getAggPeriodFromRange } from "../../utils/getAggPeriodFromRange";
 import { AddChartId } from "./AddChartId";
 import { AddChartSource } from "./AddChartSource";
 import { AddChartStep } from "./AddChartStep";
@@ -58,12 +58,12 @@ export const chartPreviewSize: Record<ChartId, { height: string | number; width:
   [ChartId.PlacesVisitCountBar]: { height: "100%", width: "100%" },
 };
 
-export function AddChart(props: AddChartProps) {
+export function AddChartContainer(props: AddChartProps) {
   const [currentStep, setCurrentStep] = useState(0);
-  const { aggPeriod } = useDashboard();
 
   const startDate = useMemo(() => subYears(new Date(), 1), []);
   const endDate = useMemo(() => new Date(), []);
+  const aggPeriod = getAggPeriodFromRange([startDate, endDate]);
 
   const chartPreviewMaxHeight = 400;
   const isFirstStep = currentStep === 0;

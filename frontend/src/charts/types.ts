@@ -33,7 +33,7 @@ export type ChartAreaConfig = {
 export enum ChartId {
   TemperatureExperienced = "temperatureExperienced",
   HeartRateMinMaxAvg = "heartRateMinMaxAvg ",
-  PrecipitationExperienced = "precipitationExperienced ",
+  PrecipitationExperienced = "precipitationExperienced",
   RainHeatmap = "rainHeatmap",
   NumberHabitCalendarHeatmap = "numberHabitCalendarHeatmap",
   TextHabitCoocurrencesChord = "textHabitCoocurrencesChord ",
