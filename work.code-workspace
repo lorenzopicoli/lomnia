@@ -5,6 +5,15 @@
     },
     {
       "path": "backend"
+    },
+    {
+      "path": "utils"
+    },
+    {
+      "path": "extractors"
+    },
+    {
+      "path": "ingester"
     }
   ],
   "settings": {

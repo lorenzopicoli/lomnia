@@ -23,7 +23,6 @@ services:
       PGADMIN_DEFAULT_PASSWORD: lomnia
     volumes:
       - pgadmin-data:/var/lib/pgadmin
-
 volumes:
   local_pgdata:
   pgadmin-data:
