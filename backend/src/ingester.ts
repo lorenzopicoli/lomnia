@@ -15,25 +15,30 @@ const main = async () => {
 };
 
 async function processMessage(content: any) {
-  console.log("Received:", JSON.stringify(content));
+  try {
+    console.log("Received:", JSON.stringify(content));
 
-  const filePath = await S3.init().downloadTmp(content.bucket, content.key);
+    const filePath = await S3.init().downloadTmp(content.bucket, content.key);
 
-  const fileStream = fs.createReadStream(filePath);
+    const fileStream = fs.createReadStream(filePath);
 
-  const gunzip = zlib.createGunzip();
+    const gunzip = zlib.createGunzip();
 
-  const rl = readline.createInterface({
-    input: fileStream.pipe(gunzip),
-    crlfDelay: Infinity, // handles \r\n and \n
-  });
+    const rl = readline.createInterface({
+      input: fileStream.pipe(gunzip),
+      crlfDelay: Infinity, // handles \r\n and \n
+    });
 
-  for await (const line of rl) {
-    if (!line) continue;
+    for await (const line of rl) {
+      if (!line) continue;
 
-    const obj = JSON.parse(line);
+      const obj = JSON.parse(line);
 
-    console.log("New line", obj);
+      console.log("New line", obj);
+    }
+  } catch (e) {
+    console.log(e);
+    throw e;
   }
 }
 

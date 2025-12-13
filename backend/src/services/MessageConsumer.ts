@@ -21,26 +21,26 @@ export class MessageConsumer {
 
   async listen(onMessage: (msg: unknown) => Promise<boolean>) {
     await this.channel.assertQueue(this.queue, { durable: true });
-    this.logger.debug("Listening to queue", { queue: this.queue });
+    this.logger.info("Listening to queue", { queue: this.queue });
     await this.channel.consume(
       this.queue,
       async (msg) => {
-        this.logger.info("New message received", { queue: this.queue, msg });
         if (!msg) return;
 
         try {
           const content = JSON.parse(msg.content.toString());
+          this.logger.debug("New message received", { queue: this.queue, content });
           const success = await onMessage(content);
           if (success) {
-            this.logger.info("Message processed, acknowledging...", { queue: this.queue, msg });
+            this.logger.debug("Message processed, acknowledging...", { queue: this.queue, content });
             this.channel.ack(msg);
           } else {
-            this.logger.info("Message failed, not acknowledging...", { queue: this.queue, msg });
-            this.channel.nack(msg, false, false);
+            this.logger.debug("Message failed, not acknowledging...", { queue: this.queue, msg: msg.fields });
+            this.channel.nack(msg, false, true);
           }
         } catch (err: unknown) {
-          this.logger.info("Message failed, not acknowledging...", { queue: this.queue, msg, err });
-          this.channel.nack(msg, false, false);
+          this.logger.debug("Message failed, not acknowledging...", { queue: this.queue, msg: msg.fields, err });
+          this.channel.nack(msg, false, true);
         }
       },
       { noAck: false },
