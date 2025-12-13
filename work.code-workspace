@@ -11,9 +11,6 @@
     },
     {
       "path": "extractors"
-    },
-    {
-      "path": "ingester"
     }
   ],
   "settings": {
