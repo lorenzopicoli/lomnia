@@ -36,11 +36,11 @@ export class MessageConsumer {
             this.channel.ack(msg);
           } else {
             this.logger.debug("Message failed, not acknowledging...", { queue: this.queue, msg: msg.fields });
-            this.channel.nack(msg, false, true);
+            this.channel.nack(msg, false, false);
           }
         } catch (err: unknown) {
           this.logger.debug("Message failed, not acknowledging...", { queue: this.queue, msg: msg.fields, err });
-          this.channel.nack(msg, false, true);
+          this.channel.nack(msg, false, false);
         }
       },
       { noAck: false },
