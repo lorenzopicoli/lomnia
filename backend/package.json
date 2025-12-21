@@ -8,6 +8,7 @@
     "dev:importer": "tsx watch --clear-screen=false src/importer.ts",
     "dev:ingester": "tsx watch --clear-screen=false src/ingester.ts",
     "add-poi": "tsx src/scripts/poiFormatter.ts",
+    "schemas:generate": "ts-node src/generateIngestionSchemas.ts",
     "importer": "tsx src/importer.ts",
     "ingester": "tsx src/ingester.ts",
     "dev:server": "tsx watch --clear-screen=false src/server.ts | pino-pretty",
@@ -69,6 +70,6 @@
     "typescript": "^5.9.3",
     "winston": "^3.18.3",
     "wkx": "^0.5.0",
-    "zod": "^4.1.12"
+    "zod": "^4.2.1"
   }
 }
