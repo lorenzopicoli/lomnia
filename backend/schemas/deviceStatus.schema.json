@@ -13,13 +13,11 @@
       "description": "Unique identifier for the device status",
       "type": "string"
     },
-    "externalId": {
+    "id": {
       "description": "External identifier from the source system",
       "anyOf": [
         {
-          "type": "integer",
-          "minimum": -9007199254740991,
-          "maximum": 9007199254740991
+          "type": "string"
         },
         {
           "type": "null"

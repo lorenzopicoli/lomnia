@@ -13,9 +13,8 @@ export default z
       })
       .optional(),
 
-    externalId: z
-      .number()
-      .int()
+    id: z
+      .string()
       .nullable()
       .meta({
         description: "External identifier from the source system",
