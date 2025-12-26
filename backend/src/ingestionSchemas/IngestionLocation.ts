@@ -9,7 +9,7 @@ const LocationPointSchema = z.object({
   }),
 });
 
-export default z
+export const IngestionLocation = z
   .object({
     entityType: z.literal("location").meta({
       description: "Entity discriminator",
@@ -103,4 +103,6 @@ export default z
     description: "Represents a geographic location entry with associated metadata",
   });
 
+export default IngestionLocation;
+export type IngestionLocation = z.infer<typeof IngestionLocation>;
 export const fileName = "location.schema.json";

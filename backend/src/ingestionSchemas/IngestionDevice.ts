@@ -1,6 +1,6 @@
 import * as z from "zod";
 
-export default z
+export const IngestionDevice = z
   .object({
     entityType: z.literal("device").meta({
       description: "Entity discriminator",
@@ -23,4 +23,6 @@ export default z
     description: "Represents a device with associated metadata",
   });
 
+export default IngestionDevice;
+export type IngestionDevice = z.infer<typeof IngestionDevice>;
 export const fileName = "device.schema.json";
