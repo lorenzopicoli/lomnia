@@ -14,11 +14,11 @@ export const locationSourceEnum = pgEnum("source", ["sqlite_locations", "google"
 
 export const locationsTable = pgTable("locations", {
   id: serial("id").primaryKey(),
-  externalId: integer("external_id"),
+  externalId: text("external_id"),
   /***
    * The application source used to get this location
    */
-  source: locationSourceEnum("source").notNull(),
+  source: text("source").notNull(),
   /***
    * The source used to get this location in the device (eg. network, gps, fused)
    */
@@ -75,7 +75,7 @@ export const locationsTable = pgTable("locations", {
   /**
    * The date at which the date was taken, in UTC time
    */
-  locationFix: timestamp("location_fix"),
+  recordedAt: timestamp("recorded_at"),
 
   /**
    * If the call to the reverse geocoding API failed and we should not try again
@@ -89,12 +89,12 @@ export const locationsTable = pgTable("locations", {
 
   /**
    * The daily weather entry that covers this location at the time that
-   * this was recorded (location_fix)
+   * this was recorded (recorded_at)
    */
   dailyWeatherId: integer("daily_weather_id").references(() => dailyWeatherTable.id),
   /**
    * The hourly weather entry that covers this location at the time that
-   * this was recorded (location_fix)
+   * this was recorded (recorded_at)
    */
   hourlyWeatherId: integer("hourly_weather_id").references(() => hourlyWeatherTable.id),
 

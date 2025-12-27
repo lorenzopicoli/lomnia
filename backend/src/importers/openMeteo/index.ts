@@ -95,7 +95,7 @@ export class OpenMeteoImport extends BaseImporter {
         OR ${locationsTable.hourlyWeatherId} IS NULL
         )
         AND
-        ${locationsTable.locationFix} < NOW() - INTERVAL '${sql.raw(this.dataAvailabilityDelay)}'
+        ${locationsTable.recordedAt} < NOW() - INTERVAL '${sql.raw(this.dataAvailabilityDelay)}'
     `);
 
     const value = count[0].count ?? 0;
@@ -115,7 +115,7 @@ export class OpenMeteoImport extends BaseImporter {
             .mapWith(locationsTable.location)
             .as("grid"),
           accuracy: locationsTable.accuracy,
-          dayString: sql`(${locationsTable.locationFix} AT TIME ZONE ${locationsTable.timezone})::date`
+          dayString: sql`(${locationsTable.recordedAt} AT TIME ZONE ${locationsTable.timezone})::date`
             .mapWith(String)
             .as("day_string"),
           timezone: locationsTable.timezone,
@@ -129,7 +129,7 @@ export class OpenMeteoImport extends BaseImporter {
                 OR ${locationsTable.hourlyWeatherId} IS NULL
             )
             AND
-            ${locationsTable.locationFix} < NOW() - INTERVAL '${sql.raw(this.dataAvailabilityDelay)}'
+            ${locationsTable.recordedAt} < NOW() - INTERVAL '${sql.raw(this.dataAvailabilityDelay)}'
         `,
         ),
     );
@@ -381,8 +381,8 @@ export class OpenMeteoImport extends BaseImporter {
         WHERE hourly_weather.location = ST_SnapToGrid(${
           locationsTable.location
         }::geometry, ${sql.raw(this.gridPrecision)})
-        AND ${locationsTable.locationFix} >= hourly_weather.date
-        AND ${locationsTable.locationFix} < hourly_weather.date + interval '1 hour'
+        AND ${locationsTable.recordedAt} >= hourly_weather.date
+        AND ${locationsTable.recordedAt} < hourly_weather.date + interval '1 hour'
         LIMIT 1
         )`,
       })
@@ -390,14 +390,14 @@ export class OpenMeteoImport extends BaseImporter {
       ${locationsTable.hourlyWeatherId} IS NULL
             ${
               startDate
-                ? sql`AND ${locationsTable.locationFix}::date >= (${startDate.toISO()}::timestamp - interval '${sql.raw(
+                ? sql`AND ${locationsTable.recordedAt}::date >= (${startDate.toISO()}::timestamp - interval '${sql.raw(
                     buffer,
                   )}')::date`
                 : sql``
             }
             ${
               endDate
-                ? sql`AND ${locationsTable.locationFix}::date <= (${endDate.toISO()}::timestamp + interval '${sql.raw(
+                ? sql`AND ${locationsTable.recordedAt}::date <= (${endDate.toISO()}::timestamp + interval '${sql.raw(
                     buffer,
                   )}')::date`
                 : sql``
@@ -412,7 +412,7 @@ export class OpenMeteoImport extends BaseImporter {
         WHERE daily_weather.location = ST_SnapToGrid(${
           locationsTable.location
         }::geometry, ${sql.raw(this.gridPrecision)})
-        AND (${locationsTable.locationFix} AT TIME ZONE locations.timezone)::date = daily_weather.date
+        AND (${locationsTable.recordedAt} AT TIME ZONE locations.timezone)::date = daily_weather.date
         LIMIT 1
         )`,
       })
@@ -420,14 +420,14 @@ export class OpenMeteoImport extends BaseImporter {
       ${locationsTable.dailyWeatherId} IS NULL
             ${
               startDate
-                ? sql`AND ${locationsTable.locationFix}::date >= (${startDate.toISO()}::timestamp - interval '${sql.raw(
+                ? sql`AND ${locationsTable.recordedAt}::date >= (${startDate.toISO()}::timestamp - interval '${sql.raw(
                     buffer,
                   )}')::date`
                 : sql``
             }
             ${
               endDate
-                ? sql`AND ${locationsTable.locationFix}::date <= (${endDate.toISO()}::timestamp + interval '${sql.raw(
+                ? sql`AND ${locationsTable.recordedAt}::date <= (${endDate.toISO()}::timestamp + interval '${sql.raw(
                     buffer,
                   )}')::date`
                 : sql``

@@ -47,8 +47,8 @@ export function getIslandsCte(params: {
       .where(
         sql`
             ${locationsTable.accuracy} < ${accuracyFilterInMeters}
-            ${start ? sql`AND ${locationsTable.locationFix} >= ${start.toISO()}` : sql``}
-            ${end ? sql`AND  ${locationsTable.locationFix} <= ${end.toISO()}` : sql``}
+            ${start ? sql`AND ${locationsTable.recordedAt} >= ${start.toISO()}` : sql``}
+            ${end ? sql`AND  ${locationsTable.recordedAt} <= ${end.toISO()}` : sql``}
       `,
       ),
   );
@@ -60,18 +60,18 @@ export function getIslandsCte(params: {
       .with(enrichedLocations)
       .select({
         id: enrichedLocations.id,
-        locationFix: enrichedLocations.locationFix,
+        recordedAt: enrichedLocations.recordedAt,
         velocity: enrichedLocations.velocity,
         placeKey: enrichedLocations.placeKey,
         // Very important to use the id as a tie break since location fix can have duplicates
         // https://stackoverflow.com/questions/30877926/how-to-group-following-rows-by-not-unique-value/30880137#30880137
         totalSeq: sql`
-            row_number() over (order by ${enrichedLocations.locationFix} asc, ${enrichedLocations.id} asc)
+            row_number() over (order by ${enrichedLocations.recordedAt} asc, ${enrichedLocations.id} asc)
         `.as("total_seq"),
         // Partition by the place key. This will split the islands by locationDetails key
         // ie. country, city or even ID if we're checking every "location" visited
         partitionSeq: sql`
-            row_number() over (partition by ${enrichedLocations.placeKey} order by ${enrichedLocations.locationFix} asc, ${enrichedLocations.id} asc)
+            row_number() over (partition by ${enrichedLocations.placeKey} order by ${enrichedLocations.recordedAt} asc, ${enrichedLocations.id} asc)
         `.as("parition_seq"),
       })
       .from(enrichedLocations),
@@ -82,17 +82,17 @@ export function getIslandsCte(params: {
     cte
       .with(baseLocations)
       .select({
-        startDate: min(baseLocations.locationFix).as("ai_start_date"),
-        endDate: max(baseLocations.locationFix).as("ai_end_date"),
+        startDate: min(baseLocations.recordedAt).as("ai_start_date"),
+        endDate: max(baseLocations.recordedAt).as("ai_end_date"),
         duration: sql`EXTRACT(EPOCH FROM (
-                ${max(baseLocations.locationFix)} - 
-                ${min(baseLocations.locationFix)})
+                ${max(baseLocations.recordedAt)} - 
+                ${min(baseLocations.recordedAt)})
             )`.as("ai_duration"),
         velocity: avg(baseLocations.velocity).mapWith(Number).as("ai_velocity"),
         placeKey: baseLocations.placeKey,
       })
       .from(baseLocations)
-      .orderBy(asc(min(baseLocations.locationFix)))
+      .orderBy(asc(min(baseLocations.recordedAt)))
       // The group by here must be the same as the partitionSeq in the previous CTE
       .groupBy(sql`${baseLocations.placeKey}, (${baseLocations.totalSeq} - ${baseLocations.partitionSeq})`),
   );

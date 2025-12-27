@@ -16,5 +16,6 @@ export class DeviceIngester extends Ingester<IngestionDevice> {
   public async ingest(_tx: DBTransaction, raw: IngestionDevice) {
     console.log("Transforming device", raw);
     // await tx.insert(locationsTable).values(parsed);
+    return true;
   }
 }

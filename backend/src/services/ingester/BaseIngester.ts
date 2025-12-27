@@ -5,12 +5,13 @@ export abstract class Ingester<SchemaModel> {
 
   public abstract isIngestable(raw: unknown): { isIngestable: boolean; parsed?: SchemaModel };
 
-  public abstract ingest(tx: DBTransaction, raw: SchemaModel): Promise<void>;
-  public async tryIngest(tx: DBTransaction, raw: unknown): Promise<void> {
+  public abstract ingest(tx: DBTransaction, raw: SchemaModel): Promise<boolean>;
+  public async tryIngest(tx: DBTransaction, raw: unknown): Promise<boolean> {
     const { isIngestable, parsed } = this.isIngestable(raw);
 
     if (isIngestable && parsed) {
-      await this.ingest(tx, parsed);
+      return await this.ingest(tx, parsed);
     }
+    return false;
   }
 }

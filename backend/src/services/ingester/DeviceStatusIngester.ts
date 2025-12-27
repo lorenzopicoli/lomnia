@@ -16,5 +16,6 @@ export class DeviceStatusIngester extends Ingester<IngestionDeviceStatus> {
   public async ingest(_tx: DBTransaction, raw: IngestionDeviceStatus) {
     console.log("Transforming device status", raw);
     // await tx.insert(locationsTable).values(parsed);
+    return true;
   }
 }

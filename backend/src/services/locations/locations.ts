@@ -227,8 +227,8 @@ export class LocationChartServiceInternal {
             `
                 : sql.raw("1=1")
             }
-            ${startDate ? sql`AND ${locationsTable.locationFix} >= ${startDate.toISO()}` : sql``}
-            ${endDate ? sql`AND  ${locationsTable.locationFix} <= ${endDate.toISO()}` : sql``}
+            ${startDate ? sql`AND ${locationsTable.recordedAt} >= ${startDate.toISO()}` : sql``}
+            ${endDate ? sql`AND  ${locationsTable.recordedAt} <= ${endDate.toISO()}` : sql``}
           `,
     );
   }

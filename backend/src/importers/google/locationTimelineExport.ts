@@ -160,8 +160,8 @@ export class GoogleLocationsTimelineImporter extends BaseImporter {
       return 0;
     }
     const { lat, lng } = this.formatLatLng(segment.visit.topCandidate.placeLocation.latLng);
-    const locationFix = this.parseDateTime(segment.startTime);
-    const timezone = this.getTimezoneFromDate(locationFix);
+    const recordedAt = this.parseDateTime(segment.startTime);
+    const timezone = this.getTimezoneFromDate(recordedAt);
     await tx.insert(locationsTable).values([
       {
         source: this.sourceName,
@@ -170,7 +170,7 @@ export class GoogleLocationsTimelineImporter extends BaseImporter {
           lat,
           lng,
         },
-        locationFix: locationFix.toJSDate(),
+        recordedAt: recordedAt.toJSDate(),
         importJobId: placeholderJobId,
       },
     ]);
@@ -193,10 +193,10 @@ export class GoogleLocationsTimelineImporter extends BaseImporter {
 
     const { lat: startLat, lng: startLng } = this.formatLatLng(segment.activity.start.latLng);
     const { lat: endLat, lng: endLng } = this.formatLatLng(segment.activity.end.latLng);
-    const locationFixStart = this.parseDateTime(segment.startTime);
-    const locationFixEnd = this.parseDateTime(segment.startTime);
-    const timezoneStart = this.getTimezoneFromDate(locationFixStart);
-    const timezoneEnd = this.getTimezoneFromDate(locationFixEnd);
+    const recordedAtStart = this.parseDateTime(segment.startTime);
+    const recordedAtEnd = this.parseDateTime(segment.startTime);
+    const timezoneStart = this.getTimezoneFromDate(recordedAtStart);
+    const timezoneEnd = this.getTimezoneFromDate(recordedAtEnd);
     await tx.insert(locationsTable).values([
       {
         source: this.sourceName,
@@ -205,7 +205,7 @@ export class GoogleLocationsTimelineImporter extends BaseImporter {
           lat: startLat,
           lng: startLng,
         },
-        locationFix: locationFixStart.toJSDate(),
+        recordedAt: recordedAtStart.toJSDate(),
         importJobId: placeholderJobId,
       },
     ]);
@@ -219,7 +219,7 @@ export class GoogleLocationsTimelineImporter extends BaseImporter {
           lat: endLat,
           lng: endLng,
         },
-        locationFix: locationFixEnd.toJSDate(),
+        recordedAt: recordedAtEnd.toJSDate(),
         importJobId: placeholderJobId,
       },
     ]);
@@ -242,8 +242,8 @@ export class GoogleLocationsTimelineImporter extends BaseImporter {
 
     for (const point of segment.timelinePath) {
       const { lat, lng } = this.formatLatLng(point.point);
-      const locationFix = this.parseDateTime(point.time);
-      const timezone = this.getTimezoneFromDate(locationFix);
+      const recordedAt = this.parseDateTime(point.time);
+      const timezone = this.getTimezoneFromDate(recordedAt);
       await tx.insert(locationsTable).values([
         {
           source: this.sourceName,
@@ -252,7 +252,7 @@ export class GoogleLocationsTimelineImporter extends BaseImporter {
             lat,
             lng,
           },
-          locationFix: locationFix.toJSDate(),
+          recordedAt: recordedAt.toJSDate(),
           importJobId: placeholderJobId,
         },
       ]);
@@ -274,8 +274,8 @@ export class GoogleLocationsTimelineImporter extends BaseImporter {
       return 0;
     }
     const { lat, lng } = this.formatLatLng(signal.position.LatLng);
-    const locationFix = this.parseDateTime(signal.position.timestamp);
-    const timezone = this.getTimezoneFromDate(locationFix);
+    const recordedAt = this.parseDateTime(signal.position.timestamp);
+    const timezone = this.getTimezoneFromDate(recordedAt);
     await tx.insert(locationsTable).values([
       {
         source: this.sourceName,
@@ -284,7 +284,7 @@ export class GoogleLocationsTimelineImporter extends BaseImporter {
           lat,
           lng,
         },
-        locationFix: locationFix.toJSDate(),
+        recordedAt: recordedAt.toJSDate(),
         importJobId: placeholderJobId,
       },
     ]);

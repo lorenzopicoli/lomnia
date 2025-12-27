@@ -267,7 +267,7 @@ export class ExternalLocationsImporter {
       importJobId: jobId,
 
       messageCreatedAt: importerData.messageCreationTime,
-      locationFix: importerData[this.entryDateKey],
+      recordedAt: importerData[this.entryDateKey],
 
       timezone,
 

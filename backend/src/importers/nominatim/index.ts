@@ -89,7 +89,7 @@ export class NominatimImport extends BaseImporter {
         AND NOT ${locationsTable.failedToReverseGeocode}
     `,
       )
-      .orderBy(asc(locationsTable.locationFix))
+      .orderBy(asc(locationsTable.recordedAt))
       .limit(this.importBatchSize);
 
     return next;
@@ -133,7 +133,7 @@ export class NominatimImport extends BaseImporter {
       this.logger.debug("Calling Nominatim API for location", {
         locationId: location.id,
         locationPos: location.location,
-        locationFix: location.locationFix,
+        recordedAt: location.recordedAt,
       });
       const response = await http
         .get("/reverse", {
@@ -150,7 +150,7 @@ export class NominatimImport extends BaseImporter {
           this.logger.debug("Got Nominatim error", {
             locationId: location.id,
             locationPos: location.location,
-            locationFix: location.locationFix,
+            recordedAt: location.recordedAt,
             e,
           });
           throw e;
@@ -159,7 +159,7 @@ export class NominatimImport extends BaseImporter {
       this.logger.debug("Got Nominatim response", {
         locationId: location.id,
         locationPos: location.location,
-        locationFix: location.locationFix,
+        recordedAt: location.recordedAt,
       });
 
       const parsedResponse = NominatimReverseResponseSchema.parse(response.data);
@@ -209,7 +209,7 @@ export class NominatimImport extends BaseImporter {
           .set({ failedToReverseGeocode: true })
           .where(sql`${locationsTable.id} = ${location.id}`);
       }
-      this.updateFirstAndLastEntry(location.locationFix);
+      this.updateFirstAndLastEntry(location.recordedAt);
       apiCalls++;
       nextLocation = await this.getNextPage({ tx: params.tx });
     }

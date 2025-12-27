@@ -124,7 +124,7 @@ export class OwntracksImporter extends BaseImporter {
       await delay(this.callThrottleInMs);
       const { formattedEntries, searchedUntil } = await this.fetchDataForDay(currentDate, otherParams);
       for (const entry of formattedEntries) {
-        this.updateFirstAndLastEntry(entry.locationFix);
+        this.updateFirstAndLastEntry(entry.recordedAt);
       }
 
       if (formattedEntries.length) {
@@ -223,7 +223,7 @@ export class OwntracksImporter extends BaseImporter {
 
       // Owntracks api returns date in seconds since epoch, but JS uses milliseconds since epoch
       messageCreatedAt: entry.created_at ? new Date(entry.created_at * 1000) : null,
-      locationFix: entry.tst ? new Date(entry.tst * 1000) : null,
+      recordedAt: entry.tst ? new Date(entry.tst * 1000) : null,
       timezone: entry.tzname,
       createdAt: new Date(),
     };

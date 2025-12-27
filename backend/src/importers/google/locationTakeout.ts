@@ -131,7 +131,7 @@ export class GoogleTakeoutLocationsImporter extends BaseImporter {
               lat,
               lng,
             },
-            locationFix: DateTime.fromISO(location.timestamp).toJSDate(),
+            recordedAt: DateTime.fromISO(location.timestamp).toJSDate(),
             importJobId: params.placeholderJobId,
           },
         ])
@@ -189,7 +189,7 @@ export class GoogleTakeoutLocationsImporter extends BaseImporter {
         })
         .from(locationsTable)
         .where(sql`source = ${this.sourceName}`)
-        .orderBy(locationsTable.locationFix)
+        .orderBy(locationsTable.recordedAt)
         .limit(batchSize)
         .offset(currentOffset);
 
@@ -220,11 +220,11 @@ export class GoogleTakeoutLocationsImporter extends BaseImporter {
         .leftJoin(
           lJoin,
           sql`
-            ${lJoin.locationFix} > ${
-              googleLocations.locationFix
+            ${lJoin.recordedAt} > ${
+              googleLocations.recordedAt
             } - INTERVAL '${sql.raw(filterAssumptions.timeBetweenPoints)}' AND
-             ${lJoin.locationFix} < ${
-               googleLocations.locationFix
+             ${lJoin.recordedAt} < ${
+               googleLocations.recordedAt
              } + INTERVAL '${sql.raw(filterAssumptions.timeBetweenPoints)}' AND
              ${lJoin.id} != ${googleLocations.id}`,
         )
