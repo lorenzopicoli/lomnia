@@ -1,4 +1,4 @@
-import { boolean, integer, jsonb, pgEnum, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, integer, pgEnum, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
 import { geography } from "../db/types";
 import { importJobsTable } from "./ImportJob";
 import { locationDetailsTable } from "./LocationDetails";
@@ -59,12 +59,6 @@ export const locationsTable = pgTable("locations", {
    */
   timezone: text("timezone").notNull(),
   wifiSSID: text("wifi_ssid"),
-
-  /**
-   * The original data that came from the source DB. This might be a bit too much
-   * and take too much disk space
-   */
-  rawData: jsonb("raw_data"),
 
   importJobId: integer("import_job_id")
     .references(() => importJobsTable.id)

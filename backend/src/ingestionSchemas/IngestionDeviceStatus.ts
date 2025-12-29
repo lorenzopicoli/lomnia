@@ -6,12 +6,9 @@ export const IngestionDeviceStatus = z
       description: "Entity discriminator",
     }),
 
-    deviceId: z
-      .string()
-      .meta({
-        description: "Unique identifier for the device status",
-      })
-      .optional(),
+    deviceId: z.string().meta({
+      description: "Unique identifier for the device linked to this status",
+    }),
 
     id: z
       .string()
@@ -40,7 +37,7 @@ export const IngestionDeviceStatus = z
       .optional(),
 
     connectionStatus: z
-      .enum(["wifi", "offline", "data"])
+      .enum(["wifi", "offline", "cellular", "ethernet"])
       .meta({
         description: "Current connection status",
       })
