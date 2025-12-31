@@ -32,7 +32,7 @@ export class DeviceStatusIngester extends Ingester<IngestionDeviceStatus, NewDev
       importJobId: this.importJobId,
       recordedAt: new Date(raw.recordedAt),
     };
-    console.log(raw.batteryStatus);
+
     return transformed;
   }
 
