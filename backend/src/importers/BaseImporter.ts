@@ -55,14 +55,8 @@ export class BaseImporter {
         const placeholderJobId = await tx
           .insert(importJobsTable)
           .values({
-            source: this.sourceId,
-            destinationTable: this.destinationTable,
-            entryDateKey: this.entryDateKey,
-
             jobStart: this.jobStart.toJSDate(),
             jobEnd: this.placeholderDate,
-            firstEntryDate: this.placeholderDate,
-            lastEntryDate: this.placeholderDate,
 
             importedCount: 0,
             logs: [],
@@ -91,10 +85,6 @@ export class BaseImporter {
           .update(importJobsTable)
           .set({
             jobEnd: new Date(),
-            firstEntryDate: result.firstEntryDate ?? this.firstEntry,
-            lastEntryDate: result.lastEntryDate ?? this.lastEntry,
-            apiCallsCount: result.apiCallsCount,
-            apiVersion: this.apiVersion,
 
             importedCount: result.importedCount,
             logs: result.logs,
