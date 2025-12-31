@@ -19,7 +19,7 @@ export const IngestionDeviceStatus = z
       .optional(),
 
     source: z.string().meta({
-      description: "The application source used to get this location",
+      description: "The application source used to get this device status",
     }),
 
     battery: z
@@ -46,12 +46,12 @@ export const IngestionDeviceStatus = z
     trigger: z
       .enum(["ping", "circular", "report_location", "manual"])
       .meta({
-        description: "What triggered this location update",
+        description: "What triggered this device status update",
       })
       .optional(),
 
     timezone: z.string().meta({
-      description: "The user timezone at the time of location recording",
+      description: "The user timezone at the time of device status recording",
     }),
 
     wifiSSID: z
@@ -62,7 +62,7 @@ export const IngestionDeviceStatus = z
       .optional(),
 
     recordedAt: z.iso.datetime().meta({
-      description: "The date at which the location was taken, in UTC time",
+      description: "The date at which the device status was taken, in UTC time",
     }),
 
     version: z.string().meta({

@@ -1,19 +1,21 @@
-import type { DBTransaction } from "../../db/types";
 import { ingestionSchemas } from "../../ingestionSchemas";
 import type IngestionDevice from "../../ingestionSchemas/IngestionDevice";
-import type { NewExternalDevice } from "../../models/ExternalDevice";
+import { externalDevicesTable, type NewExternalDevice } from "../../models/ExternalDevice";
+import { Logger } from "../Logger";
 import { Ingester } from "./BaseIngester";
 
-export class DeviceIngester extends Ingester<IngestionDevice> {
+export class DeviceIngester extends Ingester<IngestionDevice, NewExternalDevice> {
+  protected logger = new Logger("DeviceIngester");
+
   public isIngestable(raw: unknown): { isIngestable: boolean; parsed?: IngestionDevice } {
-    const location = ingestionSchemas.device.safeParse(raw);
+    const parsed = ingestionSchemas.device.safeParse(raw);
 
     return {
-      isIngestable: location.success,
-      parsed: location.data,
+      isIngestable: parsed.success,
+      parsed: parsed.data,
     };
   }
-  private transform(raw: IngestionDevice): NewExternalDevice {
+  transform(raw: IngestionDevice): NewExternalDevice {
     const transformed: NewExternalDevice = {
       externalId: raw.id,
 
@@ -24,10 +26,7 @@ export class DeviceIngester extends Ingester<IngestionDevice> {
     return transformed;
   }
 
-  public async ingest(_tx: DBTransaction, parsed: IngestionDevice) {
-    const newDeviceStatus = this.transform(parsed);
-    console.log("Transforming device status", newDeviceStatus);
-    // await tx.insert(locationsTable).values(parsed);
-    return true;
+  public async insertBatch(): Promise<void> {
+    await this.tx.insert(externalDevicesTable).values(this.collected);
   }
 }

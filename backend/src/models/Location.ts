@@ -64,10 +64,10 @@ export const locationsTable = pgTable("locations", {
     .references(() => importJobsTable.id)
     .notNull(),
 
-  messageCreatedAt: timestamp("message_created_at").defaultNow(),
+  messageCreatedAt: timestamp("message_created_at"),
 
   /**
-   * The date at which the date was taken, in UTC time
+   * The date at which the location was taken, in UTC time
    */
   recordedAt: timestamp("recorded_at"),
 

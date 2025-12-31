@@ -1,4 +1,5 @@
 import { integer, pgEnum, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { externalDevicesTable } from "./ExternalDevice";
 import { importJobsTable } from "./ImportJob";
 
 export const deviceBatteryStatusEnum = pgEnum("device_battery_status", ["unknown", "unplugged", "charging", "full"]);
@@ -16,14 +17,14 @@ export const deviceStatusTable = pgTable("device_statuses", {
   id: serial("id").primaryKey(),
 
   /**
-   * Device linked to this status
-   */
-  deviceId: text("device_id"),
-
-  /**
    * External identifier from the source system
    */
   externalId: text("external_id"),
+
+  /**
+   * Canonical device this status maps to
+   */
+  externalDeviceId: text("external_device_id").references(() => externalDevicesTable.externalId),
 
   /**
    * The application source used to get this device status

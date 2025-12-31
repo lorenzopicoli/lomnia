@@ -25,7 +25,7 @@
       ]
     },
     "source": {
-      "description": "The application source used to get this location",
+      "description": "The application source used to get this device status",
       "type": "string"
     },
     "battery": {
@@ -53,7 +53,7 @@
       ]
     },
     "trigger": {
-      "description": "What triggered this location update",
+      "description": "What triggered this device status update",
       "type": "string",
       "enum": [
         "ping",
@@ -63,7 +63,7 @@
       ]
     },
     "timezone": {
-      "description": "The user timezone at the time of location recording",
+      "description": "The user timezone at the time of device status recording",
       "type": "string"
     },
     "wifiSSID": {
@@ -71,7 +71,7 @@
       "type": "string"
     },
     "recordedAt": {
-      "description": "The date at which the location was taken, in UTC time",
+      "description": "The date at which the device status was taken, in UTC time",
       "type": "string",
       "format": "date-time",
       "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"

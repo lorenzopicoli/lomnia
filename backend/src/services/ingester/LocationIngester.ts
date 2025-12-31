@@ -1,10 +1,12 @@
-import type { DBTransaction } from "../../db/types";
 import { ingestionSchemas } from "../../ingestionSchemas";
 import type IngestionLocation from "../../ingestionSchemas/IngestionLocation";
-import type { NewLocation } from "../../models/Location";
+import { locationsTable, type NewLocation } from "../../models/Location";
+import { Logger } from "../Logger";
 import { Ingester } from "./BaseIngester";
 
-export class LocationIngester extends Ingester<IngestionLocation> {
+export class LocationIngester extends Ingester<IngestionLocation, NewLocation> {
+  protected logger = new Logger("LocationIngester");
+
   public isIngestable(raw: unknown): { isIngestable: boolean; parsed?: IngestionLocation } {
     const location = ingestionSchemas.location.safeParse(raw);
     return {
@@ -13,7 +15,7 @@ export class LocationIngester extends Ingester<IngestionLocation> {
     };
   }
 
-  private transform(raw: IngestionLocation): NewLocation {
+  transform(raw: IngestionLocation): NewLocation {
     const transformed: NewLocation = {
       externalId: raw.id,
 
@@ -34,10 +36,7 @@ export class LocationIngester extends Ingester<IngestionLocation> {
     return transformed;
   }
 
-  public async ingest(_tx: DBTransaction, parsed: IngestionLocation) {
-    const newLocation = this.transform(parsed);
-    console.log("New location ready to insert", newLocation);
-    // await tx.insert(locationsTable).values(newLocation);
-    return true;
+  public async insertBatch(): Promise<void> {
+    await this.tx.insert(locationsTable).values(this.collected);
   }
 }

@@ -1,24 +1,26 @@
-import type { DBTransaction } from "../../db/types";
 import { ingestionSchemas } from "../../ingestionSchemas";
 import type IngestionDeviceStatus from "../../ingestionSchemas/IngestionDeviceStatus";
-import type { NewDeviceStatus } from "../../models/DeviceStatus";
+import { deviceStatusTable, type NewDeviceStatus } from "../../models/DeviceStatus";
+import { Logger } from "../Logger";
 import { Ingester } from "./BaseIngester";
 
-export class DeviceStatusIngester extends Ingester<IngestionDeviceStatus> {
+export class DeviceStatusIngester extends Ingester<IngestionDeviceStatus, NewDeviceStatus> {
+  protected logger = new Logger("DeviceStatusIngester");
+
   public isIngestable(raw: unknown): { isIngestable: boolean; parsed?: IngestionDeviceStatus } {
-    const location = ingestionSchemas.deviceStatus.safeParse(raw);
+    const parsed = ingestionSchemas.deviceStatus.safeParse(raw);
 
     return {
-      isIngestable: location.success,
-      parsed: location.data,
+      isIngestable: parsed.success,
+      parsed: parsed.data,
     };
   }
 
-  private transform(raw: IngestionDeviceStatus): NewDeviceStatus {
+  transform(raw: IngestionDeviceStatus): NewDeviceStatus {
     const transformed: NewDeviceStatus = {
       externalId: raw.id,
 
-      deviceId: raw.deviceId,
+      externalDeviceId: raw.deviceId,
 
       battery: raw.battery,
       batteryStatus: raw.batteryStatus,
@@ -30,14 +32,11 @@ export class DeviceStatusIngester extends Ingester<IngestionDeviceStatus> {
       importJobId: this.importJobId,
       recordedAt: new Date(raw.recordedAt),
     };
-
+    console.log(raw.batteryStatus);
     return transformed;
   }
 
-  public async ingest(_tx: DBTransaction, parsed: IngestionDeviceStatus) {
-    const newDeviceStatus = this.transform(parsed);
-    console.log("Transforming device status", newDeviceStatus);
-    // await tx.insert(locationsTable).values(parsed);
-    return true;
+  public async insertBatch(): Promise<void> {
+    await this.tx.insert(deviceStatusTable).values(this.collected);
   }
 }

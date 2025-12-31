@@ -21,15 +21,15 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable("device_statuses", (table) => {
     table.increments();
 
-    table.integer("device_id").notNullable().references("id").inTable("devices").index();
-    table.string("external_device_id").notNullable().references("external_id").inTable("external_devices").index();
+    // No FK constraint to allow imports without external devices
+    table.string("external_device_id").notNullable().index();
     table.string("external_id").nullable();
 
     table.string("source").notNullable();
 
     table.integer("battery").nullable().comment("Battery level in percent");
     table.enum("battery_status", ["unknown", "unplugged", "charging", "full"]).nullable();
-    table.enum("connection_status", ["wifi", "offline", "data"]).nullable();
+    table.enum("connection_status", ["wifi", "offline", "cellular", "ethernet"]).nullable();
 
     table.string("timezone").notNullable();
     table.string("wifi_ssid").nullable();
@@ -43,5 +43,6 @@ export async function up(knex: Knex): Promise<void> {
 
 export async function down(knex: Knex): Promise<void> {
   await knex.schema.dropTable("device_statuses");
+  await knex.schema.dropTable("external_devices");
   await knex.schema.dropTable("devices");
 }
