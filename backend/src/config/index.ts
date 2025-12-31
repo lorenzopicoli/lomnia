@@ -9,23 +9,11 @@ export default {
       },
     },
     location: {
-      generic: {
-        enabled: false,
-      },
       googleTakout: {
         enabled: false,
       },
       googleTimeline: {
         enabled: false,
-      },
-      owntracksServer: {
-        enabled: true,
-        /**
-         * Number of locations to be fetched in each run. Increasing this number will slowdown each cycle.
-         *
-         * The actual run might import a bit more since it fetches points per day so it might go above the limit
-         */
-        maxImportSession: 15000,
       },
     },
     locationDetails: {
@@ -102,11 +90,7 @@ export default {
         },
       },
     },
-    internetPresence: {
-      piholeServer: {
-        enabled: false,
-      },
-    },
+    internetPresence: {},
     files: {
       obsidian: {
         enabled: true,

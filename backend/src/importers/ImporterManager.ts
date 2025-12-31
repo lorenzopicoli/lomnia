@@ -5,13 +5,10 @@ import { Logger } from "../services/Logger";
 import { GoogleTakeoutLocationsImporter } from "./google/locationTakeout";
 import { GoogleLocationsTimelineImporter } from "./google/locationTimelineExport";
 import { HaresJSONImporter } from "./hares";
-import { ExternalLocationsImporter } from "./locations";
 import { NominatimImport } from "./nominatim";
 import { ObsidianImporter } from "./obsidian";
 import { ObsidianHabitsJSONImporter } from "./obsidianHabits";
 import { OpenMeteoImport } from "./openMeteo";
-import { OwntracksImporter } from "./owntracks";
-import { PiholeSchemaRequestImporter } from "./pihole";
 import { SamsungHealthHeartRateImporter } from "./samsungHealth/heartRate";
 import { SamsungHealthSleepImporter } from "./samsungHealth/sleep";
 import { SamsungHealthSleepStageImporter } from "./samsungHealth/sleepStage";
@@ -63,15 +60,6 @@ export class ImporterManager {
   }
 
   private async runLocationImporters() {
-    // Generic locations
-    if (config.importers.location.generic.enabled) {
-      const locationsImporter = await new ExternalLocationsImporter();
-      await locationsImporter.fetchDataForImport();
-      await locationsImporter.import();
-    } else {
-      this.logger.debug("Skipping generic locations import");
-    }
-
     // Google takeout
     if (config.importers.location.googleTimeline.enabled) {
       const googleLocation = new GoogleLocationsTimelineImporter();
@@ -84,14 +72,6 @@ export class ImporterManager {
       await googleLocation2.startJob();
     } else {
       this.logger.debug("Skipping google takeout import");
-    }
-
-    // Owntracks
-    if (config.importers.location.owntracksServer.enabled) {
-      const owntracks = new OwntracksImporter();
-      await owntracks.startJob();
-    } else {
-      this.logger.debug("Skipping owntracks server import");
     }
   }
 
@@ -160,16 +140,7 @@ export class ImporterManager {
     }
   }
 
-  private async internetPresenceImporters() {
-    // Pihole
-    if (config.importers.internetPresence.piholeServer.enabled) {
-      const piholeImporter = new PiholeSchemaRequestImporter();
-      await piholeImporter.fetchDataForImport();
-      await piholeImporter.import();
-    } else {
-      this.logger.debug("Skipping pihole import");
-    }
-  }
+  private async internetPresenceImporters() {}
 
   private async runFilesImporters() {
     // Obsidian
