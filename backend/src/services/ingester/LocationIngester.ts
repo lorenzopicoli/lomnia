@@ -31,6 +31,7 @@ export class LocationIngester extends Ingester<IngestionLocation, NewLocation> {
       timezone: raw.timezone,
       importJobId: this.importJobId,
       recordedAt: new Date(raw.recordedAt),
+      createdAt: new Date(),
     };
 
     return transformed;

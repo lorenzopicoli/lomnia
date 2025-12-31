@@ -21,6 +21,7 @@ export class DeviceIngester extends Ingester<IngestionDevice, NewExternalDevice>
 
       source: raw.source,
       importJobId: this.importJobId,
+      createdAt: new Date(),
     };
 
     return transformed;
