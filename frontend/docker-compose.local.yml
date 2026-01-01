@@ -1,9 +1,11 @@
 services:
   frontend:
     build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: lomnia-frontend
+      context: ..
+      dockerfile: frontend/Dockerfile
+      no_cache: true
+    restart: unless-stopped
     ports:
       - '3000:80'
-    restart: unless-stopped
+    environment:
+      API_HOST: http://localhost

@@ -1,76 +1,124 @@
-# lomnia
+# Lomnia Backend
 
-1. Install dependencies
+## Setup
 
+### Prerequisites
+
+- Node.js
+- pnpm
+
+### Quick Start
+
+1. Install dependencies:
+
+```bash
+pnpm install
 ```
-npm i
+
+2. Set up local database:
+
+```bash
+docker compose up -d db
 ```
 
-2. Spin up local postgres db using docker
+3. Copy environment variables:
 
+```bash
+cp .env.example .env
 ```
+
+4. Run database migrations:
+
+```bash
+pnpm migration:up
+```
+
+5. Start development server:
+
+```bash
+pnpm dev:server
+```
+
+### Environment Variables
+
+See [`.env.example`](./.env.example) for all available configuration options.
+
+## Available Scripts
+
+### Development
+
+| Script                    | Description                          |
+| ------------------------- | ------------------------------------ |
+| `pnpm dev:server`         | Start API server with hot reload     |
+| `pnpm dev:importer`       | Run data importer once               |
+| `pnpm dev:importer:watch` | Run data importer with file watching |
+| `pnpm dev:ingester`       | Start queue listener                 |
+| `pnpm dev:ingester:watch` | Start queue listener with hot reload |
+| `pnpm dev:ingester:file`  | Ingest a specific file               |
+
+### Production
+
+| Script          | Description                            |
+| --------------- | -------------------------------------- |
+| `pnpm build`    | Build TypeScript to `build/` directory |
+| `pnpm server`   | Start production server                |
+| `pnpm importer` | Run production importer                |
+
+### Database
+
+| Script                      | Description             |
+| --------------------------- | ----------------------- |
+| `pnpm migration:new <name>` | Create new migration    |
+| `pnpm migration:up`         | Run pending migrations  |
+| `pnpm migration:rollback`   | Rollback last migration |
+
+### Code Quality
+
+| Script          | Description                 |
+| --------------- | --------------------------- |
+| `pnpm lint`     | Run Biome linter            |
+| `pnpm format`   | Format code with Biome      |
+| `pnpm ts:check` | Type check without emitting |
+
+### Utilities
+
+| Script                  | Description                    |
+| ----------------------- | ------------------------------ |
+| `pnpm add-poi`          | Format points of interest data |
+| `pnpm schemas:generate` | Generate ingestion schemas     |
+
+## Database
+
+### Local Development
+
+```bash
+# Start database with PGAdmin
 docker compose up
+
+# Access PGAdmin at http://localhost:8888
+# Email: lomnia@lomnia.com, Password: lomnia
 ```
 
-3. Access PGAdmin in http://localhost:8888
+### Connection Details
 
-   - Email: lomnia@lomnia.com
-   - Password: lomnia
+| Property | Value                                 |
+| -------- | ------------------------------------- |
+| Host     | localhost (or `db` when using Docker) |
+| Port     | 5433                                  |
+| Username | lomnia                                |
+| Password | lomnia                                |
+| Database | lomnia                                |
 
-4. Connect to the database:
+## Docker Development
 
-   - Username: lomnia
-   - Password: lomnia
-   - Host: db
+For testing the production build locally:
 
-5. Rename the `.env.example` file to `.env`
-
-6. Run migrations with `npm run migration:up`
-
-# Notes
-
-- knex is used to manage migrations
-- `ts-node` is required for knex to properly work, but `tsx` is what is actually used for everything else
-- `postgres` is used by drizzle, but `pg` is required by knex (feels like I need to consolidate this)
-
----
-
-# Importer template
-
+```bash
+docker compose up --build --force-recreate
 ```
-import type { DBTransaction } from '../../../db/types'
-import { BaseImporter } from '../BaseImporter'
 
-export class SamsungHealthHeartRateImport extends BaseImporter {
-  override sourceId = 'samsung-health-export-hr-v1'
-  override destinationTable = 'heart_rate_readings'
-  override entryDateKey = 'com.samsung.health.heart_rate.create_time'
+This will build and start:
 
-  public async sourceHasNewData(): Promise<{
-    result: boolean
-    from?: Date
-    totalEstimate?: number
-  }> {
-    return { result: true }
-  }
-
-  override async import(params: {
-    tx: DBTransaction
-    placeholderJobId: number
-  }): Promise<{
-    importedCount: number
-    firstEntryDate?: Date
-    lastEntryDate?: Date
-    apiCallsCount?: number
-    logs: string[]
-  }> {
-    let importedCount = 0
-    this.updateFirstAndLastEntry(new Date())
-    return {
-      importedCount,
-      apiCallsCount: 0,
-      logs: [],
-    }
-  }
-}
-```
+- Backend API server on port 3010
+- PostgreSQL database on port 5433
+- PGAdmin on port 8888

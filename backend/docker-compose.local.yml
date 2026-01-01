@@ -1,15 +1,13 @@
 services:
   backend:
     build:
-      context: .
-      dockerfile: Dockerfile
-      no_cache: true 
-    container_name: lomnia-backend-dev
+      context: ..
+      dockerfile: backend/Dockerfile
+      no_cache: true
     restart: unless-stopped
     ports:
       - '3010:3010'
     environment:
-      NODE_ENV: development
       DB_HOST: db
       DB_USER: lomnia
       DB_PORT: 5432
@@ -20,10 +18,8 @@ services:
         condition: service_healthy
     volumes:
       - ./logs:/app/logs
-    command: ["pm2-runtime", "start", "ecosystem.config.js"]
   db:
     image: postgis/postgis:16-master
-    container_name: lomnia-pg
     restart: unless-stopped
     ports:
       - '5433:5432'
@@ -34,15 +30,13 @@ services:
     volumes:
       - local_pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U lomnia"]
+      test: ['CMD-SHELL', 'pg_isready -U lomnia']
       interval: 10s
       timeout: 5s
       retries: 5
 
-
   pgadmin:
     image: dpage/pgadmin4
-    container_name: pgadmin4_container
     restart: unless-stopped
     ports:
       - '8888:80'

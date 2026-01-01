@@ -69,3 +69,63 @@ No, you probably cannot use it. Lomnia is currently in active development and th
 ## Privacy
 
 Your data belongs to you. Lomnia is designed to be self-hosted, keeping all your personal information under your control.
+
+## Development
+
+### Quick Start
+
+1. Install dependencies:
+```bash
+pnpm install
+```
+
+2. Set up environment variables:
+```bash
+# Backend
+cp backend/.env.example backend/.env
+
+# Frontend has no environment variables
+```
+
+3. Start local database:
+```bash
+cd backend && docker compose up -d db
+```
+
+4. Run development servers:
+```bash
+pnpm dev:backend  # Terminal 1: API server on port 3010
+pnpm dev:frontend # Terminal 2: Frontend on port 5173
+```
+
+### Environment Variables
+
+- **Backend:** See [`backend/.env.example`](./backend/.env.example)
+- **Frontend:** No environment variables required
+
+### Docker Development
+
+For testing production builds locally:
+
+```bash
+# Backend with database (runs on port 3010)
+cd backend && docker compose up --build --force-recreate
+
+# Frontend (runs on port 3000)
+cd frontend && docker compose up --build --force-recreate
+```
+
+### Available Scripts
+
+From the root directory:
+
+| Script | Description |
+|--------|-------------|
+| `pnpm dev:frontend` | Start frontend development server |
+| `pnpm dev:backend` | Start backend development server |
+| `pnpm build:frontend` | Build frontend for production |
+| `pnpm build:backend` | Build backend for production |
+| `pnpm docker:frontend` | Build frontend Docker image |
+| `pnpm docker:backend` | Build backend Docker image |
+
+For more detailed backend setup instructions, see [`backend/README.md`](./backend/README.md).

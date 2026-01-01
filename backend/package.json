@@ -1,30 +1,23 @@
 {
-  "name": "lomnia",
+  "name": "@lomnia/backend",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "ts:check": "tsc --noEmit",
-
     "dev:importer:watch": "tsx watch --clear-screen=false src/importer.ts",
     "dev:importer": "tsx src/importer.ts",
-
     "dev:server": "tsx watch --clear-screen=false src/server.ts | pino-pretty",
-
     "dev:ingester": "tsx src/listenQueue.ts",
     "dev:ingester:watch": "tsx watch --clear-screen=false src/listenQueue.ts",
     "dev:ingester:file": "tsx src/ingestFile.ts",
-
     "add-poi": "tsx src/scripts/poiFormatter.ts",
     "schemas:generate": "ts-node src/generateIngestionSchemas.ts",
-
     "build": "rimraf build && tsc",
     "server": "NODE_ENV=production node build/src/server.js",
     "importer": "NODE_ENV=production node build/src/server.js",
-
     "lint": "biome lint src/",
     "format": "biome format --write src/",
-
     "migration:new": "knex migrate:make -x ts",
     "migration:up": "knex migrate:latest",
     "migration:rollback": "knex migrate:rollback"
@@ -35,6 +28,7 @@
     "@biomejs/biome": "2.3.5",
     "@types/amqplib": "^0.10.8",
     "@types/luxon": "^3.7.1",
+    "@types/lodash": "^4.17.20",
     "@types/node": "^24.10.1",
     "drizzle-kit": "^0.31.7",
     "knex": "^3.1.0",
@@ -50,9 +44,7 @@
     "@fastify/cors": "^11.1.0",
     "@fastify/static": "^8.3.0",
     "@trpc/server": "^11.7.1",
-    "@types/lodash": "^4.17.20",
     "amqplib": "^0.10.9",
-    "ansi-colors": "^4.1.3",
     "axios": "^1.13.2",
     "axios-retry": "^4.5.0",
     "camelcase-keys": "^10.0.1",

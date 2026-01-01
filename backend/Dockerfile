@@ -1,25 +1,26 @@
-FROM node:25-alpine AS base
+FROM node:24-alpine AS base
+RUN corepack enable && corepack prepare pnpm@9.9.0 --activate
 
 FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-COPY package*.json ./
-COPY tsconfig.json ./
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml .npmrc ./
+COPY backend/package.json ./backend/
 
-RUN npm ci --only=production && npm cache clean --force
+RUN pnpm install --frozen-lockfile --filter @lomnia/backend
 
 FROM base AS builder
 WORKDIR /app
-COPY package*.json ./
-COPY tsconfig.json ./
-COPY ecosystem.config.js ./
 
-RUN npm ci
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/backend/node_modules ./backend/node_modules
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+COPY backend/ ./backend/
 
-COPY . .
+RUN pnpm --filter @lomnia/backend build
 
-RUN npm run build
+RUN pnpm --filter @lomnia/backend deploy --prod /app/deploy
 
 FROM base AS runner
 WORKDIR /app
@@ -29,15 +30,14 @@ RUN adduser --system --uid 1001 nodejs
 
 RUN npm install -g pm2
 
-COPY --from=builder /app/build ./build
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/ecosystem.config.js ./
+COPY --from=builder /app/deploy/node_modules ./node_modules
+COPY --from=builder /app/backend/build ./build
+COPY --from=builder /app/backend/package.json ./
+COPY --from=builder /app/backend/ecosystem.config.js ./
 
 RUN mkdir -p logs && chown -R nodejs:nodejs /app
 
 USER nodejs
 
 EXPOSE 3010
-
 CMD ["pm2-runtime", "start", "ecosystem.config.js"]
