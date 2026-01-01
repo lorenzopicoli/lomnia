@@ -6,7 +6,8 @@ import { type DBTransaction, toPostgisGeoPoint } from "../../db/types";
 import { locationsTable } from "../../models";
 import { locationDetailsTable } from "../../models/LocationDetails";
 import { BaseImporter } from "../BaseImporter";
-import data from "./personal.json";
+
+// import data from "./personal.json";
 
 const jsonSchema = z.array(
   z
@@ -72,7 +73,7 @@ export class UserPointsOfInterestImporter extends BaseImporter {
     const { tx, placeholderJobId } = params;
     let importedCount = 0;
 
-    const userPOIs = jsonSchema.parse(data);
+    const userPOIs = jsonSchema.parse([]);
 
     if (config.importers.locationDetails.userPoi.recalculateAll) {
       // Delete all the user point of interests from the location details table
