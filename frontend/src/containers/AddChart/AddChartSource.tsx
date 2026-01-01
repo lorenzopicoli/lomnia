@@ -1,15 +1,22 @@
-import { Flex, Group, Radio, Text } from "@mantine/core";
-import type { UseFormReturnType } from "@mantine/form";
-import { availableCharts, type ChartSource, chartSourceTitleAndDescription } from "../../charts/types";
-import type { AddChartFormValues } from "./AddChart";
-import styles from "./AddChart.module.css";
+import { Flex, Group, Radio, Text } from '@mantine/core'
+import type { UseFormReturnType } from '@mantine/form'
+import {
+  availableCharts,
+  type ChartSource,
+  chartSourceTitleAndDescription,
+} from '../../charts/types'
+import styles from './AddChart.module.css'
+import type { AddChartFormValues } from './AddChartContainer'
 
-export function AddChartSource(props: { sources: ChartSource[]; form: UseFormReturnType<AddChartFormValues> }) {
-  const { sources, form } = props;
+export function AddChartSource(props: {
+  sources: ChartSource[]
+  form: UseFormReturnType<AddChartFormValues>
+}) {
+  const { sources, form } = props
   return (
-    <Flex direction={"row"} gap={"md"} wrap="wrap" justify={"space-between"}>
+    <Flex direction={'row'} gap={'md'} wrap="wrap" justify={'space-between'}>
       {sources.map((source) => {
-        const { title, description } = chartSourceTitleAndDescription(source);
+        const { title, description } = chartSourceTitleAndDescription(source)
         return (
           <Radio.Card
             key={source}
@@ -17,21 +24,27 @@ export function AddChartSource(props: { sources: ChartSource[]; form: UseFormRet
             radius="md"
             checked={form.getValues().source === source}
             onClick={() => {
-              form.reset();
-              form.setFieldValue("source", source);
-              form.setFieldValue("chartId", availableCharts.find((c) => c.sources.includes(source))?.id ?? null);
+              form.reset()
+              form.setFieldValue('source', source)
+              form.setFieldValue(
+                'chartId',
+                availableCharts.find((c) => c.sources.includes(source))?.id ??
+                  null
+              )
             }}
           >
             <Group wrap="nowrap" align="flex-start">
               <Radio.Indicator />
               <div>
                 <Text className={styles.cardRadioTitle}>{title}</Text>
-                <Text className={styles.cardRadioDescription}>{description}</Text>
+                <Text className={styles.cardRadioDescription}>
+                  {description}
+                </Text>
               </div>
             </Group>
           </Radio.Card>
-        );
+        )
       })}
     </Flex>
-  );
+  )
 }

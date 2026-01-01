@@ -1,36 +1,38 @@
-import { useHover } from "@mantine/hooks";
-import type { RouterOutputs } from "../../api/trpc";
-import { useEffect } from "react";
-import { formatDuration } from "date-fns/formatDuration";
-import { intervalToDuration } from "date-fns/intervalToDuration";
-import { Text } from "@mantine/core";
+import { useHover } from '@mantine/hooks'
+import { useEffect } from 'react'
+import { formatDuration } from 'date-fns/formatDuration'
+import { intervalToDuration } from 'date-fns/intervalToDuration'
+import { Text } from '@mantine/core'
+import type { RouterOutputs } from '../../api/trpc'
 
 export function VisitedPlaceTimelineItem(props: {
-  place: RouterOutputs["getVisitedPlaces"][number];
-  onHovered?: (index: number) => void;
-  index: number;
+  place: RouterOutputs['charts']['locations']['getTimeline'][number]
+  onHovered?: (index: number) => void
+  index: number
 }) {
-  const { place } = props;
-  const { hovered, ref } = useHover();
+  const { place } = props
+  const { hovered, ref } = useHover()
 
   useEffect(() => {
     if (hovered) {
-      props.onHovered?.(props.index);
+      props.onHovered?.(props.index)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hovered, props.onHovered]);
+  }, [hovered, props.onHovered])
 
   return (
     <div ref={ref}>
       <Text c="dimmed" size="sm">
-        {place.placeOfInterest?.source === "userPOIJson" ? "Place of interest" : "External"}
+        {place.placeOfInterest?.source === 'userPOIJson'
+          ? 'Place of interest'
+          : 'External'}
       </Text>
       <Text size="xs" mt={4}>
         {formatDuration(
           intervalToDuration({
-            start: new Date(place.startDate ?? ""),
-            end: new Date(place.endDate ?? ""),
-          }),
+            start: new Date(place.startDate ?? ''),
+            end: new Date(place.endDate ?? ''),
+          })
         )}
       </Text>
       {place.mode ? (
@@ -39,5 +41,5 @@ export function VisitedPlaceTimelineItem(props: {
         </Text>
       ) : null}
     </div>
-  );
+  )
 }
