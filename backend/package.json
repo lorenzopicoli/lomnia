@@ -5,18 +5,26 @@
   "main": "index.js",
   "scripts": {
     "ts:check": "tsc --noEmit",
-    "dev:importer": "tsx watch --clear-screen=false src/importer.ts",
-    "dev:ingester": "tsx watch --clear-screen=false src/listenQueue.ts",
+
+    "dev:importer:watch": "tsx watch --clear-screen=false src/importer.ts",
+    "dev:importer": "tsx src/importer.ts",
+
+    "dev:server": "tsx watch --clear-screen=false src/server.ts | pino-pretty",
+
+    "dev:ingester": "tsx src/listenQueue.ts",
+    "dev:ingester:watch": "tsx watch --clear-screen=false src/listenQueue.ts",
+    "dev:ingester:file": "tsx src/ingestFile.ts",
+
     "add-poi": "tsx src/scripts/poiFormatter.ts",
     "schemas:generate": "ts-node src/generateIngestionSchemas.ts",
-    "importer": "tsx src/importer.ts",
-    "ingester": "tsx src/listenQueue.ts",
-    "ingester:file": "tsx src/ingestFile.ts",
-    "dev:server": "tsx watch --clear-screen=false src/server.ts | pino-pretty",
-    "build": "rimraf build && tsc && cp -r src/static build/static && cp -r src/db/migrations build/db/migrations",
-    "start": "NODE_ENV=production npm run build && tsx build/src/index.js",
+
+    "build": "rimraf build && tsc",
+    "server": "NODE_ENV=production node build/src/server.js",
+    "importer": "NODE_ENV=production node build/src/server.js",
+
     "lint": "biome lint src/",
     "format": "biome format --write src/",
+
     "migration:new": "knex migrate:make -x ts",
     "migration:up": "knex migrate:latest",
     "migration:rollback": "knex migrate:rollback"
@@ -26,8 +34,6 @@
   "devDependencies": {
     "@biomejs/biome": "2.3.5",
     "@types/amqplib": "^0.10.8",
-    "@types/better-sqlite3": "^7.6.13",
-    "@types/cli-progress": "^3.11.6",
     "@types/luxon": "^3.7.1",
     "@types/node": "^24.10.1",
     "drizzle-kit": "^0.31.7",
@@ -49,9 +55,7 @@
     "ansi-colors": "^4.1.3",
     "axios": "^1.13.2",
     "axios-retry": "^4.5.0",
-    "better-sqlite3": "^12.4.1",
     "camelcase-keys": "^10.0.1",
-    "cli-progress": "^3.12.0",
     "csv-parse": "^6.1.0",
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
@@ -65,8 +69,8 @@
     "i18n-iso-countries": "^7.14.0",
     "lodash": "^4.17.21",
     "luxon": "^3.7.2",
-    "node-ssh": "^13.2.1",
     "openmeteo": "^1.2.2",
+    "pm2": "^5.4.2",
     "postgres": "^3.4.7",
     "typescript": "^5.9.3",
     "winston": "^3.18.3",

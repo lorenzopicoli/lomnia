@@ -1,0 +1,62 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      no_cache: true 
+    container_name: lomnia-backend-dev
+    restart: unless-stopped
+    ports:
+      - '3010:3010'
+    environment:
+      NODE_ENV: development
+      DB_HOST: db
+      DB_USER: lomnia
+      DB_PORT: 5432
+      DB_PASSWORD: lomnia
+      DB_NAME: lomnia
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./logs:/app/logs
+    command: ["pm2-runtime", "start", "ecosystem.config.js"]
+  db:
+    image: postgis/postgis:16-master
+    container_name: lomnia-pg
+    restart: unless-stopped
+    ports:
+      - '5433:5432'
+    environment:
+      POSTGRES_USER: lomnia
+      POSTGRES_PASSWORD: lomnia
+      POSTGRES_DB: lomnia
+    volumes:
+      - local_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lomnia"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin4_container
+    restart: unless-stopped
+    ports:
+      - '8888:80'
+    environment:
+      PGADMIN_DEFAULT_EMAIL: lomnia@lomnia.com
+      PGADMIN_DEFAULT_PASSWORD: lomnia
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles:
+      - tools
+
+volumes:
+  local_pgdata:
+  pgadmin-data:

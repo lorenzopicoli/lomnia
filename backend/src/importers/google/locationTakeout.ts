@@ -103,7 +103,7 @@ export class GoogleTakeoutLocationsImporter extends BaseImporter {
     const exportData = await oldExportSchema.safeParseAsync(dataJson);
 
     if (!exportData.data) {
-      throw new Error(`Failed to parse JSON: ${JSON.stringify(exportData.error?.errors.splice(0, 10))}`);
+      throw new Error(`Failed to parse JSON: ${JSON.stringify(exportData.error)}`);
     }
 
     const logs: string[] = [];

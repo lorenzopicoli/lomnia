@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import * as fs from "node:fs/promises";
 import path from "node:path";
-import { isAfter, isBefore, isValid, parseISO } from "date-fns";
+import { isValid, parseISO } from "date-fns";
 import { eq } from "drizzle-orm";
 import fm from "front-matter";
 import { glob } from "glob";
@@ -11,7 +11,7 @@ import type { DBTransaction } from "../../db/types";
 import { EnvVar, getEnvVarOrError } from "../../helpers/envVars";
 import { getKeys } from "../../helpers/getKeys";
 import { filesTable } from "../../models/File";
-import { type ImportJob, importJobsTable } from "../../models/ImportJob";
+import { importJobsTable } from "../../models/ImportJob";
 
 enum ObsidianMetadata {
   CreatedAt = "createdAt",
@@ -55,9 +55,6 @@ type ObsidianFileMetadata = z.infer<typeof obsidianMetadataValidationSchema>;
  */
 export class ObsidianImporter {
   private obsidianFolderPath: string;
-  private sourceId = "obsidian-v1";
-  private destinationTable = "files";
-  private entryDateKey = "frontmatter.date";
   private jobStart = new Date();
   private placeholderDate = new Date(1997, 6, 6);
 
@@ -149,30 +146,13 @@ export class ObsidianImporter {
   public async importInternal(params: { tx: DBTransaction }) {
     const { tx } = params;
     const logs: string[] = [];
-    let firstEntryDate: ImportJob["firstEntryDate"] | undefined;
-    let lastEntryDate: ImportJob["lastEntryDate"] | undefined;
     let importedCount = 0;
-
-    const updateEntryDates = (date: Date) => {
-      if (!lastEntryDate || isAfter(date, lastEntryDate)) {
-        lastEntryDate = date;
-      }
-      if (!firstEntryDate || isBefore(date, firstEntryDate)) {
-        firstEntryDate = date;
-      }
-    };
 
     const placeholderJob = await tx
       .insert(importJobsTable)
       .values({
-        source: this.sourceId,
-        destinationTable: this.destinationTable,
-        entryDateKey: this.entryDateKey,
-
         jobStart: this.jobStart,
         jobEnd: this.placeholderDate,
-        firstEntryDate: this.placeholderDate,
-        lastEntryDate: this.placeholderDate,
 
         importedCount: 0,
         logs: [],
@@ -204,7 +184,6 @@ export class ObsidianImporter {
         .then((r) => r[0]);
 
       importedCount++;
-      updateEntryDates(file.fileCreatedAt);
       const isDiary = file.tags.includes("diary/personal");
 
       if (!isDiary) {
@@ -219,8 +198,6 @@ export class ObsidianImporter {
       .update(importJobsTable)
       .set({
         jobEnd: new Date(),
-        firstEntryDate,
-        lastEntryDate,
 
         importedCount,
         logs: [],

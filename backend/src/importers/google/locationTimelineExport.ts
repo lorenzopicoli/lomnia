@@ -132,7 +132,7 @@ export class GoogleLocationsTimelineImporter extends BaseImporter {
     const exportData = await exportSchema.safeParseAsync(dataJson);
 
     if (!exportData.data) {
-      throw new Error(`Failed to parse JSON: ${JSON.stringify(exportData.error?.errors.splice(0, 10))}`);
+      throw new Error(`Failed to parse JSON: ${JSON.stringify(exportData.error)}`);
     }
 
     for (const segment of exportData.data.semanticSegments) {
