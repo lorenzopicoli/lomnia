@@ -28,6 +28,6 @@ export class DeviceIngester extends Ingester<IngestionDevice, NewExternalDevice>
   }
 
   public async insertBatch(): Promise<void> {
-    await this.tx.insert(externalDevicesTable).values(this.collected);
+    await this.tx.insert(externalDevicesTable).values(this.collected).onConflictDoNothing();
   }
 }

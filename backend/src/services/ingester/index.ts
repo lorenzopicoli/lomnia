@@ -30,6 +30,9 @@ async function ingest(params: { data: unknown; ingesters: Ingester<any, any>[] }
 
 export async function ingestFile(filePath: string) {
   try {
+    logger.info("Starting Ingestion", {
+      filePath,
+    });
     const start = DateTime.now().toJSDate();
     const fileStream = fs.createReadStream(filePath);
     const gunzip = zlib.createGunzip();

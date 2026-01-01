@@ -9,7 +9,7 @@ const logger = new Logger("ListenQueue");
 const main = async () => {
   const consumer = await MessageConsumer.init(getEnvVarOrError(EnvVar.INGESTER_QUEUE_NAME));
   consumer.listen(async (msg: any) => {
-    logger.debug("Received:", JSON.stringify(msg));
+    logger.info("Received new ingestion message:", msg);
 
     const filePath = await S3.init().downloadTmp(msg.bucket, msg.key);
     await ingestFile(filePath);
