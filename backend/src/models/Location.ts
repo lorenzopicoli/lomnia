@@ -4,13 +4,7 @@ import { importJobsTable } from "./ImportJob";
 import { locationDetailsTable } from "./LocationDetails";
 import { dailyWeatherTable, hourlyWeatherTable } from "./Weather";
 
-export const batteryStatusEnum = pgEnum("battery_status", ["unknown", "unplugged", "charging", "full"]);
-
-export const connectionStatusEnum = pgEnum("connection_status", ["wifi", "offline", "data"]);
-
 export const locationTriggerEnum = pgEnum("trigger", ["ping", "circular", "report_location", "manual"]);
-
-export const locationSourceEnum = pgEnum("source", ["sqlite_locations", "google", "google_new", "owntracks_api"]);
 
 export const locationsTable = pgTable("locations", {
   id: serial("id").primaryKey(),
@@ -39,12 +33,6 @@ export const locationsTable = pgTable("locations", {
    * In meters
    */
   altitude: integer("altitude"),
-  /***
-   * In percent
-   */
-  battery: integer("battery"),
-  batteryStatus: batteryStatusEnum("battery_status"),
-  connectionStatus: connectionStatusEnum("connection_status"),
 
   location: geography("location").notNull(),
 
@@ -58,13 +46,10 @@ export const locationsTable = pgTable("locations", {
    * to find the timezone
    */
   timezone: text("timezone").notNull(),
-  wifiSSID: text("wifi_ssid"),
 
   importJobId: integer("import_job_id")
     .references(() => importJobsTable.id)
     .notNull(),
-
-  messageCreatedAt: timestamp("message_created_at"),
 
   /**
    * The date at which the location was taken, in UTC time

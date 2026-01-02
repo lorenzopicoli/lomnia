@@ -7,7 +7,10 @@ import { Ingester } from "./BaseIngester";
 export class LocationIngester extends Ingester<IngestionLocation, NewLocation> {
   protected logger = new Logger("LocationIngester");
 
-  public isIngestable(raw: unknown): { isIngestable: boolean; parsed?: IngestionLocation } {
+  public isIngestable(raw: unknown): {
+    isIngestable: boolean;
+    parsed?: IngestionLocation;
+  } {
     const location = ingestionSchemas.location.safeParse(raw);
     return {
       isIngestable: location.success,
