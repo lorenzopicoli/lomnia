@@ -20,7 +20,7 @@ COPY backend/ ./backend/
 
 RUN pnpm --filter @lomnia/backend build
 
-RUN pnpm --filter @lomnia/backend deploy --prod /app/deploy
+RUN pnpm --filter @lomnia/backend deploy --legacy --prod /app/deploy
 
 FROM base AS runner
 WORKDIR /app
