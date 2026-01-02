@@ -1,6 +1,6 @@
 import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
-import { EnvVar, getEnvVarOrError } from '../helpers/envVars'
+import { EnvVar, getEnvVarOrError, getEnvVarOrNull } from '../helpers/envVars'
 import * as schema from '../models'
 
 const dbConfig = {
