@@ -5,7 +5,9 @@ import {
   type FastifyTRPCPluginOptions,
   fastifyTRPCPlugin,
 } from "@trpc/server/adapters/fastify";
+import Knex from "knex";
 import Fastify from "fastify";
+import knexConfig from "../knexfile";
 import { type AppRouter, appRouter } from "./routes/router";
 
 export function createContext({ req, res }: CreateFastifyContextOptions) {
@@ -21,6 +23,10 @@ const fastify = Fastify({
 
 export class Server {
   public async listen() {
+    const knex = Knex(knexConfig);
+    await knex.migrate.latest();
+    await knex.destroy();
+
     await fastify.register(cors, {
       origin: (origin, cb) => {
         if (!origin) {
