@@ -1,7 +1,7 @@
 {
   "name": "lomnia",
   "private": true,
-  "packageManager": "pnpm@9.9.0",
+  "packageManager": "pnpm@10.27.0",
   "scripts": {
     "dev:frontend": "pnpm --filter @lomnia/frontend dev",
     "dev:backend": "pnpm --filter @lomnia/backend dev:server",
@@ -9,5 +9,8 @@
     "build:backend": "pnpm --filter @lomnia/backend build",
     "docker:frontend": "docker build -f frontend/Dockerfile -t lomnia-frontend .",
     "docker:backend": "docker build -f backend/Dockerfile -t lomnia-backend ."
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.5"
   }
 }
