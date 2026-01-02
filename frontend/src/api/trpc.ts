@@ -1,12 +1,13 @@
+import type { AppRouter } from "@lomnia/backend/src/routes/router";
 import { QueryClient } from "@tanstack/react-query";
 import { httpLink } from "@trpc/client";
 import { createTRPCClient } from "@trpc/react-query";
 import type { inferRouterOutputs } from "@trpc/server";
 import { createTRPCOptionsProxy } from "@trpc/tanstack-react-query";
-import type { AppRouter } from "@lomnia/backend/src/routes/router";
 
+const API_URL = import.meta.env.VITE_APP_URL ?? "http://localhost:3010";
 const trpcClient = createTRPCClient<AppRouter>({
-  links: [httpLink({ url: "http://localhost:3010/trpc" })],
+  links: [httpLink({ url: `${API_URL}/trpc` })],
 });
 
 export const queryClient = new QueryClient();
