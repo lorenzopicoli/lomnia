@@ -1,49 +1,49 @@
-import { Flex, Grid } from "@mantine/core";
-import { useQuery } from "@tanstack/react-query";
-import { format } from "date-fns/format";
-import { trpc } from "../api/trpc";
-import { Anonymize } from "../components/Anonymize/Anonymize";
-import { LoIcon } from "../components/LoIcon";
-import { useConfig } from "../contexts/ConfigContext";
-import { getRandomColor } from "../utils/getRandomColor";
-import { iconForKey } from "../utils/personal";
+import { Flex, Grid } from '@mantine/core'
+import { IconUnlink } from '@tabler/icons-react'
+import { useQuery } from '@tanstack/react-query'
+import { format } from 'date-fns/format'
+import { trpc } from '../api/trpc'
+import { Anonymize } from '../components/Anonymize/Anonymize'
+import { LoIcon } from '../components/LoIcon'
+import { useConfig } from '../contexts/ConfigContext'
+import { getRandomColor } from '../utils/getRandomColor'
 
 type DailyHabitEntriesProps = {
-  date: Date;
-};
+  date: Date
+}
 
 export function DailyHabitEntriesContainer(props: DailyHabitEntriesProps) {
-  const config = useConfig();
+  const config = useConfig()
   const { data, isLoading } = useQuery(
     trpc.habits.getByDay.queryOptions({
-      day: format(props.date, "yyyy-MM-dd"),
+      day: format(props.date, 'yyyy-MM-dd'),
       privateMode: config.privateMode,
-    }),
-  );
+    })
+  )
 
   if (isLoading) {
-    return "Loading...";
+    return 'Loading...'
   }
 
   if (!data || data.length === 0) {
-    return null;
+    return null
   }
 
   return (
-    <Grid gutter={"md"}>
+    <Grid gutter={'md'}>
       {data.map((h) => (
         <Grid.Col key={h.key} span={6}>
-          <Flex key={h.key} gap={"sm"}>
-            <LoIcon Icon={iconForKey(h.key ?? "")} color={getRandomColor()} />
+          <Flex key={h.key} gap={'sm'}>
+            <LoIcon Icon={IconUnlink} color={getRandomColor()} />
             <span>
               <Anonymize>
                 {h.label}
-                {typeof h.value !== "boolean" ? `: ${h.value}` : ""}
+                {typeof h.value !== 'boolean' ? `: ${h.value}` : ''}
               </Anonymize>
             </span>
           </Flex>
         </Grid.Col>
       ))}
     </Grid>
-  );
+  )
 }

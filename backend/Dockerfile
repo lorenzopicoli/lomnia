@@ -1,5 +1,5 @@
 FROM node:24-alpine AS base
-RUN corepack enable && corepack prepare pnpm@9.9.0 --activate
+RUN corepack enable && corepack prepare pnpm@10.27.0 --activate
 
 FROM base AS deps
 RUN apk add --no-cache libc6-compat
@@ -20,7 +20,7 @@ COPY backend/ ./backend/
 
 RUN pnpm --filter @lomnia/backend build
 
-RUN pnpm --filter @lomnia/backend deploy --prod /app/deploy
+RUN pnpm --filter @lomnia/backend deploy --legacy --prod /app/deploy
 
 FROM base AS runner
 WORKDIR /app
