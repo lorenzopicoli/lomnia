@@ -6,6 +6,14 @@
         "noUnusedImports": {
           "level": "error",
           "fix": "safe"
+        },
+        "noUnusedVariables": {
+          "level": "error",
+          "fix": "none"
+        },
+        "noUnusedPrivateClassMembers": {
+          "level": "warn",
+          "fix": "none"
         }
       }
     }
@@ -14,13 +22,13 @@
     "enabled": true,
     "indentStyle": "space",
     "indentWidth": 2,
-    "lineWidth": 50
+    "lineWidth": 120
   },
 
   "javascript": {
     "formatter": {
       "quoteStyle": "double",
-      "lineWidth": 50
+      "lineWidth": 120
     },
     "jsxRuntime": "reactClassic"
   },
