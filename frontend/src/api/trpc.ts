@@ -5,7 +5,8 @@ import { createTRPCClient } from "@trpc/react-query";
 import type { inferRouterOutputs } from "@trpc/server";
 import { createTRPCOptionsProxy } from "@trpc/tanstack-react-query";
 
-const API_URL = window.API_URL ?? "http://localhost:3010";
+// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+const API_URL = (window as any).API_URL ?? "http://localhost:3010";
 const trpcClient = createTRPCClient<AppRouter>({
   links: [httpLink({ url: `${API_URL}/trpc` })],
 });
