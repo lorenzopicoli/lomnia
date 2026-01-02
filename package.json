@@ -5,6 +5,7 @@
   "scripts": {
     "dev:frontend": "pnpm --filter @lomnia/frontend dev",
     "dev:backend": "pnpm --filter @lomnia/backend dev:server",
+    "dev": "pnpm run \"/(dev:backend|dev:frontend)/\"",
     "build:frontend": "pnpm --filter @lomnia/frontend build",
     "build:backend": "pnpm --filter @lomnia/backend build",
     "docker:frontend": "docker build -f frontend/Dockerfile -t lomnia-frontend .",
