@@ -15,8 +15,8 @@ module.exports = {
       time: true,
     },
     {
-      name: "importer",
-      script: "./build/src/importer.js",
+      name: "ingesterQueue",
+      script: "./build/src/listenQueue.js",
       instances: 1,
       autorestart: true,
       watch: false,
