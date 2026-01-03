@@ -6,6 +6,7 @@ import {
   fastifyTRPCPlugin,
 } from "@trpc/server/adapters/fastify";
 import Fastify from "fastify";
+import { EnvVar, getEnvVarOrDefault } from "./helpers/envVars";
 import { type AppRouter, appRouter } from "./routes/router";
 
 export function createContext({ req, res }: CreateFastifyContextOptions) {
@@ -21,20 +22,18 @@ const fastify = Fastify({
 
 export class Server {
   public async listen() {
+    const allowedOrigins = this.getCorsOrigins();
     await fastify.register(cors, {
       origin: (origin, cb) => {
         if (!origin) {
           cb(null, true);
           return;
         }
-        const hostname = new URL(origin ?? "").hostname;
-        if (hostname === "localhost") {
-          //  Request from localhost will pass
+        if (allowedOrigins === "*" || allowedOrigins.includes(origin)) {
           cb(null, true);
-          return;
+        } else {
+          cb(new Error("CORS not allowed"), false);
         }
-        // Generate an error on other origins, disabling access
-        cb(new Error("Not allowed"), false);
       },
     });
 
@@ -56,6 +55,19 @@ export class Server {
       }
       console.log("Server listening on port 3010");
     });
+  }
+
+  private getCorsOrigins() {
+    const raw = getEnvVarOrDefault(EnvVar.CORS_ORIGINS, "*");
+
+    if (!raw || raw === "*") {
+      return "*";
+    }
+
+    return raw
+      .split(",")
+      .map((o) => o.trim())
+      .filter(Boolean);
   }
 }
 

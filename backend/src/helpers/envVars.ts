@@ -1,47 +1,57 @@
 export enum EnvVar {
-  DB_HOST = 'DB_HOST',
-  DB_USER = 'DB_USER',
-  DB_PASSWORD = 'DB_PASSWORD',
-  DB_NAME = 'DB_NAME',
-  DB_PORT = 'DB_PORT',
+  DB_HOST = "DB_HOST",
+  DB_USER = "DB_USER",
+  DB_PASSWORD = "DB_PASSWORD",
+  DB_NAME = "DB_NAME",
+  DB_PORT = "DB_PORT",
 
-  OBSIDIAN_FOLDER = 'OBSIDIAN_FOLDER',
-  OBSIDIAN_IGNORE_FOLDERS = 'OBSIDIAN_IGNORE_FOLDERS',
+  CORS_ORIGINS = "CORS_ORIGINS",
 
-  TIMEZONE = 'TIMEZONE',
+  OBSIDIAN_FOLDER = "OBSIDIAN_FOLDER",
+  OBSIDIAN_IGNORE_FOLDERS = "OBSIDIAN_IGNORE_FOLDERS",
 
-  SAMSUNG_HEALTH_FOLDER = 'SAMSUNG_HEALTH_FOLDER',
+  TIMEZONE = "TIMEZONE",
 
-  GOOGLE_TAKEOUT_RECORDS_JSON = 'GOOGLE_TAKEOUT_RECORDS_JSON',
-  GOOGLE_LOCATIONS_EXPORT_JSON = 'GOOGLE_LOCATIONS_EXPORT_JSON',
+  SAMSUNG_HEALTH_FOLDER = "SAMSUNG_HEALTH_FOLDER",
 
-  OWNTRACKS_HTTP_SERVER = 'OWNTRACKS_HTTP_SERVER',
+  GOOGLE_TAKEOUT_RECORDS_JSON = "GOOGLE_TAKEOUT_RECORDS_JSON",
+  GOOGLE_LOCATIONS_EXPORT_JSON = "GOOGLE_LOCATIONS_EXPORT_JSON",
 
-  HARES_JSON_FILE_PATH = 'HARES_JSON_FILE_PATH',
-  OBSIDIAN_HABITS_SNAPSHOT_FILE_PATH = 'OBSIDIAN_HABITS_SNAPSHOT_FILE_PATH',
+  OWNTRACKS_HTTP_SERVER = "OWNTRACKS_HTTP_SERVER",
 
-  S3_ACCESS_KEY_ID = 'S3_ACCESS_KEY_ID',
-  S3_SECRET_ACCESS_KEY = 'S3_SECRET_ACCESS_KEY',
-  S3_REGION = 'S3_REGION',
-  S3_SERVER_URL = 'S3_SERVER_URL',
+  HARES_JSON_FILE_PATH = "HARES_JSON_FILE_PATH",
+  OBSIDIAN_HABITS_SNAPSHOT_FILE_PATH = "OBSIDIAN_HABITS_SNAPSHOT_FILE_PATH",
 
-  AMQP_URL = 'AMQP_URL',
+  S3_ACCESS_KEY_ID = "S3_ACCESS_KEY_ID",
+  S3_SECRET_ACCESS_KEY = "S3_SECRET_ACCESS_KEY",
+  S3_REGION = "S3_REGION",
+  S3_SERVER_URL = "S3_SERVER_URL",
 
-  INGESTER_QUEUE_NAME = 'INGESTER_QUEUE_NAME',
+  AMQP_URL = "AMQP_URL",
+
+  INGESTER_QUEUE_NAME = "INGESTER_QUEUE_NAME",
 }
 
 export function getEnvVarOrError(name: EnvVar) {
-  const value = process.env[name]
+  const value = process.env[name];
   if (!value) {
-    throw new Error(`${name} env var is required`)
+    throw new Error(`${name} env var is required`);
   }
-  return value
+  return value;
 }
 
 export function getEnvVarOrNull(name: EnvVar) {
-  const value = process.env[name]
+  const value = process.env[name];
   if (!value) {
-    return null
+    return null;
   }
-  return value
+  return value;
+}
+
+export function getEnvVarOrDefault(name: EnvVar, defaultVar: string) {
+  const value = process.env[name];
+  if (!value) {
+    return defaultVar;
+  }
+  return value;
 }
