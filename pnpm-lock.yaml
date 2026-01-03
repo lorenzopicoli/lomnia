@@ -71,6 +71,9 @@ importers:
       i18n-iso-countries:
         specifier: ^7.14.0
         version: 7.14.0
+      knex:
+        specifier: ^3.1.0
+        version: 3.1.0(pg@8.16.3)
       lodash:
         specifier: ^4.17.21
         version: 4.17.21
@@ -117,9 +120,6 @@ importers:
       drizzle-kit:
         specifier: ^0.31.7
         version: 0.31.8
-      knex:
-        specifier: ^3.1.0
-        version: 3.1.0(pg@8.16.3)
       logform:
         specifier: ^2.7.0
         version: 2.7.0
