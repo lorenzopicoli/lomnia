@@ -29,7 +29,7 @@ const config: { [key: string]: Knex.Config } = {
       max: 10,
     },
     migrations: {
-      directory: "./build/migrations",
+      directory: "./build/src/migrations",
     },
   },
 };
