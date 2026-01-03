@@ -1,9 +1,9 @@
-import 'dotenv/config'
-import type { Knex } from 'knex'
+import "dotenv/config";
+import type { Knex } from "knex";
 
 const config: { [key: string]: Knex.Config } = {
   development: {
-    client: 'postgresql',
+    client: "postgresql",
     connection: {
       host: process.env.DB_HOST,
       user: process.env.DB_USER,
@@ -12,11 +12,11 @@ const config: { [key: string]: Knex.Config } = {
       port: process.env.DB_PORT ?? (5432 as any),
     },
     migrations: {
-      directory: './src/migrations',
+      directory: "./src/migrations",
     },
   },
   production: {
-    client: 'postgresql',
+    client: "postgresql",
     connection: {
       host: process.env.DB_HOST,
       user: process.env.DB_USER,
@@ -29,9 +29,9 @@ const config: { [key: string]: Knex.Config } = {
       max: 10,
     },
     migrations: {
-      directory: './src/migrations',
+      directory: "./build/migrations",
     },
   },
-}
+};
 
-export default config
+export default config;

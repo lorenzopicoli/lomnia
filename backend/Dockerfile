@@ -7,6 +7,7 @@ WORKDIR /app
 
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml .npmrc ./
 COPY backend/package.json ./backend/
+COPY backend/knexfile.ts ./backend/
 
 RUN pnpm install --frozen-lockfile --filter @lomnia/backend
 
@@ -33,6 +34,7 @@ RUN npm install -g pm2
 COPY --from=builder /app/deploy/node_modules ./node_modules
 COPY --from=builder /app/backend/build ./build
 COPY --from=builder /app/backend/package.json ./
+COPY --from=builder /app/backend/knexfile.ts ./
 COPY --from=builder /app/backend/ecosystem.config.js ./
 
 RUN mkdir -p logs && chown -R nodejs:nodejs /app
