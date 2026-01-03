@@ -1,11 +1,11 @@
 import { and, eq, sql } from "drizzle-orm";
-import type { DateTime } from "luxon";
 import { z } from "zod";
-import config from "../../config";
-import { type DBTransaction, toPostgisGeoPoint } from "../../db/types";
-import { locationsTable } from "../../models";
-import { locationDetailsTable } from "../../models/LocationDetails";
-import { BaseImporter } from "../BaseImporter";
+import config from "../../../config";
+import { type DBTransaction, toPostgisGeoPoint } from "../../../db/types";
+import { locationsTable } from "../../../models";
+import { locationDetailsTable } from "../../../models/LocationDetails";
+import { Logger } from "../../Logger";
+import { BaseEnricher } from "../BaseEnricher";
 
 // import data from "./personal.json";
 
@@ -48,31 +48,15 @@ type PointOfInterest = z.infer<typeof jsonSchema>[number];
  * Warning: changing a POI to cover less area or deleting POIs requires recalculateAll to be true otherwise
  * the old POI location will be dangling
  */
-export class UserPointsOfInterestImporter extends BaseImporter {
-  override sourceId = "userPOIJson" as const;
-  override destinationTable = "location_details";
-  override entryDateKey = "";
+export class UserPointsOfInterestEnricher extends BaseEnricher {
+  private sourceId = "userPOIJson" as const;
+  protected logger = new Logger("UserPointsOfInterestEnricher");
 
-  public async sourceHasNewData(): Promise<{
-    result: boolean;
-    from?: DateTime;
-    totalEstimate?: number;
-  }> {
-    // Should probably store a hash of the last file and skip it altogether if the file hasn't changed,
-    // but we should also be avoiding recaulculation by checking the location details in the DB
-    return { result: true };
+  public isEnabled(): boolean {
+    return config.importers.locationDetails.userPoi.enabled;
   }
 
-  public async import(params: { tx: DBTransaction; placeholderJobId: number }): Promise<{
-    importedCount: number;
-    firstEntryDate: Date;
-    lastEntryDate: Date;
-    apiCallsCount?: number;
-    logs: string[];
-  }> {
-    const { tx, placeholderJobId } = params;
-    let importedCount = 0;
-
+  public async enrich(tx: DBTransaction): Promise<void> {
     const userPOIs = jsonSchema.parse([]);
 
     if (config.importers.locationDetails.userPoi.recalculateAll) {
@@ -82,9 +66,7 @@ export class UserPointsOfInterestImporter extends BaseImporter {
     }
 
     for (const poi of userPOIs) {
-      await this.handlePointOfInterest({ tx, poi, placeholderJobId });
-
-      importedCount += 1;
+      await this.handlePointOfInterest({ tx, poi });
     }
 
     await tx.delete(locationDetailsTable).where(
@@ -96,16 +78,10 @@ export class UserPointsOfInterestImporter extends BaseImporter {
       )`,
       ),
     );
-    return {
-      importedCount,
-      firstEntryDate: new Date(),
-      lastEntryDate: new Date(),
-      logs: [],
-    };
   }
 
-  private async handlePointOfInterest(params: { tx: DBTransaction; poi: PointOfInterest; placeholderJobId: number }) {
-    const { poi, tx, placeholderJobId } = params;
+  private async handlePointOfInterest(params: { tx: DBTransaction; poi: PointOfInterest }) {
+    const { poi, tx } = params;
     this.logger.debug("Updating locations for place of interest", {
       poi,
     });
@@ -137,7 +113,6 @@ export class UserPointsOfInterestImporter extends BaseImporter {
             .values({
               location: { lat, lng },
               source: this.sourceId,
-              importJobId: placeholderJobId,
               radius: radiusInMeters,
               ...rest,
             })

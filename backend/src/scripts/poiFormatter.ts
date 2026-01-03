@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import axios from "axios";
 import config from "../config";
-import { type NominatimReverseResponse, NominatimReverseResponseSchema } from "../importers/nominatim/schema";
+import { type NominatimReverseResponse, NominatimReverseResponseSchema } from "../services/enrichers/nominatim/schema";
 
 /**
  * Reverse-geocode a lat/lng and format the response into a unified object.

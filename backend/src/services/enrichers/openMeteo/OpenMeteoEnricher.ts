@@ -2,24 +2,25 @@ import { sql } from "drizzle-orm";
 import { chunk } from "lodash";
 import { DateTime } from "luxon";
 import { fetchWeatherApi } from "openmeteo";
-import config from "../../config";
-import { db } from "../../db/connection";
-import type { DBTransaction, Point } from "../../db/types";
-import { delay } from "../../helpers/delay";
-import { locationsTable } from "../../models/Location";
+import config from "../../../config";
+import type { DBTransaction, Point } from "../../../db/types";
+import { delay } from "../../../helpers/delay";
 import {
   dailyWeatherTable,
   hourlyWeatherTable,
+  locationsTable,
   type NewDailyWeather,
   type NewHourlyWeather,
-} from "../../models/Weather";
-import { BaseImporter } from "../BaseImporter";
+} from "../../../models";
+import { Logger } from "../../Logger";
+import { BaseEnricher } from "../BaseEnricher";
 
-export class OpenMeteoImport extends BaseImporter {
-  override sourceId = "openmeteo-v1";
-  override apiVersion = "https://archive-api.open-meteo.com/v1/archive";
-  override destinationTable = "daily_weather/hourly_weather";
-  override entryDateKey = "date";
+/**
+ * TODO: this class can use some love and is currently doing too many uncessary things. There were also some performance concerns
+ * initially, but today I believe that they could be solved more elegantely
+ */
+export class OpenMeteoEnricher extends BaseEnricher {
+  private apiVersion = "v1";
   // Need to keep this somewhat low to avoid query params limits
   // Can improve performance by increasing this and then chunking the requests
   // since the main query is somewhat slow to run
@@ -48,7 +49,8 @@ export class OpenMeteoImport extends BaseImporter {
 
   private maxImportSession = config.importers.locationDetails.openMeteo.maxImportSession;
 
-  private apiUrl = "https://archive-api.open-meteo.com/v1/archive";
+  protected logger = new Logger("OpenMeteoEnricher");
+  private apiUrl = `https://archive-api.open-meteo.com/${this.apiVersion}/archive`;
   private apiParams = {
     hourly: [
       "temperature_2m",
@@ -79,27 +81,84 @@ export class OpenMeteoImport extends BaseImporter {
     ],
   };
 
-  public async sourceHasNewData(): Promise<{
-    result: boolean;
-    from?: DateTime;
-    totalEstimate?: number;
-  }> {
-    const count = await db
-      .select({
-        count: sql`COUNT(id)`.mapWith(Number),
-      })
-      .from(locationsTable)
-      .where(sql`
-        (
-        ${locationsTable.dailyWeatherId} IS NULL
-        OR ${locationsTable.hourlyWeatherId} IS NULL
-        )
-        AND
-        ${locationsTable.recordedAt} < NOW() - INTERVAL '${sql.raw(this.dataAvailabilityDelay)}'
-    `);
+  public isEnabled(): boolean {
+    return config.importers.locationDetails.openMeteo.enabled;
+  }
 
-    const value = count[0].count ?? 0;
-    return { result: value > 0, totalEstimate: value };
+  public async import(tx: DBTransaction): Promise<void> {
+    let locationDatePairs: { location: Point; dayString: string; timezone: string }[] | undefined;
+
+    let importedCount = 0;
+
+    let firstDate: DateTime | undefined;
+    let lastDate: DateTime | undefined;
+
+    while (locationDatePairs?.length !== 0) {
+      locationDatePairs = await this.getLocationAndDate(tx);
+
+      if (locationDatePairs.length === 0) {
+        break;
+      }
+
+      // When this was done I didn't know you could pass a list of timezones to the API call
+      const byTimezone = locationDatePairs.reduce(
+        (acc, curr) => {
+          acc[curr.timezone] = [...(acc[curr.timezone] ?? []), curr];
+          return acc;
+        },
+        {} as Record<string, typeof locationDatePairs>,
+      );
+
+      for (const timezone of Object.keys(byTimezone)) {
+        const sameTimezonePairs = byTimezone[timezone];
+        const earliestDay = sameTimezonePairs[0].dayString;
+        const latestDay = sameTimezonePairs[sameTimezonePairs.length - 1].dayString;
+
+        this.logger.debug("Waiting before calling API again");
+        await delay(this.apiCallsDelay);
+
+        // The API calls are really wasteful here. If there are 2 points: Point A and Point B
+        // They are in completly different locations and were recorded in completely different
+        // days we call the API with both of the points for both days, so in this scenario we get
+        // duplicated data. This is something that can improve in the implementation
+        // It was initially done like this to avoid doing too many API calls, but I've recently discovered
+        // that they weight API calls by how many days/points are being requested so the initial
+        // assumption doesn't make sense anymore
+        const result = await this.callApi(
+          sameTimezonePairs.map((l) => l.location),
+          earliestDay,
+          latestDay,
+          timezone,
+        );
+
+        const firstAndLatest = this.findEarliestAndLatest(result.hourly, firstDate, lastDate);
+        firstDate = firstAndLatest.first;
+        lastDate = firstAndLatest.last;
+
+        // Chunk to avoid from exceeding postgres' parameter count limit
+        const hourlyChunks = chunk(result.hourly, 200);
+        for (const chunk of hourlyChunks) {
+          await tx.insert(hourlyWeatherTable).values(chunk).onConflictDoNothing();
+        }
+        const dailyChunks = chunk(result.daily, 200);
+        for (const chunk of dailyChunks) {
+          await tx.insert(dailyWeatherTable).values(chunk).onConflictDoNothing();
+        }
+        importedCount += result.daily.length + result.hourly.length;
+      }
+      // Link, but only based on the dates that we have seen already. This could be better since this will only increase
+      // as we go. But in the function we also check for null daily_weather_id and hourly_weather_id so hopefuly it doesn't
+      // make a big impact. This is just a workaround for now
+      await this.linkLocationsToWeather(tx, firstDate, lastDate);
+
+      if (importedCount >= this.maxImportSession) {
+        break;
+      }
+      //   await this.cleanUpDanglingWeatherEntries(params.tx)
+    }
+
+    await this.linkLocationsToWeather(tx);
+    await this.cleanUpDanglingWeatherEntries(tx);
   }
 
   /**
@@ -474,98 +533,5 @@ export class OpenMeteoImport extends BaseImporter {
     }
 
     return { first, last };
-  }
-
-  public async import(params: { tx: DBTransaction; placeholderJobId: number }): Promise<{
-    importedCount: number;
-    firstEntryDate: Date;
-    lastEntryDate: Date;
-    apiCallsCount?: number;
-    logs: string[];
-  }> {
-    let locationDatePairs: { location: Point; dayString: string; timezone: string }[] | undefined;
-
-    let importedCount = 0;
-
-    let firstDate: DateTime | undefined;
-    let lastDate: DateTime | undefined;
-
-    let apiCallsCount = 0;
-
-    while (locationDatePairs?.length !== 0) {
-      locationDatePairs = await this.getLocationAndDate(params.tx);
-
-      if (locationDatePairs.length === 0) {
-        break;
-      }
-
-      // When this was done I didn't know you could pass a list of timezones to the API call
-      const byTimezone = locationDatePairs.reduce(
-        (acc, curr) => {
-          acc[curr.timezone] = [...(acc[curr.timezone] ?? []), curr];
-          return acc;
-        },
-        {} as Record<string, typeof locationDatePairs>,
-      );
-
-      for (const timezone of Object.keys(byTimezone)) {
-        const sameTimezonePairs = byTimezone[timezone];
-        const earliestDay = sameTimezonePairs[0].dayString;
-        const latestDay = sameTimezonePairs[sameTimezonePairs.length - 1].dayString;
-
-        this.logger.debug("Waiting before calling API again");
-        await delay(this.apiCallsDelay);
-        apiCallsCount += 1;
-
-        // The API calls are really wasteful here. If there are 2 points: Point A and Point B
-        // They are in completly different locations and were recorded in completely different
-        // days we call the API with both of the points for both days, so in this scenario we get
-        // duplicated data. This is something that can improve in the implementation
-        // It was initially done like this to avoid doing too many API calls, but I've recently discovered
-        // that they weight API calls by how many days/points are being requested so the initial
-        // assumption doesn't make sense anymore
-        const result = await this.callApi(
-          sameTimezonePairs.map((l) => l.location),
-          earliestDay,
-          latestDay,
-          timezone,
-        );
-
-        const firstAndLatest = this.findEarliestAndLatest(result.hourly, firstDate, lastDate);
-        firstDate = firstAndLatest.first;
-        lastDate = firstAndLatest.last;
-
-        // Chunk to avoid from exceeding postgres' parameter count limit
-        const hourlyChunks = chunk(result.hourly, 200);
-        for (const chunk of hourlyChunks) {
-          await params.tx.insert(hourlyWeatherTable).values(chunk).onConflictDoNothing();
-        }
-        const dailyChunks = chunk(result.daily, 200);
-        for (const chunk of dailyChunks) {
-          await params.tx.insert(dailyWeatherTable).values(chunk).onConflictDoNothing();
-        }
-        importedCount += result.daily.length + result.hourly.length;
-      }
-      // Link, but only based on the dates that we have seen already. This could be better since this will only increase
-      // as we go. But in the function we also check for null daily_weather_id and hourly_weather_id so hopefuly it doesn't
-      // make a big impact. This is just a workaround for now
-      await this.linkLocationsToWeather(params.tx, firstDate, lastDate);
-
-      if (importedCount >= this.maxImportSession) {
-        break;
-      }
-      //   await this.cleanUpDanglingWeatherEntries(params.tx)
-    }
-
-    await this.linkLocationsToWeather(params.tx);
-    await this.cleanUpDanglingWeatherEntries(params.tx);
-
-    return {
-      importedCount,
-      apiCallsCount,
-      lastEntryDate: lastDate?.toJSDate() ?? this.placeholderDate,
-      firstEntryDate: firstDate?.toJSDate() ?? this.placeholderDate,
-      logs: [],
-    };
   }
 }

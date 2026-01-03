@@ -28,5 +28,19 @@ module.exports = {
       log_file: "./logs/importer-combined.log",
       time: true,
     },
+    {
+      name: "enricher",
+      script: "./build/src/enricher.js",
+      instances: 1,
+      autorestart: true,
+      watch: false,
+      env: {
+        NODE_ENV: "production",
+      },
+      error_file: "./logs/enricher-error.log",
+      out_file: "./logs/enricher-out.log",
+      log_file: "./logs/enricher-combined.log",
+      time: true,
+    },
   ],
 };

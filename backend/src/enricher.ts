@@ -1,8 +1,8 @@
 import "dotenv/config";
-import { ImporterManager } from "./importers/ImporterManager";
+import { EnrichmentManager } from "./services/enrichers/EnrichmentManger";
 
 const main = async () => {
-  const importer = new ImporterManager();
+  const importer = new EnrichmentManager();
   importer.schedule(10000);
   // Keep the process running
   setInterval(() => {}, 1 << 30);

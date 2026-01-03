@@ -1,5 +1,6 @@
 import { chunk } from "lodash";
 import { db } from "../../db/connection";
+import type { DBTransaction } from "../../db/types";
 import { habitsTable } from "../../models";
 import {
   extractedHabitFeaturesTable,
@@ -15,7 +16,7 @@ import { HabitsService } from "./habits";
 
 export namespace HabitFeatureExtraction {
   const logger = new Logger("HabitFeatureExtraction");
-  export async function extractAndSaveHabitsFeatures() {
+  export async function extractAndSaveHabitsFeatures(tx?: DBTransaction) {
     logger.info("Starting habits feature extraction");
     const habits = await db.select().from(habitsTable).orderBy(habitsTable.date);
     const habitFeatures = await db.select().from(habitFeaturesTable).orderBy(habitFeaturesTable.createdAt);
@@ -43,14 +44,22 @@ export namespace HabitFeatureExtraction {
         );
       }),
     );
-    await db.transaction(async (tx) => {
-      await tx.delete(extractedHabitFeaturesTable);
-      const insertChunks = chunk(featuresToSave, 50);
-      for (const payload of insertChunks) {
-        await tx.insert(extractedHabitFeaturesTable).values(payload);
-      }
-    });
+    if (tx) {
+      await deleteAndInsert(tx, featuresToSave);
+    } else {
+      await db.transaction(async (tx) => {
+        await deleteAndInsert(tx, featuresToSave);
+      });
+    }
     logger.info("Done habits feature extraction");
+  }
+
+  async function deleteAndInsert(tx: DBTransaction, featuresToSave: ValidatedNewExtractedHabitFeature[]) {
+    await tx.delete(extractedHabitFeaturesTable);
+    const insertChunks = chunk(featuresToSave, 50);
+    for (const payload of insertChunks) {
+      await tx.insert(extractedHabitFeaturesTable).values(payload);
+    }
   }
 
   export async function preview(rules: HabitFeature["rules"]) {

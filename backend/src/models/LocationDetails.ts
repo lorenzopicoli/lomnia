@@ -1,7 +1,6 @@
 import type { getTableColumns } from "drizzle-orm";
-import { decimal, integer, jsonb, pgEnum, pgTable, serial, text } from "drizzle-orm/pg-core";
+import { decimal, integer, jsonb, pgEnum, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
 import { geography } from "../db/types";
-import { importJobsTable } from "./ImportJob";
 
 export const locationDetailsSource = pgEnum("locations_details_source", ["external", "userPOIJson"]);
 
@@ -18,9 +17,6 @@ export const locationDetailsTable = pgTable("location_details", {
   location: geography("location").notNull(),
 
   source: locationDetailsSource("source").notNull(),
-  importJobId: integer("import_job_id")
-    .references(() => importJobsTable.id)
-    .notNull(),
 
   placeId: text("place_id"),
   licence: text("licence"),
@@ -50,6 +46,9 @@ export const locationDetailsTable = pgTable("location_details", {
   postcode: text("postcode"),
   country: text("country"),
   countryCode: text("country_code"),
+
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at"),
 });
 
 export type LocationDetails = typeof locationDetailsTable.$inferSelect;
