@@ -2,7 +2,8 @@ module.exports = {
   apps: [
     {
       name: "server",
-      script: "./build/src/server.js",
+      script: "npm",
+      args: "run server",
       instances: 1,
       autorestart: true,
       watch: false,
@@ -16,7 +17,8 @@ module.exports = {
     },
     {
       name: "ingesterQueue",
-      script: "./build/src/listenQueue.js",
+      script: "npm",
+      args: "run ingester",
       instances: 1,
       autorestart: true,
       watch: false,
