@@ -5,6 +5,7 @@ import { habitFeaturesChartRouter, habitFeaturesRouter } from "./habitFeatureRou
 import { habitsRouter } from "./habitsRouter";
 import { heartRateChartRouter } from "./heartRateRouter";
 import { locationChartRouter } from "./locationRouter";
+import { placeOfInterestRouter } from "./placeOfInterestRouter";
 import { t } from "./trpc";
 import { weatherChartRouter, weatherRouter } from "./weatherRouter";
 
@@ -14,6 +15,7 @@ export const appRouter = t.router({
   habits: habitsRouter,
   habitFeatures: habitFeaturesRouter,
   dashboards: dashboardsRouter,
+  placesOfInterest: placeOfInterestRouter,
   charts: {
     weather: weatherChartRouter,
     habits: habitFeaturesChartRouter,

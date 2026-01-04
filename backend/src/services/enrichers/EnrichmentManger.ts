@@ -4,7 +4,7 @@ import type { BaseEnricher } from "./BaseEnricher";
 import { HabitFeatureEnricher } from "./habitFeature/HabitFeatureEnricher";
 import { NominatimEnricher } from "./nominatim/NominatimEnricher";
 import { OpenMeteoEnricher } from "./openMeteo/OpenMeteoEnricher";
-import { PointsOfInterestEnricher } from "./pointOfInterest/PointsOfInterestEnricher";
+import { PlacesOfInterestEnricher } from "./placesOfInterest/PlacesOfInterestEnricher";
 
 export class EnrichmentManager {
   private lastStart: DateTime | null = null;
@@ -15,7 +15,7 @@ export class EnrichmentManager {
 
   private enrichers: BaseEnricher[] = [
     new HabitFeatureEnricher(),
-    new PointsOfInterestEnricher(),
+    new PlacesOfInterestEnricher(),
     new OpenMeteoEnricher(),
     new NominatimEnricher(),
   ];

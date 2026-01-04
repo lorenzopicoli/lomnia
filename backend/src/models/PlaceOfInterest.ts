@@ -1,7 +1,7 @@
 import { geometry, integer, jsonb, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
 import { locationDetailsTable } from "./LocationDetails";
 
-export const pointsOfInterestTable = pgTable("points_of_interest", {
+export const placesOfInterestTable = pgTable("places_of_interest", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   polygon: geometry("polygon").notNull(),
@@ -13,5 +13,5 @@ export const pointsOfInterestTable = pgTable("points_of_interest", {
   updatedAt: timestamp("updated_at"),
 });
 
-export type PointOfInterest = typeof pointsOfInterestTable.$inferSelect;
-export type NewPointOfInterest = typeof pointsOfInterestTable.$inferInsert;
+export type PlaceOfInterest = typeof placesOfInterestTable.$inferSelect;
+export type NewPlaceOfInterest = typeof placesOfInterestTable.$inferInsert;

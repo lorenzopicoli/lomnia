@@ -42,15 +42,15 @@ const jsonSchema = z.array(
     }),
 );
 
-type PointOfInterest = z.infer<typeof jsonSchema>[number];
+type PlaceOfInterest = z.infer<typeof jsonSchema>[number];
 
 /**
  * Warning: changing a POI to cover less area or deleting POIs requires recalculateAll to be true otherwise
  * the old POI location will be dangling
  */
-export class PointsOfInterestEnricher extends BaseEnricher {
+export class PlacesOfInterestEnricher extends BaseEnricher {
   private sourceId = "userPOIJson" as const;
-  protected logger = new Logger("PointsOfInterestEnricher");
+  protected logger = new Logger("PlacesOfInterestEnricher");
 
   public isEnabled(): boolean {
     return config.importers.locationDetails.userPoi.enabled;
@@ -60,13 +60,13 @@ export class PointsOfInterestEnricher extends BaseEnricher {
     const userPOIs = jsonSchema.parse([]);
 
     if (config.importers.locationDetails.userPoi.recalculateAll) {
-      // Delete all the user point of interests from the location details table
+      // Delete all the user place of interests from the location details table
       // This automatically sets locationDetailsId to null in locations
       await tx.delete(locationDetailsTable).where(eq(locationDetailsTable.source, this.sourceId));
     }
 
     for (const poi of userPOIs) {
-      await this.handlePointOfInterest({ tx, poi });
+      await this.handlePlaceOfInterest({ tx, poi });
     }
 
     await tx.delete(locationDetailsTable).where(
@@ -80,7 +80,7 @@ export class PointsOfInterestEnricher extends BaseEnricher {
     );
   }
 
-  private async handlePointOfInterest(params: { tx: DBTransaction; poi: PointOfInterest }) {
+  private async handlePlaceOfInterest(params: { tx: DBTransaction; poi: PlaceOfInterest }) {
     const { poi, tx } = params;
     this.logger.debug("Updating locations for place of interest", {
       poi,
