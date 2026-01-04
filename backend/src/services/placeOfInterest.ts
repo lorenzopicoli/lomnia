@@ -14,7 +14,6 @@ export type PlaceOfInterestWithLocation = PlaceOfInterest & {
 
 export const PlaceOfInterestInputSchema = z.object({
   name: z.string().min(1),
-  displayName: z.string().min(1),
   address: PlaceSchema,
   polygon: PolygonFeatureSchema,
 });
@@ -161,6 +160,7 @@ export namespace PlaceOfInterestService {
       .values({
         ...data.address,
         source: "userPOIJson",
+        displayName: data.name,
         location: getPlaceOfInterestCenter(data.polygon),
       })
       .returning({ id: locationDetailsTable.id });

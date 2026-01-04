@@ -26,7 +26,6 @@ import { AddPlaceOfInterestAddressForm } from "./ AddPlaceOfInterestAddressForm"
 
 export type PlaceOfInterestFormValues = {
   name: string;
-  displayName: string;
   address?: {
     name?: string;
     houseNumber?: string;
@@ -47,7 +46,6 @@ export type PlaceOfInterestFormValues = {
 
 const initialValues: PlaceOfInterestFormValues = {
   name: "",
-  displayName: "",
   polygon: null,
 };
 
@@ -70,9 +68,6 @@ export function AddPlaceOfInterestContainer() {
       }
       if (!values.name) {
         return { missingName: "Missing name" };
-      }
-      if (!values.displayName) {
-        return { missingDisplayName: "Missing display name" };
       }
       if (!values.polygon) {
         return { missingPolygon: "Map is missing selection" };
@@ -131,12 +126,11 @@ export function AddPlaceOfInterestContainer() {
     const values = form.getValues();
     const address = values.address;
     const name = values.name;
-    const displayName = values.displayName;
     const polygon = values.polygon;
-    if (form.validate().hasErrors || !address || !name || !polygon || !displayName) {
+    if (form.validate().hasErrors || !address || !name || !polygon) {
       return;
     }
-    savePoi({ ...values, address: { ...address, displayName, name }, polygon });
+    savePoi({ ...values, address: { ...address, name }, polygon });
   };
 
   if (isFetching) {
@@ -158,14 +152,8 @@ export function AddPlaceOfInterestContainer() {
                 onChange={(e) => form.setFieldValue("name", e.target.value)}
                 label="Name"
               />
-              <TextInput
-                value={form.values.displayName}
-                onChange={(e) => form.setFieldValue("displayName", e.target.value)}
-                label="Display name"
-                description="The name used in charts"
-              />
 
-              <Accordion defaultValue={"address"}>
+              <Accordion>
                 <Accordion.Item value={"address"}>
                   <Accordion.Control p={0}>
                     <Title order={4}>Address Details</Title>
@@ -191,7 +179,13 @@ export function AddPlaceOfInterestContainer() {
               <Text size="sm">Draw one shape on the map to define the area covered by this place of interest.</Text>
             </Card.Section>
             <Container h={"100%"} w={"100%"} bdrs={"lg"} p={0} style={{ overflow: "clip" }}>
-              <DrawablePoiMap onChange={(poly) => form.setFieldValue("polygon", poly)} />
+              <DrawablePoiMap
+                value={poiToEdit?.geoJson as any}
+                onChange={(poly) => {
+                  console.group("on change", poly);
+                  form.setFieldValue("polygon", poly);
+                }}
+              />
             </Container>
           </Card>
         </Flex>
