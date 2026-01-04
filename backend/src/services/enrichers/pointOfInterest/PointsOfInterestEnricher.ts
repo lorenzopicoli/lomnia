@@ -48,9 +48,9 @@ type PointOfInterest = z.infer<typeof jsonSchema>[number];
  * Warning: changing a POI to cover less area or deleting POIs requires recalculateAll to be true otherwise
  * the old POI location will be dangling
  */
-export class UserPointsOfInterestEnricher extends BaseEnricher {
+export class PointsOfInterestEnricher extends BaseEnricher {
   private sourceId = "userPOIJson" as const;
-  protected logger = new Logger("UserPointsOfInterestEnricher");
+  protected logger = new Logger("PointsOfInterestEnricher");
 
   public isEnabled(): boolean {
     return config.importers.locationDetails.userPoi.enabled;
