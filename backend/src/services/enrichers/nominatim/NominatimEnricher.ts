@@ -6,8 +6,12 @@ import { type DBTransaction, type Point, toPostgisGeoPoint } from "../../../db/t
 import { delay } from "../../../helpers/delay";
 import { locationDetailsTable, locationsTable, type NewLocationDetails } from "../../../models";
 import { Logger } from "../../Logger";
+import {
+  mapNominatimApiResponseToDbSchema,
+  type NominatimReverseResponse,
+  NominatimReverseResponseSchema,
+} from "../../reverseGeocode/nominatimSchema";
 import { BaseEnricher } from "../BaseEnricher";
-import { type NominatimReverseResponse, NominatimReverseResponseSchema } from "./schema";
 
 export class NominatimEnricher extends BaseEnricher {
   private apiVersion = "https://nominatim.openstreetmap.org/";
@@ -142,35 +146,8 @@ export class NominatimEnricher extends BaseEnricher {
       return null;
     }
     return {
-      source: "external",
+      ...mapNominatimApiResponseToDbSchema(apiResponse),
       location,
-
-      placeId: apiResponse.place_id?.toString(),
-      licence: apiResponse.licence,
-      osmType: apiResponse.osm_type,
-      osmId: apiResponse.osm_id?.toString(),
-      placeRank: apiResponse.place_rank,
-      category: apiResponse.class,
-      type: apiResponse.type,
-      importance: String(apiResponse.importance),
-      addressType: apiResponse.addresstype,
-      displayName: apiResponse.display_name,
-      extraTags: apiResponse.extratags,
-      nameDetails: apiResponse.namedetails,
-      name: apiResponse.name ?? "",
-      houseNumber: apiResponse.address?.house_number,
-      road: apiResponse.address?.road,
-      suburb: apiResponse.address?.suburb,
-      city: apiResponse.address?.city,
-      county: apiResponse.address?.county,
-      region: apiResponse.address?.region,
-      state: apiResponse.address?.state,
-      iso3166_2_lvl4: apiResponse.address?.["ISO3166-2-lvl4"],
-      postcode: apiResponse.address?.postcode,
-      country: apiResponse.address?.country,
-      countryCode: apiResponse.address?.country_code,
-
-      createdAt: new Date(),
     };
   }
   private async getNextPage(tx: DBTransaction) {

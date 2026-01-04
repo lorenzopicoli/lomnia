@@ -1,5 +1,7 @@
 import { desc, eq, sql } from "drizzle-orm";
+import { z } from "zod";
 import { db } from "../db/connection";
+import type { Point } from "../db/types";
 import { locationsTable } from "../models/Location";
 import { locationDetailsTable } from "../models/LocationDetails";
 import { type PlaceOfInterest, placesOfInterestTable } from "../models/PlaceOfInterest";
@@ -16,6 +18,37 @@ export type PlaceOfInterestInput = {
   locationDetailsId: number;
   geoJson: Record<string, unknown>;
 };
+
+/**
+ * [lng, lat]
+ */
+export const PositionSchema = z.tuple([
+  z.number(), // lng
+  z.number(), // lat
+]);
+
+/**
+ * Polygon geometry
+ */
+export const PolygonGeometrySchema = z.object({
+  type: z.literal("Polygon"),
+  coordinates: z.array(
+    z
+      .array(PositionSchema)
+      .min(4), // closed ring (first == last) not enforced here
+  ),
+});
+
+export type PolygonFeature = z.infer<typeof PolygonFeatureSchema>;
+
+/**
+ * GeoJSON Feature (single polygon)
+ */
+export const PolygonFeatureSchema = z.object({
+  type: z.literal("Feature"),
+  properties: z.record(z.never(), z.never()),
+  geometry: PolygonGeometrySchema,
+});
 
 export namespace PlaceOfInterestService {
   export async function byId(id: number): Promise<PlaceOfInterestWithLocation | undefined> {
@@ -127,5 +160,25 @@ export namespace PlaceOfInterestService {
       .innerJoin(locationsTable, eq(locationDetailsTable.id, locationsTable.locationDetailsId));
 
     return count;
+  }
+
+  export function getPlaceOfInterestCenter(polygon: PolygonFeature): Point {
+    const ring = polygon.geometry.coordinates[0];
+
+    // Remove duplicate closing point if it exists
+    const points =
+      ring.length > 1 && ring[0][0] === ring[ring.length - 1][0] && ring[0][1] === ring[ring.length - 1][1]
+        ? ring.slice(0, -1)
+        : ring;
+
+    let lngSum = 0;
+    let latSum = 0;
+
+    for (const [lng, lat] of points) {
+      lngSum += lng;
+      latSum += lat;
+    }
+
+    return { lng: lngSum / points.length, lat: latSum / points.length };
   }
 }

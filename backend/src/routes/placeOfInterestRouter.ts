@@ -1,5 +1,6 @@
 import z from "zod";
-import { PlaceOfInterestService } from "../services/placeOfInterest";
+import { PlaceOfInterestService, PolygonFeatureSchema } from "../services/placeOfInterest";
+import { reverseGeocode } from "../services/reverseGeocode/reverseGeocode";
 import { loggedProcedure } from "./common/loggedProcedure";
 import { t } from "./trpc";
 
@@ -53,4 +54,14 @@ export const placeOfInterestRouter = t.router({
   locationsCount: loggedProcedure.query(async () => {
     return PlaceOfInterestService.getLocationsCount();
   }),
+
+  getAdressForPolygon: loggedProcedure
+    .input(
+      z.object({
+        polygon: PolygonFeatureSchema,
+      }),
+    )
+    .query(async (opts) => {
+      return reverseGeocode(PlaceOfInterestService.getPlaceOfInterestCenter(opts.input.polygon));
+    }),
 });

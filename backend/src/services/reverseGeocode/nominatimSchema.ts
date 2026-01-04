@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { NewLocationDetails } from "../../models";
 
 export const NominatimAddressSchema = z.object({
   house_number: z.string().optional(),
@@ -51,3 +52,38 @@ export const NominatimReverseResponseSchema = z
 
 export type NominatimReverseResponse = z.infer<typeof NominatimReverseResponseSchema>;
 export type NominatimAddress = z.infer<typeof NominatimAddressSchema>;
+
+export function mapNominatimApiResponseToDbSchema(
+  apiResponse: NominatimReverseResponse,
+): Omit<NewLocationDetails, "location"> {
+  return {
+    source: "external",
+
+    placeId: apiResponse.place_id?.toString(),
+    licence: apiResponse.licence,
+    osmType: apiResponse.osm_type,
+    osmId: apiResponse.osm_id?.toString(),
+    placeRank: apiResponse.place_rank,
+    category: apiResponse.class,
+    type: apiResponse.type,
+    importance: String(apiResponse.importance),
+    addressType: apiResponse.addresstype,
+    displayName: apiResponse.display_name,
+    extraTags: apiResponse.extratags,
+    nameDetails: apiResponse.namedetails,
+    name: apiResponse.name ?? "",
+    houseNumber: apiResponse.address?.house_number,
+    road: apiResponse.address?.road,
+    suburb: apiResponse.address?.suburb,
+    city: apiResponse.address?.city,
+    county: apiResponse.address?.county,
+    region: apiResponse.address?.region,
+    state: apiResponse.address?.state,
+    iso3166_2_lvl4: apiResponse.address?.["ISO3166-2-lvl4"],
+    postcode: apiResponse.address?.postcode,
+    country: apiResponse.address?.country,
+    countryCode: apiResponse.address?.country_code,
+
+    createdAt: new Date(),
+  };
+}
