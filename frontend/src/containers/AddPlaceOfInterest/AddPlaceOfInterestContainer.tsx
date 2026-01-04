@@ -13,9 +13,9 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { notifications } from "@mantine/notifications";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { trpc } from "../../api/trpc";
 import { DrawablePoiMap } from "../../components/DrawablePoiMap/DrawablePoiMap";
 import { safeScrollableArea } from "../../constants";
@@ -28,7 +28,6 @@ export type PlaceOfInterestFormValues = {
   name: string;
   displayName: string;
   address?: {
-    displayName?: string;
     name?: string;
     houseNumber?: string;
     road?: string;
@@ -55,9 +54,26 @@ const initialValues: PlaceOfInterestFormValues = {
 export function AddPlaceOfInterestContainer() {
   const { theme } = useConfig();
   const { poiId } = useParams<{ poiId?: string }>();
+  const navigate = useNavigate();
 
   const form = useForm<PlaceOfInterestFormValues>({
     initialValues,
+    validate: (values) => {
+      if (!values.address) {
+        return { missingAddress: "Couldn't find the address" };
+      }
+      if (!values.name) {
+        return { missingName: "Missing name" };
+      }
+      if (!values.displayName) {
+        return { missingDisplayName: "Missing display name" };
+      }
+      if (!values.polygon) {
+        return { missingPolygon: "Map is missing selection" };
+      }
+
+      return {};
+    },
   });
 
   const { data: reverseGeocodeData } = useQuery(
@@ -68,6 +84,20 @@ export function AddPlaceOfInterestContainer() {
       },
       { enabled: !!form.values.polygon },
     ),
+  );
+  const { mutate: savePoi } = useMutation(
+    trpc.placesOfInterest.save.mutationOptions({
+      onSuccess() {
+        navigate({
+          pathname: "/poi",
+        });
+        notifications.show({
+          color: theme.colors.green[9],
+          title: isEditing ? "Place Updated" : "Place Created",
+          message: "Soon locations will be linked to this place",
+        });
+      },
+    }),
   );
   const isEditing = !!poiId;
   const { data: poiToEdit, isFetching } = useQuery(
@@ -81,11 +111,15 @@ export function AddPlaceOfInterestContainer() {
   }, [form.setFieldValue, reverseGeocodeData]);
 
   const handleSave = () => {
-    notifications.show({
-      color: theme.colors.blue[9],
-      title: "Form Data Ready",
-      message: "Submit logic not yet implemented. Form values are valid.",
-    });
+    const values = form.getValues();
+    const address = values.address;
+    const name = values.name;
+    const displayName = values.displayName;
+    const polygon = values.polygon;
+    if (form.validate().hasErrors || !address || !name || !polygon || !displayName) {
+      return;
+    }
+    savePoi({ ...values, address: { ...address, displayName, name }, polygon });
   };
 
   if (isFetching) {

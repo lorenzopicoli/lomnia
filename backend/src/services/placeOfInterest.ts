@@ -5,47 +5,20 @@ import type { Point } from "../db/types";
 import { locationsTable } from "../models/Location";
 import { locationDetailsTable } from "../models/LocationDetails";
 import { type PlaceOfInterest, placesOfInterestTable } from "../models/PlaceOfInterest";
+import { type PolygonFeature, PolygonFeatureSchema } from "../types/polygon";
+import { PlaceSchema } from "./reverseGeocode/nominatimSchema";
 
 export type PlaceOfInterestWithLocation = PlaceOfInterest & {
   locationDetails: typeof locationDetailsTable.$inferSelect;
 };
 
-export type PlaceOfInterestInput = {
-  name: string;
-  locationDetailsId: number;
-  geoJson: Record<string, unknown>;
-};
-
-/**
- * [lng, lat]
- */
-export const PositionSchema = z.tuple([
-  z.number(), // lng
-  z.number(), // lat
-]);
-
-/**
- * Polygon geometry
- */
-export const PolygonGeometrySchema = z.object({
-  type: z.literal("Polygon"),
-  coordinates: z.array(
-    z
-      .array(PositionSchema)
-      .min(4), // closed ring (first == last) not enforced here
-  ),
+export const PlaceOfInterestInputSchema = z.object({
+  name: z.string().min(1),
+  displayName: z.string().min(1),
+  address: PlaceSchema,
+  polygon: PolygonFeatureSchema,
 });
-
-export type PolygonFeature = z.infer<typeof PolygonFeatureSchema>;
-
-/**
- * GeoJSON Feature (single polygon)
- */
-export const PolygonFeatureSchema = z.object({
-  type: z.literal("Feature"),
-  properties: z.record(z.never(), z.never()),
-  geometry: PolygonGeometrySchema,
-});
+export type PlaceOfInterestInput = z.infer<typeof PlaceOfInterestInputSchema>;
 
 export namespace PlaceOfInterestService {
   export async function byId(id: number): Promise<PlaceOfInterestWithLocation | undefined> {
@@ -78,9 +51,16 @@ export namespace PlaceOfInterestService {
         id: placesOfInterestTable.id,
         name: placesOfInterestTable.name,
         createdAt: placesOfInterestTable.createdAt,
-        locationDetailsId: placesOfInterestTable.locationDetailsId,
+        city: locationDetailsTable.city,
+        country: sql`
+  ${locationDetailsTable.country}
+  || ' ('
+  || ${locationDetailsTable.countryCode}
+  || ')'
+`.mapWith(String),
       })
       .from(placesOfInterestTable)
+      .innerJoin(locationDetailsTable, eq(placesOfInterestTable.locationDetailsId, locationDetailsTable.id))
       .where(whereClause)
       .$dynamic();
 
@@ -105,13 +85,14 @@ export namespace PlaceOfInterestService {
   }
 
   export async function create(data: PlaceOfInterestInput): Promise<number> {
+    const locationDetailsId = await saveLocationDetails(data);
     const result = await db
       .insert(placesOfInterestTable)
       .values({
         name: data.name,
-        locationDetailsId: data.locationDetailsId,
-        geoJson: data.geoJson,
-        polygon: sql`ST_GeomFromGeoJSON(${JSON.stringify(data.geoJson)})`,
+        locationDetailsId,
+        geoJson: data.polygon,
+        polygon: sql`ST_GeomFromGeoJSON(${JSON.stringify(data.polygon.geometry)})`,
         createdAt: new Date(),
       })
       .returning({ id: placesOfInterestTable.id });
@@ -120,13 +101,15 @@ export namespace PlaceOfInterestService {
   }
 
   export async function update(id: number, data: PlaceOfInterestInput): Promise<void> {
+    // TODO: should it create a new entry or not?
+    const locationDetailsId = await saveLocationDetails(data);
     await db
       .update(placesOfInterestTable)
       .set({
         name: data.name,
-        locationDetailsId: data.locationDetailsId,
-        geoJson: data.geoJson,
-        polygon: sql`ST_GeomFromGeoJSON(${JSON.stringify(data.geoJson)})`,
+        locationDetailsId,
+        geoJson: data.polygon,
+        polygon: sql`ST_GeomFromGeoJSON(${JSON.stringify(data.polygon.geometry)})`,
         updatedAt: new Date(),
       })
       .where(eq(placesOfInterestTable.id, id));
@@ -170,5 +153,17 @@ export namespace PlaceOfInterestService {
     }
 
     return { lng: lngSum / points.length, lat: latSum / points.length };
+  }
+
+  async function saveLocationDetails(data: PlaceOfInterestInput): Promise<number> {
+    const locationDetails = await db
+      .insert(locationDetailsTable)
+      .values({
+        ...data.address,
+        source: "userPOIJson",
+        location: getPlaceOfInterestCenter(data.polygon),
+      })
+      .returning({ id: locationDetailsTable.id });
+    return locationDetails[0].id;
   }
 }

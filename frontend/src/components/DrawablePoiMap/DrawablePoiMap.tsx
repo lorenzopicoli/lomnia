@@ -9,7 +9,7 @@ import type { PolygonFeature } from "../../types/PolygonFeature";
 export function DrawablePoiMap(props: { onChange: (geoJson: PolygonFeature | null) => void }) {
   return (
     <MapContainer
-      center={[51.505, -0.09]}
+      center={[-20.298105137021743, -40.2946917042161]}
       zoom={13}
       scrollWheelZoom={true}
       style={{ margin: 0, width: "100%", height: "100%" }}

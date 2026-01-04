@@ -66,14 +66,19 @@ export function PlacesOfInterestTable(props: { search?: string }) {
   }, [search]);
   const columns: TableColumn<PlaceOfInterest>[] = [
     {
-      key: "id",
-      header: "ID",
-      render: (poi) => poi.id,
-    },
-    {
       key: "name",
       header: "Name",
       render: (poi) => poi.name,
+    },
+    {
+      key: "city",
+      header: "City",
+      render: (poi) => poi.city,
+    },
+    {
+      key: "country",
+      header: "Country",
+      render: (poi) => poi.country,
     },
     {
       key: "createdAt",

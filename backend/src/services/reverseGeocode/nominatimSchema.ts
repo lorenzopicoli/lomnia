@@ -52,10 +52,46 @@ export const NominatimReverseResponseSchema = z
 export type NominatimReverseResponse = z.infer<typeof NominatimReverseResponseSchema>;
 export type NominatimAddress = z.infer<typeof NominatimAddressSchema>;
 
-export function mapNominatimApiResponseToDbSchema(apiResponse: NominatimReverseResponse) {
-  return {
-    source: "external",
+export const PlaceSchema = z.object({
+  placeId: z.string().optional(),
+  licence: z.string().optional(),
+  osmType: z.string().optional(),
+  osmId: z.string().optional(),
 
+  placeRank: z.number().optional(),
+  category: z.string().optional(),
+  type: z.string().optional(),
+
+  importance: z.string().optional(),
+
+  addressType: z.string().optional(),
+  displayName: z.string().optional(),
+
+  extraTags: z.record(z.string(), z.unknown()).optional().nullable(),
+  nameDetails: z.record(z.string(), z.unknown()).optional().nullable(),
+
+  // you default this to ""
+  name: z.string(),
+
+  houseNumber: z.string().optional(),
+  road: z.string().optional(),
+  suburb: z.string().optional(),
+  city: z.string().optional(),
+  county: z.string().optional(),
+  region: z.string().optional(),
+  state: z.string().optional(),
+
+  iso3166_2_lvl4: z.string().optional(),
+
+  postcode: z.string().optional(),
+  country: z.string().optional(),
+  countryCode: z.string().optional(),
+});
+
+export type ReverseGeocodedPlace = z.infer<typeof PlaceSchema>;
+
+export function mapNominatimApiResponseToPlace(apiResponse: NominatimReverseResponse): ReverseGeocodedPlace {
+  return {
     placeId: apiResponse.place_id?.toString(),
     licence: apiResponse.licence,
     osmType: apiResponse.osm_type,
@@ -66,8 +102,8 @@ export function mapNominatimApiResponseToDbSchema(apiResponse: NominatimReverseR
     importance: String(apiResponse.importance),
     addressType: apiResponse.addresstype,
     displayName: apiResponse.display_name,
-    extraTags: apiResponse.extratags,
-    nameDetails: apiResponse.namedetails,
+    extraTags: apiResponse.extratags ?? undefined,
+    nameDetails: apiResponse.namedetails ?? undefined,
     name: apiResponse.name ?? "",
     houseNumber: apiResponse.address?.house_number,
     road: apiResponse.address?.road,
@@ -80,7 +116,5 @@ export function mapNominatimApiResponseToDbSchema(apiResponse: NominatimReverseR
     postcode: apiResponse.address?.postcode,
     country: apiResponse.address?.country,
     countryCode: apiResponse.address?.country_code,
-
-    createdAt: new Date(),
   };
 }

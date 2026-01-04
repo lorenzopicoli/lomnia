@@ -7,7 +7,7 @@ import { delay } from "../../../helpers/delay";
 import { locationDetailsTable, locationsTable, type NewLocationDetails } from "../../../models";
 import { Logger } from "../../Logger";
 import {
-  mapNominatimApiResponseToDbSchema,
+  mapNominatimApiResponseToPlace,
   type NominatimReverseResponse,
   NominatimReverseResponseSchema,
 } from "../../reverseGeocode/nominatimSchema";
@@ -146,8 +146,10 @@ export class NominatimEnricher extends BaseEnricher {
       return null;
     }
     return {
-      ...mapNominatimApiResponseToDbSchema(apiResponse),
+      ...mapNominatimApiResponseToPlace(apiResponse),
+      source: "external",
       location,
+      createdAt: new Date(),
     };
   }
   private async getNextPage(tx: DBTransaction) {
