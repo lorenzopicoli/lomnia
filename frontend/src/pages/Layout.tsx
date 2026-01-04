@@ -3,9 +3,11 @@ import { Route, Routes } from "react-router-dom";
 import Navbar from "../components/Navbar/Navbar";
 import { useConfig } from "../contexts/ConfigContext";
 import { AddHabitFeature } from "./AddHabitFeature/AddHabitFeature";
+import { AddPlaceOfInterestPage } from "./AddPlaceOfInterest/AddPlaceOfInterestPage";
 import { Explore } from "./Explore/Explore";
 import { HabitsPage } from "./Habits/Habits";
 import Home from "./Home/Home";
+import { PlacesOfInterestPage } from "./PlacesOfInterest/PlacesOfInterestPage";
 
 function Layout() {
   const config = useConfig();
@@ -25,6 +27,8 @@ function Layout() {
           <Route path={"/habits/features/add"} element={<AddHabitFeature />} />
           <Route path="/habits/features/edit/:featureId" element={<AddHabitFeature />} />
           <Route path={"/habits/*"} element={<HabitsPage />} />
+          <Route path={"/poi/add"} element={<AddPlaceOfInterestPage />} />
+          <Route path={"/poi/*"} element={<PlacesOfInterestPage />} />
         </Routes>
       </AppShell.Main>
     </AppShell>

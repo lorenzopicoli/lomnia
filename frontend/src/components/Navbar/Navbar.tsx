@@ -1,5 +1,13 @@
 import { ActionIcon, Container, Flex, Space, Stack } from "@mantine/core";
-import { IconChecklist, IconEye, IconEyeOff, IconHome, IconLayoutDashboard, IconSettings } from "@tabler/icons-react";
+import {
+  IconChecklist,
+  IconEye,
+  IconEyeOff,
+  IconHome,
+  IconLayoutDashboard,
+  IconMapStar,
+  IconSettings,
+} from "@tabler/icons-react";
 import { Link, useLocation } from "react-router-dom";
 import { cardDarkBackground } from "../../themes/mantineThemes";
 
@@ -20,6 +28,7 @@ export default function Navbar(props: HeaderProps) {
     const isHome = location.pathname === "/";
     const isExplore = location.pathname.startsWith("/dashboard");
     const isHabits = location.pathname.startsWith("/habits");
+    const isPoi = location.pathname.startsWith("/poi");
 
     return (
       <Stack gap={"lg"}>
@@ -40,6 +49,10 @@ export default function Navbar(props: HeaderProps) {
         <ActionIcon component={Link} to="/habits" bdrs={"lg"} size={"lg"} variant={isHabits ? "light" : "transparent"}>
           <IconChecklist />
         </ActionIcon>
+
+        <ActionIcon component={Link} to="/poi" bdrs={"lg"} size={"lg"} variant={isPoi ? "light" : "transparent"}>
+          <IconMapStar />
+        </ActionIcon>
       </Stack>
     );
   };
@@ -52,13 +65,7 @@ export default function Navbar(props: HeaderProps) {
         <ActionIcon variant={"transparent"} onClick={handlePrivateModeChange}>
           {!props.privateMode ? <IconEye /> : <IconEyeOff />}
         </ActionIcon>
-        <ActionIcon
-          bdrs={"lg"}
-          size={"lg"}
-          variant={isSettings ? "light" : "transparent"}
-          component={Link}
-          to="/settings"
-        >
+        <ActionIcon bdrs={"lg"} variant={isSettings ? "light" : "transparent"} component={Link} to="/settings">
           <IconSettings />
         </ActionIcon>
       </>
