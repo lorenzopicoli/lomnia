@@ -1,87 +1,14 @@
 import { Button, Card, Container, Flex, Paper, ScrollArea, Stack, Text, TextInput, Title } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import { createControlComponent } from "@react-leaflet/core";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import * as L from "leaflet";
-import { type ChangeEvent, useCallback, useEffect, useState } from "react";
-import { MapContainer, TileLayer, useMap, ZoomControl } from "react-leaflet";
+import { type ChangeEvent, useCallback, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { trpc } from "../../api/trpc";
+import { DrawablePoiMap } from "../../components/DrawablePoiMap/DrawablePoiMap";
 import { safeScrollableArea } from "../../constants";
 import { useConfig } from "../../contexts/ConfigContext";
-import "@geoman-io/leaflet-geoman-free";
-import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
-import "./LeafletOverwrites.css";
 import { cardDarkBackground } from "../../themes/mantineThemes";
-
-interface Props extends L.ControlOptions {
-  position: L.ControlPosition;
-  oneBlock?: boolean;
-  drawMarker?: boolean;
-  drawPolyline?: boolean;
-  drawRectangle?: boolean;
-  drawCircleMarker?: boolean;
-  drawText?: boolean;
-  drawFreehand?: boolean;
-  rotateMode?: boolean;
-  cutPolygon?: boolean;
-  drawCircle?: boolean;
-}
-
-const Geoman = L.Control.extend({
-  options: {},
-  initialize(options: Props) {
-    L.setOptions(this, options);
-  },
-
-  addTo(map: L.Map) {
-    if (!map.pm) return;
-
-    map.pm.addControls({
-      ...this.options,
-    });
-
-    map.pm.setPathOptions({
-      color: "var(--mantine-color-violet-9)",
-      fillColor: "var(--mantine-color-violet-7)",
-      fillOpacity: 0.4,
-    });
-  },
-});
-
-const createGeomanInstance = (props: Props) => {
-  return new Geoman(props);
-};
-
-export const GeomanControl = createControlComponent(createGeomanInstance);
-
-function MapEvents(props: { onChange: (geoJson: any) => void }) {
-  const map = useMap();
-  const toGeoJSON = useCallback((layer: L.Layer) => {
-    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-    return (layer as any).toGeoJSON(15);
-  }, []);
-
-  useEffect(() => {
-    if (map) {
-      map.on("pm:create", (e) => {
-        props.onChange(toGeoJSON(e.layer));
-        map.pm.Toolbar.setButtonDisabled("Polygon", true);
-
-        e.layer.on("pm:edit", () => {
-          props.onChange(toGeoJSON(e.layer));
-        });
-
-        e.layer.on("pm:remove", (e) => {
-          props.onChange(toGeoJSON(e.layer));
-          map.pm.Toolbar.setButtonDisabled("Polygon", false);
-        });
-      });
-    }
-  }, [map, toGeoJSON, props.onChange]);
-
-  return null;
-}
+import type { PolygonFeature } from "../../types/PolygonFeature";
 
 export function AddPlaceOfInterestPage() {
   const { theme } = useConfig();
@@ -89,6 +16,7 @@ export function AddPlaceOfInterestPage() {
   const { poiId } = useParams<{ poiId?: string }>();
 
   const [name, setName] = useState();
+  const [polygon, setPolygon] = useState<PolygonFeature | null>(null);
 
   const isEditing = !!poiId;
   const { data: poiToEdit, isFetching } = useQuery(
@@ -121,10 +49,9 @@ export function AddPlaceOfInterestPage() {
     setName(e.target.value as any);
   };
 
-  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-  const handleMapPolygonChange = useCallback((geoJson: any) => {
-    console.log("Map upadte", geoJson);
-  }, []);
+  const handlePolygonChange = (updatedPolygon: PolygonFeature | null) => {
+    setPolygon(updatedPolygon);
+  };
 
   if (isFetching) {
     return <>Loading...</>;
@@ -147,6 +74,7 @@ export function AddPlaceOfInterestPage() {
                 label="Display name"
                 description="The name used in charts"
               />
+              {JSON.stringify(polygon, null, 2)}
               <Button onClick={handleSave} variant="filled" size="md">
                 Save
               </Button>
@@ -159,33 +87,7 @@ export function AddPlaceOfInterestPage() {
               <Text size="sm">Draw one shape on the map to define the area covered by this place of interest.</Text>
             </Card.Section>
             <Container h={"100%"} w={"100%"} bdrs={"lg"} p={0} style={{ overflow: "clip" }}>
-              <MapContainer
-                center={[51.505, -0.09]}
-                zoom={13}
-                scrollWheelZoom={true}
-                style={{ margin: 0, width: "100%", height: "100%" }}
-                zoomControl={false}
-              >
-                <ZoomControl position="bottomright" />
-                <TileLayer
-                  attribution='<a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>'
-                  url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-                <GeomanControl
-                  position="topright"
-                  oneBlock
-                  drawCircle={false}
-                  drawMarker={false}
-                  drawPolyline={false}
-                  drawRectangle={false}
-                  drawCircleMarker={false}
-                  drawText={false}
-                  drawFreehand={false}
-                  rotateMode={false}
-                  cutPolygon={false}
-                />
-                <MapEvents onChange={handleMapPolygonChange} />
-              </MapContainer>
+              <DrawablePoiMap onChange={handlePolygonChange} />
             </Container>
           </Card>
         </Flex>
