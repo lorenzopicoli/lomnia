@@ -2,6 +2,7 @@ import type { Knex } from "knex";
 
 export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable("places_of_interest", async (table) => {
+    table.increments();
     table.timestamps();
     table.string("name").notNullable();
     table.geometry("polygon").notNullable();
