@@ -1,6 +1,7 @@
 import z from "zod";
-import { PlaceOfInterestInputSchema, PlaceOfInterestService, PolygonFeatureSchema } from "../services/placeOfInterest";
+import { PlaceOfInterestInputSchema, PlaceOfInterestService } from "../services/placeOfInterest";
 import { reverseGeocode } from "../services/reverseGeocode/reverseGeocode";
+import { PolygonFeatureSchema } from "../types/polygon";
 import { loggedProcedure } from "./common/loggedProcedure";
 import { t } from "./trpc";
 
