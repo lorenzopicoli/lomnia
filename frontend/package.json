@@ -12,6 +12,7 @@
     "format": "biome format --write src/"
   },
   "dependencies": {
+    "@geoman-io/leaflet-geoman-free": "^2.19.0",
     "@lomnia/backend": "workspace:*",
     "@mantine/charts": "^8.3.9",
     "@mantine/code-highlight": "^8.3.9",
@@ -34,11 +35,13 @@
     "deck.gl": "^9.2.2",
     "echarts": "^6.0.0",
     "echarts-for-react": "^3.0.5",
+    "leaflet": "^1.9.4",
     "lodash": "^4.17.21",
     "maplibre-gl": "^5.13.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-grid-layout": "^1.5.2",
+    "react-leaflet": "^5.0.0",
     "react-map-gl": "^8.1.0",
     "react-markdown": "^10.1.0",
     "react-resizable": "^3.0.5",
@@ -50,6 +53,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.5",
+    "@types/leaflet": "^1.9.21",
     "@types/lodash": "^4.17.20",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
