@@ -28,6 +28,7 @@ function Layout() {
           <Route path="/habits/features/edit/:featureId" element={<AddHabitFeature />} />
           <Route path={"/habits/*"} element={<HabitsPage />} />
           <Route path={"/poi/add"} element={<AddPlaceOfInterestPage />} />
+          <Route path={"/poi/:poiId/edit"} element={<AddPlaceOfInterestPage />} />
           <Route path={"/poi/*"} element={<PlacesOfInterestPage />} />
         </Routes>
       </AppShell.Main>

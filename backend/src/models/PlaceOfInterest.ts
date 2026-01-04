@@ -1,4 +1,5 @@
-import { geometry, integer, jsonb, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { integer, jsonb, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { polygon } from "../db/types";
 import { locationDetailsTable } from "./LocationDetails";
 
 export const placesOfInterestTable = pgTable("places_of_interest", {
@@ -7,7 +8,7 @@ export const placesOfInterestTable = pgTable("places_of_interest", {
   /**
    * The postgis geometry generated from the user inputed geoJSON
    */
-  polygon: geometry("polygon").notNull(),
+  polygon: polygon("polygon").notNull(),
   /**
    * The input geoJSON as it was sent by the client
    */

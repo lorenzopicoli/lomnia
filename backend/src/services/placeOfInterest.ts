@@ -92,7 +92,7 @@ export namespace PlaceOfInterestService {
         name: data.name,
         locationDetailsId,
         geoJson: data.polygon,
-        polygon: sql`ST_GeomFromGeoJSON(${JSON.stringify(data.polygon.geometry)})`,
+        polygon: data.polygon.geometry.coordinates,
         createdAt: new Date(),
       })
       .returning({ id: placesOfInterestTable.id });
@@ -109,7 +109,7 @@ export namespace PlaceOfInterestService {
         name: data.name,
         locationDetailsId,
         geoJson: data.polygon,
-        polygon: sql`ST_GeomFromGeoJSON(${JSON.stringify(data.polygon.geometry)})`,
+        polygon: data.polygon.geometry.coordinates,
         updatedAt: new Date(),
       })
       .where(eq(placesOfInterestTable.id, id));

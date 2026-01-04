@@ -34,6 +34,30 @@ export const geography = customType<{ data: Point }>({
   },
 });
 
+type Coordinate = [number, number];
+
+interface GeoJson {
+  type: string;
+  coordinates: Coordinate[][];
+}
+
+export const polygon = customType<{ data: Coordinate[][]; driverData: string }>({
+  dataType() {
+    return "geometry(Polygon, 4326)";
+  },
+  toDriver(coordinates: Coordinate[][]): string {
+    return JSON.stringify({
+      type: "Polygon",
+      coordinates,
+    });
+  },
+  fromDriver(data: string) {
+    const geoJson = wkx.Geometry.parse(Buffer.from(data, "hex")).toGeoJSON() as GeoJson;
+
+    return geoJson.coordinates;
+  },
+});
+
 export type DBTransaction = PgTransaction<
   PostgresJsQueryResultHKT,
   typeof schema,

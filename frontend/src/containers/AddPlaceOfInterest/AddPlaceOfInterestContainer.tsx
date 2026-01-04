@@ -51,6 +51,12 @@ const initialValues: PlaceOfInterestFormValues = {
   polygon: null,
 };
 
+function nullToUndefined<T extends Record<string, unknown>>(
+  obj: T,
+): { [K in keyof T]: Exclude<T[K], null> | undefined } {
+  return Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, v ?? undefined])) as any;
+}
+
 export function AddPlaceOfInterestContainer() {
   const { theme } = useConfig();
   const { poiId } = useParams<{ poiId?: string }>();
@@ -109,6 +115,17 @@ export function AddPlaceOfInterestContainer() {
       form.setFieldValue("address", reverseGeocodeData);
     }
   }, [form.setFieldValue, reverseGeocodeData]);
+
+  useEffect(() => {
+    if (poiToEdit) {
+      const typedAddress = nullToUndefined(poiToEdit.locationDetails);
+      form.setValues({
+        ...poiToEdit,
+        polygon: poiToEdit.geoJson as PolygonFeature | null,
+        address: typedAddress,
+      });
+    }
+  }, [poiToEdit, form.setValues]);
 
   const handleSave = () => {
     const values = form.getValues();
