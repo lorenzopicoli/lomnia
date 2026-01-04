@@ -7,10 +7,7 @@ import { locationDetailsTable } from "../models/LocationDetails";
 import { type PlaceOfInterest, placesOfInterestTable } from "../models/PlaceOfInterest";
 
 export type PlaceOfInterestWithLocation = PlaceOfInterest & {
-  locationDetails: Pick<
-    typeof locationDetailsTable.$inferSelect,
-    "id" | "name" | "city" | "country" | "road" | "displayName"
-  >;
+  locationDetails: typeof locationDetailsTable.$inferSelect;
 };
 
 export type PlaceOfInterestInput = {
@@ -55,14 +52,7 @@ export namespace PlaceOfInterestService {
     const result = await db
       .select({
         poi: placesOfInterestTable,
-        locationDetails: {
-          id: locationDetailsTable.id,
-          name: locationDetailsTable.name,
-          city: locationDetailsTable.city,
-          country: locationDetailsTable.country,
-          road: locationDetailsTable.road,
-          displayName: locationDetailsTable.displayName,
-        },
+        locationDetails: locationDetailsTable,
       })
       .from(placesOfInterestTable)
       .innerJoin(locationDetailsTable, eq(placesOfInterestTable.locationDetailsId, locationDetailsTable.id))

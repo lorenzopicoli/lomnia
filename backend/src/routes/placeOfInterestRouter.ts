@@ -55,7 +55,7 @@ export const placeOfInterestRouter = t.router({
     return PlaceOfInterestService.getLocationsCount();
   }),
 
-  getAdressForPolygon: loggedProcedure
+  getAddressForPolygon: loggedProcedure
     .input(
       z.object({
         polygon: PolygonFeatureSchema,

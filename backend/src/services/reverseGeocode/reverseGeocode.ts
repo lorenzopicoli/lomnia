@@ -1,7 +1,6 @@
 import axios from "axios";
 import config from "../../config";
 import type { Point } from "../../db/types";
-import type { NewLocationDetails } from "../../models";
 import { Logger } from "../Logger";
 import {
   mapNominatimApiResponseToDbSchema,
@@ -9,7 +8,6 @@ import {
   NominatimReverseResponseSchema,
 } from "./nominatimSchema";
 
-export type ReverseGeocodeResponse = Omit<NewLocationDetails, "location">;
 /**
  * Reverse-geocode a lat/lng and format the response into a unified object.
  */
@@ -32,7 +30,7 @@ export async function reverseGeocode(point: Point) {
 
     return mapNominatimApiResponseToDbSchema(parsed);
   } catch (err) {
-    logger.error(`Failed to reverse-geocode lat=${lat}, lng=${lng}: ${String(err)}`);
+    logger.error(`Failed to reverse-geocode lat=${point.lat}, lng=${point.lng}: ${String(err)}`);
     throw err;
   }
 }

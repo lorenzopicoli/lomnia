@@ -1,5 +1,4 @@
 import { z } from "zod";
-import type { NewLocationDetails } from "../../models";
 
 export const NominatimAddressSchema = z.object({
   house_number: z.string().optional(),
@@ -53,9 +52,7 @@ export const NominatimReverseResponseSchema = z
 export type NominatimReverseResponse = z.infer<typeof NominatimReverseResponseSchema>;
 export type NominatimAddress = z.infer<typeof NominatimAddressSchema>;
 
-export function mapNominatimApiResponseToDbSchema(
-  apiResponse: NominatimReverseResponse,
-): Omit<NewLocationDetails, "location"> {
+export function mapNominatimApiResponseToDbSchema(apiResponse: NominatimReverseResponse) {
   return {
     source: "external",
 
