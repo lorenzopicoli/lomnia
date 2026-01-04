@@ -1,0 +1,43 @@
+/* Icons */
+.control-icon {
+  filter: brightness(0) invert(1);
+}
+
+/* Icon when disabled */
+.leaflet-buttons-control-button.pm-disabled > .control-icon {
+  filter: brightness(0) invert(1);
+}
+
+/* Buttons */
+.leaflet-pm-toolbar .button-container a.leaflet-buttons-control-button,
+.leaflet-pm-toolbar .button-container:first-child.pos-right.active a.leaflet-buttons-control-button,
+.leaflet-pm-toolbar .button-container:last-child a.leaflet-buttons-control-button,
+.leaflet-pm-toolbar .button-container:first-child a.leaflet-buttons-control-button {
+  background-color: var(--mantine-color-violet-filled);
+  border-radius: 20px;
+  border-bottom: 0px;
+  margin: 15px;
+  width: 32px;
+  height: 32px;
+  padding: 7px;
+}
+/* Hovering buttons */
+.leaflet-pm-toolbar .button-container a.leaflet-buttons-control-button:hover {
+  background-color: var(--mantine-color-violet-filled-hover);
+}
+
+/* Disabled button */
+.leaflet-pm-toolbar a.leaflet-buttons-control-button.pm-disabled,
+.leaflet-pm-toolbar a.leaflet-buttons-control-button[aria-disabled="true"] {
+  background-color: var(--mantine-color-dark-5);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Toolbar container */
+.leaflet-touch .leaflet-control-layers,
+.leaflet-touch .leaflet-bar {
+  border: 0px;
+  background-color: var(--mantine-color-dark-7);
+  border-radius: 20px;
+}
