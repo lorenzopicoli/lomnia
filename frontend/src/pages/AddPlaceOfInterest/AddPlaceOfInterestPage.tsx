@@ -1,21 +1,31 @@
-import { Container, Paper, ScrollArea } from "@mantine/core";
+import { Button, Card, Container, Flex, Paper, ScrollArea, Stack, Text, TextInput, Title } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { createControlComponent } from "@react-leaflet/core";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import * as L from "leaflet";
-import { useCallback, useEffect } from "react";
-import { MapContainer, TileLayer, useMap } from "react-leaflet";
+import { type ChangeEvent, useCallback, useEffect, useState } from "react";
+import { MapContainer, TileLayer, useMap, ZoomControl } from "react-leaflet";
 import { useNavigate, useParams } from "react-router-dom";
 import { trpc } from "../../api/trpc";
 import { safeScrollableArea } from "../../constants";
 import { useConfig } from "../../contexts/ConfigContext";
 import "@geoman-io/leaflet-geoman-free";
 import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
+import "./LeafletOverwrites.css";
+import { cardDarkBackground } from "../../themes/mantineThemes";
 
 interface Props extends L.ControlOptions {
   position: L.ControlPosition;
-  drawCircle?: boolean;
   oneBlock?: boolean;
+  drawMarker?: boolean;
+  drawPolyline?: boolean;
+  drawRectangle?: boolean;
+  drawCircleMarker?: boolean;
+  drawText?: boolean;
+  drawFreehand?: boolean;
+  rotateMode?: boolean;
+  cutPolygon?: boolean;
+  drawCircle?: boolean;
 }
 
 const Geoman = L.Control.extend({
@@ -30,6 +40,12 @@ const Geoman = L.Control.extend({
     map.pm.addControls({
       ...this.options,
     });
+
+    map.pm.setPathOptions({
+      color: "var(--mantine-color-violet-9)",
+      fillColor: "var(--mantine-color-violet-7)",
+      fillOpacity: 0.4,
+    });
   },
 });
 
@@ -39,91 +55,40 @@ const createGeomanInstance = (props: Props) => {
 
 export const GeomanControl = createControlComponent(createGeomanInstance);
 
-const Events = () => {
+function MapEvents(props: { onChange: (geoJson: any) => void }) {
   const map = useMap();
+  const toGeoJSON = useCallback((layer: L.Layer) => {
+    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+    return (layer as any).toGeoJSON(15);
+  }, []);
 
   useEffect(() => {
     if (map) {
-      map.pm.setPathOptions({
-        color: "orange",
-        fillColor: "green",
-        fillOpacity: 0.4,
-      });
       map.on("pm:create", (e) => {
-        console.log("Layer created:", e);
-
-        e.layer.on("click", () => {
-          console.log("Layer clicked", e);
-        });
+        props.onChange(toGeoJSON(e.layer));
+        map.pm.Toolbar.setButtonDisabled("Polygon", true);
 
         e.layer.on("pm:edit", () => {
-          console.log("Layer edited", e);
-        });
-
-        e.layer.on("pm:update", () => {
-          console.log("Layer updated", e);
+          props.onChange(toGeoJSON(e.layer));
         });
 
         e.layer.on("pm:remove", (e) => {
-          console.log("Layer removed:", e);
+          props.onChange(toGeoJSON(e.layer));
+          map.pm.Toolbar.setButtonDisabled("Polygon", false);
         });
-
-        e.layer.on("pm:dragstart", (e) => {
-          console.log("Layer dragstart:", e);
-        });
-
-        e.layer.on("pm:dragend", (e) => {
-          console.log("Layer dragend:", e);
-        });
-      });
-
-      map.on("pm:drawstart", (e) => {
-        console.log("Layer drawstart:", e);
-      });
-
-      map.on("pm:drawend", (_e: any) => {
-        const layersGeoJSON = map.pm.getGeomanLayers().map((layer) => layer.toGeoJSON());
-
-        // Or as a FeatureCollection
-        const featureCollection = {
-          type: "FeatureCollection",
-          features: layersGeoJSON,
-        };
-
-        console.log(featureCollection);
-      });
-
-      map.on("pm:globaldrawmodetoggled", (e) => {
-        console.log("Layer globaldrawmodetoggled:", e);
-      });
-
-      map.on("pm:globaldragmodetoggled", (e) => {
-        console.log("Layer globaldragmodetoggled:", e);
-      });
-
-      map.on("pm:globalremovalmodetoggled", (e) => {
-        console.log("Layer globalremovalmodetoggled:", e);
-      });
-
-      map.on("pm:globalcutmodetoggled", (e) => {
-        console.log("Layer globalcutmodetoggled:", e);
-      });
-
-      map.on("pm:globalrotatemodetoggled", (e) => {
-        console.log("Layer globalrotatemodetoggled:", e);
       });
     }
-  }, [map]);
+  }, [map, toGeoJSON, props.onChange]);
 
   return null;
-};
-
-export default Events;
+}
 
 export function AddPlaceOfInterestPage() {
   const { theme } = useConfig();
   const navigate = useNavigate();
   const { poiId } = useParams<{ poiId?: string }>();
+
+  const [name, setName] = useState();
 
   const isEditing = !!poiId;
   const { data: poiToEdit, isFetching } = useQuery(
@@ -139,7 +104,7 @@ export function AddPlaceOfInterestPage() {
         notifications.show({
           color: theme.colors.green[9],
           title: isEditing ? "Place of Interest Updated" : "Place of Interest Created",
-          message: "It might take a while to see locations linked to this place",
+          message: "Changes may take a few minutes to appear in linked locations.",
         });
       },
     }),
@@ -152,6 +117,15 @@ export function AddPlaceOfInterestPage() {
     [savePoi, poiToEdit?.id],
   );
 
+  const handleNameChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setName(e.target.value as any);
+  };
+
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  const handleMapPolygonChange = useCallback((geoJson: any) => {
+    console.log("Map upadte", geoJson);
+  }, []);
+
   if (isFetching) {
     return <>Loading...</>;
   }
@@ -159,19 +133,62 @@ export function AddPlaceOfInterestPage() {
   return (
     <Paper component={Container} fluid h={"100vh"} bg={theme.colors.dark[9]}>
       <ScrollArea h={safeScrollableArea} type="never">
-        <MapContainer
-          center={[51.505, -0.09]}
-          zoom={13}
-          scrollWheelZoom={true}
-          style={{ width: "100vw", height: "100vh" }}
-        >
-          <TileLayer
-            attribution='<a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>'
-            url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-          <GeomanControl position="topleft" oneBlock />
-          <Events />
-        </MapContainer>
+        <Flex p={"lg"} gap={"lg"} mih={"90vh"} direction={"row"}>
+          {/* Left panel */}
+          <Card p={"md"} w={"40%"} bg={cardDarkBackground}>
+            <Card.Section p={"md"}>
+              <Title order={3}>General</Title>
+            </Card.Section>
+            <Stack>
+              <TextInput value={name} onChange={handleNameChange} label="Name" />
+              <TextInput
+                value={name}
+                onChange={handleNameChange}
+                label="Display name"
+                description="The name used in charts"
+              />
+              <Button onClick={handleSave} variant="filled" size="md">
+                Save
+              </Button>
+            </Stack>
+          </Card>
+          {/* Right panel */}
+          <Card flex={1} w={"60%"} title="Edit place in the map" bg={cardDarkBackground}>
+            <Card.Section p={"md"}>
+              <Title order={3}>Map area</Title>
+              <Text size="sm">Draw one shape on the map to define the area covered by this place of interest.</Text>
+            </Card.Section>
+            <Container h={"100%"} w={"100%"} bdrs={"lg"} p={0} style={{ overflow: "clip" }}>
+              <MapContainer
+                center={[51.505, -0.09]}
+                zoom={13}
+                scrollWheelZoom={true}
+                style={{ margin: 0, width: "100%", height: "100%" }}
+                zoomControl={false}
+              >
+                <ZoomControl position="bottomright" />
+                <TileLayer
+                  attribution='<a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>'
+                  url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+                <GeomanControl
+                  position="topright"
+                  oneBlock
+                  drawCircle={false}
+                  drawMarker={false}
+                  drawPolyline={false}
+                  drawRectangle={false}
+                  drawCircleMarker={false}
+                  drawText={false}
+                  drawFreehand={false}
+                  rotateMode={false}
+                  cutPolygon={false}
+                />
+                <MapEvents onChange={handleMapPolygonChange} />
+              </MapContainer>
+            </Container>
+          </Card>
+        </Flex>
       </ScrollArea>
     </Paper>
   );
