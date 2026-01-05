@@ -134,6 +134,15 @@ export namespace PlaceOfInterestService {
     return count;
   }
 
+  export async function getAllGeoJSON() {
+    return await db
+      .select({
+        geoJson: placesOfInterestTable.geoJson,
+        name: placesOfInterestTable.name,
+      })
+      .from(placesOfInterestTable);
+  }
+
   export function getPlaceOfInterestCenter(polygon: PolygonFeature): Point {
     const ring = polygon.geometry.coordinates[0];
 

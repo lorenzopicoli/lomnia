@@ -41,3 +41,7 @@
   background-color: var(--mantine-color-dark-7);
   border-radius: 20px;
 }
+
+.polygon-label {
+  font-size: 10px;
+}

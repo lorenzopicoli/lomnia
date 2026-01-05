@@ -7,9 +7,11 @@ import "./GeomanControl.css";
 import L from "leaflet";
 import type { PolygonFeature } from "../../types/PolygonFeature";
 
+type ReadonlyPolygon = { name: string; feature: PolygonFeature };
 export function DrawablePoiMap(props: {
   value?: PolygonFeature | null;
   onChange: (geoJson: PolygonFeature | null) => void;
+  readonlyPolygons?: ReadonlyPolygon[];
 }) {
   return (
     <MapContainer
@@ -24,6 +26,7 @@ export function DrawablePoiMap(props: {
         attribution='<a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>'
         url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
+      {props.readonlyPolygons ? <ReadOnlyPolygons readonlyPolygons={props.readonlyPolygons} /> : null}
       <GeomanControl
         position="topright"
         oneBlock
@@ -57,6 +60,41 @@ function layerToPolygonFeature(layer: any): PolygonFeature {
       coordinates: geo.geometry.coordinates,
     },
   };
+}
+
+function ReadOnlyPolygons(props: { readonlyPolygons: ReadonlyPolygon[] }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!map) return;
+    for (const poly of props.readonlyPolygons) {
+      const layer = L.geoJSON(poly.feature, {
+        style: {
+          weight: 2,
+          color: "#666",
+          fillOpacity: 0.15,
+          dashArray: "4 4",
+        },
+        interactive: false,
+      }).addTo(map);
+
+      layer.eachLayer((l) => {
+        l.options.pmIgnore = true;
+      });
+
+      const center = layer.getBounds().getCenter();
+
+      L.tooltip({
+        permanent: true,
+        direction: "center",
+        className: "polygon-label",
+        opacity: 0.9,
+      })
+        .setLatLng(center)
+        .setContent(poly.name)
+        .addTo(map);
+    }
+  }, [map, props.readonlyPolygons]);
+  return null;
 }
 
 function MapEvents(props: { value?: PolygonFeature | null; onChange: (geoJson: PolygonFeature | null) => void }) {

@@ -86,6 +86,7 @@ export function AddPlaceOfInterestContainer() {
       { enabled: !!form.values.polygon },
     ),
   );
+  const { data: allPOIsGeoJSONs } = useQuery(trpc.placesOfInterest.getAllGeoJSON.queryOptions());
   const { mutate: savePoi } = useMutation(
     trpc.placesOfInterest.save.mutationOptions({
       onSuccess() {
@@ -181,6 +182,7 @@ export function AddPlaceOfInterestContainer() {
             <Container h={"100%"} w={"100%"} bdrs={"lg"} p={0} style={{ overflow: "clip" }}>
               <DrawablePoiMap
                 value={poiToEdit?.geoJson as any}
+                readonlyPolygons={allPOIsGeoJSONs?.map((poi) => ({ name: poi.name, feature: poi.geoJson as any }))}
                 onChange={(poly) => {
                   console.group("on change", poly);
                   form.setFieldValue("polygon", poly);
