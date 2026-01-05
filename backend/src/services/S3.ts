@@ -1,8 +1,8 @@
 import * as fs from "node:fs";
 import * as os from "node:os";
 import path from "node:path";
-import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import type { Readable } from "node:stream";
+import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { EnvVar, getEnvVarOrError } from "../helpers/envVars";
 
 export class S3 {
