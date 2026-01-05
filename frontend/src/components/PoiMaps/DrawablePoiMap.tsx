@@ -10,7 +10,7 @@ import type { PolygonFeature } from "../../types/PolygonFeature";
 type ReadonlyPolygon = { name: string; feature: PolygonFeature };
 export function DrawablePoiMap(props: {
   value?: PolygonFeature | null;
-  onChange: (geoJson: PolygonFeature | null) => void;
+  onChange?: (geoJson: PolygonFeature | null) => void;
   readonlyPolygons?: ReadonlyPolygon[];
 }) {
   return (
@@ -97,7 +97,7 @@ function ReadOnlyPolygons(props: { readonlyPolygons: ReadonlyPolygon[] }) {
   return null;
 }
 
-function MapEvents(props: { value?: PolygonFeature | null; onChange: (geoJson: PolygonFeature | null) => void }) {
+function MapEvents(props: { value?: PolygonFeature | null; onChange?: (geoJson: PolygonFeature | null) => void }) {
   const map = useMap();
   const layerRef = useRef<L.Layer | null>(null);
   const doneInitialRef = useRef<boolean>(false);
@@ -113,17 +113,17 @@ function MapEvents(props: { value?: PolygonFeature | null; onChange: (geoJson: P
 
       layerRef.current = e.layer;
 
-      props.onChange(layerToPolygonFeature(e.layer));
+      props.onChange?.(layerToPolygonFeature(e.layer));
       map.pm.Toolbar.setButtonDisabled("Polygon", true);
 
       e.layer.on("pm:edit", () => {
-        props.onChange(layerToPolygonFeature(e.layer));
+        props.onChange?.(layerToPolygonFeature(e.layer));
       });
 
       e.layer.on("pm:remove", () => {
         map.pm.Toolbar.setButtonDisabled("Polygon", false);
         layerRef.current = null;
-        props.onChange(null);
+        props.onChange?.(null);
       });
     };
 
@@ -157,12 +157,12 @@ function MapEvents(props: { value?: PolygonFeature | null; onChange: (geoJson: P
       map.pm.Toolbar.setButtonDisabled("Polygon", true);
     });
     polygonLayer.on("pm:edit", () => {
-      props.onChange(layerToPolygonFeature(polygonLayer));
+      props.onChange?.(layerToPolygonFeature(polygonLayer));
     });
 
     polygonLayer.on("pm:remove", () => {
       layerRef.current = null;
-      props.onChange(null);
+      props.onChange?.(null);
       map.pm.Toolbar.setButtonDisabled("Polygon", false);
     });
   }, [map, props.value, props.onChange]);

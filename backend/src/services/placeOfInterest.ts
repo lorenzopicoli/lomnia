@@ -134,13 +134,16 @@ export namespace PlaceOfInterestService {
     return count;
   }
 
-  export async function getAllGeoJSON() {
+  export async function getAllGeoJSON(search: string) {
+    const searchQuery = `%${search}%`;
+    const whereClause = !search ? sql`1=1` : sql`${placesOfInterestTable.name} ILIKE ${searchQuery}`;
     return await db
       .select({
         geoJson: placesOfInterestTable.geoJson,
         name: placesOfInterestTable.name,
       })
-      .from(placesOfInterestTable);
+      .from(placesOfInterestTable)
+      .where(whereClause);
   }
 
   export function getPlaceOfInterestCenter(polygon: PolygonFeature): Point {

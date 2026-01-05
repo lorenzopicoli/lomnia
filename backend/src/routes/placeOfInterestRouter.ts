@@ -59,7 +59,13 @@ export const placeOfInterestRouter = t.router({
     .query(async (opts) => {
       return reverseGeocode(PlaceOfInterestService.getPlaceOfInterestCenter(opts.input.polygon));
     }),
-  getAllGeoJSON: loggedProcedure.query(async () => {
-    return PlaceOfInterestService.getAllGeoJSON();
-  }),
+  getAllGeoJSON: loggedProcedure
+    .input(
+      z.object({
+        search: z.string().optional(),
+      }),
+    )
+    .query(async (opts) => {
+      return PlaceOfInterestService.getAllGeoJSON(opts.input.search);
+    }),
 });

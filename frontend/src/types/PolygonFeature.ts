@@ -11,3 +11,5 @@ export type PolygonFeature = {
     coordinates: Position[][];
   };
 };
+
+export type ReadonlyPolygon = { name: string; feature: PolygonFeature };

@@ -17,7 +17,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { trpc } from "../../api/trpc";
-import { DrawablePoiMap } from "../../components/DrawablePoiMap/DrawablePoiMap";
+import { DrawablePoiMap } from "../../components/PoiMaps/DrawablePoiMap";
 import { safeScrollableArea } from "../../constants";
 import { useConfig } from "../../contexts/ConfigContext";
 import { cardDarkBackground } from "../../themes/mantineThemes";
@@ -55,7 +55,7 @@ function nullToUndefined<T extends Record<string, unknown>>(
   return Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, v ?? undefined])) as any;
 }
 
-export function AddPlaceOfInterestContainer() {
+export function AddPlaceOfInterestContainer(_props: { search?: string }) {
   const { theme } = useConfig();
   const { poiId } = useParams<{ poiId?: string }>();
   const navigate = useNavigate();
@@ -86,7 +86,7 @@ export function AddPlaceOfInterestContainer() {
       { enabled: !!form.values.polygon },
     ),
   );
-  const { data: allPOIsGeoJSONs } = useQuery(trpc.placesOfInterest.getAllGeoJSON.queryOptions());
+  const { data: allPOIsGeoJSONs } = useQuery(trpc.placesOfInterest.getAllGeoJSON.queryOptions({}));
   const { mutate: savePoi } = useMutation(
     trpc.placesOfInterest.save.mutationOptions({
       onSuccess() {
