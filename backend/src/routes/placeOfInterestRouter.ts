@@ -66,6 +66,6 @@ export const placeOfInterestRouter = t.router({
       }),
     )
     .query(async (opts) => {
-      return PlaceOfInterestService.getAllGeoJSON(opts.input.search);
+      return PlaceOfInterestService.getAllGeoJSON(opts.input.search || "");
     }),
 });
