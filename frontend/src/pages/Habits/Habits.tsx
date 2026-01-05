@@ -52,12 +52,12 @@ export function HabitsPage() {
               path={"features"}
               element={
                 <Flex p={0} m={0} align={"center"} gap={"lg"}>
-                  <ActionIcon m={0} variant="filled" size="lg" radius={"xl"} component={Link} to="/habits/features/add">
-                    <IconPlus />
-                  </ActionIcon>
                   <Button variant="subtle" leftSection={<IconTable size={16} />} component={Link} to="/habits">
                     Raw Habits
                   </Button>
+                  <ActionIcon m={0} variant="filled" size="lg" radius={"xl"} component={Link} to="/habits/features/add">
+                    <IconPlus />
+                  </ActionIcon>
                 </Flex>
               }
             />

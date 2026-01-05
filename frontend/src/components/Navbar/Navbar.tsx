@@ -46,7 +46,13 @@ export default function Navbar(props: HeaderProps) {
           <IconLayoutDashboard />
         </ActionIcon>
 
-        <ActionIcon component={Link} to="/habits" bdrs={"lg"} size={"lg"} variant={isHabits ? "light" : "transparent"}>
+        <ActionIcon
+          component={Link}
+          to="/habits/features"
+          bdrs={"lg"}
+          size={"lg"}
+          variant={isHabits ? "light" : "transparent"}
+        >
           <IconChecklist />
         </ActionIcon>
 
