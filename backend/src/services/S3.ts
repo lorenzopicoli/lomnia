@@ -2,7 +2,7 @@ import * as fs from "node:fs";
 import * as os from "node:os";
 import path from "node:path";
 import type { Readable } from "node:stream";
-import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { EnvVar, getEnvVarOrError } from "../helpers/envVars";
 
 export class S3 {
@@ -27,6 +27,25 @@ export class S3 {
     }
     S3.instance = new S3();
     return S3.instance;
+  }
+
+  /**
+   * Upload a JSON object to S3
+   * @param bucket the bucket to upload to
+   * @param key the object key (file name / path)
+   * @param data the JSON-serializable data
+   */
+  public async uploadJson(bucket: string, key: string, data: unknown): Promise<void> {
+    const body = JSON.stringify(data);
+
+    const command = new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      Body: body,
+      ContentType: "application/json",
+    });
+
+    await this.s3.send(command);
   }
 
   /**
