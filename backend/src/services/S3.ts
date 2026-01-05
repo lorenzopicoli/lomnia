@@ -1,13 +1,13 @@
-import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3'
-import * as fs from 'node:fs'
-import path from 'node:path'
-import * as os from 'node:os'
-import type { Readable } from 'stream'
-import { EnvVar, getEnvVarOrError } from '../helpers/envVars'
+import * as fs from "node:fs";
+import * as os from "node:os";
+import path from "node:path";
+import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import type { Readable } from "node:stream";
+import { EnvVar, getEnvVarOrError } from "../helpers/envVars";
 
 export class S3 {
-  private static instance: S3 | undefined = undefined
-  private s3: S3Client
+  private static instance: S3 | undefined = undefined;
+  private s3: S3Client;
 
   private constructor() {
     this.s3 = new S3Client({
@@ -18,15 +18,15 @@ export class S3 {
         secretAccessKey: getEnvVarOrError(EnvVar.S3_SECRET_ACCESS_KEY),
       },
       forcePathStyle: true,
-    })
+    });
   }
 
   static init() {
-    if (this.instance) {
-      return this.instance
+    if (S3.instance) {
+      return S3.instance;
     }
-    this.instance = new S3()
-    return this.instance
+    S3.instance = new S3();
+    return S3.instance;
   }
 
   /**
@@ -36,25 +36,25 @@ export class S3 {
    * @returns the path to the downloaded file
    */
   public async downloadTmp(bucket: string, key: string) {
-    const tempDirPrefix = path.join(os.tmpdir(), 'lomnia-')
-    const tmpDir = fs.mkdtempSync(tempDirPrefix)
-    const filePath = path.join(tmpDir, path.basename(key))
+    const tempDirPrefix = path.join(os.tmpdir(), "lomnia-");
+    const tmpDir = fs.mkdtempSync(tempDirPrefix);
+    const filePath = path.join(tmpDir, path.basename(key));
 
     const command = new GetObjectCommand({
       Bucket: bucket,
       Key: key,
-    })
+    });
 
-    const response = await this.s3.send(command)
+    const response = await this.s3.send(command);
 
-    const body = response.Body as Readable
-    const fileStream = fs.createWriteStream(filePath)
+    const body = response.Body as Readable;
+    const fileStream = fs.createWriteStream(filePath);
 
     return new Promise<string>((resolve, reject) => {
       body
         .pipe(fileStream)
-        .on('error', reject)
-        .on('finish', () => resolve(filePath))
-    })
+        .on("error", reject)
+        .on("finish", () => resolve(filePath));
+    });
   }
 }
