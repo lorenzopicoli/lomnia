@@ -32,8 +32,6 @@ export const locationDetailsTable = pgTable("location_details", {
   nameDetails: jsonb("name_details"),
   name: text("name"),
 
-  radius: integer("radius"),
-
   houseNumber: text("house_number"),
   road: text("road"),
   neighbourhood: text("neighbourhood"),
