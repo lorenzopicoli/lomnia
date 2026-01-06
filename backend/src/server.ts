@@ -16,7 +16,7 @@ export function createContext({ req, res }: CreateFastifyContextOptions) {
 export type Context = Awaited<ReturnType<typeof createContext>>;
 
 const fastify = Fastify({
-  logger: true,
+  logger: false,
   maxParamLength: 5000,
 });
 

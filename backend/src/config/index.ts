@@ -97,6 +97,19 @@ export default {
       },
     },
   },
+  cache: {
+    s3Bucket: "lomnia-cache",
+    nominatim: {
+      /**
+       * The resolution of h3 https://h3geo.org/docs/core-library/restable
+       */
+      h3Resolution: 10,
+      /**
+       * How many days in the past and in the future the cache is valid for
+       */
+      timeWindowInDays: 14,
+    },
+  },
   charts: {
     countriesVisited: {
       /**

@@ -1,4 +1,7 @@
+export * from "./Device";
 export * from "./DnsQuery";
+export * from "./ExternalDevice";
+export * from "./ExternalDevice";
 export * from "./File";
 export * from "./Habit";
 export * from "./HabitFeature";
@@ -10,4 +13,5 @@ export * from "./SleepRecord";
 export * from "./SleepStage";
 export * from "./SnoringRecord";
 export * from "./StepCount";
+export * from "./TimeAwareCacheIndex";
 export * from "./Weather";

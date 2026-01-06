@@ -1,7 +1,7 @@
+import type { getTableColumns } from "drizzle-orm";
 import { date, integer, pgTable, real, serial, text, timestamp } from "drizzle-orm/pg-core";
 import { geography } from "../db/types";
 import { importJobsTable } from "./ImportJob";
-import type { getTableColumns } from "drizzle-orm";
 
 export const hourlyWeatherTable = pgTable("hourly_weather", {
   id: serial("id").primaryKey(),
