@@ -49,6 +49,21 @@ export class S3 {
   }
 
   /**
+   * Upload a GZ object to S3
+   */
+  public async uploadGzip(bucket: string, key: string, data: Buffer): Promise<void> {
+    const command = new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      Body: data,
+      ContentType: "application/json",
+      ContentEncoding: "gzip",
+    });
+
+    await this.s3.send(command);
+  }
+
+  /**
    * Download a file into a temporary folder
    * @param bucket the bucket to download from
    * @param key the file key to download

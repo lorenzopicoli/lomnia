@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import * as fs from "node:fs";
+import { gunzipSync, gzipSync } from "node:zlib";
 import { and, eq, gte, lte, sql } from "drizzle-orm";
 import { DateTime } from "luxon";
 import { db } from "../../db/connection";
@@ -71,7 +72,11 @@ export abstract class TimeAwareCache<Response, Request, CacheKeyParams = Request
         return null;
       }
       const filePath = await this.s3.downloadTmp(this.bucket, entry.s3Key);
-      const currentData: CacheEntry<Response, Request> = JSON.parse(fs.readFileSync(filePath, "utf8"));
+
+      const gzipped = fs.readFileSync(filePath);
+      const json = gunzipSync(gzipped).toString("utf8");
+      const currentData: CacheEntry<Response, Request> = JSON.parse(json);
+
       return currentData;
     } catch (error) {
       this.logger.debug("Cache miss (S3 error)", { error });
@@ -103,7 +108,8 @@ export abstract class TimeAwareCache<Response, Request, CacheKeyParams = Request
         eventAt: eventAtIso,
       },
     };
-    await this.s3.uploadJson(this.bucket, s3Key, cacheEntry);
+    const gzipped = gzipSync(JSON.stringify(cacheEntry));
+    await this.s3.uploadGzip(this.bucket, s3Key, gzipped);
     await db.insert(timeAwareCacheIndexTable).values({
       cacheKey,
       provider: this.provider,
@@ -121,7 +127,7 @@ export abstract class TimeAwareCache<Response, Request, CacheKeyParams = Request
    * Get a random S3 key
    */
   private getS3Key(): string {
-    return `cache/${this.provider}/${crypto.randomUUID()}.json`;
+    return `cache/${this.provider}/${crypto.randomUUID()}.json.gz`;
   }
 
   protected abstract getCacheKeyParams(request: Request): CacheKeyParams;
