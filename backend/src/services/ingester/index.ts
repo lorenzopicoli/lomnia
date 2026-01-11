@@ -16,7 +16,7 @@ const ingestersClasses = [LocationIngester, DeviceStatusIngester, DeviceIngester
 
 const logger = new Logger("IngesterIndex");
 
-async function ingest(params: { data: unknown; ingesters: Ingester<any, any>[] }): Promise<number> {
+async function ingest(params: { data: unknown; ingesters: Ingester<unknown, unknown>[] }): Promise<number> {
   const { data, ingesters } = params;
   for (const ingester of ingesters) {
     const { insertedCount, wasIngested } = await ingester.tryIngest(data);
