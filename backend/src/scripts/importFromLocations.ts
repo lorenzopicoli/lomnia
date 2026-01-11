@@ -1,8 +1,11 @@
+import { DateTime } from "luxon";
 import type { Point } from "../db/types";
 import { delay } from "../helpers/delay";
+import { Nominatim } from "../services/nominatim/Nominatim";
 import { PlaceOfInterestService } from "../services/placeOfInterest";
 import { reverseGeocode } from "../services/reverseGeocode/reverseGeocode";
 import type { PolygonFeature } from "../types/polygon";
+import { mapNominatimApiResponseToPlace } from "../services/reverseGeocode/nominatimSchema";
 
 /*
  * ------------------------------------
@@ -95,7 +98,12 @@ export async function importPlacesOfInterestFromLocations(locations: LocationInp
 
     // Reverse geocode the center point
     const centerPoint: Point = { lat: location.lat, lng: location.lng };
-    const address = await reverseGeocode(centerPoint);
+    const nominatim = new Nominatim();
+    const { response } = await nominatim.reverseGeocode({
+      location: centerPoint,
+      when: DateTime.utc(),
+    });
+    const address = mapNominatimApiResponseToPlace(response);
 
     // Create the place of interest
     const poiId = await PlaceOfInterestService.create({

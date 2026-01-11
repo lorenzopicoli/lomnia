@@ -4,6 +4,9 @@ import { reverseGeocode } from "../services/reverseGeocode/reverseGeocode";
 import { PolygonFeatureSchema } from "../types/polygon";
 import { loggedProcedure } from "./common/loggedProcedure";
 import { t } from "./trpc";
+import { Nominatim } from "../services/nominatim/Nominatim";
+import { mapNominatimApiResponseToPlace } from "../services/reverseGeocode/nominatimSchema";
+import { DateTime } from "luxon";
 
 export const placeOfInterestRouter = t.router({
   getCount: loggedProcedure.query(async () => {
@@ -57,7 +60,12 @@ export const placeOfInterestRouter = t.router({
       }),
     )
     .query(async (opts) => {
-      return reverseGeocode(PlaceOfInterestService.getPlaceOfInterestCenter(opts.input.polygon));
+      const nominatim = new Nominatim();
+      const { response } = await nominatim.reverseGeocode({
+        location: PlaceOfInterestService.getPlaceOfInterestCenter(opts.input.polygon),
+        when: DateTime.utc(),
+      });
+      return mapNominatimApiResponseToPlace(response);
     }),
   getAllGeoJSON: loggedProcedure
     .input(
