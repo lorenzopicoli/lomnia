@@ -3,7 +3,6 @@ import type { Point } from "../db/types";
 import { delay } from "../helpers/delay";
 import { Nominatim } from "../services/nominatim/Nominatim";
 import { PlaceOfInterestService } from "../services/placeOfInterest";
-import { reverseGeocode } from "../services/reverseGeocode/reverseGeocode";
 import type { PolygonFeature } from "../types/polygon";
 import { mapNominatimApiResponseToPlace } from "../services/reverseGeocode/nominatimSchema";
 

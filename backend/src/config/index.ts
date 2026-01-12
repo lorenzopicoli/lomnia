@@ -50,11 +50,6 @@ export default {
          */
         apiCallsDelay: 10000,
       },
-      userPoi: {
-        enabled: true,
-
-        recalculateAll: false,
-      },
     },
     health: {
       samsung: {
