@@ -85,7 +85,7 @@ export class OpenMeteoEnricher extends BaseEnricher {
     return config.importers.locationDetails.openMeteo.enabled;
   }
 
-  public async import(tx: DBTransaction): Promise<void> {
+  public async enrich(tx: DBTransaction): Promise<void> {
     let locationDatePairs: { location: Point; dayString: string; timezone: string }[] | undefined;
 
     let importedCount = 0;
@@ -137,12 +137,17 @@ export class OpenMeteoEnricher extends BaseEnricher {
 
         // Chunk to avoid from exceeding postgres' parameter count limit
         const hourlyChunks = chunk(result.hourly, 200);
-        for (const chunk of hourlyChunks) {
-          await tx.insert(hourlyWeatherTable).values(chunk).onConflictDoNothing();
-        }
-        const dailyChunks = chunk(result.daily, 200);
-        for (const chunk of dailyChunks) {
-          await tx.insert(dailyWeatherTable).values(chunk).onConflictDoNothing();
+        try {
+          for (const chunk of hourlyChunks) {
+            await tx.insert(hourlyWeatherTable).values(chunk).onConflictDoNothing();
+          }
+          const dailyChunks = chunk(result.daily, 200);
+          for (const chunk of dailyChunks) {
+            await tx.insert(dailyWeatherTable).values(chunk).onConflictDoNothing();
+          }
+        } catch (e) {
+          console.log(e);
+          throw e;
         }
         importedCount += result.daily.length + result.hourly.length;
       }
@@ -295,8 +300,7 @@ export class OpenMeteoEnricher extends BaseEnricher {
 
       if (hourlyDates.length !== hourly.variables(0)?.valuesLength()) {
         throw new Error(
-          `Discrepancy in hourly steps length and variables length ${
-            hourlyDates.length
+          `Discrepancy in hourly steps length and variables length ${hourlyDates.length
           } ${hourly.variables(0)?.valuesLength()}`,
         );
       }
@@ -314,7 +318,6 @@ export class OpenMeteoEnricher extends BaseEnricher {
       const windSpeed100m = hourly.variables(10)?.valuesArray() ?? [];
       for (let j = 0; j < hourlyDates.length; j++) {
         hourlyResult.push({
-          importJobId: 1,
           date: hourlyDates[j],
 
           timezone: meteoParams.timezone,
@@ -348,8 +351,7 @@ export class OpenMeteoEnricher extends BaseEnricher {
 
       if (dailyHours.length !== daily.variables(0)?.valuesLength()) {
         throw new Error(
-          `Discrepancy in daily steps length and variables length ${
-            dailyHours.length
+          `Discrepancy in daily steps length and variables length ${dailyHours.length
           } ${daily.variables(0)?.valuesLength()}`,
         );
       }
@@ -367,7 +369,6 @@ export class OpenMeteoEnricher extends BaseEnricher {
       const dailySnowfallSum = daily.variables(11)?.valuesArray() ?? [];
       for (let j = 0; j < dailyHours.length; j++) {
         dailyResult.push({
-          importJobId: 1,
           date:
             DateTime.fromJSDate(dailyHours[j], {
               // Pass UTC here since the JS Date object already accounts from the utcOffset in the call to this.generateDatesFromRange
@@ -437,9 +438,8 @@ export class OpenMeteoEnricher extends BaseEnricher {
         hourlyWeatherId: sql`(
         SELECT id
         FROM hourly_weather
-        WHERE hourly_weather.location = ST_SnapToGrid(${
-          locationsTable.location
-        }::geometry, ${sql.raw(this.gridPrecision)})
+        WHERE hourly_weather.location = ST_SnapToGrid(${locationsTable.location
+          }::geometry, ${sql.raw(this.gridPrecision)})
         AND ${locationsTable.recordedAt} >= hourly_weather.date
         AND ${locationsTable.recordedAt} < hourly_weather.date + interval '1 hour'
         LIMIT 1
@@ -447,20 +447,18 @@ export class OpenMeteoEnricher extends BaseEnricher {
       })
       .where(sql`
       ${locationsTable.hourlyWeatherId} IS NULL
-            ${
-              startDate
-                ? sql`AND ${locationsTable.recordedAt}::date >= (${startDate.toISO()}::timestamp - interval '${sql.raw(
-                    buffer,
-                  )}')::date`
-                : sql``
-            }
-            ${
-              endDate
-                ? sql`AND ${locationsTable.recordedAt}::date <= (${endDate.toISO()}::timestamp + interval '${sql.raw(
-                    buffer,
-                  )}')::date`
-                : sql``
-            }
+            ${startDate
+          ? sql`AND ${locationsTable.recordedAt}::date >= (${startDate.toISO()}::timestamp - interval '${sql.raw(
+            buffer,
+          )}')::date`
+          : sql``
+        }
+            ${endDate
+          ? sql`AND ${locationsTable.recordedAt}::date <= (${endDate.toISO()}::timestamp + interval '${sql.raw(
+            buffer,
+          )}')::date`
+          : sql``
+        }
       `);
     await tx
       .update(locationsTable)
@@ -468,29 +466,26 @@ export class OpenMeteoEnricher extends BaseEnricher {
         dailyWeatherId: sql`(
         SELECT id
         FROM daily_weather
-        WHERE daily_weather.location = ST_SnapToGrid(${
-          locationsTable.location
-        }::geometry, ${sql.raw(this.gridPrecision)})
+        WHERE daily_weather.location = ST_SnapToGrid(${locationsTable.location
+          }::geometry, ${sql.raw(this.gridPrecision)})
         AND (${locationsTable.recordedAt} AT TIME ZONE locations.timezone)::date = daily_weather.date
         LIMIT 1
         )`,
       })
       .where(sql`
       ${locationsTable.dailyWeatherId} IS NULL
-            ${
-              startDate
-                ? sql`AND ${locationsTable.recordedAt}::date >= (${startDate.toISO()}::timestamp - interval '${sql.raw(
-                    buffer,
-                  )}')::date`
-                : sql``
-            }
-            ${
-              endDate
-                ? sql`AND ${locationsTable.recordedAt}::date <= (${endDate.toISO()}::timestamp + interval '${sql.raw(
-                    buffer,
-                  )}')::date`
-                : sql``
-            }
+            ${startDate
+          ? sql`AND ${locationsTable.recordedAt}::date >= (${startDate.toISO()}::timestamp - interval '${sql.raw(
+            buffer,
+          )}')::date`
+          : sql``
+        }
+            ${endDate
+          ? sql`AND ${locationsTable.recordedAt}::date <= (${endDate.toISO()}::timestamp + interval '${sql.raw(
+            buffer,
+          )}')::date`
+          : sql``
+        }
       `);
   }
 

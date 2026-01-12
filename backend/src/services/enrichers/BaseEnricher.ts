@@ -18,6 +18,10 @@ export class BaseEnricher {
         this.logger.info("Finished enriching");
       })
       .catch((e) => {
+        this.logger.error("Failed to run enricher. Raw error as follow");
+        console.log("-------------------------------------------");
+        console.log(e);
+        console.log("-------------------------------------------");
         timer.endWithError(e);
       });
     timer.end();

@@ -1,14 +1,10 @@
 import type { getTableColumns } from "drizzle-orm";
 import { date, integer, pgTable, real, serial, text, timestamp } from "drizzle-orm/pg-core";
 import { geography } from "../db/types";
-import { importJobsTable } from "./ImportJob";
 
 export const hourlyWeatherTable = pgTable("hourly_weather", {
   id: serial("id").primaryKey(),
 
-  importJobId: integer("import_job_id")
-    .references(() => importJobsTable.id)
-    .notNull(),
   /**
    * Timestamp in UTC of the START time for this weather recording.
    * This means that date + 1 hour is the end of this recording.
@@ -110,9 +106,6 @@ export type HourlyWeatherColumns = keyof ReturnType<typeof getTableColumns<typeo
 
 export const dailyWeatherTable = pgTable("daily_weather", {
   id: serial("id").primaryKey(),
-  importJobId: integer("import_job_id")
-    .references(() => importJobsTable.id)
-    .notNull(),
 
   /**
    * The date in the user's timezone (see timezone column)
