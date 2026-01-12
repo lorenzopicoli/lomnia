@@ -32,11 +32,11 @@ export class NominatimEnricher extends BaseEnricher {
 
     let nextLocation = await this.getNextPage(tx);
     let previousTimer = new Date();
+    let wasLastResultCached = false;
     while (nextLocation[0]) {
       const currentTimer = new Date();
       const location = nextLocation[0];
       const timeEllapsed = currentTimer.getTime() - previousTimer.getTime();
-      let wasLastResultCached = false;
 
       if (timeEllapsed < this.apiCallsDelay && !wasLastResultCached) {
         const remainingTime = this.apiCallsDelay - timeEllapsed;
