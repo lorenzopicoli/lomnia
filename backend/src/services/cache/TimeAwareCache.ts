@@ -33,16 +33,16 @@ export abstract class TimeAwareCache<Response, Request, CacheKeyParams = Request
   /**
    * For how long before/after the event date is the cache valid for
    */
-  private timeWindowInDays: number;
+  private timeWindowInSeconds: number;
 
   constructor(params: {
     bucket: string;
     provider: string;
-    timeWindowInDays: number;
+    timeWindowInSeconds: number;
   }) {
     this.s3 = S3.init();
     this.bucket = params.bucket;
-    this.timeWindowInDays = params.timeWindowInDays;
+    this.timeWindowInSeconds = params.timeWindowInSeconds;
     this.provider = params.provider;
   }
 
@@ -114,8 +114,8 @@ export abstract class TimeAwareCache<Response, Request, CacheKeyParams = Request
       cacheKey,
       provider: this.provider,
       s3Key,
-      validFrom: eventAt.minus({ days: this.timeWindowInDays }).toJSDate(),
-      validTo: eventAt.plus({ days: this.timeWindowInDays }).toJSDate(),
+      validFrom: eventAt.minus({ seconds: this.timeWindowInSeconds }).toJSDate(),
+      validTo: eventAt.plus({ seconds: this.timeWindowInSeconds }).toJSDate(),
       fetchedAt: fetchedAt.toJSDate(),
       eventAt: eventAt.toJSDate(),
 

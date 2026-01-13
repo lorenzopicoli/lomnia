@@ -24,13 +24,13 @@ interface NominatimCacheKeyParams {
  * and it also speeds up replaying/recalculating location details. On top of that, it keeps track of historical addresses if they change
  * https://h3geo.org/
  */
-export class NominatimCache extends TimeAwareCache<any, NominatimCacheRequest, NominatimCacheKeyParams> {
+export class NominatimCache extends TimeAwareCache<unknown, NominatimCacheRequest, NominatimCacheKeyParams> {
   private h3Resolution = config.cache.nominatim.h3Resolution;
   private static instance: NominatimCache | undefined = undefined;
   private constructor() {
     super({
       bucket: config.cache.s3Bucket,
-      timeWindowInDays: config.cache.nominatim.timeWindowInDays,
+      timeWindowInSeconds: config.cache.nominatim.timeWindowInSeconds,
       provider: "nominatim",
     });
   }

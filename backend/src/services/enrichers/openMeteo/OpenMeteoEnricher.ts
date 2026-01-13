@@ -1,7 +1,6 @@
 import { sql } from "drizzle-orm";
 import { chunk } from "lodash";
 import { DateTime } from "luxon";
-import { fetchWeatherApi } from "openmeteo";
 import config from "../../../config";
 import type { DBTransaction, Point } from "../../../db/types";
 import { delay } from "../../../helpers/delay";
@@ -14,13 +13,13 @@ import {
 } from "../../../models";
 import { Logger } from "../../Logger";
 import { BaseEnricher } from "../BaseEnricher";
+import { OpenMeteo } from "../../openMeteo/OpenMeteo";
 
 /**
  * TODO: this class can use some love and is currently doing too many uncessary things. There were also some performance concerns
  * initially, but today I believe that they could be solved more elegantely
  */
 export class OpenMeteoEnricher extends BaseEnricher {
-  private apiVersion = "v1";
   // Need to keep this somewhat low to avoid query params limits
   // Can improve performance by increasing this and then chunking the requests
   // since the main query is somewhat slow to run
@@ -50,36 +49,7 @@ export class OpenMeteoEnricher extends BaseEnricher {
   private maxImportSession = config.importers.locationDetails.openMeteo.maxImportSession;
 
   protected logger = new Logger("OpenMeteoEnricher");
-  private apiUrl = `https://archive-api.open-meteo.com/${this.apiVersion}/archive`;
-  private apiParams = {
-    hourly: [
-      "temperature_2m",
-      "relative_humidity_2m",
-      "apparent_temperature",
-      "precipitation",
-      "rain",
-      "snowfall",
-      "snow_depth",
-      "weather_code",
-      "cloud_cover",
-      "wind_speed_10m",
-      "wind_speed_100m",
-    ],
-    daily: [
-      "weather_code",
-      "temperature_2m_max",
-      "temperature_2m_min",
-      "temperature_2m_mean",
-      "apparent_temperature_max",
-      "apparent_temperature_min",
-      "sunrise",
-      "sunset",
-      "daylight_duration",
-      "sunshine_duration",
-      "rain_sum",
-      "snowfall_sum",
-    ],
-  };
+  protected openMeteoApi = new OpenMeteo();
 
   public isEnabled(): boolean {
     return config.importers.locationDetails.openMeteo.enabled;
@@ -257,13 +227,15 @@ export class OpenMeteoEnricher extends BaseEnricher {
       .plus({ days: this.apiDayPadding })
       .toSQLDate();
 
+    if (!paddedStartDate || !paddedEndDate) {
+      throw new Error("Failed to get start/end date");
+    }
+
     const meteoParams = {
-      latitude: locations.map((p) => p.lat),
-      longitude: locations.map((p) => p.lng),
-      timezone: timezone,
-      start_date: paddedStartDate,
-      end_date: paddedEndDate,
-      ...this.apiParams,
+      points: locations.map((p) => ({ lat: p.lat, lng: p.lng })),
+      startDate: paddedStartDate,
+      endDate: paddedEndDate,
+      timezone,
     };
 
     this.logger.debug("Calling OpenMeteo API", {
@@ -272,7 +244,7 @@ export class OpenMeteoEnricher extends BaseEnricher {
       meteoParams,
     });
 
-    const responses = await fetchWeatherApi(this.apiUrl, meteoParams);
+    const responses = await this.openMeteoApi.fetchHistorical(meteoParams);
 
     if (responses.length !== locations.length) {
       throw new Error("Responses from OpenMeteo have a different length than the location date pairs");

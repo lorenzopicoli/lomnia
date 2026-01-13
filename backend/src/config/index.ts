@@ -103,7 +103,13 @@ export default {
       /**
        * How many days in the past and in the future the cache is valid for
        */
-      timeWindowInDays: 14,
+      timeWindowInSeconds: 14 * 24 * 60 * 60,
+    },
+    openMeteo: {
+      /**
+       * The resolution of h3 https://h3geo.org/docs/core-library/restable
+       */
+      h3Resolution: 7,
     },
   },
   charts: {
