@@ -13,5 +13,5 @@ export * from "./SleepRecord";
 export * from "./SleepStage";
 export * from "./SnoringRecord";
 export * from "./StepCount";
-export * from "./TimeAwareCacheIndex";
+export * from "./LocationDateCacheIndex";
 export * from "./Weather";

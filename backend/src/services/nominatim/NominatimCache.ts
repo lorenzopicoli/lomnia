@@ -1,6 +1,5 @@
-import { latLngToCell } from "h3-js";
 import config from "../../config";
-import { TimeAwareCache } from "../cache/TimeAwareCache";
+import { LocationDateCache } from "../cache/LocationDateCache";
 
 interface NominatimCacheRequest {
   format: string;
@@ -10,27 +9,21 @@ interface NominatimCacheRequest {
   lat: number;
   lon: number;
 }
-interface NominatimCacheKeyParams {
-  format: string;
-  zoom: number;
-  namedetails: number;
-  extratags: number;
-  h3Index: string;
-}
+/**
+ * Omit lat and lng since they shouldn't be accounted for the cache key, they are handled by the index table
+ */
+type NominatimCacheKeyParams = Omit<NominatimCacheRequest, "lat" | "lon">;
 
 /**
- * A subclass of TimeAwareCache which makes it so for nominatim calls, the cacheKey uses an h3 index instead of the lat/lng pair
- * Which should give some spatial leeway when trying to hit the cache. This is important for Nominatim because of their strong rate limits
- * and it also speeds up replaying/recalculating location details. On top of that, it keeps track of historical addresses if they change
- * https://h3geo.org/
+ * A subclass of LocationDateCache which makes it so for nominatim calls, which properly caches Nominatim API calls
  */
-export class NominatimCache extends TimeAwareCache<unknown, NominatimCacheRequest, NominatimCacheKeyParams> {
-  private h3Resolution = config.cache.nominatim.h3Resolution;
+export class NominatimCache extends LocationDateCache<unknown, NominatimCacheRequest, NominatimCacheKeyParams> {
   private static instance: NominatimCache | undefined = undefined;
   private constructor() {
     super({
       bucket: config.cache.s3Bucket,
       timeWindowInSeconds: config.cache.nominatim.timeWindowInSeconds,
+      locationWindowInMeters: config.cache.nominatim.locationWindowInMeters,
       provider: "nominatim",
     });
   }
@@ -49,7 +42,6 @@ export class NominatimCache extends TimeAwareCache<unknown, NominatimCacheReques
       zoom: request.zoom,
       namedetails: request.namedetails,
       extratags: request.extratags,
-      h3Index: latLngToCell(request.lat, request.lon, this.h3Resolution),
     };
   }
 }

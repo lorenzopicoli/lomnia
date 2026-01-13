@@ -1,6 +1,7 @@
 import { pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { geography } from "../db/types";
 
-export const timeAwareCacheIndexTable = pgTable("time_aware_cache_index", {
+export const locationDateCacheIndexTable = pgTable("location_date_cache_index", {
   id: serial("id").primaryKey(),
 
   /**
@@ -34,9 +35,14 @@ export const timeAwareCacheIndexTable = pgTable("time_aware_cache_index", {
    */
   eventAt: timestamp("event_at").notNull(),
 
+  /**
+   * The location related to the cache
+   */
+  location: geography("location").notNull(),
+
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at"),
 });
 
-export type TimeAwareCacheIndex = typeof timeAwareCacheIndexTable.$inferSelect;
-export type NewTimeAwareCacheIndex = typeof timeAwareCacheIndexTable.$inferInsert;
+export type LocationDateCacheIndex = typeof locationDateCacheIndexTable.$inferSelect;
+export type NewLocationDateCacheIndex = typeof locationDateCacheIndexTable.$inferInsert;

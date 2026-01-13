@@ -39,7 +39,12 @@ export class Nominatim {
       lat: location.lat,
       lon: location.lng,
     };
-    const cached = when ? await this.cache.get(apiCallParams, when) : null;
+    const cached = when
+      ? await this.cache.get(apiCallParams, {
+        eventAt: when,
+        location,
+      })
+      : null;
 
     if (cached) {
       this.logger.info("Cache hit for location", { apiCallParams, when });
@@ -53,7 +58,7 @@ export class Nominatim {
       })
       .then((r) => r.data);
 
-    await this.cache.set({ response, eventAt: when, fetchedAt: DateTime.utc(), request: apiCallParams });
+    await this.cache.set({ response, eventAt: when, fetchedAt: DateTime.utc(), location, request: apiCallParams });
     return { isCached: false, response };
   }
 }

@@ -97,19 +97,23 @@ export default {
     s3Bucket: "lomnia-cache",
     nominatim: {
       /**
-       * The resolution of h3 https://h3geo.org/docs/core-library/restable
+       * How far can the point be to another one and still hit the cache
        */
-      h3Resolution: 10,
+      locationWindowInMeters: 100,
       /**
-       * How many days in the past and in the future the cache is valid for
+       * How many seconds in the past and in the future the cache is valid for
        */
       timeWindowInSeconds: 14 * 24 * 60 * 60,
     },
     openMeteo: {
       /**
-       * The resolution of h3 https://h3geo.org/docs/core-library/restable
+       * How far can the point be to another one and still hit the cache
        */
-      h3Resolution: 7,
+      locationWindowInMeters: 1000,
+      /**
+       * How many seconds in the past and in the future the cache is valid for
+       */
+      timeWindowInSeconds: 30 * 60,
     },
   },
   charts: {
