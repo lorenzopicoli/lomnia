@@ -35,7 +35,7 @@ export class OpenMeteoEnricherOld extends BaseEnricher {
   // Calls OpenMeteos API for the dates we want to get data for +- this padding
   // This padding is because of issues of daylight savings in OpenMeteo's side
   // https://github.com/open-meteo/open-meteo/issues/488
-  private apiDayPadding = 0;
+  private apiDayPadding = 4;
 
   // Defines how precise or close to each other the points are. The lower the number, the more api calls we'll
   // do and the more granularity we'll have.
@@ -226,6 +226,9 @@ export class OpenMeteoEnricherOld extends BaseEnricher {
     );
   }
 
+  /**
+   * start and end should be in YYYY-MM-DD format
+   */
   public async callApi(
     locations: Point[],
     startDayString: string,

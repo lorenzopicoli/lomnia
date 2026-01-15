@@ -50,38 +50,42 @@ export class EnrichmentManager {
         lat: 45.49583622049085,
         lng: -73.57293491756394,
       },
-      startDate: "2025-10-29",
-      endDate: "2025-11-04",
+      startDate: "2025-11-02",
+      endDate: "2025-11-02",
+      date: DateTime.fromISO("2025-11-02T13:25:00Z"),
       timezone: "America/Toronto",
     };
 
     console.log("Params", params);
 
     const oldResult = await oldWay.callApi([params.point], params.startDate, params.endDate, params.timezone);
+
+    console.log("Old", JSON.stringify(oldResult));
     const newResult = await newWay.fetchHistorical(params);
+    console.log("New", JSON.stringify(newResult));
 
-    for (const daily of oldResult.daily) {
-      const date = daily.date;
-      const data = pick(daily, "apparentTemperatureMax");
-
-      const newDaily = newResult?.daily.find((d) => d.day === date);
-      const newData = pick(newDaily, "apparentTemperatureMax");
-
-      console.log(`${date} -> ${data.apparentTemperatureMax} vs ${newData.apparentTemperatureMax}`);
-    }
-    for (const hourly of oldResult.hourly) {
-      const date = hourly.date;
-      const data = pick(hourly, "apparentTemperature");
-
-      const newHourly = newResult?.hourly.find(
-        (d) => d.date.toISO() === DateTime.fromJSDate(date, { zone: "UTC" }).toISO(),
-      );
-      const newData = pick(newHourly, "apparentTemperature");
-
-      console.log(
-        `${DateTime.fromJSDate(date, { zone: "UTC" }).toISO()} -> ${data.apparentTemperature} vs ${newData.apparentTemperature}`,
-      );
-    }
+    // for (const daily of oldResult.daily) {
+    //   const date = daily.date;
+    //   const data = pick(daily, "apparentTemperatureMax");
+    //
+    //   const newDaily = newResult?.daily.find((d) => d.day === date);
+    //   const newData = pick(newDaily, "apparentTemperatureMax");
+    //
+    //   console.log(`${date} -> ${data.apparentTemperatureMax} vs ${newData.apparentTemperatureMax}`);
+    // }
+    // for (const hourly of oldResult.hourly) {
+    //   const date = hourly.date;
+    //   const data = pick(hourly, "apparentTemperature");
+    //
+    //   const newHourly = newResult?.hourly.find(
+    //     (d) => d.date.toISO() === DateTime.fromJSDate(date, { zone: "UTC" }).toISO(),
+    //   );
+    //   const newData = pick(newHourly, "apparentTemperature");
+    //
+    //   console.log(
+    //     `${DateTime.fromJSDate(date, { zone: "UTC" }).toISO()} -> ${data.apparentTemperature} vs ${newData.apparentTemperature}`,
+    //   );
+    // }
     if (params) {
       throw new Error("ah");
     }
