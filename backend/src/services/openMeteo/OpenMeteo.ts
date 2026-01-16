@@ -4,7 +4,14 @@ import { Logger } from "../Logger";
 import type { paths } from "./gen/openMeteoOpenApiTypes";
 import createClient from "openapi-fetch";
 import { DateTime, FixedOffsetZone } from "luxon";
-import { DailySchema, HourlySchema, openMeteoApiParams, type OpenMeteoHistoricalResponse } from "./OpenMeteoTypes";
+import {
+  DailySchema,
+  HourlySchema,
+  type OpenMeteoApiDailyParams,
+  type OpenMeteoApiHourlyParams,
+  openMeteoApiParams,
+  type OpenMeteoHistoricalResponse,
+} from "./OpenMeteoTypes";
 
 /**
  * TODO: Add rate limiting in here
@@ -105,16 +112,17 @@ export class OpenMeteo {
 
   private async fetchHourly(params: { start: string; end: string; point: Point; timezone: string }) {
     const { start, end, point, timezone } = params;
+    const query: OpenMeteoApiHourlyParams = {
+      latitude: point.lat,
+      longitude: point.lng,
+      start_date: start,
+      end_date: end,
+      timeformat: "unixtime",
+      hourly: openMeteoApiParams.hourly,
+    };
     const hourlyRaw = await this.http.GET(`/${OpenMeteo.apiVersion}/archive`, {
       params: {
-        query: {
-          latitude: point.lat,
-          longitude: point.lng,
-          start_date: start,
-          end_date: end,
-          timeformat: "unixtime",
-          hourly: openMeteoApiParams.hourly,
-        },
+        query,
       },
     });
 
@@ -150,16 +158,17 @@ export class OpenMeteo {
 
   private async fetchDaily(params: { start: string; end: string; timezone: string; point: Point }) {
     const { start, end, timezone, point } = params;
+    const query: OpenMeteoApiDailyParams = {
+      latitude: point.lat,
+      longitude: point.lng,
+      start_date: start,
+      end_date: end,
+      timezone,
+      daily: openMeteoApiParams.daily,
+    };
     const dailyRaw = await this.http.GET(`/${OpenMeteo.apiVersion}/archive`, {
       params: {
-        query: {
-          latitude: point.lat,
-          longitude: point.lng,
-          start_date: start,
-          end_date: end,
-          timezone,
-          daily: openMeteoApiParams.daily,
-        },
+        query,
       },
     });
 

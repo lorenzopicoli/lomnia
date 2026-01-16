@@ -1,7 +1,11 @@
-import { DateTime } from "luxon";
+import type { DateTime } from "luxon";
 import { z } from "zod";
-import { Point } from "../../db/types";
+import type { Point } from "../../db/types";
 
+// ----------------------------------------------------------------------------------------
+// The features that we use to fetch OpenMeteo, but separated in variables that makes
+// typing a bit easier
+// ----------------------------------------------------------------------------------------
 export const dailyStringParams = ["sunrise" as const, "sunset" as const];
 export const dailyNumberParams = [
   "temperature_2m_max" as const,
@@ -33,6 +37,31 @@ export const openMeteoApiParams = {
   daily: [...dailyNumberParams, ...dailyStringParams],
 };
 
+// ----------------------------------------------------------------------------------------
+// The actual type that is sent to their servers
+// ----------------------------------------------------------------------------------------
+export interface OpenMeteoApiHourlyParams {
+  latitude: number;
+  longitude: number;
+  start_date: string;
+  end_date: string;
+  timeformat: "unixtime";
+  hourly: typeof openMeteoApiParams.hourly;
+}
+
+export interface OpenMeteoApiDailyParams {
+  latitude: number;
+  longitude: number;
+  start_date: string;
+  end_date: string;
+  timezone: string;
+  daily: typeof openMeteoApiParams.daily;
+}
+
+// ----------------------------------------------------------------------------------------
+// Zod types for API responses for validation because I don't trust their openai specs
+// and also because they stop working very quickly
+// ----------------------------------------------------------------------------------------
 export const HourlySchema = z
   .object({
     time: z.array(z.number()),
@@ -50,6 +79,9 @@ export const DailySchema = z
 
 export type Daily = z.infer<typeof DailySchema>;
 
+/**
+ * The response given by the OpenMeteo class when fetching historical data
+ */
 export interface OpenMeteoHistoricalResponse {
   hourly: Array<{
     /**
