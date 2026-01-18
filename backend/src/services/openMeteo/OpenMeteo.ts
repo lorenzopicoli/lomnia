@@ -12,6 +12,7 @@ import {
   openMeteoApiParams,
   type OpenMeteoHistoricalResponse,
 } from "./OpenMeteoTypes";
+import { OpenMeteoCache } from "./OpenMeteoCache";
 
 /**
  * TODO: Add rate limiting in here
@@ -19,16 +20,18 @@ import {
 export class OpenMeteo {
   static apiVersion = "v1" as const;
   private apiUrl = `https://archive-api.open-meteo.com`;
+  private cache = OpenMeteoCache.init();
   protected logger = new Logger("OpenMeteoAPI");
 
-  private apiDayPadding = 4;
+  // Requests for 14 days are counted the same as requests for 1 day
+  private apiDayPadding = 6;
   private http = createClient<paths>({ baseUrl: this.apiUrl });
 
   /**
    * Fetches historical weather data for a location based on a date.
    * In reality since it's the same cost (and because of timezone issues on OpenMeteo's side), we fetch data for
-   * 14 days before and after the requested date. This ends up being pretty good since there's a good chance that
-   * the user will be in the same area for the next 14 days (ie. their home).
+   * 6 days before and after the requested date. This ends up being pretty good since there's a good chance that
+   * the user will be in the same area for the next 6 days (ie. their home).
    *
    * All dates and times returned from this call are in UTC timezone, except for the daily data which has a "day"
    * parameter in the format YYYY-MM-DD which is already in the user time zone. This is because the data is an aggregation
@@ -68,8 +71,29 @@ export class OpenMeteo {
    * be null if the response for the request originated from the cache
    */
   public async fetchHistorical(params: { point: Point; date: DateTime; timezone: string }) {
-    const { point, date, timezone } = params;
+    const { timezoneDay: requestedDay, hour: requestedHour } = this.cache.findRequestedDate(
+      params.date,
+      params.timezone,
+    );
+    const { dailyResult: daily, wasCached: dailyWasCached } = await this.fetchDaily(params);
+    const { hourlyResult: hourly, wasCached: hourlyWasCached } = await this.fetchHourly(params);
 
+    const matchedDay = daily?.find((result) => result.day === requestedDay);
+    const matchedHour = hourly?.find((result) => Math.abs(result.date.diff(requestedHour, "hour").hours) <= 0);
+    return {
+      match: {
+        hour: matchedHour,
+        day: matchedDay,
+      },
+      extra: {
+        hourly,
+        daily,
+      },
+      wasCached: dailyWasCached || hourlyWasCached,
+    };
+  }
+
+  private getApiDateRage(date: DateTime) {
     const startDate = date.startOf("day").minus({ days: this.apiDayPadding });
     const endDate = date.startOf("day").plus({ days: this.apiDayPadding });
     const startDay = startDate.toSQLDate();
@@ -79,54 +103,49 @@ export class OpenMeteo {
       throw new Error("Failed to convert dates to days");
     }
 
-    const daily = await this.fetchDaily({ start: startDay, end: endDay, timezone, point });
-    const hourly = await this.fetchHourly({ start: startDay, end: endDay, timezone, point });
-
-    const match = this.findMatchToRequestedDate(hourly, daily, { requestedDate: date, timezone });
-    return {
-      match,
-      extra: {
-        hourly,
-        daily,
-      },
-      wasCached: false,
-    };
+    return { startDay, endDay };
   }
 
-  private findMatchToRequestedDate(
-    hourly: Awaited<ReturnType<typeof this.fetchHourly>>,
-    daily: Awaited<ReturnType<typeof this.fetchDaily>>,
-    params: {
-      requestedDate: DateTime;
-      timezone: string;
-    },
-  ) {
-    const requestedDay = params.requestedDate.setZone(params.timezone).toSQLDate();
-    const requestedHour = params.requestedDate.startOf("hour");
-
-    const matchedDay = daily?.find((result) => result.day === requestedDay);
-    const matchedHour = hourly?.find((result) => Math.abs(result.date.diff(requestedHour, "hour").hours) <= 0);
-
-    return { hour: matchedHour, day: matchedDay };
-  }
-
-  private async fetchHourly(params: { start: string; end: string; point: Point; timezone: string }) {
-    const { start, end, point, timezone } = params;
+  private async fetchHourly(params: { date: DateTime; point: Point; timezone: string }) {
+    const { point, timezone, date } = params;
+    const { startDay, endDay } = this.getApiDateRage(date);
     const query: OpenMeteoApiHourlyParams = {
       latitude: point.lat,
       longitude: point.lng,
-      start_date: start,
-      end_date: end,
+      start_date: startDay,
+      end_date: endDay,
       timeformat: "unixtime",
       hourly: openMeteoApiParams.hourly,
     };
-    const hourlyRaw = await this.http.GET(`/${OpenMeteo.apiVersion}/archive`, {
-      params: {
-        query,
-      },
-    });
+    const queryWithApiVersion = {
+      ...query,
+      apiVersion: OpenMeteo.apiVersion,
+    };
+    const { hour: cacheEventAt } = this.cache.findRequestedDate(params.date, params.timezone);
 
-    const hourly = z.parse(HourlySchema, hourlyRaw.data?.hourly);
+    const cachedResult = await this.cache.get(queryWithApiVersion, { location: point, eventAt: cacheEventAt });
+
+    console.log("Result", cachedResult);
+
+    if (cachedResult) {
+      this.logger.info("Skipping API call because of cache hit");
+    }
+
+    const hourlyRaw = cachedResult?.response
+      ? cachedResult.response
+      : await this.http.GET(`/${OpenMeteo.apiVersion}/archive`, {
+        params: {
+          query,
+        },
+      });
+    const fetchedAt = DateTime.utc();
+
+    const parsedHourly = z.parse(HourlySchema, hourlyRaw);
+    const hourly = parsedHourly.data.hourly;
+    // We store the same api response for each day that was returned, this means that we'll have many cache entries
+    // pointing to the same raw data. To avoid duplicated entries in S3, we store the first entry's S3 key and then
+    // point all other dates to the same file
+    let existingCacheS3Key: string | null = null;
 
     const hourlyResult: OpenMeteoHistoricalResponse["hourly"] = [];
     for (let i = 0; i < hourly.time.length; i++) {
@@ -134,6 +153,15 @@ export class OpenMeteo {
       // date, all of OpenMeteo's timezones problems aren't in play here. We'll get UTC times and that's what we store
       // When matching it to the user location we will find a match
       const date = DateTime.fromSeconds(hourly.time[i], { zone: "UTC" });
+      if (!cachedResult) {
+        existingCacheS3Key = await this.cache.set({
+          request: queryWithApiVersion,
+          response: existingCacheS3Key ? { existingS3Key: existingCacheS3Key } : { apiResponse: hourlyRaw },
+          eventAt: date,
+          location: point,
+          fetchedAt,
+        });
+      }
       hourlyResult.push({
         date,
         apparentTemperature: hourly.apparent_temperature[i],
@@ -153,45 +181,75 @@ export class OpenMeteo {
       });
     }
 
-    return hourlyResult;
+    return { hourlyResult, wasCached: !!cachedResult };
   }
 
-  private async fetchDaily(params: { start: string; end: string; timezone: string; point: Point }) {
-    const { start, end, timezone, point } = params;
+  private async fetchDaily(params: { date: DateTime; timezone: string; point: Point }) {
+    const { date, timezone, point } = params;
+    const { startDay, endDay } = this.getApiDateRage(date);
     const query: OpenMeteoApiDailyParams = {
       latitude: point.lat,
       longitude: point.lng,
-      start_date: start,
-      end_date: end,
+      start_date: startDay,
+      end_date: endDay,
       timezone,
       daily: openMeteoApiParams.daily,
     };
-    const dailyRaw = await this.http.GET(`/${OpenMeteo.apiVersion}/archive`, {
-      params: {
-        query,
-      },
-    });
+    const queryWithApiVersion = {
+      ...query,
+      apiVersion: OpenMeteo.apiVersion,
+    };
+    const { utcDay: cacheEventAt } = this.cache.findRequestedDate(params.date, params.timezone);
+    console.log("RequestedDate", cacheEventAt);
 
-    if (!dailyRaw.data) {
-      this.logger.error("Failed to get OpenMeteo Historical data", {
-        latitude: point.lat,
-        longitude: point.lng,
-        timezone: timezone,
-        start_date: start,
-        end_date: end,
-        daily: openMeteoApiParams.daily,
-      });
-      return null;
+    const cachedResult = await this.cache.get(
+      {
+        ...query,
+        apiVersion: OpenMeteo.apiVersion,
+      },
+      { location: point, eventAt: cacheEventAt },
+    );
+
+    if (cachedResult) {
+      this.logger.info("Skipping API call because of cache hit");
+    } else {
+      this.logger.info("No cache hit");
     }
-    const daily = z.parse(DailySchema, dailyRaw.data.daily);
+
+    const dailyRaw = cachedResult?.response
+      ? cachedResult.response
+      : await this.http.GET(`/${OpenMeteo.apiVersion}/archive`, {
+        params: {
+          query,
+        },
+      });
+    const fetchedAt = DateTime.utc();
+    const parsedDaily = z.parse(DailySchema, dailyRaw);
+    const daily = parsedDaily.data.daily;
+    // We store the same api response for each day that was returned, this means that we'll have many cache entries
+    // pointing to the same raw data. To avoid duplicated entries in S3, we store the first entry's S3 key and then
+    // point all other dates to the same file
+    let existingCacheS3Key: string | null = null;
+
     const dailyResult: OpenMeteoHistoricalResponse["daily"] = [];
     for (let i = 0; i < daily.time.length; i++) {
+      // We pass the timezone to OpenMeteo so the day returned in format YYYY-MM-DD is in the user time zone
+      // I'm not sure if this is technically correct, since they don´t consider DST it might actually be aggregation
+      // of data from 1am to 1am or from 11pm to 11pm, but I'm not completely sure. And I don't really have another
+      // way to get this data myself so that'll have to do it
+      const day = daily.time[i];
+
+      if (!cachedResult) {
+        existingCacheS3Key = await this.cache.set({
+          request: queryWithApiVersion,
+          response: existingCacheS3Key ? { existingS3Key: existingCacheS3Key } : { apiResponse: dailyRaw },
+          eventAt: DateTime.fromSQL(day, { zone: timezone }).startOf("day").toUTC(),
+          location: point,
+          fetchedAt,
+        });
+      }
       dailyResult.push({
-        // We pass the timezone to OpenMeteo so the day returned in format YYYY-MM-DD is in the user time zone
-        // I'm not sure if this is technically correct, since they don´t consider DST it might actually be aggregation
-        // of data from 1am to 1am or from 11pm to 11pm, but I'm not completely sure. And I don't really have another
-        // way to get this data myself so that'll have to do it
-        day: daily.time[i],
+        day,
 
         location: point,
 
@@ -213,10 +271,10 @@ export class OpenMeteo {
         // I can then convert that into UTC. So then when the frontend displays this now UTC date into the user's timezone
         // it'll properly display 6pm
         sunrise: DateTime.fromISO(daily.sunrise[i], {
-          zone: FixedOffsetZone.instance((dailyRaw.data.utc_offset_seconds ?? 0) / 60),
+          zone: FixedOffsetZone.instance((parsedDaily.data.utc_offset_seconds ?? 0) / 60),
         }).toUTC(),
         sunset: DateTime.fromISO(daily.sunset[i], {
-          zone: FixedOffsetZone.instance((dailyRaw.data.utc_offset_seconds ?? 0) / 60),
+          zone: FixedOffsetZone.instance((parsedDaily.data.utc_offset_seconds ?? 0) / 60),
         }).toUTC(),
 
         daylightDuration: daily.daylight_duration[i],
@@ -226,6 +284,6 @@ export class OpenMeteo {
       });
     }
 
-    return dailyResult;
+    return { dailyResult, wasCached: !!cachedResult };
   }
 }

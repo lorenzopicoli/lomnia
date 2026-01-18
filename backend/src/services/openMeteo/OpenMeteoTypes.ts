@@ -62,20 +62,28 @@ export interface OpenMeteoApiDailyParams {
 // Zod types for API responses for validation because I don't trust their openai specs
 // and also because they stop working very quickly
 // ----------------------------------------------------------------------------------------
-export const HourlySchema = z
-  .object({
-    time: z.array(z.number()),
-  })
-  .and(z.record(z.enum(openMeteoApiParams.hourly), z.array(z.number())));
+export const HourlySchema = z.object({
+  data: z.object({
+    hourly: z
+      .object({
+        time: z.array(z.number()),
+      })
+      .and(z.record(z.enum(openMeteoApiParams.hourly), z.array(z.number()))),
+  }),
+});
 
 export type Hourly = z.infer<typeof HourlySchema>;
 
-export const DailySchema = z
-  .object({
-    time: z.array(z.string()),
-  })
-  .and(z.record(z.enum(dailyNumberParams), z.array(z.number())))
-  .and(z.record(z.enum(dailyStringParams), z.array(z.string())));
+export const DailySchema = z.object({
+  data: z.object({
+    daily: z
+      .object({
+        time: z.array(z.string()),
+      })
+      .and(z.record(z.enum(dailyNumberParams), z.array(z.number())))
+      .and(z.record(z.enum(dailyStringParams), z.array(z.string()))),
+  }),
+});
 
 export type Daily = z.infer<typeof DailySchema>;
 

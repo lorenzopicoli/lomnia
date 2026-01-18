@@ -1,8 +1,9 @@
+import { DateTime } from "luxon";
 import config from "../../config";
 import { LocationDateCache } from "../cache/LocationDateCache";
 import type { OpenMeteoApiDailyParams, OpenMeteoApiHourlyParams } from "./OpenMeteoTypes";
 
-interface OpenMeteoCacheRequest extends OpenMeteoApiDailyParams, OpenMeteoApiHourlyParams {
+interface OpenMeteoCacheRequest extends Partial<OpenMeteoApiDailyParams>, Partial<OpenMeteoApiHourlyParams> {
   apiVersion: string;
 }
 /**
@@ -30,6 +31,20 @@ export class OpenMeteoCache extends LocationDateCache<unknown, OpenMeteoCacheReq
     }
     OpenMeteoCache.instance = new OpenMeteoCache();
     return OpenMeteoCache.instance;
+  }
+
+  /**
+   * @param date in UTC
+   * @returns timezoneDay the requested date in YYYY-MM-DD format and in the user's timezone
+   * @returns utcDay the start of the day that was requested, but in UTC time
+   * @returns the UTC hour that was requested
+   */
+  public findRequestedDate(date: DateTime, timezone: string) {
+    return {
+      timezoneDay: date.setZone(timezone).toSQLDate(),
+      utcDay: date.setZone(timezone).startOf("day").toUTC(),
+      hour: date.startOf("hour"),
+    };
   }
 
   protected getCacheKeyParams(request: OpenMeteoCacheRequest): OpenMeteoCacheKeyParams {
