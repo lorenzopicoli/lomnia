@@ -1,13 +1,7 @@
 import { DateTime } from "luxon";
 import { Logger } from "../Logger";
 import type { BaseEnricher } from "./BaseEnricher";
-import { HabitFeatureEnricher } from "./habitFeature/HabitFeatureEnricher";
-import { NominatimEnricher } from "./nominatim/NominatimEnricher";
 import { OpenMeteoEnricher } from "./openMeteo/OpenMeteoEnricher";
-import { PlacesOfInterestEnricher } from "./placesOfInterest/PlacesOfInterestEnricher";
-import { OpenMeteoEnricherOld } from "./openMeteo/OpenMeteoEnricherOld";
-import { OpenMeteo } from "../openMeteo/OpenMeteo";
-import { pick, zip } from "lodash";
 
 export class EnrichmentManager {
   private lastStart: DateTime | null = null;
@@ -19,7 +13,7 @@ export class EnrichmentManager {
   private enrichers: BaseEnricher[] = [
     // new HabitFeatureEnricher(),
     // new PlacesOfInterestEnricher(),
-    // new OpenMeteoEnricher(),
+    new OpenMeteoEnricher(),
     // new NominatimEnricher(),
   ];
 
@@ -41,54 +35,6 @@ export class EnrichmentManager {
 
   public async runOnce() {
     this.lastStart = DateTime.now();
-
-    const oldWay = new OpenMeteoEnricherOld();
-    const newWay = new OpenMeteo();
-
-    const params = {
-      point: {
-        lat: 45.49583622049085,
-        lng: -73.57293491756394,
-      },
-      startDate: "2025-11-02",
-      endDate: "2025-11-02",
-      date: DateTime.fromISO("2025-11-02T13:25:00Z"),
-      timezone: "America/Toronto",
-    };
-
-    console.log("Params", params);
-
-    const oldResult = await oldWay.callApi([params.point], params.startDate, params.endDate, params.timezone);
-
-    console.log("Old", JSON.stringify(oldResult));
-    const newResult = await newWay.fetchHistorical(params);
-    console.log("New", JSON.stringify(newResult));
-
-    // for (const daily of oldResult.daily) {
-    //   const date = daily.date;
-    //   const data = pick(daily, "apparentTemperatureMax");
-    //
-    //   const newDaily = newResult?.daily.find((d) => d.day === date);
-    //   const newData = pick(newDaily, "apparentTemperatureMax");
-    //
-    //   console.log(`${date} -> ${data.apparentTemperatureMax} vs ${newData.apparentTemperatureMax}`);
-    // }
-    // for (const hourly of oldResult.hourly) {
-    //   const date = hourly.date;
-    //   const data = pick(hourly, "apparentTemperature");
-    //
-    //   const newHourly = newResult?.hourly.find(
-    //     (d) => d.date.toISO() === DateTime.fromJSDate(date, { zone: "UTC" }).toISO(),
-    //   );
-    //   const newData = pick(newHourly, "apparentTemperature");
-    //
-    //   console.log(
-    //     `${DateTime.fromJSDate(date, { zone: "UTC" }).toISO()} -> ${data.apparentTemperature} vs ${newData.apparentTemperature}`,
-    //   );
-    // }
-    if (params) {
-      throw new Error("ah");
-    }
 
     for (const enricher of this.enrichers) {
       await enricher.run();

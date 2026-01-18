@@ -1,18 +1,21 @@
+import { omit } from "lodash";
+import { DateTime, FixedOffsetZone } from "luxon";
+import createClient from "openapi-fetch";
 import { z } from "zod";
 import type { Point } from "../../db/types";
+import type { NewDailyWeather, NewHourlyWeather } from "../../models";
+import type { Exact } from "../../types/exact";
 import { Logger } from "../Logger";
 import type { paths } from "./gen/openMeteoOpenApiTypes";
-import createClient from "openapi-fetch";
-import { DateTime, FixedOffsetZone } from "luxon";
+import { OpenMeteoCache } from "./OpenMeteoCache";
 import {
   DailySchema,
   HourlySchema,
   type OpenMeteoApiDailyParams,
   type OpenMeteoApiHourlyParams,
-  openMeteoApiParams,
   type OpenMeteoHistoricalResponse,
+  openMeteoApiParams,
 } from "./OpenMeteoTypes";
-import { OpenMeteoCache } from "./OpenMeteoCache";
 
 /**
  * TODO: Add rate limiting in here
@@ -24,7 +27,8 @@ export class OpenMeteo {
   protected logger = new Logger("OpenMeteoAPI");
 
   // Requests for 14 days are counted the same as requests for 1 day
-  private apiDayPadding = 6;
+  private pastDaysPadding = 2;
+  private futureDaysPadding = 10;
   private http = createClient<paths>({ baseUrl: this.apiUrl });
 
   /**
@@ -67,10 +71,19 @@ export class OpenMeteo {
    * @params.timezone the timezone of the location that is being requested
    *
    * @returns result the hourly and daily weather data for the point at the given time
-   * @returns extra weather information on days before and after the requested time at the given point. This might
-   * be null if the response for the request originated from the cache
+   * @returns all weather information on that was retrieved. Might only contain the matched data if the result was cached
    */
-  public async fetchHistorical(params: { point: Point; date: DateTime; timezone: string }) {
+  public async fetchHistorical(params: { point: Point; date: DateTime; timezone: string }): Promise<{
+    match: {
+      hour?: OpenMeteoHistoricalResponse["hourly"][number];
+      day?: OpenMeteoHistoricalResponse["daily"][number];
+    };
+    all: {
+      hourly: OpenMeteoHistoricalResponse["hourly"];
+      daily: OpenMeteoHistoricalResponse["daily"];
+    };
+    wasCached: boolean;
+  }> {
     const { timezoneDay: requestedDay, hour: requestedHour } = this.cache.findRequestedDate(
       params.date,
       params.timezone,
@@ -85,7 +98,7 @@ export class OpenMeteo {
         hour: matchedHour,
         day: matchedDay,
       },
-      extra: {
+      all: {
         hourly,
         daily,
       },
@@ -93,9 +106,39 @@ export class OpenMeteo {
     };
   }
 
+  public hourlyDataToDatabase(hourly: OpenMeteoHistoricalResponse["hourly"][number]): NewHourlyWeather {
+    const result = {
+      ...hourly,
+      date: hourly.date.toJSDate(),
+      createdAt: new Date(),
+    } satisfies NewHourlyWeather;
+
+    // Enforces that if new fields are addded to the api response, they must be passed down to the database
+    // or explicitely ignored
+    const typedResult: Exact<NewHourlyWeather, typeof result> = result;
+
+    return typedResult;
+  }
+
+  public dailyDataToDatabase(daily: OpenMeteoHistoricalResponse["daily"][number]): NewDailyWeather {
+    const result = {
+      ...omit(daily, "day"),
+      sunrise: daily.sunrise.toJSDate(),
+      sunset: daily.sunset.toJSDate(),
+      date: daily.day,
+      createdAt: new Date(),
+    } satisfies NewDailyWeather;
+
+    // Enforces that if new fields are addded to the api response, they must be passed down to the database
+    // or explicitely ignored
+    const typedResult: Exact<NewDailyWeather, typeof result> = result;
+
+    return typedResult;
+  }
+
   private getApiDateRage(date: DateTime) {
-    const startDate = date.startOf("day").minus({ days: this.apiDayPadding });
-    const endDate = date.startOf("day").plus({ days: this.apiDayPadding });
+    const startDate = date.startOf("day").minus({ days: this.pastDaysPadding });
+    const endDate = date.startOf("day").plus({ days: this.futureDaysPadding });
     const startDay = startDate.toSQLDate();
     const endDay = endDate.toSQLDate();
 
@@ -125,8 +168,6 @@ export class OpenMeteo {
 
     const cachedResult = await this.cache.get(queryWithApiVersion, { location: point, eventAt: cacheEventAt });
 
-    console.log("Result", cachedResult);
-
     if (cachedResult) {
       this.logger.info("Skipping API call because of cache hit");
     }
@@ -134,10 +175,10 @@ export class OpenMeteo {
     const hourlyRaw = cachedResult?.response
       ? cachedResult.response
       : await this.http.GET(`/${OpenMeteo.apiVersion}/archive`, {
-        params: {
-          query,
-        },
-      });
+          params: {
+            query,
+          },
+        });
     const fetchedAt = DateTime.utc();
 
     const parsedHourly = z.parse(HourlySchema, hourlyRaw);
@@ -200,7 +241,6 @@ export class OpenMeteo {
       apiVersion: OpenMeteo.apiVersion,
     };
     const { utcDay: cacheEventAt } = this.cache.findRequestedDate(params.date, params.timezone);
-    console.log("RequestedDate", cacheEventAt);
 
     const cachedResult = await this.cache.get(
       {
@@ -219,10 +259,10 @@ export class OpenMeteo {
     const dailyRaw = cachedResult?.response
       ? cachedResult.response
       : await this.http.GET(`/${OpenMeteo.apiVersion}/archive`, {
-        params: {
-          query,
-        },
-      });
+          params: {
+            query,
+          },
+        });
     const fetchedAt = DateTime.utc();
     const parsedDaily = z.parse(DailySchema, dailyRaw);
     const daily = parsedDaily.data.daily;

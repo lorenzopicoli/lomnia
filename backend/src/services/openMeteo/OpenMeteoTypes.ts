@@ -76,6 +76,7 @@ export type Hourly = z.infer<typeof HourlySchema>;
 
 export const DailySchema = z.object({
   data: z.object({
+    utc_offset_seconds: z.number(),
     daily: z
       .object({
         time: z.array(z.string()),

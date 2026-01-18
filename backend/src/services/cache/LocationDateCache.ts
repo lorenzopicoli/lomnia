@@ -4,10 +4,10 @@ import { gunzipSync, gzipSync } from "node:zlib";
 import { and, eq, gte, lte, sql } from "drizzle-orm";
 import { DateTime } from "luxon";
 import { db } from "../../db/connection";
+import type { Point } from "../../db/types";
 import { locationDateCacheIndexTable } from "../../models/LocationDateCacheIndex";
 import { Logger } from "../Logger";
 import { S3 } from "../S3";
-import type { Point } from "../../db/types";
 
 export interface CacheEntry<Response, Request> {
   response: Response;
@@ -100,13 +100,20 @@ export abstract class LocationDateCache<Response, Request, CacheKeyParams = Requ
       if (!entry) {
         return null;
       }
-      const filePath = await this.s3.downloadTmp(this.bucket, entry.s3Key);
+      let filePath: string | undefined;
 
-      const gzipped = fs.readFileSync(filePath);
-      const json = gunzipSync(gzipped).toString("utf8");
-      const currentData: CacheEntry<Response, Request> = JSON.parse(json);
+      try {
+        filePath = await this.s3.downloadTmp(this.bucket, entry.s3Key);
 
-      return currentData;
+        const gzipped = fs.readFileSync(filePath);
+        const json = gunzipSync(gzipped).toString("utf8");
+
+        return JSON.parse(json) as CacheEntry<Response, Request>;
+      } finally {
+        if (filePath) {
+          fs.unlinkSync(filePath);
+        }
+      }
     } catch (error) {
       this.logger.debug("Cache miss (S3 error)", { error });
       return null;
@@ -132,7 +139,7 @@ export abstract class LocationDateCache<Response, Request, CacheKeyParams = Requ
     fetchedAt: DateTime;
   }): Promise<string | null> {
     const { request, response, eventAt, fetchedAt, location } = params;
-    this.logger.debug("Setting locationDate cache", { request, eventAt, location, fetchedAt });
+    this.logger.debug("Setting locationDate cache", { eventAt, location, fetchedAt });
 
     if (!response.apiResponse && !response.existingS3Key) {
       this.logger.error("Must specify apiResponse or existingS3key", { params });
