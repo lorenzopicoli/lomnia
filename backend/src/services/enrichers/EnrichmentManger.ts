@@ -1,10 +1,7 @@
 import { DateTime } from "luxon";
 import { Logger } from "../Logger";
 import type { BaseEnricher } from "./BaseEnricher";
-import { HabitFeatureEnricher } from "./habitFeature/HabitFeatureEnricher";
-import { NominatimEnricher } from "./nominatim/NominatimEnricher";
 import { OpenMeteoEnricher } from "./openMeteo/OpenMeteoEnricher";
-import { PlacesOfInterestEnricher } from "./placesOfInterest/PlacesOfInterestEnricher";
 
 export class EnrichmentManager {
   private lastStart: DateTime | null = null;
@@ -14,10 +11,10 @@ export class EnrichmentManager {
   private logger = new Logger("EnrichmentManager");
 
   private enrichers: BaseEnricher[] = [
-    new HabitFeatureEnricher(),
-    new PlacesOfInterestEnricher(),
+    // new HabitFeatureEnricher(),
+    // new PlacesOfInterestEnricher(),
     new OpenMeteoEnricher(),
-    new NominatimEnricher(),
+    // new NominatimEnricher(),
   ];
 
   public schedule(ms: number) {

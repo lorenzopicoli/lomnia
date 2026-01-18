@@ -4,10 +4,10 @@ import { gunzipSync, gzipSync } from "node:zlib";
 import { and, eq, gte, lte, sql } from "drizzle-orm";
 import { DateTime } from "luxon";
 import { db } from "../../db/connection";
+import type { Point } from "../../db/types";
 import { locationDateCacheIndexTable } from "../../models/LocationDateCacheIndex";
 import { Logger } from "../Logger";
 import { S3 } from "../S3";
-import type { Point } from "../../db/types";
 
 export interface CacheEntry<Response, Request> {
   response: Response;
@@ -100,13 +100,20 @@ export abstract class LocationDateCache<Response, Request, CacheKeyParams = Requ
       if (!entry) {
         return null;
       }
-      const filePath = await this.s3.downloadTmp(this.bucket, entry.s3Key);
+      let filePath: string | undefined;
 
-      const gzipped = fs.readFileSync(filePath);
-      const json = gunzipSync(gzipped).toString("utf8");
-      const currentData: CacheEntry<Response, Request> = JSON.parse(json);
+      try {
+        filePath = await this.s3.downloadTmp(this.bucket, entry.s3Key);
 
-      return currentData;
+        const gzipped = fs.readFileSync(filePath);
+        const json = gunzipSync(gzipped).toString("utf8");
+
+        return JSON.parse(json) as CacheEntry<Response, Request>;
+      } finally {
+        if (filePath) {
+          fs.unlinkSync(filePath);
+        }
+      }
     } catch (error) {
       this.logger.debug("Cache miss (S3 error)", { error });
       return null;
@@ -115,49 +122,74 @@ export abstract class LocationDateCache<Response, Request, CacheKeyParams = Requ
 
   /**
    * Store response in cache
-   * @param response Nominatim API response
-   * @param params Nominatim API request
+   * @param params.request the request that was made to the external service. The subclass can "clean up" what gets
+   * used for the cache key by implementing getCacheKeyParams
+   * @param params.response either the external service's raw response to be stored or an existing s3 key if the goal is
+   * to link the new request to a pre-existing response
+   * @param params.location the location related to the data being saved
+   * @param params.eventAt the date related to the data being saved
+   *
+   * @returns the s3 key or null if failed to insert it
    */
   async set(params: {
     request: Request;
-    response: Response;
+    response: { apiResponse?: Response; existingS3Key?: string };
     eventAt: DateTime;
     location: Point;
     fetchedAt: DateTime;
-  }): Promise<void> {
+  }): Promise<string | null> {
     const { request, response, eventAt, fetchedAt, location } = params;
+    this.logger.debug("Setting locationDate cache", { eventAt, location, fetchedAt });
+
+    if (!response.apiResponse && !response.existingS3Key) {
+      this.logger.error("Must specify apiResponse or existingS3key", { params });
+      throw new Error("Must specify apiResponse or existingS3key");
+    }
+    if (response.apiResponse && response.existingS3Key) {
+      this.logger.error("Must specify only one apiResponse or existingS3key", { params });
+      throw new Error("Must specify only one apiResponse or existingS3key");
+    }
+
+    const s3Key = response.existingS3Key ? response.existingS3Key : this.getS3Key();
     const cacheKey = this.getCacheKey(request);
-    const s3Key = this.getS3Key();
     const eventAtIso = eventAt.toISO();
 
     if (!eventAtIso) {
       this.logger.error("Failed to fetch eventAtIso", { cacheKey, request });
-      return;
+      return null;
     }
 
-    const cacheEntry: CacheEntry<Response, Request> = {
-      response,
-      request,
-      metadata: {
-        cachedAt: DateTime.utc().toISO(),
-        eventAt: eventAtIso,
+    try {
+      if (response.apiResponse) {
+        const cacheEntry: CacheEntry<Response, Request> = {
+          response: response.apiResponse,
+          request,
+          metadata: {
+            cachedAt: DateTime.utc().toISO(),
+            eventAt: eventAtIso,
+            location,
+          },
+        };
+        const gzipped = gzipSync(JSON.stringify(cacheEntry));
+        await this.s3.uploadGzip(this.bucket, s3Key, gzipped);
+      }
+      await db.insert(locationDateCacheIndexTable).values({
+        cacheKey,
+        provider: this.provider,
+        s3Key,
+        validFrom: eventAt.minus({ seconds: this.timeWindowInSeconds }).toJSDate(),
+        validTo: eventAt.plus({ seconds: this.timeWindowInSeconds }).toJSDate(),
+        fetchedAt: fetchedAt.toJSDate(),
+        eventAt: eventAt.toJSDate(),
         location,
-      },
-    };
-    const gzipped = gzipSync(JSON.stringify(cacheEntry));
-    await this.s3.uploadGzip(this.bucket, s3Key, gzipped);
-    await db.insert(locationDateCacheIndexTable).values({
-      cacheKey,
-      provider: this.provider,
-      s3Key,
-      validFrom: eventAt.minus({ seconds: this.timeWindowInSeconds }).toJSDate(),
-      validTo: eventAt.plus({ seconds: this.timeWindowInSeconds }).toJSDate(),
-      fetchedAt: fetchedAt.toJSDate(),
-      eventAt: eventAt.toJSDate(),
-      location,
 
-      createdAt: new Date(),
-    });
+        createdAt: new Date(),
+      });
+    } catch (e) {
+      this.logger.error("Failed to save cache entry", e);
+    }
+
+    return s3Key;
   }
 
   /**

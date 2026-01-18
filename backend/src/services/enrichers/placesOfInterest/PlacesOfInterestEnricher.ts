@@ -1,10 +1,9 @@
 import { sql } from "drizzle-orm";
 import type { DBTransaction } from "../../../db/types";
 import { locationsTable } from "../../../models";
-import { locationDetailsTable } from "../../../models/LocationDetails";
+import { type PlaceOfInterest, placesOfInterestTable } from "../../../models/PlaceOfInterest";
 import { Logger } from "../../Logger";
 import { BaseEnricher } from "../BaseEnricher";
-import { type PlaceOfInterest, placesOfInterestTable } from "../../../models/PlaceOfInterest";
 
 export class PlacesOfInterestEnricher extends BaseEnricher {
   protected logger = new Logger("PlacesOfInterestEnricher");

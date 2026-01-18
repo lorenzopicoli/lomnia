@@ -58,7 +58,13 @@ export class Nominatim {
       })
       .then((r) => r.data);
 
-    await this.cache.set({ response, eventAt: when, fetchedAt: DateTime.utc(), location, request: apiCallParams });
+    await this.cache.set({
+      response: { apiResponse: response },
+      eventAt: when,
+      fetchedAt: DateTime.utc(),
+      location,
+      request: apiCallParams,
+    });
     return { isCached: false, response };
   }
 }
