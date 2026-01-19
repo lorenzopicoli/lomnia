@@ -7,6 +7,44 @@ export default {
      */
     userAgent: "lomnia",
   },
+
+  enrichers: {
+    locationDetails: {
+      nominatim: {
+        enabled: true,
+        /**
+         * In MS
+         */
+        apiCallsDelay: 1200,
+        /**
+         * How long each session can run on each cycle. In seconds.
+         * Defaults to 10 min
+         */
+        maxImportSessionDuration: 10 * 60,
+      },
+      openMeteo: {
+        enabled: true,
+        /**
+         * How far can two points be from each other to still have the same weather. Should take into consideration
+         * the granularity of the historical weather data (ie. setting it to 100m doesn't really do anything)
+         * This should probably also be the same value as the openmeteo cache location window
+         */
+        locationWindowInMeters: 1000,
+        /**
+         * How long each session can run on each cycle. In seconds.
+         * Defaults to 5 min
+         */
+        maxImportSessionDuration: 5 * 60,
+        /* This should be better calculated so this importer can run as fast as possible. In reality I couldn't find
+         * any proper documentation on their API rate limits. On the website it says fewer than 10k calls per day,
+         * but I know there are also daily/minute rates. I found a PR with some description and that's what I used
+         * to very roughly calculate a number that would be very safe (I rather it to be slow than failing consistently)
+         * In ms
+         */
+        apiCallsDelay: 1000,
+      },
+    },
+  },
   importers: {
     habits: {
       hares: {
@@ -22,33 +60,6 @@ export default {
       },
       googleTimeline: {
         enabled: false,
-      },
-    },
-    locationDetails: {
-      nominatim: {
-        enabled: true,
-        /**
-         * In MS
-         */
-        apiCallsDelay: 1200,
-        /**
-         * Number of locations to be fetched in each run. Increasing this number will slowdown each cycle
-         */
-        maxImportSession: 1000,
-      },
-      openMeteo: {
-        enabled: true,
-        /**
-         * Number of locations to updated each run. Increasing this number will slowdown each cycle
-         */
-        maxImportSession: 30000,
-        /* This should be better calculated so this importer can run as fast as possible. In reality I couldn't find
-         * any proper documentation on their API rate limits. On the website it says fewer than 10k calls per day,
-         * but I know there are also daily/minute rates. I found a PR with some description and that's what I used
-         * to very roughly calculate a number that would be very safe (I rather it to be slow than failing consistently)
-         * In ms
-         */
-        apiCallsDelay: 10000,
       },
     },
     health: {

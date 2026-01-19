@@ -4,15 +4,20 @@ import path from "node:path";
 import type { Readable } from "node:stream";
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { EnvVar, getEnvVarOrError } from "../helpers/envVars";
+import { Logger } from "./Logger";
 
 export class S3 {
   private static instance: S3 | undefined = undefined;
   private s3: S3Client;
+  private logger = new Logger("S3");
 
   private constructor() {
     this.s3 = new S3Client({
       endpoint: getEnvVarOrError(EnvVar.S3_SERVER_URL),
       region: getEnvVarOrError(EnvVar.S3_REGION),
+      // Unclear why the two lines bellow are required: https://git.deuxfleurs.fr/Deuxfleurs/garage/issues/1236
+      requestChecksumCalculation: "WHEN_REQUIRED",
+      responseChecksumValidation: "WHEN_REQUIRED",
       credentials: {
         accessKeyId: getEnvVarOrError(EnvVar.S3_ACCESS_KEY_ID),
         secretAccessKey: getEnvVarOrError(EnvVar.S3_SECRET_ACCESS_KEY),
@@ -73,6 +78,7 @@ export class S3 {
     const tempDirPrefix = path.join(os.tmpdir(), "lomnia-");
     const tmpDir = fs.mkdtempSync(tempDirPrefix);
     const filePath = path.join(tmpDir, path.basename(key));
+    this.logger.debug("Starting to download file into a temporary folder", { filePath });
 
     const command = new GetObjectCommand({
       Bucket: bucket,
