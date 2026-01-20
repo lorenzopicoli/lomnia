@@ -123,8 +123,8 @@ export class OpenMeteo {
   public dailyDataToDatabase(daily: OpenMeteoHistoricalResponse["daily"][number]): NewDailyWeather {
     const result = {
       ...omit(daily, "day"),
-      sunrise: daily.sunrise.toJSDate(),
-      sunset: daily.sunset.toJSDate(),
+      sunrise: daily.sunrise?.toJSDate(),
+      sunset: daily.sunset?.toJSDate(),
       date: daily.day,
       createdAt: new Date(),
     } satisfies NewDailyWeather;
@@ -288,6 +288,8 @@ export class OpenMeteo {
           fetchedAt,
         });
       }
+      const sunrise = daily.sunrise[i];
+      const sunset = daily.sunset[i];
       dailyResult.push({
         day,
 
@@ -310,12 +312,16 @@ export class OpenMeteo {
         // So I use OpenMeteo's utc_offset_seconds parameter (which is technically the wrong offset) when parsing the ISO string
         // I can then convert that into UTC. So then when the frontend displays this now UTC date into the user's timezone
         // it'll properly display 6pm
-        sunrise: DateTime.fromISO(daily.sunrise[i], {
-          zone: FixedOffsetZone.instance((parsedDaily.data.utc_offset_seconds ?? 0) / 60),
-        }).toUTC(),
-        sunset: DateTime.fromISO(daily.sunset[i], {
-          zone: FixedOffsetZone.instance((parsedDaily.data.utc_offset_seconds ?? 0) / 60),
-        }).toUTC(),
+        sunrise: sunrise
+          ? DateTime.fromISO(sunrise, {
+              zone: FixedOffsetZone.instance((parsedDaily.data.utc_offset_seconds ?? 0) / 60),
+            }).toUTC()
+          : null,
+        sunset: sunset
+          ? DateTime.fromISO(sunset, {
+              zone: FixedOffsetZone.instance((parsedDaily.data.utc_offset_seconds ?? 0) / 60),
+            }).toUTC()
+          : null,
 
         daylightDuration: daily.daylight_duration[i],
         sunshineDuration: daily.sunshine_duration[i],

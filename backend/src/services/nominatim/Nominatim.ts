@@ -1,10 +1,10 @@
 import axios, { type AxiosInstance } from "axios";
 import axiosRetry from "axios-retry";
+import { DateTime } from "luxon";
 import config from "../../config";
 import type { Point } from "../../db/types";
-import { DateTime } from "luxon";
-import { NominatimCache } from "./NominatimCache";
 import { Logger } from "../Logger";
+import { NominatimCache } from "./NominatimCache";
 
 export class Nominatim {
   static apiUrl = "https://nominatim.openstreetmap.org/";
@@ -41,14 +41,14 @@ export class Nominatim {
     };
     const cached = when
       ? await this.cache.get(apiCallParams, {
-        eventAt: when,
-        location,
-      })
+          eventAt: when,
+          location,
+        })
       : null;
 
     if (cached) {
       this.logger.info("Cache hit for location", { apiCallParams, when });
-      return { isCached: true, response: cached.response };
+      return { isCached: true, validFrom: cached.validFrom, validTo: cached.validTo, response: cached.response };
     }
 
     this.logger.debug("Cache miss, calling Nominatim API for params", { apiCallParams, when });
@@ -65,6 +65,7 @@ export class Nominatim {
       location,
       request: apiCallParams,
     });
-    return { isCached: false, response };
+
+    return { isCached: false, validFrom: when.minus({ hour: 1 }), validTo: when.plus({ days: 7 }), response };
   }
 }

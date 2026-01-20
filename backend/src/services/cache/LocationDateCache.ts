@@ -67,7 +67,7 @@ export abstract class LocationDateCache<Response, Request, CacheKeyParams = Requ
       location: Point;
       eventAt: DateTime;
     },
-  ): Promise<CacheEntry<Response, Request> | null> {
+  ): Promise<(CacheEntry<Response, Request> & { validFrom: DateTime; validTo: DateTime }) | null> {
     const { location, eventAt } = params;
     try {
       const cacheKey = this.getCacheKey(request);
@@ -108,7 +108,11 @@ export abstract class LocationDateCache<Response, Request, CacheKeyParams = Requ
         const gzipped = fs.readFileSync(filePath);
         const json = gunzipSync(gzipped).toString("utf8");
 
-        return JSON.parse(json) as CacheEntry<Response, Request>;
+        return {
+          ...(JSON.parse(json) as CacheEntry<Response, Request>),
+          validFrom: DateTime.fromJSDate(entry.validFrom, { zone: "UTC" }),
+          validTo: DateTime.fromJSDate(entry.validTo, { zone: "UTC" }),
+        };
       } finally {
         if (filePath) {
           fs.unlinkSync(filePath);

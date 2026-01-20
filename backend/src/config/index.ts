@@ -110,7 +110,7 @@ export default {
       /**
        * How far can the point be to another one and still hit the cache
        */
-      locationWindowInMeters: 100,
+      locationWindowInMeters: 50,
       /**
        * How many seconds in the past and in the future the cache is valid for
        */

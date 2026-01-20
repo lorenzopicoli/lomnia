@@ -17,7 +17,7 @@ export class NominatimEnricher extends BaseEnricher {
   private importBatchSize = 1;
   private maxImportSessionDuration = config.enrichers.locationDetails.nominatim.maxImportSessionDuration;
 
-  private precisionRadiusInMeters = 20;
+  private precisionRadiusInMeters = 50;
 
   private apiCallsDelay = config.enrichers.locationDetails.nominatim.apiCallsDelay;
   protected logger = new Logger("NominatimEnricher");
@@ -56,7 +56,7 @@ export class NominatimEnricher extends BaseEnricher {
         throw new Error("Found location without a recordedAt field");
       }
       const dateTimeRecordedAt = DateTime.fromJSDate(location.recordedAt, { zone: "UTC" });
-      const { isCached, response } = await this.nominatimApi.reverseGeocode({
+      const { isCached, response, validFrom, validTo } = await this.nominatimApi.reverseGeocode({
         location: location.location,
         when: dateTimeRecordedAt,
       });
@@ -105,7 +105,10 @@ export class NominatimEnricher extends BaseEnricher {
             ${locationsTable.location},
             ${toPostgisGeoPoint(location.location)},
             ${this.precisionRadiusInMeters}
-          )`,
+          )
+          AND ${locationsTable.recordedAt} >= ${validFrom}
+          AND ${locationsTable.recordedAt} <= ${validTo}
+          `,
           );
 
         // If it has been running for longer than allowed, break out of the loop

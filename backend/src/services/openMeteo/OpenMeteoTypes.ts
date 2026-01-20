@@ -68,7 +68,7 @@ export const HourlySchema = z.object({
       .object({
         time: z.array(z.number()),
       })
-      .and(z.record(z.enum(openMeteoApiParams.hourly), z.array(z.number()))),
+      .and(z.record(z.enum(openMeteoApiParams.hourly), z.array(z.number().or(z.null())))),
   }),
 });
 
@@ -81,8 +81,8 @@ export const DailySchema = z.object({
       .object({
         time: z.array(z.string()),
       })
-      .and(z.record(z.enum(dailyNumberParams), z.array(z.number())))
-      .and(z.record(z.enum(dailyStringParams), z.array(z.string()))),
+      .and(z.record(z.enum(dailyNumberParams), z.array(z.number().or(z.null()))))
+      .and(z.record(z.enum(dailyStringParams), z.array(z.string().or(z.null())))),
   }),
 });
 
@@ -98,17 +98,17 @@ export interface OpenMeteoHistoricalResponse {
      */
     date: DateTime;
     timezone: string;
-    temperature2m: number;
-    relativeHumidity2m: number;
-    apparentTemperature: number;
-    precipitation: number;
-    rain: number;
-    snowfall: number;
-    snowDepth: number;
-    weatherCode: number;
-    cloudCover: number;
-    windSpeed10m: number;
-    windSpeed100m: number;
+    temperature2m: number | null;
+    relativeHumidity2m: number | null;
+    apparentTemperature: number | null;
+    precipitation: number | null;
+    rain: number | null;
+    snowfall: number | null;
+    snowDepth: number | null;
+    weatherCode: number | null;
+    cloudCover: number | null;
+    windSpeed10m: number | null;
+    windSpeed100m: number | null;
     location: Point;
   }>;
   daily: Array<{
@@ -118,24 +118,24 @@ export interface OpenMeteoHistoricalResponse {
     day: string;
     location: Point;
 
-    weatherCode: number;
-    temperature2mMax: number;
-    temperature2mMin: number;
-    temperature2mMean: number;
-    apparentTemperatureMax: number;
-    apparentTemperatureMin: number;
+    weatherCode: number | null;
+    temperature2mMax: number | null;
+    temperature2mMin: number | null;
+    temperature2mMean: number | null;
+    apparentTemperatureMax: number | null;
+    apparentTemperatureMin: number | null;
     /**
      * In UTC
      */
-    sunrise: DateTime;
+    sunrise: DateTime | null;
     /**
      * In UTC
      */
-    sunset: DateTime;
+    sunset: DateTime | null;
 
-    daylightDuration: number;
-    sunshineDuration: number;
-    rainSum: number;
-    snowfallSum: number;
+    daylightDuration: number | null;
+    sunshineDuration: number | null;
+    rainSum: number | null;
+    snowfallSum: number | null;
   }>;
 }
