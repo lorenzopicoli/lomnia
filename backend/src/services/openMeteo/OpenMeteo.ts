@@ -169,7 +169,7 @@ export class OpenMeteo {
     const cachedResult = await this.cache.get(queryWithApiVersion, { location: point, eventAt: cacheEventAt });
 
     if (cachedResult) {
-      this.logger.info("Skipping API call because of cache hit");
+      this.logger.debug("Skipping API call because of cache hit");
     }
 
     const hourlyRaw = cachedResult?.response
@@ -251,9 +251,9 @@ export class OpenMeteo {
     );
 
     if (cachedResult) {
-      this.logger.info("Skipping API call because of cache hit");
+      this.logger.debug("Skipping API call because of cache hit");
     } else {
-      this.logger.info("No cache hit");
+      this.logger.debug("No cache hit");
     }
 
     const dailyRaw = cachedResult?.response

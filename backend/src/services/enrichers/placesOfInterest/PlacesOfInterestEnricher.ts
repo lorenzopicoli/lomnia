@@ -22,7 +22,7 @@ export class PlacesOfInterestEnricher extends BaseEnricher {
 
   private async handlePlaceOfInterest(params: { tx: DBTransaction; poi: PlaceOfInterest }) {
     const { poi, tx } = params;
-    this.logger.debug("Updating locations for place of interest", {
+    this.logger.info("Updating locations for place of interest", {
       id: poi.id,
       name: poi.name,
       locationDetailsId: poi.locationDetailsId,

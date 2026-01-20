@@ -47,7 +47,7 @@ export class Nominatim {
       : null;
 
     if (cached) {
-      this.logger.info("Cache hit for location", { apiCallParams, when });
+      this.logger.debug("Cache hit for location", { apiCallParams, when });
       return { isCached: true, validFrom: cached.validFrom, validTo: cached.validTo, response: cached.response };
     }
 

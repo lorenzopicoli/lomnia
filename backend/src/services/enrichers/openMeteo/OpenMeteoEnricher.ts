@@ -26,15 +26,20 @@ export class OpenMeteoEnricher extends BaseEnricher {
 
   public async enrich(tx: DBTransaction): Promise<void> {
     const startTime = DateTime.now();
+    let apiCallsCount = 0;
+    let cacheHits = 0;
+    let lastLogAt = DateTime.now();
+    const LOG_EVERY_MS = 5_000;
+
     let locationDatePairs: Awaited<ReturnType<typeof this.getLocationAndDate>> | undefined;
 
-    this.logger.debug("Initiating OpenMeteoEnricher");
+    this.logger.info("Initiating OpenMeteoEnricher");
     let wasLastCallCached = false;
     while (locationDatePairs?.length !== 0) {
       locationDatePairs = await this.getLocationAndDate(tx);
 
       if (locationDatePairs.length === 0) {
-        this.logger.debug("No new locations to fetch data for");
+        this.logger.info("No new locations to fetch data for");
         break;
       }
 
@@ -54,6 +59,12 @@ export class OpenMeteoEnricher extends BaseEnricher {
           date: DateTime.fromJSDate(locationDate.date, { zone: "UTC" }),
           timezone: locationDate.timezone,
         });
+
+        if (result.wasCached) {
+          cacheHits++;
+        } else {
+          apiCallsCount++;
+        }
         wasLastCallCached = result.wasCached;
 
         let insertedHourlyWeather: { id: number; startOfHour: DateTime; endOfHour: DateTime } | null = null;
@@ -118,6 +129,22 @@ export class OpenMeteoEnricher extends BaseEnricher {
             daily: insertedDailyWeather,
           });
         }
+      }
+
+      const now = DateTime.now();
+      if (Math.abs(now.diff(lastLogAt, "milliseconds").milliseconds) >= LOG_EVERY_MS) {
+        const elapsedSec = Math.abs(now.diff(startTime, "seconds").seconds);
+        const rate = Math.round((apiCallsCount + cacheHits) / elapsedSec);
+
+        this.logger.info("Progress", {
+          cacheHits,
+          apiCallsCount,
+          elapsedSec: elapsedSec.toFixed(1),
+          linesPerSec: rate,
+          lastDate: locationDatePairs ? locationDatePairs[locationDatePairs.length - 1].date?.toISOString() : null,
+        });
+
+        lastLogAt = now;
       }
 
       // If it has been running for longer than allowed, break out of the loop

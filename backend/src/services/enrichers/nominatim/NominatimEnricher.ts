@@ -29,6 +29,10 @@ export class NominatimEnricher extends BaseEnricher {
 
   public async enrich(tx: DBTransaction): Promise<void> {
     const startTime = DateTime.now();
+    let apiCallsCount = 0;
+    let cacheHits = 0;
+    let lastLogAt = DateTime.now();
+    const LOG_EVERY_MS = 5_000;
 
     let nextLocation = await this.getNextPage(tx);
     let previousTimer = new Date();
@@ -60,6 +64,12 @@ export class NominatimEnricher extends BaseEnricher {
         location: location.location,
         when: dateTimeRecordedAt,
       });
+
+      if (isCached) {
+        cacheHits++;
+      } else {
+        apiCallsCount++;
+      }
       wasLastResultCached = isCached;
       if (wasLastResultCached) {
         previousTimer = currentTimer;
@@ -106,10 +116,26 @@ export class NominatimEnricher extends BaseEnricher {
             ${toPostgisGeoPoint(location.location)},
             ${this.precisionRadiusInMeters}
           )
-          AND ${locationsTable.recordedAt} >= ${validFrom}
-          AND ${locationsTable.recordedAt} <= ${validTo}
+          AND ${locationsTable.recordedAt} >= ${validFrom.toISO()}
+          AND ${locationsTable.recordedAt} <= ${validTo.toISO()}
           `,
           );
+
+        const now = DateTime.now();
+        if (Math.abs(now.diff(lastLogAt, "milliseconds").milliseconds) >= LOG_EVERY_MS) {
+          const elapsedSec = Math.abs(now.diff(startTime, "seconds").seconds);
+          const rate = Math.round((apiCallsCount + cacheHits) / elapsedSec);
+
+          this.logger.info("Progress", {
+            cacheHits,
+            apiCallsCount,
+            elapsedSec: elapsedSec.toFixed(1),
+            linesPerSec: rate,
+            lastDate: dateTimeRecordedAt.toISO(),
+          });
+
+          lastLogAt = now;
+        }
 
         // If it has been running for longer than allowed, break out of the loop
         if (Math.abs(startTime.diffNow("seconds").seconds) >= this.maxImportSessionDuration) {
