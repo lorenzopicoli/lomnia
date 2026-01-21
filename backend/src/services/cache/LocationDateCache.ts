@@ -5,7 +5,7 @@ import { and, eq, gte, lte, sql } from "drizzle-orm";
 import { DateTime } from "luxon";
 import { db } from "../../db/connection";
 import type { Point } from "../../db/types";
-import { locationDateCacheIndexTable } from "../../models/LocationDateCacheIndex";
+import { type LocationDateCacheIndex, locationDateCacheIndexTable } from "../../models/LocationDateCacheIndex";
 import { Logger } from "../Logger";
 import { S3 } from "../S3";
 
@@ -141,7 +141,7 @@ export abstract class LocationDateCache<Response, Request, CacheKeyParams = Requ
     eventAt: DateTime;
     location: Point;
     fetchedAt: DateTime;
-  }): Promise<string | null> {
+  }): Promise<LocationDateCacheIndex | null> {
     const { request, response, eventAt, fetchedAt, location } = params;
     this.logger.debug("Setting locationDate cache", { eventAt, location, fetchedAt });
 
@@ -177,23 +177,45 @@ export abstract class LocationDateCache<Response, Request, CacheKeyParams = Requ
         const gzipped = gzipSync(JSON.stringify(cacheEntry));
         await this.s3.uploadGzip(this.bucket, s3Key, gzipped);
       }
-      await db.insert(locationDateCacheIndexTable).values({
-        cacheKey,
-        provider: this.provider,
-        s3Key,
-        validFrom: eventAt.minus({ seconds: this.timeWindowInSeconds }).toJSDate(),
-        validTo: eventAt.plus({ seconds: this.timeWindowInSeconds }).toJSDate(),
-        fetchedAt: fetchedAt.toJSDate(),
-        eventAt: eventAt.toJSDate(),
-        location,
+      const cacheEntry = await db
+        .insert(locationDateCacheIndexTable)
+        .values({
+          cacheKey,
+          provider: this.provider,
+          s3Key,
+          validFrom: eventAt.minus({ seconds: this.timeWindowInSeconds }).toJSDate(),
+          validTo: eventAt.plus({ seconds: this.timeWindowInSeconds }).toJSDate(),
+          fetchedAt: fetchedAt.toJSDate(),
+          eventAt: eventAt.toJSDate(),
+          location,
 
-        createdAt: new Date(),
-      });
+          createdAt: new Date(),
+        })
+        .returning();
+      return cacheEntry[0];
     } catch (e) {
       this.logger.error("Failed to save cache entry", e);
+      return null;
+    }
+  }
+
+  /**
+   * Remove a key from cache and delete it from S3 if it's not referenced anymore
+   */
+  public async remove(locationDateCacheIndexId: number) {
+    const entry = await db
+      .select({ id: locationDateCacheIndexTable.id, s3Key: locationDateCacheIndexTable.s3Key })
+      .from(locationDateCacheIndexTable)
+      .where(eq(locationDateCacheIndexTable.id, locationDateCacheIndexId))
+      .limit(1)
+      .then((r) => r?.[0] ?? null);
+
+    if (!entry || !entry.s3Key) {
+      return;
     }
 
-    return s3Key;
+    await this.s3.remove(this.bucket, entry.s3Key);
+    await db.delete(locationDateCacheIndexTable).where(eq(locationDateCacheIndexTable.id, locationDateCacheIndexId));
   }
 
   /**

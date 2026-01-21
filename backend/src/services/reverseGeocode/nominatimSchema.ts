@@ -29,6 +29,7 @@ export const NominatimAddressSchema = z.object({
 
 export const NominatimReverseResponseSchema = z
   .object({
+    error: z.any(),
     place_id: z.number().optional(),
     licence: z.string().optional(),
     osm_type: z.enum(["node", "way", "relation"]).optional(),

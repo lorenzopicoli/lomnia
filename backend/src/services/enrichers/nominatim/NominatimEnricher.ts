@@ -81,12 +81,32 @@ export class NominatimEnricher extends BaseEnricher {
       });
 
       const parsedResponse = NominatimReverseResponseSchema.parse(response);
+      if (parsedResponse.error) {
+        this.logger.error("Error in nominatim response", { location, error: parsedResponse.error });
+        await tx
+          .update(locationsTable)
+          .set({ failedToReverseGeocode: true })
+          .where(sql`${locationsTable.id} = ${location.id}`);
+        nextLocation = await this.getNextPage(tx);
+        // TODO: Delete failed from cache?
+        continue;
+      }
       const mappedResponse = this.mapApiResponseToDbSchema(location.location, parsedResponse);
 
-      if (mappedResponse) {
-        const existingDetails = mappedResponse.osmId
-          ? await tx.query.locationDetailsTable.findFirst({
-              where: sql`
+      if (!mappedResponse) {
+        await tx
+          .update(locationsTable)
+          .set({ failedToReverseGeocode: true })
+          .where(sql`${locationsTable.id} = ${location.id}`);
+        // TODO: Delete failed from cache?
+
+        nextLocation = await this.getNextPage(tx);
+        continue;
+      }
+
+      const existingDetails = mappedResponse.osmId
+        ? await tx.query.locationDetailsTable.findFirst({
+            where: sql`
             ${locationDetailsTable.osmId} = ${mappedResponse.osmId}
             ${
               mappedResponse.displayName
@@ -94,22 +114,22 @@ export class NominatimEnricher extends BaseEnricher {
                 : sql``
             }
           `,
-            })
-          : null;
+          })
+        : null;
 
-        const savedLocationDetails = existingDetails
-          ? { id: existingDetails.id }
-          : await tx
-              .insert(locationDetailsTable)
-              .values(mappedResponse)
-              .returning({ id: locationDetailsTable.id })
-              .then((r) => r[0]);
+      const savedLocationDetails = existingDetails
+        ? { id: existingDetails.id }
+        : await tx
+            .insert(locationDetailsTable)
+            .values(mappedResponse)
+            .returning({ id: locationDetailsTable.id })
+            .then((r) => r[0]);
 
-        await tx
-          .update(locationsTable)
-          .set({ locationDetailsId: savedLocationDetails.id })
-          .where(
-            sql`
+      await tx
+        .update(locationsTable)
+        .set({ locationDetailsId: savedLocationDetails.id })
+        .where(
+          sql`
           ${locationsTable.locationDetailsId} IS NULL AND
           ST_DWithin(
             ${locationsTable.location},
@@ -119,34 +139,28 @@ export class NominatimEnricher extends BaseEnricher {
           AND ${locationsTable.recordedAt} >= ${validFrom.toISO()}
           AND ${locationsTable.recordedAt} <= ${validTo.toISO()}
           `,
-          );
+        );
 
-        const now = DateTime.now();
-        if (Math.abs(now.diff(lastLogAt, "milliseconds").milliseconds) >= LOG_EVERY_MS) {
-          const elapsedSec = Math.abs(now.diff(startTime, "seconds").seconds);
-          const rate = Math.round((apiCallsCount + cacheHits) / elapsedSec);
+      const now = DateTime.now();
+      if (Math.abs(now.diff(lastLogAt, "milliseconds").milliseconds) >= LOG_EVERY_MS) {
+        const elapsedSec = Math.abs(now.diff(startTime, "seconds").seconds);
+        const rate = Math.round((apiCallsCount + cacheHits) / elapsedSec);
 
-          this.logger.info("Progress", {
-            cacheHits,
-            apiCallsCount,
-            elapsedSec: elapsedSec.toFixed(1),
-            linesPerSec: rate,
-            lastDate: dateTimeRecordedAt.toISO(),
-          });
+        this.logger.info("Progress", {
+          cacheHits,
+          apiCallsCount,
+          elapsedSec: elapsedSec.toFixed(1),
+          linesPerSec: rate,
+          lastDate: dateTimeRecordedAt.toISO(),
+        });
 
-          lastLogAt = now;
-        }
+        lastLogAt = now;
+      }
 
-        // If it has been running for longer than allowed, break out of the loop
-        if (Math.abs(startTime.diffNow("seconds").seconds) >= this.maxImportSessionDuration) {
-          this.logger.debug("Enricher is running for too long, breaking...");
-          break;
-        }
-      } else {
-        await tx
-          .update(locationsTable)
-          .set({ failedToReverseGeocode: true })
-          .where(sql`${locationsTable.id} = ${location.id}`);
+      // If it has been running for longer than allowed, break out of the loop
+      if (Math.abs(startTime.diffNow("seconds").seconds) >= this.maxImportSessionDuration) {
+        this.logger.debug("Enricher is running for too long, breaking...");
+        break;
       }
       nextLocation = await this.getNextPage(tx);
     }

@@ -58,7 +58,7 @@ export class Nominatim {
       })
       .then((r) => r.data);
 
-    await this.cache.set({
+    const cacheEntry = await this.cache.set({
       response: { apiResponse: response },
       eventAt: when,
       fetchedAt: DateTime.utc(),
@@ -66,6 +66,12 @@ export class Nominatim {
       request: apiCallParams,
     });
 
-    return { isCached: false, validFrom: when.minus({ hour: 1 }), validTo: when.plus({ days: 7 }), response };
+    return {
+      isCached: false,
+      cacheEntry,
+      validFrom: when.minus({ hour: 1 }),
+      validTo: when.plus({ days: 7 }),
+      response,
+    };
   }
 }

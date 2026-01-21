@@ -2,7 +2,7 @@ import * as fs from "node:fs";
 import * as os from "node:os";
 import path from "node:path";
 import type { Readable } from "node:stream";
-import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { EnvVar, getEnvVarOrError } from "../helpers/envVars";
 import { Logger } from "./Logger";
 
@@ -96,5 +96,21 @@ export class S3 {
         .on("error", reject)
         .on("finish", () => resolve(filePath));
     });
+  }
+
+  /**
+   * Remove an object from S3
+   * @param bucket the bucket name
+   * @param key the object key (file name / path)
+   */
+  public async remove(bucket: string, key: string): Promise<void> {
+    this.logger.debug("Removing object from S3", { bucket, key });
+
+    const command = new DeleteObjectCommand({
+      Bucket: bucket,
+      Key: key,
+    });
+
+    await this.s3.send(command);
   }
 }

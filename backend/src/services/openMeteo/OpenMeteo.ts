@@ -195,13 +195,14 @@ export class OpenMeteo {
       // When matching it to the user location we will find a match
       const date = DateTime.fromSeconds(hourly.time[i], { zone: "UTC" });
       if (!cachedResult) {
-        existingCacheS3Key = await this.cache.set({
+        const cacheEntry = await this.cache.set({
           request: queryWithApiVersion,
           response: existingCacheS3Key ? { existingS3Key: existingCacheS3Key } : { apiResponse: hourlyRaw },
           eventAt: date,
           location: point,
           fetchedAt,
         });
+        existingCacheS3Key = cacheEntry?.s3Key ?? null;
       }
       hourlyResult.push({
         date,
@@ -280,13 +281,14 @@ export class OpenMeteo {
       const day = daily.time[i];
 
       if (!cachedResult) {
-        existingCacheS3Key = await this.cache.set({
+        const newCache = await this.cache.set({
           request: queryWithApiVersion,
           response: existingCacheS3Key ? { existingS3Key: existingCacheS3Key } : { apiResponse: dailyRaw },
           eventAt: DateTime.fromSQL(day, { zone: timezone }).startOf("day").toUTC(),
           location: point,
           fetchedAt,
         });
+        existingCacheS3Key = newCache?.s3Key ?? null;
       }
       const sunrise = daily.sunrise[i];
       const sunset = daily.sunset[i];
