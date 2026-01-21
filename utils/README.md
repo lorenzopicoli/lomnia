@@ -2,7 +2,8 @@
 
 Everything that I use as utility for this project.
 
-### Analyze-samsung-csv
+### Export-sql
 
-An AI generated webapge that give a list of CSVs spits out a markdown table with the each file's name and the columns available.
-Helpful to write zod schemas and more easily explore data
+Small script that automatically runs a `.sql` file and exports the data in a way that I can easily visualize it in
+QGis. Useful for example if I want to verify if the locations that failed to reverse geocode were indeed all in the
+middle of the ocean. Or if the locations are properly linking to places of interest
