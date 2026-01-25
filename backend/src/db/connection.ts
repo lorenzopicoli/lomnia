@@ -15,4 +15,4 @@ const conn = postgres(
   `postgres://${dbConfig.user}:${dbConfig.password}@${dbConfig.host}:${dbConfig.port}/${dbConfig.database}`,
 );
 
-export const db = drizzle(conn, { schema, logger: true });
+export const db = drizzle(conn, { schema, logger: false });
