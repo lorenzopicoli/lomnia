@@ -48,7 +48,7 @@ export class OpenMeteoEnricher extends BaseEnricher {
           this.logger.debug("No date in locationDate");
           continue;
         }
-        this.logger.debug("Processing weather data for location recorded at", { recordedAt: locationDate.date });
+        this.logger.info("Processing weather data for location recorded at", { recordedAt: locationDate.date });
         if (!wasLastCallCached) {
           this.logger.debug("Waiting before calling API again");
           await delay(this.apiCallsDelay);

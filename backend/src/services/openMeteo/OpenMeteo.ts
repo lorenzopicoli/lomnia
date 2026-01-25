@@ -84,26 +84,32 @@ export class OpenMeteo {
     };
     wasCached: boolean;
   }> {
-    const { timezoneDay: requestedDay, hour: requestedHour } = this.cache.findRequestedDate(
-      params.date,
-      params.timezone,
-    );
-    const { dailyResult: daily, wasCached: dailyWasCached } = await this.fetchDaily(params);
-    const { hourlyResult: hourly, wasCached: hourlyWasCached } = await this.fetchHourly(params);
+    try {
+      const { timezoneDay: requestedDay, hour: requestedHour } = this.cache.findRequestedDate(
+        params.date,
+        params.timezone,
+      );
+      const { dailyResult: daily, wasCached: dailyWasCached } = await this.fetchDaily(params);
+      const { hourlyResult: hourly, wasCached: hourlyWasCached } = await this.fetchHourly(params);
 
-    const matchedDay = daily?.find((result) => result.day === requestedDay);
-    const matchedHour = hourly?.find((result) => Math.abs(result.date.diff(requestedHour, "hour").hours) <= 0);
-    return {
-      match: {
-        hour: matchedHour,
-        day: matchedDay,
-      },
-      all: {
-        hourly,
-        daily,
-      },
-      wasCached: dailyWasCached || hourlyWasCached,
-    };
+      const matchedDay = daily?.find((result) => result.day === requestedDay);
+      const matchedHour = hourly?.find((result) => Math.abs(result.date.diff(requestedHour, "hour").hours) <= 0);
+      return {
+        match: {
+          hour: matchedHour,
+          day: matchedDay,
+        },
+        all: {
+          hourly,
+          daily,
+        },
+        wasCached: dailyWasCached || hourlyWasCached,
+      };
+    } catch (e) {
+      console.log("OpenMeteoAPI error");
+      console.log(e);
+      throw e;
+    }
   }
 
   public hourlyDataToDatabase(hourly: OpenMeteoHistoricalResponse["hourly"][number]): NewHourlyWeather {
