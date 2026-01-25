@@ -12,7 +12,7 @@ const main = async () => {
     logger.info("Received new ingestion message:", msg);
 
     const filePath = await S3.init().downloadTmp(msg.bucket, msg.key);
-    await ingestFile(filePath);
+    await ingestFile(filePath, msg);
     return true;
   });
 };

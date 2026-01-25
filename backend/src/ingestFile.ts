@@ -15,7 +15,7 @@ async function main() {
   const resolvedPath = resolve(file);
   logger.info("Ingesting file", { resolvedPath });
 
-  await ingestFile(resolvedPath);
+  await ingestFile(resolvedPath, {});
 
   logger.info("Done ingesting file", { resolvedPath });
 }

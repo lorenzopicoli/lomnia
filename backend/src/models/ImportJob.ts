@@ -15,9 +15,9 @@ export const importJobsTable = pgTable("import_jobs", {
    */
   importedCount: integer("imported_count").notNull(),
   /**
-   * Useful logs for debugging. Be careful to not fill this up too much and take too much disk space
+   * Payload that was processed from the RabbitMQ queue
    */
-  logs: jsonb("logs").notNull(),
+  queuePayload: jsonb("queue_payload").notNull(),
   /**
    * In UTC
    */

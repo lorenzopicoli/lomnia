@@ -28,7 +28,7 @@ async function ingest(params: { data: unknown; ingesters: Ingester<unknown, unkn
   return 0;
 }
 
-export async function ingestFile(filePath: string) {
+export async function ingestFile(filePath: string, queuePayload: unknown) {
   try {
     logger.info("Starting Ingestion", {
       filePath,
@@ -53,7 +53,7 @@ export async function ingestFile(filePath: string) {
           jobStart: start,
           jobEnd: start,
           importedCount: 0,
-          logs: [],
+          queuePayload,
           createdAt: new Date(),
         })
         .returning({ id: importJobsTable.id })
