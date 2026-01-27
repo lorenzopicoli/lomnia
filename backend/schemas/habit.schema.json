@@ -1,0 +1,101 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "entityType": {
+      "type": "string",
+      "const": "habit",
+      "description": "Entity discriminator"
+    },
+    "version": {
+      "type": "string",
+      "description": "Version of the schema used for this habit record"
+    },
+    "id": {
+      "type": "string",
+      "description": "Stable identifier for the habit record. Optional but should be stable across re-imports if provided"
+    },
+    "importJobId": {
+      "type": "integer",
+      "minimum": -9007199254740991,
+      "maximum": 9007199254740991,
+      "description": "Identifier of the import job that produced this habit"
+    },
+    "key": {
+      "type": "string",
+      "description": "Logical habit key (domain identifier)"
+    },
+    "value": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+        }
+      ],
+      "description": "Recorded habit value. Must be a primitive (string, number, boolean, date, or null)"
+    },
+    "date": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
+      "description": "Date when the habit occurred (time may be discarded depending on other properties). In UTC"
+    },
+    "source": {
+      "type": "string",
+      "description": "Logical source where the habit was recorded (e.g. obsidian, hares, etc)"
+    },
+    "timezone": {
+      "type": "string",
+      "description": "User timezone at the time the habit was recorded"
+    },
+    "comments": {
+      "type": "string",
+      "description": "Optional user comments or notes for this habit"
+    },
+    "recordedAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
+      "description": "Exact timestamp when the habit was recorded, if available. In UTC"
+    },
+    "periodOfDay": {
+      "type": "string",
+      "enum": [
+        "morning",
+        "afternoon",
+        "evening",
+        "over_night"
+      ],
+      "description": "Part of the day when the habit occurred, if applicable"
+    },
+    "isFullDay": {
+      "type": "boolean",
+      "description": "If true, the habit spans the full day and the time portion of the date should be ignored"
+    }
+  },
+  "required": [
+    "entityType",
+    "version",
+    "key",
+    "value",
+    "date",
+    "source",
+    "timezone"
+  ],
+  "additionalProperties": false,
+  "title": "Habit",
+  "description": "Represents a habit record"
+}

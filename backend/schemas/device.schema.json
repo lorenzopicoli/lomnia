@@ -1,25 +1,23 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Device",
-  "description": "Represents a device with associated metadata",
   "type": "object",
   "properties": {
     "entityType": {
-      "description": "Entity discriminator",
       "type": "string",
-      "const": "device"
+      "const": "device",
+      "description": "Entity discriminator"
     },
     "id": {
-      "description": "Unique identifier for the device",
-      "type": "string"
+      "type": "string",
+      "description": "Unique identifier for the device"
     },
     "source": {
-      "description": "The application source used to get this device",
-      "type": "string"
+      "type": "string",
+      "description": "The application source used to get this device"
     },
     "version": {
-      "description": "The version of the schema used",
-      "type": "string"
+      "type": "string",
+      "description": "The version of the schema used"
     }
   },
   "required": [
@@ -28,5 +26,7 @@
     "source",
     "version"
   ],
-  "additionalProperties": false
+  "additionalProperties": false,
+  "title": "Device",
+  "description": "Represents a device with associated metadata"
 }

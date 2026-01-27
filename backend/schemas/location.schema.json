@@ -1,97 +1,95 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Location",
-  "description": "Represents a geographic location entry with associated metadata",
   "type": "object",
   "properties": {
     "entityType": {
-      "description": "Entity discriminator",
       "type": "string",
-      "const": "location"
+      "const": "location",
+      "description": "Entity discriminator"
     },
     "version": {
-      "description": "The version of the schema used",
-      "type": "string"
+      "type": "string",
+      "description": "The version of the schema used"
     },
     "id": {
-      "description": "Unique identifier for the location record. Must be stable across multiple extractions",
-      "type": "string"
+      "type": "string",
+      "description": "Unique identifier for the location record. Must be stable across multiple extractions"
     },
     "deviceId": {
-      "description": "The device that recorded this",
-      "type": "string"
+      "type": "string",
+      "description": "The device that recorded this"
     },
     "source": {
-      "description": "The application source used to get this location",
-      "type": "string"
+      "type": "string",
+      "description": "The application source used to get this location"
     },
     "gpsSource": {
-      "description": "The hardware source used to get this location in the device (e.g., network, gps, fused)",
       "type": "string",
       "enum": [
         "network",
         "gps",
         "fused"
-      ]
+      ],
+      "description": "The hardware source used to get this location in the device (e.g., network, gps, fused)"
     },
     "accuracy": {
-      "description": "Accuracy of the location in meters",
-      "type": "number"
+      "type": "number",
+      "description": "Accuracy of the location in meters"
     },
     "verticalAccuracy": {
-      "description": "Vertical accuracy in meters",
-      "type": "number"
+      "type": "number",
+      "description": "Vertical accuracy in meters"
     },
     "velocity": {
-      "description": "Velocity in km/h",
-      "type": "number"
+      "type": "number",
+      "description": "Velocity in km/h"
     },
     "altitude": {
-      "description": "Altitude in meters",
-      "type": "number"
+      "type": "number",
+      "description": "Altitude in meters"
     },
     "location": {
-      "description": "Geographic point",
       "type": "object",
       "properties": {
         "lat": {
-          "description": "Latitude of the location",
-          "type": "number"
+          "type": "number",
+          "description": "Latitude of the location"
         },
         "lng": {
-          "description": "Longitude of the location",
-          "type": "number"
+          "type": "number",
+          "description": "Longitude of the location"
         }
       },
       "required": [
         "lat",
         "lng"
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": "Geographic point"
     },
     "trigger": {
-      "description": "What triggered this location update",
       "type": "string",
       "enum": [
         "ping",
         "circular",
         "report_location",
         "manual"
-      ]
+      ],
+      "description": "What triggered this location update"
     },
     "topic": {
-      "description": "Topic associated with this location",
-      "type": "string"
+      "type": "string",
+      "description": "Topic associated with this location"
     },
     "timezone": {
-      "description": "The user timezone at the time of location recording",
-      "type": "string"
+      "type": "string",
+      "description": "The user timezone at the time of location recording"
     },
     "recordedAt": {
-      "description": "The date at which the location was taken, in UTC time",
       "type": "string",
       "format": "date-time",
-      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
+      "description": "The date at which the location was taken, in UTC time"
     }
   },
   "required": [
@@ -102,5 +100,7 @@
     "timezone",
     "recordedAt"
   ],
-  "additionalProperties": false
+  "additionalProperties": false,
+  "title": "Location",
+  "description": "Represents a geographic location entry with associated metadata"
 }

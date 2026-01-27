@@ -25,7 +25,7 @@ export const habitsTable = pgTable("habits", {
    */
   value: jsonb("value"),
   /**
-   * Date in the user timezone of when this habit was recorded.
+   * Date of when this habit was recorded. In UTC
    */
   date: timestamp("date").notNull(),
   /**
