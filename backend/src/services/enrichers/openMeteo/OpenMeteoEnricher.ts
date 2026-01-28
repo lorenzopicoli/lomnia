@@ -185,9 +185,8 @@ export class OpenMeteoEnricher extends BaseEnricher {
                 OR ${locationsTable.hourlyWeatherId} IS NULL
             )
             AND
-            ${locationsTable.recordedAt} < NOW() - INTERVAL '${sql.raw(this.dataAvailabilityDelay)}
-            AND NOT ${locationsTable.failedtoFetchWeather}
-          '
+            ${locationsTable.recordedAt} < NOW() - INTERVAL '${sql.raw(this.dataAvailabilityDelay)}'
+            AND ${locationsTable.failedtoFetchWeather} IS NOT TRUE
         `,
         )
         .orderBy(asc(locationsTable.recordedAt))
