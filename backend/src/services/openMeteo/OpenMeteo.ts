@@ -188,6 +188,13 @@ export class OpenMeteo {
     const fetchedAt = DateTime.utc();
 
     const parsedHourly = z.parse(HourlySchema, hourlyRaw);
+    if (!parsedHourly.data) {
+      this.logger.warn("Failed to get data for weather", {
+        query,
+        result: parsedHourly,
+      });
+      return { hourlyResult: [], wasCached: false };
+    }
     const hourly = parsedHourly.data.hourly;
     // We store the same api response for each day that was returned, this means that we'll have many cache entries
     // pointing to the same raw data. To avoid duplicated entries in S3, we store the first entry's S3 key and then
@@ -272,6 +279,13 @@ export class OpenMeteo {
         });
     const fetchedAt = DateTime.utc();
     const parsedDaily = z.parse(DailySchema, dailyRaw);
+    if (!parsedDaily.data) {
+      this.logger.warn("Failed to get data for weather", {
+        query,
+        result: parsedDaily,
+      });
+      return { dailyResult: [], wasCached: false };
+    }
     const daily = parsedDaily.data.daily;
     // We store the same api response for each day that was returned, this means that we'll have many cache entries
     // pointing to the same raw data. To avoid duplicated entries in S3, we store the first entry's S3 key and then

@@ -62,6 +62,11 @@ export const locationsTable = pgTable("locations", {
   failedToReverseGeocode: boolean("failed_to_reverse_geocode").default(false),
 
   /**
+   * If the call to the weather API failed and we should not try again
+   */
+  failedtoFetchWeather: boolean("failed_to_fetch_weather").default(false),
+
+  /**
    * The details for this location entry
    */
   locationDetailsId: integer("location_details_id").references(() => locationDetailsTable.id),

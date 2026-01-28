@@ -1,4 +1,4 @@
-import { asc, sql } from "drizzle-orm";
+import { asc, eq, sql } from "drizzle-orm";
 import { DateTime } from "luxon";
 import config from "../../../config";
 import type { DBTransaction, Point } from "../../../db/types";
@@ -122,6 +122,15 @@ export class OpenMeteoEnricher extends BaseEnricher {
           };
         }
 
+        if (!result.match.day || !result.match.hour) {
+          await tx
+            .update(locationsTable)
+            .set({
+              failedtoFetchWeather: true,
+            })
+            .where(eq(locationsTable.id, locationDate.id));
+        }
+
         if (insertedDailyWeather && insertedHourlyWeather) {
           await this.linkLocationsToWeather(tx, {
             weatherLocation: locationDate.location,
@@ -176,7 +185,9 @@ export class OpenMeteoEnricher extends BaseEnricher {
                 OR ${locationsTable.hourlyWeatherId} IS NULL
             )
             AND
-            ${locationsTable.recordedAt} < NOW() - INTERVAL '${sql.raw(this.dataAvailabilityDelay)}'
+            ${locationsTable.recordedAt} < NOW() - INTERVAL '${sql.raw(this.dataAvailabilityDelay)}
+            AND NOT ${locationsTable.failedtoFetchWeather}
+          '
         `,
         )
         .orderBy(asc(locationsTable.recordedAt))
