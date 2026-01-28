@@ -10,9 +10,10 @@ import { Logger } from "../Logger";
 import type { Ingester } from "./BaseIngester";
 import { DeviceIngester } from "./DeviceIngester";
 import { DeviceStatusIngester } from "./DeviceStatusIngester";
+import { HabitIngester } from "./HabitIngester";
 import { LocationIngester } from "./LocationIngester";
 
-const ingestersClasses = [LocationIngester, DeviceStatusIngester, DeviceIngester];
+const ingestersClasses = [LocationIngester, DeviceStatusIngester, DeviceIngester, HabitIngester];
 
 const logger = new Logger("IngesterIndex");
 

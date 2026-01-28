@@ -1,6 +1,6 @@
 import * as z from "zod";
 
-const HabitValueSchema = z.union([z.string(), z.number(), z.boolean(), z.null(), z.iso.datetime()]);
+const HabitValueSchema = z.union([z.array(z.string()), z.number(), z.boolean(), z.null()]);
 
 export const PeriodOfDayEnum = z.enum(["morning", "afternoon", "evening", "over_night"]);
 
@@ -22,20 +22,12 @@ export const IngestionHabit = z
       })
       .optional(),
 
-    importJobId: z
-      .number()
-      .int()
-      .meta({
-        description: "Identifier of the import job that produced this habit",
-      })
-      .optional(),
-
     key: z.string().meta({
       description: "Logical habit key (domain identifier)",
     }),
 
     value: HabitValueSchema.meta({
-      description: "Recorded habit value. Must be a primitive (string, number, boolean, date, or null)",
+      description: "Recorded habit value. Must be a primitive (string list, number, boolean, or null)",
     }),
 
     date: z.iso.datetime().meta({
@@ -57,12 +49,9 @@ export const IngestionHabit = z
       })
       .optional(),
 
-    recordedAt: z.iso
-      .datetime()
-      .meta({
-        description: "Exact timestamp when the habit was recorded, if available. In UTC",
-      })
-      .optional(),
+    recordedAt: z.iso.datetime().meta({
+      description: "Exact timestamp when the habit was recorded, if available. In UTC",
+    }),
 
     periodOfDay: PeriodOfDayEnum.meta({
       description: "Part of the day when the habit occurred, if applicable",

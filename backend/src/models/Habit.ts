@@ -34,6 +34,10 @@ export const habitsTable = pgTable("habits", {
    */
   source: text("source").notNull(),
   /**
+   * The ID of this habit in the source
+   */
+  externalId: text("external_id"),
+  /**
    * Timezone of the user when this was recorded
    */
   timezone: text("timezone").notNull(),

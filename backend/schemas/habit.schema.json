@@ -15,12 +15,6 @@
       "type": "string",
       "description": "Stable identifier for the habit record. Optional but should be stable across re-imports if provided"
     },
-    "importJobId": {
-      "type": "integer",
-      "minimum": -9007199254740991,
-      "maximum": 9007199254740991,
-      "description": "Identifier of the import job that produced this habit"
-    },
     "key": {
       "type": "string",
       "description": "Logical habit key (domain identifier)"
@@ -28,7 +22,10 @@
     "value": {
       "anyOf": [
         {
-          "type": "string"
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         },
         {
           "type": "number"
@@ -38,14 +35,9 @@
         },
         {
           "type": "null"
-        },
-        {
-          "type": "string",
-          "format": "date-time",
-          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
         }
       ],
-      "description": "Recorded habit value. Must be a primitive (string, number, boolean, date, or null)"
+      "description": "Recorded habit value. Must be a primitive (string list, number, boolean, or null)"
     },
     "date": {
       "type": "string",
@@ -93,7 +85,8 @@
     "value",
     "date",
     "source",
-    "timezone"
+    "timezone",
+    "recordedAt"
   ],
   "additionalProperties": false,
   "title": "Habit",
