@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+import { type SQL, sql } from "drizzle-orm";
 import { ingestionSchemas } from "../../ingestionSchemas";
 import type IngestionDeviceStatus from "../../ingestionSchemas/IngestionDeviceStatus";
 import { deviceStatusTable, type NewDeviceStatus } from "../../models/DeviceStatus";
