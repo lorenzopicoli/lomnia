@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import { ingestionSchemas } from "../../ingestionSchemas";
 import type IngestionLocation from "../../ingestionSchemas/IngestionLocation";
 import { locationsTable, type NewLocation } from "../../models/Location";
@@ -41,6 +42,26 @@ export class LocationIngester extends Ingester<IngestionLocation, NewLocation> {
   }
 
   public async insertBatch(): Promise<void> {
-    await this.tx.insert(locationsTable).values(this.collected);
+    // Force all mutable fields to be updated on conflict
+    const updateOnConflict: Omit<{ [key in keyof NewLocation]: SQL }, "importJobId" | "createdAt"> = {
+      externalId: sql`excluded.external_id`,
+
+      gpsSource: sql`excluded.gps_source`,
+      source: sql`excluded.source`,
+      accuracy: sql`excluded.accuracy`,
+      verticalAccuracy: sql`excluded.vertical_accuracy`,
+      velocity: sql`excluded.velocity`,
+      altitude: sql`excluded.altitude`,
+      location: sql`excluded.location`,
+      trigger: sql`excluded.trigger`,
+      topic: sql`excluded.topic`,
+      timezone: sql`excluded.timezone`,
+      recordedAt: sql`excluded.recorded_at`,
+    };
+
+    await this.tx.insert(locationsTable).values(this.collected).onConflictDoUpdate({
+      target: locationsTable.externalId,
+      set: updateOnConflict,
+    });
   }
 }

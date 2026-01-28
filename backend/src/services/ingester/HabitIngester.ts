@@ -1,3 +1,4 @@
+import { type SQL, sql } from "drizzle-orm";
 import { ingestionSchemas } from "../../ingestionSchemas";
 import type { IngestionHabit } from "../../ingestionSchemas/IngestionHabit";
 import { habitsTable, type NewHabit } from "../../models";
@@ -42,6 +43,23 @@ export class HabitIngester extends Ingester<IngestionHabit, NewHabit> {
   }
 
   public async insertBatch(): Promise<void> {
-    await this.tx.insert(habitsTable).values(this.collected);
+    // Setting it like this to force new properties to be considered for update on conflict.
+    const updateOnConflict: Omit<{ [key in keyof NewHabit]: SQL }, "importJobId"> = {
+      key: sql`excluded.key`,
+      value: sql`excluded.value`,
+      date: sql`excluded.date`,
+
+      source: sql`excluded.source`,
+      timezone: sql`excluded.timezone`,
+      comments: sql`excluded.comments`,
+      recordedAt: sql`excluded.recorded_at`,
+
+      periodOfDay: sql`excluded.period_of_day`,
+      isFullDay: sql`excluded.is_full_day`,
+    };
+    await this.tx.insert(habitsTable).values(this.collected).onConflictDoUpdate({
+      target: habitsTable.externalId,
+      set: updateOnConflict,
+    });
   }
 }
