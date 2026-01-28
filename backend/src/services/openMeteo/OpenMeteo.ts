@@ -144,7 +144,10 @@ export class OpenMeteo {
 
   private getApiDateRage(date: DateTime) {
     const startDate = date.startOf("day").minus({ days: this.pastDaysPadding });
-    const endDate = date.startOf("day").plus({ days: this.futureDaysPadding });
+    const endDate = DateTime.min(
+      date.startOf("day").plus({ days: this.futureDaysPadding }),
+      DateTime.utc().startOf("day"),
+    );
     const startDay = startDate.toSQLDate();
     const endDay = endDate.toSQLDate();
 
