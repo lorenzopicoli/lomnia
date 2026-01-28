@@ -45,6 +45,7 @@ export class DeviceStatusIngester extends Ingester<IngestionDeviceStatus, NewDev
       batteryStatus: sql`excluded.battery_status`,
       connectionStatus: sql`excluded.connection_status`,
       wifiSSID: sql`excluded.wifi_ssid`,
+      recordedAt: sql`excluded.recorded_at`,
 
       source: sql`excluded.source`,
       timezone: sql`excluded.timezone`,
