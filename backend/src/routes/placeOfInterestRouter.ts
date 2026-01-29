@@ -75,4 +75,20 @@ export const placeOfInterestRouter = t.router({
     .query(async (opts) => {
       return PlaceOfInterestService.getAllGeoJSON(opts.input.search || "");
     }),
+
+  searchLocationByText: loggedProcedure
+    .input(
+      z.object({
+        search: z.string().optional(),
+      }),
+    )
+    .query(async (opts) => {
+      const nominatim = new Nominatim();
+      const response = await nominatim.geocode({
+        query: opts.input.search ?? "Montreal",
+        limit: 1,
+      });
+
+      return response;
+    }),
 });

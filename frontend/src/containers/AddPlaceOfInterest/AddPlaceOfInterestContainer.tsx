@@ -4,6 +4,7 @@ import {
   Card,
   Container,
   Flex,
+  Input,
   Paper,
   ScrollArea,
   Stack,
@@ -12,9 +13,11 @@ import {
   Title,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
+import { useDebouncedValue } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
+import { IconSearch } from "@tabler/icons-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { type ChangeEvent, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { trpc } from "../../api/trpc";
 import { DrawablePoiMap } from "../../components/PoiMaps/DrawablePoiMap";
@@ -60,6 +63,12 @@ export function AddPlaceOfInterestContainer(_props: { search?: string }) {
   const { poiId } = useParams<{ poiId?: string }>();
   const navigate = useNavigate();
 
+  const [search, setSearch] = useState("");
+  const [debouncedSearch] = useDebouncedValue(search, 300);
+  const handleMapSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setSearch(event.currentTarget.value);
+  };
+
   const form = useForm<PlaceOfInterestFormValues>({
     initialValues,
     validate: (values) => {
@@ -84,6 +93,15 @@ export function AddPlaceOfInterestContainer(_props: { search?: string }) {
         polygon: form.values.polygon!,
       },
       { enabled: !!form.values.polygon },
+    ),
+  );
+  const { data: geocodeData } = useQuery(
+    trpc.placesOfInterest.searchLocationByText.queryOptions(
+      {
+        // biome-ignore lint/style/noNonNullAssertion: <explanation>
+        search: debouncedSearch,
+      },
+      { enabled: !!debouncedSearch },
     ),
   );
   const { data: allPOIsGeoJSONs } = useQuery(trpc.placesOfInterest.getAllGeoJSON.queryOptions({}));
@@ -179,16 +197,27 @@ export function AddPlaceOfInterestContainer(_props: { search?: string }) {
               <Title order={3}>Map area</Title>
               <Text size="sm">Draw one shape on the map to define the area covered by this place of interest.</Text>
             </Card.Section>
-            <Container h={"100%"} w={"100%"} bdrs={"lg"} p={0} style={{ overflow: "clip" }}>
-              <DrawablePoiMap
-                value={poiToEdit?.geoJson as any}
-                readonlyPolygons={allPOIsGeoJSONs?.map((poi) => ({ name: poi.name, feature: poi.geoJson as any }))}
-                onChange={(poly) => {
-                  console.group("on change", poly);
-                  form.setFieldValue("polygon", poly);
-                }}
+            <Stack flex={1}>
+              <Input
+                flex={0}
+                onChange={handleMapSearchChange}
+                value={search}
+                placeholder="Search"
+                leftSection={<IconSearch size={16} />}
+                maw={400}
               />
-            </Container>
+              <Container h={"100%"} w={"100%"} bdrs={"lg"} p={0} style={{ overflow: "clip" }}>
+                <DrawablePoiMap
+                  value={poiToEdit?.geoJson as any}
+                  readonlyPolygons={allPOIsGeoJSONs?.map((poi) => ({ name: poi.name, feature: poi.geoJson as any }))}
+                  center={geocodeData ?? undefined}
+                  onChange={(poly) => {
+                    console.group("on change", poly);
+                    form.setFieldValue("polygon", poly);
+                  }}
+                />
+              </Container>
+            </Stack>
           </Card>
         </Flex>
       </ScrollArea>

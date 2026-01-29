@@ -12,6 +12,7 @@ export function DrawablePoiMap(props: {
   value?: PolygonFeature | null;
   onChange?: (geoJson: PolygonFeature | null) => void;
   readonlyPolygons?: ReadonlyPolygon[];
+  center?: { lat: number; lng: number };
 }) {
   return (
     <MapContainer
@@ -26,6 +27,8 @@ export function DrawablePoiMap(props: {
         attribution='<a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>'
         url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
+      {props.center ? <CenterWithPin center={props.center} zoom={13} /> : null}
+
       {props.readonlyPolygons ? <ReadOnlyPolygons readonlyPolygons={props.readonlyPolygons} /> : null}
       <GeomanControl
         position="topright"
@@ -43,6 +46,35 @@ export function DrawablePoiMap(props: {
       <MapEvents value={props.value} onChange={props.onChange} />
     </MapContainer>
   );
+}
+function CenterWithPin(props: { center?: { lat: number; lng: number }; zoom: number }) {
+  const map = useMap();
+  const markerRef = useRef<L.Marker | null>(null);
+
+  useEffect(() => {
+    // No center → remove marker and do nothing
+    if (!props.center) {
+      if (markerRef.current) {
+        map.removeLayer(markerRef.current);
+        markerRef.current = null;
+      }
+      return;
+    }
+
+    // Center the map
+    map.setView(props.center, props.zoom ?? map.getZoom(), {
+      animate: true,
+    });
+
+    // Replace marker if it exists
+    if (markerRef.current) {
+      markerRef.current.setLatLng(props.center);
+    } else {
+      markerRef.current = L.marker(props.center).addTo(map);
+    }
+  }, [map, props.center, props.zoom]);
+
+  return null;
 }
 
 function layerToPolygonFeature(layer: any): PolygonFeature {

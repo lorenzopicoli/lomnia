@@ -74,4 +74,39 @@ export class Nominatim {
       response,
     };
   }
+
+  /**
+   * Geocode a place by free-form text (forward geocoding).
+   */
+  public async geocode(params: { query: string; limit?: number }) {
+    const { query, limit = 5 } = params;
+
+    const apiCallParams = {
+      format: "json",
+      q: query,
+      limit,
+      addressdetails: 1,
+      namedetails: 1,
+      extratags: 1,
+    };
+
+    this.logger.debug("Calling Nominatim geocode API", { apiCallParams });
+
+    const response = await this.http
+      .get("/search", {
+        params: apiCallParams,
+      })
+      .then((r) => r.data);
+
+    console.log(response);
+    const lat = response?.[0]?.lat;
+    const lng = response?.[0]?.lon;
+    if (!lat || !lng) {
+      return null;
+    }
+    return {
+      lat,
+      lng,
+    };
+  }
 }
