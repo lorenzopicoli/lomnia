@@ -108,7 +108,7 @@ export class LocationChartServiceInternal {
     return db
       .with(durationIslands)
       .select({
-        name: locationDetailsTable.name,
+        name: locationDetailsTable.displayName,
         id: locationDetailsTable.id,
         visits: count(durationIslands),
         timeSpentInSec: sum(durationIslands.duration),
@@ -116,7 +116,7 @@ export class LocationChartServiceInternal {
       .from(durationIslands)
       .leftJoin(locationDetailsTable, eq(locationDetailsTable.id, durationIslands.placeKey))
       .where(sql`${durationIslands.placeKey} IS NOT NULL`)
-      .groupBy(locationDetailsTable.id, locationDetailsTable.name)
+      .groupBy(locationDetailsTable.id, locationDetailsTable.displayName)
       .orderBy(desc(count(durationIslands)))
       .limit(config.charts.placesVisited.limit);
   }
