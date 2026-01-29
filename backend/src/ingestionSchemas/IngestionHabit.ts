@@ -1,6 +1,6 @@
 import * as z from "zod";
 
-const HabitValueSchema = z.union([z.array(z.string()), z.number(), z.boolean(), z.null()]);
+const HabitValueSchema = z.union([z.string(), z.array(z.string()), z.number(), z.boolean(), z.null()]);
 
 export const PeriodOfDayEnum = z.enum(["morning", "afternoon", "evening", "over_night"]);
 
