@@ -98,7 +98,6 @@ export class Nominatim {
       })
       .then((r) => r.data);
 
-    console.log(response);
     const lat = response?.[0]?.lat;
     const lng = response?.[0]?.lon;
     if (!lat || !lng) {
