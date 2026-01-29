@@ -171,6 +171,14 @@ export class LocationChartServiceInternal {
 
     const weightCap = 10;
 
+    const location = sql<Point>`ST_SnapToGrid(location::geometry, ${sql.raw(zoomToGrid(zoom))}) AS location`.mapWith(
+      locationsTable.location,
+    );
+    const weight = sql<number>`
+                CASE
+                    WHEN COUNT(*) > ${weightCap} THEN ${weightCap}
+                    ELSE COUNT(*)
+                END AS weight`.mapWith(Number);
     // Using sql.raw to get the grid value instead of sql bindings because
     // with bindings postgres doesn't realize that the select location expression
     // is the same as the expression in the group by. And since the value
@@ -178,15 +186,9 @@ export class LocationChartServiceInternal {
     const results = this.withPointFilters(
       db
         .select({
-          location: sql<Point>`ST_SnapToGrid(location::geometry, ${sql.raw(zoomToGrid(zoom))}) AS location`.mapWith(
-            locationsTable.location,
-          ),
+          location,
           // I should use some sort of softmax function here?
-          weight: sql<number>`
-                CASE
-                    WHEN COUNT(*) > ${weightCap} THEN ${weightCap}
-                    ELSE COUNT(*)
-                END AS weight`.mapWith(Number),
+          weight,
         })
         .from(locationsTable)
         .$dynamic(),

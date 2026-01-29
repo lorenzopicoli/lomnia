@@ -28,7 +28,14 @@ export const locationChartRouter = t.router({
     return LocationChartService.getCitiesVisited(opts.input);
   }),
 
-  getVisitCountsByPlace: loggedProcedure.input(DateRange).query((opts) => {
-    return LocationChartService.getVisitCountsByPlace(opts.input);
+  getVisitCountsByPlace: loggedProcedure.input(DateRange).query(async (opts) => {
+    const places = await LocationChartService.getVisitCountsByPlace(opts.input);
+
+    return places.map((place) => ({
+      ...place,
+      // For now cap the length of the place visited name to 20 because
+      // some nominatim names are huge
+      name: place.name?.substring(0, 20),
+    }));
   }),
 });
