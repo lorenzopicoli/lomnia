@@ -37,7 +37,7 @@ export class PlacesOfInterestEnricher extends BaseEnricher {
       .from(placesOfInterestTable)
       .where(sql`
         ${placesOfInterestTable.id} = ${id} AND
-        ${locationsTable.locationDetailsId} IS NULL AND
+        ${locationsTable.locationDetailsId} <> ${locationDetailsId} AND
         ST_Contains(
             ${placesOfInterestTable.polygon},
             ${locationsTable.location}::geometry
