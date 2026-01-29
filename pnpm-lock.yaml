@@ -139,7 +139,7 @@ importers:
         specifier: ^6.1.0
         version: 6.1.2
       tsx:
-        specifier: ^4.21.0
+        specifier: ^4.20.6
         version: 4.21.0
 
   frontend:
