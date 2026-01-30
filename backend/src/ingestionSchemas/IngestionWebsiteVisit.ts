@@ -77,13 +77,23 @@ export const IngestionWebsiteVisit = z
       description: "The website that was visited",
     }),
 
-    fromVisitId: z.string().meta({
-      description: "The previous visit that led to this one",
-    }),
+    fromVisitId: z
+      .string()
+      .meta({
+        description: "The previous visit that led to this one",
+      })
+      .optional(),
 
     type: WebsiteVisitType.meta({
       description: "How the visit was initiated",
-    }),
+    }).optional(),
+
+    fileDownloaded: z
+      .string()
+      .meta({
+        description: "The file downloaded as a result of this visit",
+      })
+      .optional(),
 
     recordedAt: z.iso.datetime().meta({
       description: "The date at which the website was visited, in UTC time",
