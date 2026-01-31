@@ -5,10 +5,12 @@ export async function up(knex: Knex): Promise<void> {
     table.increments();
     table.string("external_id").notNullable().unique().index();
     table.string("source");
-    table.string("url").notNullable().index();
-    table.string("title");
-    table.string("description");
-    table.string("preview_image_url");
+    table.text("url").notNullable().index();
+    table.text("host").index();
+    // Use text to allow for longer texts
+    table.text("title");
+    table.text("description");
+    table.text("preview_image_url");
     table.integer("import_job_id").references("import_jobs.id").notNullable();
 
     table.timestamp("recorded_at");
@@ -21,8 +23,8 @@ export async function up(knex: Knex): Promise<void> {
     table.string("source");
     table.string("file_downloaded");
     table.string("type");
-    table.string("website_external_id").references("websites.external_id").notNullable().index();
-    table.string("from_visit_external_id").references("websites_visits.external_id");
+    table.string("website_external_id").references("websites.external_id").notNullable().index().deferrable("deferred");
+    table.string("from_visit_external_id");
 
     table.timestamp("recorded_at").notNullable().index();
 

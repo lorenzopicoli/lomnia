@@ -1,5 +1,6 @@
 import * as fs from "node:fs";
 import readline from "node:readline";
+import { Transform } from "node:stream";
 import zlib from "node:zlib";
 import { eq } from "drizzle-orm";
 import type { PgTransactionConfig } from "drizzle-orm/pg-core";
@@ -12,8 +13,17 @@ import { DeviceIngester } from "./DeviceIngester";
 import { DeviceStatusIngester } from "./DeviceStatusIngester";
 import { HabitIngester } from "./HabitIngester";
 import { LocationIngester } from "./LocationIngester";
+import { WebsiteIngester } from "./WebsiteIngester";
+import { WebsiteVisitIngester } from "./WebsiteVisitIngester";
 
-const ingestersClasses = [LocationIngester, DeviceStatusIngester, DeviceIngester, HabitIngester];
+const ingestersClasses = [
+  LocationIngester,
+  DeviceStatusIngester,
+  DeviceIngester,
+  HabitIngester,
+  WebsiteIngester,
+  WebsiteVisitIngester,
+];
 
 const logger = new Logger("IngesterIndex");
 
@@ -30,6 +40,7 @@ async function ingest(params: { data: unknown; ingesters: Ingester<unknown, unkn
 }
 
 export async function ingestFile(filePath: string, queuePayload: unknown) {
+  let lineCount = 0;
   try {
     logger.info("Starting Ingestion", {
       filePath,
@@ -43,7 +54,6 @@ export async function ingestFile(filePath: string, queuePayload: unknown) {
       accessMode: "read write",
       deferrable: true,
     };
-    let lineCount = 0;
     let lastLogAt = Date.now();
     const LOG_EVERY_LINES = 50_000;
     const LOG_EVERY_MS = 5_000;
@@ -66,9 +76,23 @@ export async function ingestFile(filePath: string, queuePayload: unknown) {
 
       const ingesterInstances = ingestersClasses.map((c) => new c(placeholderJobId.id, tx));
 
+      const sanitizedStream = fileStream.pipe(gunzip).pipe(
+        new Transform({
+          transform(chunk, _enc, cb) {
+            cb(
+              null,
+              // Get rid of some unicode characters that break the parsing
+              chunk
+                .toString("utf8")
+                .replace(/\u2028/g, "\\u2028")
+                .replace(/\u2029/g, "\\u2029"),
+            );
+          },
+        }),
+      );
       const rl = readline.createInterface({
-        input: fileStream.pipe(gunzip),
-        crlfDelay: Infinity, // handles \r\n and \n
+        input: sanitizedStream,
+        crlfDelay: Infinity,
       });
 
       for await (const line of rl) {
@@ -121,6 +145,7 @@ export async function ingestFile(filePath: string, queuePayload: unknown) {
         .where(eq(importJobsTable.id, placeholderJobId.id));
     }, transactionConfig);
   } catch (e) {
+    logger.error("Failed on line", { lineCount });
     console.log(e);
     throw e;
   }

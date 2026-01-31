@@ -20,6 +20,11 @@ export const websitesTable = pgTable("websites", {
   url: text("url").notNull(),
 
   /**
+   * The host part of the URL
+   */
+  host: text("host"),
+
+  /**
    * Human-readable title extracted or provided by the source
    */
   title: text("title"),

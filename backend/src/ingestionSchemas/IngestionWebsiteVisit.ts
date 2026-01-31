@@ -62,12 +62,9 @@ export const IngestionWebsiteVisit = z
       description: "The version of the schema used",
     }),
 
-    id: z
-      .string()
-      .meta({
-        description: "Unique identifier for the location record. Must be stable across multiple extractions",
-      })
-      .optional(),
+    id: z.string().meta({
+      description: "Unique identifier for the location record. Must be stable across multiple extractions",
+    }),
 
     source: z.string().meta({
       description: "The application source used to get this",

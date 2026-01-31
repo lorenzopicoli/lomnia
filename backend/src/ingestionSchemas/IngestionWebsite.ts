@@ -10,12 +10,9 @@ export const IngestionWebsite = z
       description: "The version of the schema used",
     }),
 
-    id: z
-      .string()
-      .meta({
-        description: "Unique identifier for the location record. Must be stable across multiple extractions",
-      })
-      .optional(),
+    id: z.string().meta({
+      description: "Unique identifier for the location record. Must be stable across multiple extractions",
+    }),
 
     source: z.string().meta({
       description: "The application source used to get this",
@@ -24,6 +21,13 @@ export const IngestionWebsite = z
     url: z.string().meta({
       description: "The URL of the website",
     }),
+
+    host: z
+      .string()
+      .meta({
+        description: "The host part of the URL",
+      })
+      .optional(),
 
     title: z
       .string()
