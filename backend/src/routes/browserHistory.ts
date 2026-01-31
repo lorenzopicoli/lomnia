@@ -10,7 +10,9 @@ export const browserHistoryChartRouter = t.router({
     const data = await BrowserHistoryChartService.getMostVisitedPages(opts.input);
     return data.map((d) => ({
       ...d,
-      url: d.url.replace("http://", "").replace("https://", "").replace("www.", ""),
+      url:
+        d.url.replace("http://", "").replace("https://", "").replace("www.", "").substring(0, 50) +
+        (d.url.length > 50 ? "..." : ""),
     }));
   }),
 });

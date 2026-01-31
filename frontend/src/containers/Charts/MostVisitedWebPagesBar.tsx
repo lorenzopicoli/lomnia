@@ -22,13 +22,22 @@ export function MostVisitedWebPagesBar(props: ChartProps) {
         trigger: "axis",
         formatter: (params: any[]) => {
           const p = params[0];
-          const { title, url, value } = p.data;
+          const { title, url } = p.data;
 
           return `
-        <strong>${title ?? url}</strong><br/>
-        ${url}<br/>
-        Visits: ${value}
-      `;
+          <strong>${title ?? url}</strong><br/>
+          ${url}<br/>
+          Visits: ${p.value}
+        `;
+        },
+      },
+
+      xAxis: {
+        type: "category",
+        data: mapData.map((d) => d.url),
+        axisLabel: {
+          interval: 0,
+          rotate: 30,
         },
       },
 
@@ -36,18 +45,16 @@ export function MostVisitedWebPagesBar(props: ChartProps) {
         type: "value",
       },
 
-      xAxis: {
-        type: "category",
-        data: mapData.map((d) => d.url),
-      },
-
       series: [
         {
-          colorBy: "data",
-
           type: "bar",
           name: "# of visits",
-          data: mapData.map((d) => d.visits),
+          colorBy: "data",
+          data: mapData.map((d) => ({
+            value: d.visits,
+            title: d.title,
+            url: d.url,
+          })),
         },
       ],
     };
