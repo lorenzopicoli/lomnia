@@ -23,6 +23,10 @@
       "type": "string",
       "description": "The URL of the website"
     },
+    "host": {
+      "type": "string",
+      "description": "The host part of the URL"
+    },
     "title": {
       "type": "string",
       "description": "The title of the website"
