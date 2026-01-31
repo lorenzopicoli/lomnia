@@ -7,6 +7,8 @@ import { CountriesVisitedBar } from "../../containers/Charts/CountriesVisitedBar
 import { CountriesVisitedMap } from "../../containers/Charts/CountriesVisitedMap";
 import { CountriesVisitedPie } from "../../containers/Charts/CountriesVisitedPie";
 import { HeartRateMinMaxAvg } from "../../containers/Charts/HeartRateMinMaxAvg";
+import { MostVisitedWebPagesBar } from "../../containers/Charts/MostVisitedWebPagesBar";
+import { MostVisitedWebPagesPie } from "../../containers/Charts/MostVisitedWebPagesPie";
 import { NumberHabitCalendarHeatmap } from "../../containers/Charts/NumberHabitCalendarHeatmap";
 import { PlacesVisitCountBar } from "../../containers/Charts/PlacesVisitCountBar";
 import { PrecipitationExperienced } from "../../containers/Charts/PrecipitationExperienced";
@@ -98,6 +100,12 @@ function ChartSwitcher(props: ChartDisplayerProps) {
     case ChartId.PlacesVisitCountBar: {
       return <PlacesVisitCountBar {...props} />;
     }
+    case ChartId.MostVisitedWebPagesBar: {
+      return <MostVisitedWebPagesBar {...props} />;
+    }
+    case ChartId.MostVisitedWebPagesPie: {
+      return <MostVisitedWebPagesPie {...props} />;
+    }
     case ChartId.TextHabitBar: {
       const habitKey = props.habitKey;
       if (!habitKey) {
@@ -149,6 +157,12 @@ const chartOptions = {
     componentHandlesTitle: false,
   },
   [ChartId.TextHabitBar]: {
+    componentHandlesTitle: false,
+  },
+  [ChartId.MostVisitedWebPagesBar]: {
+    componentHandlesTitle: false,
+  },
+  [ChartId.MostVisitedWebPagesPie]: {
     componentHandlesTitle: false,
   },
 } as const;

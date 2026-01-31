@@ -45,25 +45,29 @@ export enum ChartId {
   CitiesVisitedPie = "citiesVisitedPie",
   PlacesVisitCountBar = "placesVisitCountBar",
   TextHabitBar = "textHabitBar",
+  MostVisitedWebPagesBar = "mostVisitedWebPagesBar",
+  MostVisitedWebPagesPie = "mostVisitedWebPagesPie",
 }
 
 export type ChartParams = "habitKey" | "countKey" | "compactNumbers" | "aggFun";
 
 export const chartParamByChartId: Record<ChartId, ChartParams[]> = {
+  [ChartId.NumberHabitCalendarHeatmap]: ["habitKey", "aggFun"],
+  [ChartId.TextHabitCoocurrencesChord]: ["habitKey"],
+  [ChartId.Count]: ["countKey", "compactNumbers"],
+  [ChartId.TextHabitBar]: ["habitKey"],
   [ChartId.TemperatureExperienced]: [],
   [ChartId.HeartRateMinMaxAvg]: [],
   [ChartId.PrecipitationExperienced]: [],
   [ChartId.RainHeatmap]: [],
-  [ChartId.NumberHabitCalendarHeatmap]: ["habitKey", "aggFun"],
-  [ChartId.TextHabitCoocurrencesChord]: ["habitKey"],
-  [ChartId.Count]: ["countKey", "compactNumbers"],
   [ChartId.CountriesVisitedMap]: [],
   [ChartId.CountriesVisitedBar]: [],
   [ChartId.CountriesVisitedPie]: [],
   [ChartId.CitiesVisitedBar]: [],
   [ChartId.CitiesVisitedPie]: [],
   [ChartId.PlacesVisitCountBar]: [],
-  [ChartId.TextHabitBar]: ["habitKey"],
+  [ChartId.MostVisitedWebPagesBar]: [],
+  [ChartId.MostVisitedWebPagesPie]: [],
 };
 
 const aggregationPeriods = ["month", "day", "week", "hour"] as const;
@@ -105,6 +109,7 @@ export enum ChartSource {
   HeartRate = "heartRate",
   Location = "location",
   Meta = "meta",
+  WebBrowser = "webBrowser",
 }
 
 export enum ChartElement {
@@ -123,30 +128,35 @@ export function chartSourceTitleAndDescription(source: ChartSource): {
   description: string;
 } {
   switch (source) {
-    case ChartSource.Weather:
+    case ChartSource.Location:
       return {
-        title: "Weather",
-        description: "Weather data of the location of the user",
+        title: "Location data",
+        description: "Data that was recorded by your GPS",
       };
     case ChartSource.Habit:
       return {
         title: "Habit",
         description: "Habit data tracked by the user",
       };
-    case ChartSource.HeartRate:
+    case ChartSource.WebBrowser:
       return {
-        title: "Heart Rate",
-        description: "Heart rate data collected",
+        title: "Web browser",
+        description: "Data that was recorded by your browser",
+      };
+    case ChartSource.Weather:
+      return {
+        title: "Weather",
+        description: "Weather data of the location of the user",
       };
     case ChartSource.Meta:
       return {
         title: "Meta Information",
         description: "Data on the system (eg. number of entries collected)",
       };
-    case ChartSource.Location:
+    case ChartSource.HeartRate:
       return {
-        title: "Location data",
-        description: "Data that was recorded by your GPS",
+        title: "Heart Rate",
+        description: "Heart rate data collected",
       };
   }
 }
@@ -242,5 +252,19 @@ export const availableCharts = [
     description: "Explore the occurences of a text in your habit features",
     sources: [ChartSource.Habit],
     elements: [ChartElement.Bar],
+  },
+  {
+    id: ChartId.MostVisitedWebPagesBar,
+    title: "Bar Chart of the most visited web page",
+    description: "Explore the which web pages you've visited the most",
+    sources: [ChartSource.WebBrowser],
+    elements: [ChartElement.Bar],
+  },
+  {
+    id: ChartId.MostVisitedWebPagesPie,
+    title: "Pie Chart of the most visited web page",
+    description: "Explore the which web pages you've visited the most",
+    sources: [ChartSource.WebBrowser],
+    elements: [ChartElement.Pie],
   },
 ];

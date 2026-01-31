@@ -57,6 +57,8 @@ export const chartPreviewSize: Record<ChartId, { height: string | number; width:
   [ChartId.CitiesVisitedPie]: { height: "100%", width: "100%" },
   [ChartId.PlacesVisitCountBar]: { height: "100%", width: "100%" },
   [ChartId.TextHabitBar]: { height: "100%", width: "100%" },
+  [ChartId.MostVisitedWebPagesBar]: { height: "100%", width: "100%" },
+  [ChartId.MostVisitedWebPagesPie]: { height: "100%", width: "100%" },
 };
 
 export function AddChartContainer(props: AddChartProps) {

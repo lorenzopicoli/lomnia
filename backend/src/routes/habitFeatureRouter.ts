@@ -35,7 +35,7 @@ export const habitFeaturesRouter = t.router({
       }),
     )
     .mutation(async (opts) => {
-      const feature = await validateNewHabitFeature(opts.input);
+      const feature = validateNewHabitFeature(opts.input);
       if (opts.input.id) {
         await HabitFeaturesService.update(opts.input.id, feature);
       } else {

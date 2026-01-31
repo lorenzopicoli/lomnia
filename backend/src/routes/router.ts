@@ -1,3 +1,4 @@
+import { browserHistoryChartRouter } from "./browserHistory";
 import { chartCountsRouter } from "./chartCountsRouter";
 import { dashboardsRouter } from "./dashboardsRouter";
 import { diaryEntriesRouter } from "./diaryEntiesRouter";
@@ -21,6 +22,7 @@ export const appRouter = t.router({
     habits: habitFeaturesChartRouter,
     heartRate: heartRateChartRouter,
     locations: locationChartRouter,
+    browserHistory: browserHistoryChartRouter,
     counts: chartCountsRouter,
   },
 });

@@ -57,8 +57,8 @@ Lomnia integrates with a wide variety of data sources:
 - ✅ **Location Details**: User defined points of interest
 - ✅ **Obsidian**: Integration with Obsidian daily notes and files
 - ✅ **[Hares](https://github.com/lorenzopicoli/hares)**: Integration with Hares for habit tracking
+- ✅ **Browser History**
 - ⬜ **Finance**: Beancount double-entry bookkeeping with custom importers
-- ⬜ **Browser History**
 
 ## Project Status
 

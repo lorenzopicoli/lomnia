@@ -1,4 +1,5 @@
 import z from "zod";
+import { BrowserHistoryChartService } from "../services/browserHistory";
 import { DiaryEntriesService } from "../services/diaryEntries";
 import { HabitsService } from "../services/habits/habits";
 import { LocationChartService } from "../services/locations/locations";
@@ -14,6 +15,8 @@ const countKeys = [
   "totalFileEntries",
   "uniqueHabits",
   "totalHabitsEntries",
+  "websites",
+  "websitesVisits",
 ] as const;
 
 export const chartCountsRouter = t.router({
@@ -47,6 +50,10 @@ export const chartCountsRouter = t.router({
           return HabitsService.uniqueHabitsCount();
         case "totalHabitsEntries":
           return HabitsService.getCount();
+        case "websites":
+          return BrowserHistoryChartService.getWebsitesCount();
+        case "websitesVisits":
+          return BrowserHistoryChartService.getWebsitesVisitsCount();
         default:
           return 0;
       }
