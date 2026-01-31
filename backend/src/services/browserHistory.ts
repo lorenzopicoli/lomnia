@@ -48,6 +48,24 @@ class BrowserHistoryChartServiceInternal {
       .orderBy(desc(count(websitesVisitsTable.id)))
       .limit(config.charts.browserHistory.limit);
   }
+
+  public async dailyVisits(params: DateRange) {
+    const { start, end } = params;
+    return db
+      .select({
+        day: sql`(${websitesVisitsTable.recordedAt} AT TIME ZONE ${websitesVisitsTable.timezone})::date`
+          .mapWith(String)
+          .as("day"),
+        // .mapWith(String),
+        visits: count(websitesVisitsTable.id),
+      })
+      .from(websitesVisitsTable)
+      .where(
+        and(gte(websitesVisitsTable.recordedAt, start.toJSDate()), lte(websitesVisitsTable.recordedAt, end.toJSDate())),
+      )
+      .groupBy(sql`(${websitesVisitsTable.recordedAt} AT TIME ZONE ${websitesVisitsTable.timezone})::date`)
+      .orderBy(sql`day ASC`);
+  }
 }
 
 export const BrowserHistoryChartService = new BrowserHistoryChartServiceInternal();

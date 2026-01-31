@@ -16,6 +16,7 @@ import { RainHeatmap } from "../../containers/Charts/RainHeatmap";
 import { TemperatureExperienced } from "../../containers/Charts/TemperatureExperienced";
 import { TextHabitBar } from "../../containers/Charts/TextHabitBar";
 import { TextHabitCoocurrencesChord } from "../../containers/Charts/TextHabitCoocurrencesChord";
+import { WebsitesVisitsCalendarHeatmap } from "../../containers/Charts/WebsitesVisitsCalendarHeatmap";
 import { cardDarkBackground } from "../../themes/mantineThemes";
 import { ChartPlaceholder } from "../ChartPlaceholder/ChartPlaceholder";
 
@@ -106,6 +107,9 @@ function ChartSwitcher(props: ChartDisplayerProps) {
     case ChartId.MostVisitedWebPagesPie: {
       return <MostVisitedWebPagesPie {...props} />;
     }
+    case ChartId.WebsitesVisitsCalendarHeatmap: {
+      return <WebsitesVisitsCalendarHeatmap {...props} />;
+    }
     case ChartId.TextHabitBar: {
       const habitKey = props.habitKey;
       if (!habitKey) {
@@ -163,6 +167,9 @@ const chartOptions = {
     componentHandlesTitle: false,
   },
   [ChartId.MostVisitedWebPagesPie]: {
+    componentHandlesTitle: false,
+  },
+  [ChartId.WebsitesVisitsCalendarHeatmap]: {
     componentHandlesTitle: false,
   },
 } as const;

@@ -15,4 +15,7 @@ export const browserHistoryChartRouter = t.router({
         (d.url.length > 50 ? "..." : ""),
     }));
   }),
+  dailyVisits: loggedProcedure.input(DateRange.required()).query(async (opts) => {
+    return BrowserHistoryChartService.dailyVisits(opts.input);
+  }),
 });

@@ -47,6 +47,7 @@ export enum ChartId {
   TextHabitBar = "textHabitBar",
   MostVisitedWebPagesBar = "mostVisitedWebPagesBar",
   MostVisitedWebPagesPie = "mostVisitedWebPagesPie",
+  WebsitesVisitsCalendarHeatmap = "websitesVisitsCalendarHeatmap",
 }
 
 export type ChartParams = "habitKey" | "countKey" | "compactNumbers" | "aggFun";
@@ -68,6 +69,7 @@ export const chartParamByChartId: Record<ChartId, ChartParams[]> = {
   [ChartId.PlacesVisitCountBar]: [],
   [ChartId.MostVisitedWebPagesBar]: [],
   [ChartId.MostVisitedWebPagesPie]: [],
+  [ChartId.WebsitesVisitsCalendarHeatmap]: [],
 };
 
 const aggregationPeriods = ["month", "day", "week", "hour"] as const;
@@ -256,15 +258,22 @@ export const availableCharts = [
   {
     id: ChartId.MostVisitedWebPagesBar,
     title: "Bar Chart of the most visited web page",
-    description: "Explore the which web pages you've visited the most",
+    description: "Explore which web pages you've visited the most",
     sources: [ChartSource.WebBrowser],
     elements: [ChartElement.Bar],
   },
   {
     id: ChartId.MostVisitedWebPagesPie,
     title: "Pie Chart of the most visited web page",
-    description: "Explore the which web pages you've visited the most",
+    description: "Explore which web pages you've visited the most",
     sources: [ChartSource.WebBrowser],
     elements: [ChartElement.Pie],
+  },
+  {
+    id: ChartId.WebsitesVisitsCalendarHeatmap,
+    title: "Calendar heatmap of web pages visited",
+    description: "Explore how many web pages you've visited",
+    sources: [ChartSource.WebBrowser],
+    elements: [ChartElement.CalendarHeatmap],
   },
 ];
