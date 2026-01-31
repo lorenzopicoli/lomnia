@@ -1,0 +1,66 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "entityType": {
+      "type": "string",
+      "const": "websiteVisit",
+      "description": "Entity discriminator"
+    },
+    "version": {
+      "type": "string",
+      "description": "The version of the schema used"
+    },
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the location record. Must be stable across multiple extractions"
+    },
+    "source": {
+      "type": "string",
+      "description": "The application source used to get this"
+    },
+    "websiteId": {
+      "type": "string",
+      "description": "The website that was visited"
+    },
+    "fromVisitId": {
+      "type": "string",
+      "description": "The previous visit that led to this one"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "link",
+        "typed",
+        "bookmark",
+        "embed",
+        "redirectPermanent",
+        "redirectTemporary",
+        "download",
+        "framedLink",
+        "reload"
+      ],
+      "description": "How the visit was initiated"
+    },
+    "fileDownloaded": {
+      "type": "string",
+      "description": "The file downloaded as a result of this visit"
+    },
+    "recordedAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
+      "description": "The date at which the website was visited, in UTC time"
+    }
+  },
+  "required": [
+    "entityType",
+    "version",
+    "source",
+    "websiteId",
+    "recordedAt"
+  ],
+  "additionalProperties": false,
+  "title": "Website Visit",
+  "description": "Represents a visit to a website"
+}

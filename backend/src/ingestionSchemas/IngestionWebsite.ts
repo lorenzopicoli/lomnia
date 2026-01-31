@@ -2,7 +2,7 @@ import * as z from "zod";
 
 export const IngestionWebsite = z
   .object({
-    entityType: z.literal("location").meta({
+    entityType: z.literal("website").meta({
       description: "Entity discriminator",
     }),
 
@@ -46,9 +46,12 @@ export const IngestionWebsite = z
       })
       .optional(),
 
-    recordedAt: z.iso.datetime().meta({
-      description: "The date at which the website was recorded, in UTC time",
-    }),
+    recordedAt: z.iso
+      .datetime()
+      .meta({
+        description: "The date at which the website was recorded, in UTC time",
+      })
+      .optional(),
   })
   .meta({
     title: "Website",

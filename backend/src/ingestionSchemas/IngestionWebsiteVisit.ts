@@ -54,7 +54,7 @@ export const WebsiteVisitType = z.enum([
 
 export const IngestionWebsiteVisit = z
   .object({
-    entityType: z.literal("location").meta({
+    entityType: z.literal("websiteVisit").meta({
       description: "Entity discriminator",
     }),
 
@@ -106,4 +106,4 @@ export const IngestionWebsiteVisit = z
 
 export default IngestionWebsiteVisit;
 export type IngestionWebsiteVisit = z.infer<typeof IngestionWebsiteVisit>;
-export const fileName = "website.schema.json";
+export const fileName = "website_visit.schema.json";
