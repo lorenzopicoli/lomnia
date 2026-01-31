@@ -1,9 +1,10 @@
-import { count, desc, eq, sql, sum } from "drizzle-orm";
+import { and, count, desc, eq, gte, lte, sql, sum } from "drizzle-orm";
 import type { PgSelectHKT, PgSelectQueryBuilder } from "drizzle-orm/pg-core";
+import type { DateTime } from "luxon";
 import z from "zod";
 import config from "../../config";
 import { db } from "../../db/connection";
-import type { Point } from "../../db/types";
+import type { DBTransaction, Point } from "../../db/types";
 import { isNumber } from "../../helpers/isNumber";
 import { locationsTable } from "../../models";
 import { locationDetailsTable } from "../../models/LocationDetails";
@@ -12,7 +13,6 @@ import { LuxonDateTime } from "../../types/zodTypes";
 import { getCountryName } from "../common/getCountryName";
 import { getIslandsCte } from "./gapsAndIslands";
 
-export namespace LocationService {}
 export const HeatmapInput = z
   .object({
     topLeftLat: z.coerce.number(),
@@ -31,6 +31,24 @@ export const HeatmapInput = z
     bottomRightLng: true,
     zoom: true,
   });
+
+export class LocationServiceInternal {
+  public async getTimezoneForDate(tx: DBTransaction, date: DateTime): Promise<{ timezone: string } | undefined> {
+    return tx
+      .select({ timezone: locationsTable.timezone })
+      .from(locationsTable)
+      .where(
+        and(
+          // Within a day of the requested date
+          gte(locationsTable.recordedAt, date.minus({ day: 1 }).toJSDate()),
+          lte(locationsTable.recordedAt, date.plus({ day: 1 }).toJSDate()),
+        ),
+      )
+      .orderBy(sql`ABS(EXTRACT(EPOCH FROM ${locationsTable.recordedAt} - ${date.toISO()}))`)
+      .limit(1)
+      .then((result) => result[0]);
+  }
+}
 
 export class LocationChartServiceInternal {
   /**
@@ -237,3 +255,4 @@ export class LocationChartServiceInternal {
 }
 
 export const LocationChartService = new LocationChartServiceInternal();
+export const LocationService = new LocationServiceInternal();

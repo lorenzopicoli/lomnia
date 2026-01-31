@@ -39,6 +39,11 @@ export const websitesVisitsTable = pgTable("websites_visits", {
   fromVisitExternalId: text("from_visit_external_id"),
 
   /**
+   * The timezone at the time of the visit
+   */
+  timezone: text("timezone"),
+
+  /**
    * The date at which the visit occurred, in UTC time
    */
   recordedAt: timestamp("recorded_at").notNull(),

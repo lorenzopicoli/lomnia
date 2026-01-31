@@ -44,6 +44,14 @@ export default {
         apiCallsDelay: 1000,
       },
     },
+    timezone: {
+      enabled: true,
+      /**
+       * How long each session can run on each cycle. In seconds.
+       * Defaults to 10 min
+       */
+      maxImportSessionDuration: 10 * 60,
+    },
   },
   importers: {
     habits: {

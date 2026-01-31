@@ -6,6 +6,7 @@ import { HabitFeatureEnricher } from "./habitFeature/HabitFeatureEnricher";
 import { NominatimEnricher } from "./nominatim/NominatimEnricher";
 import { OpenMeteoEnricher } from "./openMeteo/OpenMeteoEnricher";
 import { PlacesOfInterestEnricher } from "./placesOfInterest/PlacesOfInterestEnricher";
+import { TimezoneEnricher } from "./timezone/TimezoneEnricher";
 
 export class EnrichmentManager {
   private logger = new Logger("EnrichmentManager");
@@ -15,6 +16,7 @@ export class EnrichmentManager {
     new PlacesOfInterestEnricher(),
     new OpenMeteoEnricher(),
     new NominatimEnricher(),
+    new TimezoneEnricher(),
   ];
 
   public async schedule(ms: number) {
