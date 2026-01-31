@@ -21,8 +21,8 @@ export async function up(knex: Knex): Promise<void> {
     table.string("source");
     table.string("file_downloaded");
     table.string("type");
-    table.integer("website_id").references("websites.id").notNullable().index();
-    table.integer("from_visit_id").references("websites_visits.id");
+    table.string("website_external_id").references("websites.external_id").notNullable().index();
+    table.string("from_visit_external_id").references("websites_visits.external_id");
 
     table.timestamp("recorded_at").notNullable().index();
 
@@ -32,6 +32,6 @@ export async function up(knex: Knex): Promise<void> {
 }
 
 export async function down(knex: Knex): Promise<void> {
-  await knex.schema.dropTable("websites");
   await knex.schema.dropTable("websites_visits");
+  await knex.schema.dropTable("websites");
 }
