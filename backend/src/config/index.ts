@@ -167,11 +167,19 @@ export default {
       limit: 20,
     },
     browserHistory: {
-      /**
-       * How many values are shown in the chart
-       */
-      limit: 20,
+      mostVisited: {
+        /**
+         * How many values are shown in the chart
+         */
+        limit: 20,
+      },
 
+      navigationFlow: {
+        /**
+         * How many values are shown in the chart
+         */
+        limit: 20,
+      },
       /**
        * Should localhost be filtered out from the stats?
        */
