@@ -7,7 +7,7 @@ export abstract class Ingester<SchemaModel, NewRowModel> {
   constructor(
     public readonly importJobId: number,
     public readonly tx: DBTransaction,
-    public readonly batchSize: number = 1,
+    public readonly batchSize: number = 300,
   ) {}
 
   protected abstract isIngestable(raw: unknown): { isIngestable: boolean; parsed?: SchemaModel };
