@@ -15,6 +15,9 @@ export const browserHistoryChartRouter = t.router({
         (d.url.length > 50 ? "..." : ""),
     }));
   }),
+  getMostVisitedHosts: loggedProcedure.input(DateRange.required()).query(async (opts) => {
+    return BrowserHistoryChartService.getMostVisitedHosts(opts.input);
+  }),
   dailyVisits: loggedProcedure.input(DateRange.required()).query(async (opts) => {
     return BrowserHistoryChartService.dailyVisits(opts.input);
   }),

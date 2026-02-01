@@ -34,6 +34,7 @@ export enum ChartId {
   TextHabitBar = "textHabitBar",
   MostVisitedWebPagesBar = "mostVisitedWebPagesBar",
   MostVisitedWebPagesPie = "mostVisitedWebPagesPie",
+  MostVisitedHostsPie = "mostVisitedHostsPie",
   WebsitesVisitsCalendarHeatmap = "websitesVisitsCalendarHeatmap",
 }
 
@@ -54,16 +55,17 @@ export const chartParamByChartId: Record<ChartId, ChartParams[]> = {
   [ChartId.PlacesVisitCountBar]: [],
   [ChartId.MostVisitedWebPagesBar]: [],
   [ChartId.MostVisitedWebPagesPie]: [],
+  [ChartId.MostVisitedHostsPie]: [],
   [ChartId.WebsitesVisitsCalendarHeatmap]: [],
 };
 
 export enum ChartSource {
   Weather = "weather",
+  WebBrowser = "webBrowser",
   Habit = "habit",
   HeartRate = "heartRate",
   Location = "location",
   Meta = "meta",
-  WebBrowser = "webBrowser",
 }
 
 export function chartSourceTitleAndDescription(source: ChartSource): {
@@ -211,6 +213,13 @@ export const availableCharts = [
     elements: [ChartElement.Pie],
   },
   {
+    id: ChartId.MostVisitedHostsPie,
+    title: "Pie Chart of the most visited websites",
+    description: "Explore which websites you've visited the most",
+    sources: [ChartSource.WebBrowser],
+    elements: [ChartElement.Pie],
+  },
+  {
     id: ChartId.WebsitesVisitsCalendarHeatmap,
     title: "Calendar heatmap of web pages visited",
     description: "Explore how many web pages you've visited",
@@ -241,6 +250,7 @@ export const chartPreviewSize: Record<ChartId, { height: string | number; width:
   [ChartId.TextHabitBar]: { height: "100%", width: "100%" },
   [ChartId.MostVisitedWebPagesBar]: { height: "100%", width: "100%" },
   [ChartId.MostVisitedWebPagesPie]: { height: "100%", width: "100%" },
+  [ChartId.MostVisitedHostsPie]: { height: "100%", width: "100%" },
 };
 
 export const chartDisplayerOptions = {
@@ -293,6 +303,9 @@ export const chartDisplayerOptions = {
     componentHandlesTitle: false,
   },
   [ChartId.WebsitesVisitsCalendarHeatmap]: {
+    componentHandlesTitle: false,
+  },
+  [ChartId.MostVisitedHostsPie]: {
     componentHandlesTitle: false,
   },
 } as const;

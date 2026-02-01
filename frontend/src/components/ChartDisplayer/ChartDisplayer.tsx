@@ -7,6 +7,7 @@ import { CountriesVisitedBar } from "../../containers/Charts/CountriesVisitedBar
 import { CountriesVisitedMap } from "../../containers/Charts/CountriesVisitedMap";
 import { CountriesVisitedPie } from "../../containers/Charts/CountriesVisitedPie";
 import { HeartRateMinMaxAvg } from "../../containers/Charts/HeartRateMinMaxAvg";
+import { MostVisitedHostsPie } from "../../containers/Charts/MostVisitedHostsPie";
 import { MostVisitedWebPagesBar } from "../../containers/Charts/MostVisitedWebPagesBar";
 import { MostVisitedWebPagesPie } from "../../containers/Charts/MostVisitedWebPagesPie";
 import { NumberHabitCalendarHeatmap } from "../../containers/Charts/NumberHabitCalendarHeatmap";
@@ -106,6 +107,9 @@ function ChartSwitcher(props: ChartDisplayerProps) {
     }
     case ChartId.MostVisitedWebPagesPie: {
       return <MostVisitedWebPagesPie {...props} />;
+    }
+    case ChartId.MostVisitedHostsPie: {
+      return <MostVisitedHostsPie {...props} />;
     }
     case ChartId.WebsitesVisitsCalendarHeatmap: {
       return <WebsitesVisitsCalendarHeatmap {...props} />;

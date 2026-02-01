@@ -49,6 +49,30 @@ class BrowserHistoryChartServiceInternal {
       .limit(config.charts.browserHistory.limit);
   }
 
+  public async getMostVisitedHosts(params: DateRange) {
+    const { start, end } = params;
+    const filterOutLocalhost = config.charts.browserHistory.filterOutLocalhost
+      ? sql`${websitesTable.url} NOT ILIKE 'http://localhost%'`
+      : sql`1=1`;
+    return db
+      .select({
+        host: websitesTable.host,
+        visits: count(websitesTable.host),
+      })
+      .from(websitesVisitsTable)
+      .innerJoin(websitesTable, eq(websitesTable.externalId, websitesVisitsTable.websiteExternalId))
+      .where(
+        and(
+          gte(websitesVisitsTable.recordedAt, start.toJSDate()),
+          lte(websitesVisitsTable.recordedAt, end.toJSDate()),
+          filterOutLocalhost,
+        ),
+      )
+      .groupBy(websitesTable.host)
+      .orderBy(desc(count(websitesVisitsTable.id)))
+      .limit(config.charts.browserHistory.limit);
+  }
+
   public async dailyVisits(params: DateRange) {
     const { start, end } = params;
     return db
