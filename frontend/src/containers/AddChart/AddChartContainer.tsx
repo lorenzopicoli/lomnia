@@ -8,8 +8,9 @@ import {
   type AggregationFunction,
   availableCharts,
   type ChartAreaConfig,
-  ChartId,
+  type ChartId,
   ChartSource,
+  chartPreviewSize,
 } from "../../charts/types";
 import { ChartDisplayer } from "../../components/ChartDisplayer/ChartDisplayer";
 import { ChartFeatures } from "../../components/ChartFeatures/ChartFeatures";
@@ -37,30 +38,6 @@ export type AddChartFormValues = {
 
 const initialSource = ChartSource.Weather;
 const stepperIconSize = 17;
-
-/**
- * How this chart should behave in the preview container. Think of this like
- * some sane defaults to make the chart look presentable when adding/configuring it
- */
-export const chartPreviewSize: Record<ChartId, { height: string | number; width: string | number }> = {
-  [ChartId.TemperatureExperienced]: { height: "100%", width: "100%" },
-  [ChartId.HeartRateMinMaxAvg]: { height: "100%", width: "100%" },
-  [ChartId.PrecipitationExperienced]: { height: "100%", width: "100%" },
-  [ChartId.RainHeatmap]: { height: 200, width: "100%" },
-  [ChartId.NumberHabitCalendarHeatmap]: { height: 200, width: "100%" },
-  [ChartId.WebsitesVisitsCalendarHeatmap]: { height: 200, width: "100%" },
-  [ChartId.Count]: { height: 250, width: 250 },
-  [ChartId.TextHabitCoocurrencesChord]: { height: "100%", width: "100%" },
-  [ChartId.CountriesVisitedMap]: { height: "100%", width: "100%" },
-  [ChartId.CountriesVisitedBar]: { height: "100%", width: "100%" },
-  [ChartId.CountriesVisitedPie]: { height: "100%", width: "100%" },
-  [ChartId.CitiesVisitedBar]: { height: "100%", width: "100%" },
-  [ChartId.CitiesVisitedPie]: { height: "100%", width: "100%" },
-  [ChartId.PlacesVisitCountBar]: { height: "100%", width: "100%" },
-  [ChartId.TextHabitBar]: { height: "100%", width: "100%" },
-  [ChartId.MostVisitedWebPagesBar]: { height: "100%", width: "100%" },
-  [ChartId.MostVisitedWebPagesPie]: { height: "100%", width: "100%" },
-};
 
 export function AddChartContainer(props: AddChartProps) {
   const [currentStep, setCurrentStep] = useState(0);

@@ -1,5 +1,5 @@
 import { Card, Text } from "@mantine/core";
-import { type AllChartsProps, ChartId } from "../../charts/types";
+import { type AllChartsProps, ChartId, chartDisplayerOptions } from "../../charts/types";
 import { CitiesVisitedBar } from "../../containers/Charts/CitiesVisitedBar";
 import { CitiesVisitedPie } from "../../containers/Charts/CitiesVisitedPie";
 import { CountCard } from "../../containers/Charts/CountCard";
@@ -25,10 +25,10 @@ interface ChartDisplayerProps extends AllChartsProps {
 }
 
 export function ChartDisplayer(props: ChartDisplayerProps) {
-  if (!chartOptions[props.chartId]) {
+  if (!chartDisplayerOptions[props.chartId]) {
     return <ChartPlaceholder noBg text={`Couldn't find the chart for "${props.chartId}"`} />;
   }
-  const { componentHandlesTitle } = chartOptions[props.chartId];
+  const { componentHandlesTitle } = chartDisplayerOptions[props.chartId];
   return (
     <Card
       bg={cardDarkBackground}
@@ -119,57 +119,3 @@ function ChartSwitcher(props: ChartDisplayerProps) {
     }
   }
 }
-
-const chartOptions = {
-  [ChartId.HeartRateMinMaxAvg]: {
-    componentHandlesTitle: false,
-  },
-  [ChartId.PrecipitationExperienced]: {
-    componentHandlesTitle: false,
-  },
-  [ChartId.TemperatureExperienced]: {
-    componentHandlesTitle: false,
-  },
-  [ChartId.RainHeatmap]: {
-    componentHandlesTitle: false,
-  },
-  [ChartId.NumberHabitCalendarHeatmap]: {
-    componentHandlesTitle: false,
-  },
-  [ChartId.Count]: {
-    componentHandlesTitle: true,
-  },
-  [ChartId.TextHabitCoocurrencesChord]: {
-    componentHandlesTitle: false,
-  },
-  [ChartId.CountriesVisitedMap]: {
-    componentHandlesTitle: false,
-  },
-  [ChartId.CountriesVisitedBar]: {
-    componentHandlesTitle: false,
-  },
-  [ChartId.CountriesVisitedPie]: {
-    componentHandlesTitle: false,
-  },
-  [ChartId.CitiesVisitedBar]: {
-    componentHandlesTitle: false,
-  },
-  [ChartId.CitiesVisitedPie]: {
-    componentHandlesTitle: false,
-  },
-  [ChartId.PlacesVisitCountBar]: {
-    componentHandlesTitle: false,
-  },
-  [ChartId.TextHabitBar]: {
-    componentHandlesTitle: false,
-  },
-  [ChartId.MostVisitedWebPagesBar]: {
-    componentHandlesTitle: false,
-  },
-  [ChartId.MostVisitedWebPagesPie]: {
-    componentHandlesTitle: false,
-  },
-  [ChartId.WebsitesVisitsCalendarHeatmap]: {
-    componentHandlesTitle: false,
-  },
-} as const;
