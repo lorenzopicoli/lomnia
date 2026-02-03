@@ -1,4 +1,4 @@
-import { ActionIcon, AspectRatio, Button, Container, Flex, Menu, ScrollArea, Space, Text, Title } from "@mantine/core";
+import { ActionIcon, Button, Container, Flex, Menu, ScrollArea, Space, Text, Title } from "@mantine/core";
 import { DatePicker } from "@mantine/dates";
 import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 import { format } from "date-fns";
@@ -7,10 +7,7 @@ import { isToday } from "date-fns/isToday";
 import { startOfDay } from "date-fns/startOfDay";
 import { useCallback, useEffect, useState } from "react";
 import { safeScrollableArea } from "../../constants";
-import { DiaryEntryContainer } from "../../containers/DiaryEntryContainer";
-import HeatmapContainer from "../../containers/HeatmapContainer";
 import PlacesVisitedTimelineContainer from "../../containers/PlacesVisitedTimelineContainer";
-import classes from "./Home.module.css";
 
 interface HomeMainProps {
   day: Date;
@@ -83,18 +80,9 @@ export default function HomeMain(props: HomeMainProps) {
             </Flex>
           </Menu>
         </Flex>
-        <Container w="100%" p={0}>
-          <DiaryEntryContainer date={day} />
-        </Container>
         <Flex flex={1} direction={"row"}>
           <Container pb={"xl"} pl={0} fluid maw={400}>
             <PlacesVisitedTimelineContainer date={day} onFilterChange={handleMapFilterChange} />
-          </Container>
-
-          <Container fluid h={500} flex={"1"}>
-            <AspectRatio ratio={1} mah={"75vh"} className={classes.map}>
-              <HeatmapContainer startDate={mapFilter.startDate} endDate={mapFilter.endDate} />
-            </AspectRatio>
           </Container>
         </Flex>
       </Flex>

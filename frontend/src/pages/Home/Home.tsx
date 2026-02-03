@@ -1,13 +1,10 @@
 import { Container, Paper } from "@mantine/core";
-import { Allotment } from "allotment";
 import { addDays, format, subDays } from "date-fns";
 import { parse } from "date-fns/parse";
 import { startOfDay } from "date-fns/startOfDay";
 import { createSearchParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useConfig } from "../../contexts/ConfigContext";
-import classes from "./Home.module.css";
 import HomeMain from "./HomeMain";
-import HomeRight from "./HomeRight";
 
 function Home() {
   const [searchParams] = useSearchParams();
@@ -48,19 +45,7 @@ function Home() {
   const { theme } = useConfig();
   return (
     <Paper component={Container} fluid h={"100vh"} bg={theme.colors.dark[9]}>
-      <Allotment className={classes.splitPane}>
-        <Allotment.Pane preferredSize={"75%"}>
-          <HomeMain
-            onSetDay={handleSetDay}
-            onPreviousDay={handlePreviousDayClick}
-            onNextDay={handleNextDay}
-            day={day}
-          />
-        </Allotment.Pane>
-        <Allotment.Pane preferredSize={"25%"}>
-          <HomeRight day={day} />
-        </Allotment.Pane>
-      </Allotment>
+      <HomeMain onSetDay={handleSetDay} onPreviousDay={handlePreviousDayClick} onNextDay={handleNextDay} day={day} />
     </Paper>
   );
 }
