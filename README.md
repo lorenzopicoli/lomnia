@@ -1,6 +1,11 @@
-# Lomnia
 
-**My life, in data**
+
+<div align="center">
+  
+<img src="https://github.com/user-attachments/assets/8f5ed4d8-be94-44ad-a1f4-1e80202f8b29" alt="Logo" height="350px"/>
+  <h1 align="center">Lomnia</h1>
+</div>
+
 
 Find out more about the data I collected in 2024: https://lorenzomodolo.com/posts/2024-tracking-recap/
 
