@@ -1,4 +1,4 @@
-import { ActionIcon, Container, Flex, Space, Stack } from "@mantine/core";
+import { ActionIcon, Button, Container, Flex, Group, Space, Stack, Text } from "@mantine/core";
 import {
   IconChecklist,
   IconEye,
@@ -10,6 +10,7 @@ import {
 } from "@tabler/icons-react";
 import { Link, useLocation } from "react-router-dom";
 import { cardDarkBackground } from "../../themes/mantineThemes";
+import { Logo } from "../Logo";
 
 type HeaderProps = {
   onChangePrivateMode: (privateMode: boolean) => void;
@@ -31,34 +32,59 @@ export default function Navbar(props: HeaderProps) {
     const isPoi = location.pathname.startsWith("/poi");
 
     return (
-      <Stack gap={"lg"}>
-        <ActionIcon component={Link} to="/" bdrs={"lg"} size={"lg"} variant={isHome ? "light" : "transparent"}>
-          <IconHome />
-        </ActionIcon>
-
-        <ActionIcon
+      <Stack gap={"xs"}>
+        <Group p={"xs"}>
+          <Logo width={30} height={30} />
+          <Text fs={"italic"} size={"sm"} opacity={0.4}>
+            Lomnia
+          </Text>
+        </Group>
+        <Button
+          leftSection={<IconHome size={20} />}
           component={Link}
+          justify="flex-start"
+          to="/"
+          p={"xs"}
+          variant={isHome ? "light" : "subtle"}
+        >
+          Home
+        </Button>
+
+        <Button
+          leftSection={<IconLayoutDashboard size={20} />}
+          component={Link}
+          justify="flex-start"
           to="/dashboard"
-          bdrs={"lg"}
-          size={"lg"}
-          variant={isExplore ? "light" : "transparent"}
+          m={0}
+          p={"xs"}
+          variant={isExplore ? "light" : "subtle"}
         >
-          <IconLayoutDashboard />
-        </ActionIcon>
+          Explore
+        </Button>
 
-        <ActionIcon
+        <Button
+          leftSection={<IconChecklist size={20} />}
           component={Link}
+          justify="flex-start"
           to="/habits/features"
-          bdrs={"lg"}
-          size={"lg"}
-          variant={isHabits ? "light" : "transparent"}
+          m={0}
+          p={"xs"}
+          variant={isHabits ? "light" : "subtle"}
         >
-          <IconChecklist />
-        </ActionIcon>
+          Habits
+        </Button>
 
-        <ActionIcon component={Link} to="/poi" bdrs={"lg"} size={"lg"} variant={isPoi ? "light" : "transparent"}>
-          <IconMapStar />
-        </ActionIcon>
+        <Button
+          leftSection={<IconMapStar size={20} />}
+          component={Link}
+          justify="flex-start"
+          to="poi"
+          m={0}
+          p={"xs"}
+          variant={isPoi ? "light" : "subtle"}
+        >
+          Places
+        </Button>
       </Stack>
     );
   };
@@ -89,11 +115,11 @@ export default function Navbar(props: HeaderProps) {
       bg={cardDarkBackground}
       h={"100%"}
     >
-      <Space h={"xl"} />
-      <Flex flex={1} direction={"column"} component={Container} p={0}>
+      <Space h={"lg"} />
+      <Flex flex={1} m={0} direction={"column"} component={Container} p={0}>
         <MainPages />
       </Flex>
-      <Flex direction={"column"} component={Container} p={0} gap={"md"}>
+      <Flex direction={"column"} m={"xs"} component={Container} p={0} gap={"md"}>
         <Settings />
       </Flex>
       <Space h={"lg"} />

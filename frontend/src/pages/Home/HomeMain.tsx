@@ -1,4 +1,4 @@
-import { ActionIcon, AspectRatio, Button, Container, Flex, Menu, ScrollArea, Space, Text, Title } from "@mantine/core";
+import { ActionIcon, AspectRatio, Button, Container, Flex, Menu, ScrollArea, Space, Title } from "@mantine/core";
 import { DatePicker } from "@mantine/dates";
 import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 import { format } from "date-fns";
@@ -59,9 +59,6 @@ export default function HomeMain(props: HomeMainProps) {
         gap={60}
       >
         <Flex direction="column" w={"100%"}>
-          <Text fs={"italic"} opacity={0.4}>
-            Lomnia
-          </Text>
           <Menu shadow="md" width={200}>
             <Flex w={"100%"}>
               <Menu.Target>
