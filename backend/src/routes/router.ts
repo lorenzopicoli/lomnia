@@ -17,6 +17,7 @@ export const appRouter = t.router({
   habitFeatures: habitFeaturesRouter,
   dashboards: dashboardsRouter,
   placesOfInterest: placeOfInterestRouter,
+  timelineRouter: timelineRouter,
   charts: {
     weather: weatherChartRouter,
     habits: habitFeaturesChartRouter,

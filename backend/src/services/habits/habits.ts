@@ -1,4 +1,3 @@
-import { isValid, parse } from "date-fns";
 import { count, countDistinct, desc, eq, sql } from "drizzle-orm";
 import { DateTime } from "luxon";
 import { db } from "../../db/connection";
@@ -8,6 +7,7 @@ import {
   habitFeaturesTable,
   type ValidatedNewHabitFeature,
 } from "../../models/HabitFeature";
+import type { DateRange } from "../../types/chartTypes";
 import { anonymize } from "../anonymize";
 
 export namespace HabitsService {
@@ -36,13 +36,13 @@ export namespace HabitsService {
       .then((r) => r[0]);
   }
 
-  export async function byDay(params: { day: string; privateMode: boolean }) {
-    const { day, privateMode } = params;
-    if (!isValid(parse(day, "yyyy-MM-dd", new Date()))) {
-      throw new Error("Invalid day");
-    }
+  export async function list(params: DateRange & { privateMode: boolean }) {
+    const { start, end, privateMode } = params;
     const entries = await db.query.habitsTable.findMany({
-      where: sql`(date at time zone ${habitsTable.timezone})::date = ${day}`,
+      where: sql`
+        ${habitsTable.recordedAt} >= ${start.toISO()} AND
+        ${habitsTable.recordedAt} <= ${end.toISO()}
+      `,
     });
 
     return formatHabitResponse(entries, privateMode);
