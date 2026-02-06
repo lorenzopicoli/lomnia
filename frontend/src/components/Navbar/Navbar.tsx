@@ -66,16 +66,7 @@ export default function Navbar(props: HeaderProps) {
   };
 
   return (
-    <Flex
-      component={Container}
-      p={0}
-      w={"100%"}
-      direction={"column"}
-      fluid
-      style={{ borderTopRightRadius: 10, borderBottomRightRadius: 10 }}
-      bg={cardDarkBackground}
-      h={"100%"}
-    >
+    <Flex component={Container} p={0} w={"100%"} direction={"column"} fluid bg={cardDarkBackground} h={"100%"}>
       <Space h={"lg"} />
       <Flex flex={1} m={0} direction={"column"} component={Container} p={0}>
         <MainPages />
