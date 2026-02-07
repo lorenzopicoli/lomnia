@@ -243,34 +243,40 @@ export namespace HabitsService {
       .then((r) => r[0].count);
   }
 
-  export function formatValue(value: unknown): string {
+  export function formatValue(habit: Habit): string {
+    const { value, valuePrefix, valueSuffix } = habit;
+
     if (value === null || value === undefined) {
       return "";
     }
 
+    let formatted: string;
+
     if (typeof value === "number") {
-      return Number.isInteger(value) ? value.toString() : value.toFixed(2).replace(/\.00$/, "");
+      formatted = Number.isInteger(value) ? value.toString() : value.toFixed(2).replace(/\.00$/, "");
+    } else if (typeof value === "boolean") {
+      formatted = value ? "Yes" : "No";
+    } else if (typeof value === "string") {
+      formatted = value.trim();
+    } else if (Array.isArray(value) && value.every((v) => typeof v === "string")) {
+      if (value.length === 0) {
+        formatted = "None";
+      } else if (value.length === 1) {
+        formatted = value[0];
+      } else {
+        formatted = `${value.slice(0, -1).join(", ")} and ${value[value.length - 1]}`;
+      }
+    } else {
+      try {
+        formatted = JSON.stringify(value);
+      } catch {
+        formatted = String(value);
+      }
     }
 
-    if (typeof value === "boolean") {
-      return value ? "Yes" : "No";
-    }
+    const prefix = valuePrefix ? `${valuePrefix} ` : "";
+    const suffix = valueSuffix ? ` ${valueSuffix}` : "";
 
-    if (typeof value === "string") {
-      return value.trim();
-    }
-
-    if (Array.isArray(value) && value.every((v) => typeof v === "string")) {
-      if (value.length === 0) return "None";
-      if (value.length === 1) return value[0];
-
-      return `${value.slice(0, -1).join(", ")} and ${value[value.length - 1]}`;
-    }
-
-    try {
-      return JSON.stringify(value);
-    } catch {
-      return String(value);
-    }
+    return `${prefix}${formatted}${suffix}`.trim();
   }
 }

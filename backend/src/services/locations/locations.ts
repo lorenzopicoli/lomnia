@@ -155,6 +155,7 @@ export class LocationChartServiceInternal {
         startDate: durationIslands.startDate,
         endDate: durationIslands.endDate,
         velocity: durationIslands.velocity,
+        timezone: durationIslands.timezone,
         duration: durationIslands.duration,
         placeOfInterest: locationDetailsTable,
         mode: sql`

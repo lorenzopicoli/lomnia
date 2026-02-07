@@ -12,6 +12,7 @@
     "format": "biome format --write src/"
   },
   "dependencies": {
+    "@date-fns/tz": "^1.4.1",
     "@geoman-io/leaflet-geoman-free": "^2.19.0",
     "@lomnia/backend": "workspace:*",
     "@mantine/charts": "^8.3.9",

@@ -24,19 +24,17 @@ export namespace TimelineService {
 
     const locationsFormatted: TimelineActivity[] = locations.map((location) => ({
       title: location.placeOfInterest ? `At ${location.placeOfInterest.displayName}` : "Moving",
-      description: location.placeOfInterest ? undefined : `Average ${location.velocity} km/h`,
+      description: location.placeOfInterest ? undefined : `Average ${location.velocity.toFixed(1)} km/h`,
       type: "location" as const,
-      // TODO: how?
       source: "Owntracks",
-      startDate: location.startDate ? (DateTime.fromISO(location.startDate).toISO() ?? "") : "",
-      endDate: location.endDate ? (DateTime.fromISO(location.endDate).toISO() ?? undefined) : undefined,
-      // TODO: how?
-      timezone: "America/Toronto",
+      startDate: location.startDate ? (location.startDate ?? "bla") : "unknown",
+      endDate: location.endDate ? (location.endDate ?? undefined) : undefined,
+      timezone: location.timezone,
     }));
 
     const habitsFormatted: TimelineActivity[] = habits.map((habit) => ({
       title: `Tracked ${habit.key}`,
-      description: HabitsService.formatValue(habit.value),
+      description: HabitsService.formatValue(habit),
       type: "habit" as const,
       source: habit.source,
       startDate: DateTime.fromJSDate(habit.date).toISO() ?? "",
