@@ -7,6 +7,7 @@ import { habitsRouter } from "./habitsRouter";
 import { heartRateChartRouter } from "./heartRateRouter";
 import { locationChartRouter } from "./locationRouter";
 import { placeOfInterestRouter } from "./placeOfInterestRouter";
+import { timelineRouter } from "./timelineRouter";
 import { t } from "./trpc";
 import { weatherChartRouter, weatherRouter } from "./weatherRouter";
 

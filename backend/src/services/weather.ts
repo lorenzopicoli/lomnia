@@ -23,8 +23,8 @@ export namespace WeatherService {
   export async function list(params: DateRange) {
     const { start, end } = params;
     const hourly = await db.query.hourlyWeatherTable.findMany({
-      where: sql`${hourlyWeatherTable.date} >= ${start}
-      AND ${hourlyWeatherTable.date} <= ${end}`,
+      where: sql`${hourlyWeatherTable.date} >= ${start.toISO()}
+      AND ${hourlyWeatherTable.date} <= ${end.toISO()}`,
     });
 
     return hourly;

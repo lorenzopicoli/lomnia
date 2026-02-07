@@ -1,4 +1,4 @@
-import { ActionIcon, Button, Container, Flex, Menu, ScrollArea, Space, Text, Title } from "@mantine/core";
+import { ActionIcon, Button, Container, Flex, Menu, ScrollArea, Space, Title } from "@mantine/core";
 import { DatePicker } from "@mantine/dates";
 import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 import { format } from "date-fns";

@@ -35,8 +35,8 @@ export namespace TimelineService {
     }));
 
     const habitsFormatted: TimelineActivity[] = habits.map((habit) => ({
-      title: habit.key,
-      description: habit.comments ?? undefined,
+      title: `Tracked ${habit.key}`,
+      description: HabitsService.formatValue(habit.value),
       type: "habit" as const,
       source: habit.source,
       startDate: DateTime.fromJSDate(habit.date).toISO() ?? "",
@@ -52,8 +52,9 @@ export namespace TimelineService {
       timezone: weather.timezone,
     }));
 
-    return [...locationsFormatted, ...habitsFormatted, ...weatherFormatted].sort((a, b) =>
-      a.startDate < b.startDate ? 0 : 1,
-    );
+    const sorted = [...locationsFormatted, ...habitsFormatted, ...weatherFormatted];
+    sorted.sort((a, b) => (a.startDate < b.startDate ? 0 : 1));
+
+    return sorted;
   }
 }

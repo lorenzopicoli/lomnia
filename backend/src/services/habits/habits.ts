@@ -242,4 +242,35 @@ export namespace HabitsService {
       .from(habitsTable)
       .then((r) => r[0].count);
   }
+
+  export function formatValue(value: unknown): string {
+    if (value === null || value === undefined) {
+      return "";
+    }
+
+    if (typeof value === "number") {
+      return Number.isInteger(value) ? value.toString() : value.toFixed(2).replace(/\.00$/, "");
+    }
+
+    if (typeof value === "boolean") {
+      return value ? "Yes" : "No";
+    }
+
+    if (typeof value === "string") {
+      return value.trim();
+    }
+
+    if (Array.isArray(value) && value.every((v) => typeof v === "string")) {
+      if (value.length === 0) return "None";
+      if (value.length === 1) return value[0];
+
+      return `${value.slice(0, -1).join(", ")} and ${value[value.length - 1]}`;
+    }
+
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return String(value);
+    }
+  }
 }
