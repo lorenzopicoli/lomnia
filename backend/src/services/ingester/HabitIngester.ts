@@ -30,6 +30,8 @@ export class HabitIngester extends Ingester<IngestionHabit, NewHabit> {
       source: raw.source,
       timezone: raw.timezone,
       comments: raw.comments,
+      valuePrefix: raw.valuePrefix,
+      valueSuffix: raw.valueSuffix,
       recordedAt: new Date(raw.recordedAt),
 
       periodOfDay: raw.periodOfDay,
@@ -50,6 +52,8 @@ export class HabitIngester extends Ingester<IngestionHabit, NewHabit> {
       date: sql`excluded.date`,
 
       source: sql`excluded.source`,
+      valuePrefix: sql`excluded.value_prefix`,
+      valueSuffix: sql`excluded.value_suffix`,
       timezone: sql`excluded.timezone`,
       comments: sql`excluded.comments`,
       recordedAt: sql`excluded.recorded_at`,

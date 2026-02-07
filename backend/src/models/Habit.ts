@@ -46,6 +46,14 @@ export const habitsTable = pgTable("habits", {
    */
   comments: text("comments"),
   /**
+   * Prefix to be used when displaying the value
+   */
+  valuePrefix: text("value_prefix"),
+  /**
+   * Suffix to be used when displaying the value
+   */
+  valueSuffix: text("value_suffix"),
+  /**
    * Time at which the habit was recorded
    */
   recordedAt: timestamp("recorded_at"),

@@ -30,6 +30,20 @@ export const IngestionHabit = z
       description: "Recorded habit value. Must be a primitive (string list, number, boolean, or null)",
     }),
 
+    valuePrefix: z
+      .string()
+      .meta({
+        description: "The prefix to use when displaying the value",
+      })
+      .optional(),
+
+    valueSuffix: z
+      .string()
+      .meta({
+        description: "The suffix to use when displaying the value",
+      })
+      .optional(),
+
     date: z.iso.datetime().meta({
       description: "Date when the habit occurred (time may be discarded depending on other properties). In UTC",
     }),
