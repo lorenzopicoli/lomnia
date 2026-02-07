@@ -1,81 +1,81 @@
 import { DateTime } from "luxon";
+import type { Habit } from "../models";
+import type { Website } from "../models/Website";
+import type { WebsiteVisit } from "../models/WebsiteVisit";
 import type { DateRange } from "../types/chartTypes";
 import { BrowserHistoryService } from "./browserHistory";
 import { HabitsService } from "./habits/habits";
-import { LocationChartService } from "./locations/locations";
-import { WeatherService } from "./weather";
+import { LocationChartService, type LocationTimelineActivity } from "./locations/locations";
 
-interface TimelineActivity {
-  title: string;
-  description?: string | null;
-  source: string;
-  type: "location" | "weather" | "habit" | "websiteVisit";
-  startDate: string;
-  endDate?: string | undefined | null;
-  timezone: string;
-}
-
-type TimelineActivityInternal = Omit<TimelineActivity, "startDate" | "endDate"> & {
-  startDate: DateTime;
-  endDate?: DateTime;
-};
+type TimelineActivity =
+  | {
+      date: string;
+      type: "location";
+      data: LocationTimelineActivity;
+    }
+  | {
+      date: string;
+      type: "habit";
+      data: Habit;
+    }
+  | {
+      date: string;
+      type: "websiteVisit";
+      data: { website: Website; visit: WebsiteVisit };
+    };
 
 export namespace TimelineService {
   export async function listActivities(range: DateRange) {
-    const [locations, habits, weathers, browserHistory] = await Promise.all([
+    const [locations, habits, browserHistory] = await Promise.all([
       LocationChartService.getTimeline(range),
       HabitsService.list({ ...range, privateMode: false }),
-      WeatherService.list(range),
       BrowserHistoryService.list(range),
     ]);
 
-    const locationsFormatted: TimelineActivityInternal[] = locations.map((location) => ({
-      title: location.placeOfInterest ? `At ${location.placeOfInterest.displayName}` : "Moving",
-      description: location.placeOfInterest ? undefined : `Average ${location.velocity.toFixed(1)} km/h`,
-      type: "location",
-      source: "Owntracks",
-      startDate: location.startDate ? DateTime.fromJSDate(location.startDate) : DateTime.invalid("Missing startDate"),
-      endDate: location.endDate ? DateTime.fromJSDate(location.endDate) : undefined,
-      timezone: location.timezone,
-    }));
+    const locationsFormatted: TimelineActivity[] = locations.map((location) => {
+      if (!location.startDate) {
+        throw new Error("Location missing start date");
+      }
+      const iso = DateTime.fromJSDate(location.startDate).toISO();
+      if (!iso) {
+        throw new Error("Location missing start date (couldn't parse iso)");
+      }
+      return {
+        type: "location",
+        date: iso,
+        data: location,
+      };
+    });
 
-    const habitsFormatted: TimelineActivityInternal[] = habits.map((habit) => ({
-      title: `Tracked ${habit.key}`,
-      description: HabitsService.formatValue(habit),
-      type: "habit",
-      source: habit.source,
-      startDate: DateTime.fromJSDate(habit.date),
-      timezone: habit.timezone,
-    }));
+    const habitsFormatted: TimelineActivity[] = habits.map((habit) => {
+      const iso = DateTime.fromJSDate(habit.date).toISO();
+      if (!iso) {
+        throw new Error("Location missing start date (couldn't parse iso)");
+      }
+      return {
+        type: "habit",
+        date: iso,
+        data: habit,
+      };
+    });
 
-    const weatherFormatted: TimelineActivityInternal[] = weathers.map((weather) => ({
-      title: WeatherService.weatherCodeToText(weather.weatherCode ?? -1),
-      description: WeatherService.formatWeatherDescription(weather),
-      type: "weather",
-      source: "OpenWeather",
-      startDate: DateTime.fromJSDate(weather.date),
-      timezone: weather.timezone,
-    }));
+    const browserHistoryFormatted: TimelineActivity[] = browserHistory
+      .filter((history) => history.visit.timezone)
+      .map((history) => {
+        const iso = DateTime.fromJSDate(history.visit.recordedAt).toISO();
+        if (!iso) {
+          throw new Error("Location missing start date (couldn't parse iso)");
+        }
+        return {
+          type: "websiteVisit",
+          date: iso,
+          data: history,
+        };
+      });
 
-    const browserHistoryFormatted: TimelineActivityInternal[] = browserHistory
-      .filter((history) => history.websites_visits.timezone)
-      .map((history) => ({
-        title: history.websites.host ?? history.websites.url,
-        description: history.websites.url,
-        type: "websiteVisit",
-        source: history.websites_visits.source ?? "Unknown",
-        startDate: DateTime.fromJSDate(history.websites_visits.recordedAt),
-        timezone: history.websites_visits.timezone ?? "Invalid",
-      }));
-
-    const sortedInternal = [...locationsFormatted, ...habitsFormatted, ...browserHistoryFormatted].sort(
-      (a, b) => a.startDate.toMillis() - b.startDate.toMillis(),
+    const sorted = [...locationsFormatted, ...habitsFormatted, ...browserHistoryFormatted].sort(
+      (a, b) => DateTime.fromISO(a.date).toMillis() - DateTime.fromISO(b.date).toMillis(),
     );
-    const sorted: TimelineActivity[] = sortedInternal.map((activity) => ({
-      ...activity,
-      startDate: activity.startDate.toUTC().toISO() ?? "",
-      endDate: activity.endDate?.toUTC().toISO(),
-    }));
 
     return sorted;
   }

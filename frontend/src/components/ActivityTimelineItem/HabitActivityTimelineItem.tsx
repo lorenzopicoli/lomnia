@@ -1,0 +1,102 @@
+import { Badge, Group, Stack, Text } from "@mantine/core";
+import { IconCheck, IconNotes } from "@tabler/icons-react";
+import { format } from "date-fns";
+import type { RouterOutputs } from "../../api/trpc";
+
+type Item = Extract<RouterOutputs["timelineRouter"]["listActivities"][number], { type: "habit" }>;
+
+export function formatValue(habit: Item["data"]): string {
+  const { value, valuePrefix, valueSuffix } = habit;
+
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  let formatted: string;
+
+  if (typeof value === "number") {
+    formatted = Number.isInteger(value) ? value.toString() : value.toFixed(2).replace(/\.00$/, "");
+  } else if (typeof value === "boolean") {
+    formatted = value ? "Yes" : "No";
+  } else if (typeof value === "string") {
+    formatted = value.trim();
+  } else if (Array.isArray(value) && value.every((v) => typeof v === "string")) {
+    if (value.length === 0) {
+      formatted = "None";
+    } else if (value.length === 1) {
+      formatted = value[0];
+    } else {
+      formatted = `${value.slice(0, -1).join(", ")} and ${value[value.length - 1]}`;
+    }
+  } else {
+    try {
+      formatted = JSON.stringify(value);
+    } catch {
+      formatted = String(value);
+    }
+  }
+
+  const prefix = valuePrefix ? `${valuePrefix} ` : "";
+  const suffix = valueSuffix ? ` ${valueSuffix}` : "";
+
+  return `${prefix}${formatted}${suffix}`.trim();
+}
+
+export function HabitActivityTimelineItem(props: { activity: Item }) {
+  const { activity } = props;
+  const { data } = activity;
+
+  const value = formatValue(data);
+
+  const timeLabel = data.isFullDay ? "All day" : data.recordedAt ? format(new Date(data.recordedAt), "HH:mm") : null;
+
+  return (
+    <Stack gap={4}>
+      <Group justify="space-between" gap="xs">
+        <Group gap={6}>
+          <IconCheck size={20} />
+          <Text fw={500}>{data.key}</Text>
+        </Group>
+
+        {timeLabel && (
+          <Text size="xs" c="dimmed">
+            {timeLabel}
+          </Text>
+        )}
+      </Group>
+
+      {(value || data.periodOfDay) && (
+        <Group gap="xs">
+          {value && (
+            <Text size="sm" fw={600}>
+              {value}
+            </Text>
+          )}
+
+          {data.periodOfDay && (
+            <Text size="xs" c="dimmed">
+              {data.periodOfDay.replace("_", " ")}
+            </Text>
+          )}
+        </Group>
+      )}
+
+      {data.comments && (
+        <Group gap={6} mt={2} align="flex-start">
+          <IconNotes size={14} />
+          <Text size="sm" c="dimmed" lineClamp={2}>
+            {data.comments}
+          </Text>
+        </Group>
+      )}
+      <Group>
+        <Badge variant="light" size="xs">
+          Habit
+        </Badge>
+        <Badge variant="light" size="xs">
+          {activity.data.source}
+        </Badge>
+      </Group>
+    </Stack>
+  );
+}

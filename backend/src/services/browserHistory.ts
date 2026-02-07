@@ -11,7 +11,10 @@ class BrowserHistoryServiceInternal {
     const { start, end } = params;
 
     return db
-      .select()
+      .select({
+        website: websitesTable,
+        visit: websitesVisitsTable,
+      })
       .from(websitesVisitsTable)
       .innerJoin(websitesTable, eq(websitesTable.externalId, websitesVisitsTable.websiteExternalId))
       .where(

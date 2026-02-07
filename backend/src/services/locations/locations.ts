@@ -32,6 +32,18 @@ export const HeatmapInput = z
     zoom: true,
   });
 
+export interface LocationTimelineActivity {
+  startDate: Date;
+  endDate: Date;
+  velocity: number;
+  timezone: string;
+  duration: unknown;
+  placeOfInterest: {
+    displayName: string | null;
+  } | null;
+  mode: string;
+}
+
 export class LocationServiceInternal {
   public async getTimezoneForDate(tx: DBTransaction, date: DateTime): Promise<{ timezone: string } | undefined> {
     return tx
@@ -142,7 +154,7 @@ export class LocationChartServiceInternal {
   /**
    * Fetch the timeline for a given period
    */
-  public async getTimeline(params: Partial<DateRange>) {
+  public async getTimeline(params: Partial<DateRange>): Promise<LocationTimelineActivity[]> {
     const durationIslands = getIslandsCte({
       range: params,
       accuracyFilterInMeters: 20,
@@ -157,7 +169,9 @@ export class LocationChartServiceInternal {
         velocity: durationIslands.velocity,
         timezone: durationIslands.timezone,
         duration: durationIslands.duration,
-        placeOfInterest: locationDetailsTable,
+        placeOfInterest: {
+          displayName: locationDetailsTable.displayName,
+        },
         mode: sql`
         CASE
             WHEN ${durationIslands.placeKey} IS NOT NULL THEN 'still'

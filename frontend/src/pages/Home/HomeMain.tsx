@@ -56,7 +56,7 @@ export default function HomeMain(props: HomeMainProps) {
           </Menu>
         </Flex>
         <Flex flex={1} direction={"row"}>
-          <Container pb={"xl"} pl={0} fluid maw={400}>
+          <Container pb={"xl"} pl={0} fluid>
             <ActivityTimelineContainer date={day} />
           </Container>
         </Flex>
