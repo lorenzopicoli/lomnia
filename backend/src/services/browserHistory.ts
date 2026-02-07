@@ -6,6 +6,8 @@ import { websitesTable } from "../models/Website";
 import { websitesVisitsTable } from "../models/WebsiteVisit";
 import type { DateRange } from "../types/chartTypes";
 
+class BrowserHistoryServiceInternal {}
+
 class BrowserHistoryChartServiceInternal {
   public async getWebsitesCount() {
     return db
@@ -135,3 +137,4 @@ class BrowserHistoryChartServiceInternal {
 }
 
 export const BrowserHistoryChartService = new BrowserHistoryChartServiceInternal();
+export const BrowserHistoryService = new BrowserHistoryServiceInternal();

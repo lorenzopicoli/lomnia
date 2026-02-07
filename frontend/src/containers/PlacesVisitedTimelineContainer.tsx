@@ -1,6 +1,6 @@
 import { TZDate } from "@date-fns/tz";
 import { Text, Timeline } from "@mantine/core";
-import { IconLocation } from "@tabler/icons-react";
+import { IconCloud, IconListCheck, IconLocation } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import { type Duration, intervalToDuration } from "date-fns";
 import { endOfDay } from "date-fns/endOfDay";
@@ -37,20 +37,25 @@ export default function PlacesVisitedTimelineContainer(props: PlacesVisitedTimel
     return null;
   }
 
-  console.log(
-    "aha",
-    data.map((p) => [p.startDate, p.type]),
-  );
   return (
     <Timeline bulletSize={24} lineWidth={2}>
       {data.map((place) => {
         const start = new TZDate(place.startDate, place.timezone);
         const end = place.endDate ? new TZDate(place.endDate, place.timezone) : null;
-
         const duration = end ? intervalToDuration({ start, end }) : null;
+        const getIcon = () => {
+          switch (place.type) {
+            case "location":
+              return <IconLocation size={12} />;
+            case "weather":
+              return <IconCloud size={12} />;
+            case "habit":
+              return <IconListCheck size={12} />;
+          }
+        };
 
         return (
-          <Timeline.Item key={uniqueId()} bullet={<IconLocation size={12} />} title={place.title}>
+          <Timeline.Item key={uniqueId()} bullet={getIcon()} title={place.title}>
             <div>
               <Text c="dimmed" size="sm">
                 {format(new TZDate(place.startDate, place.timezone), "HH:mm:ss")}

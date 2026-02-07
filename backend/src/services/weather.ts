@@ -1,5 +1,5 @@
 import { isValid, parse } from "date-fns";
-import { asc, count, sql } from "drizzle-orm";
+import { and, asc, count, eq, max, sql } from "drizzle-orm";
 import { db } from "../db/connection";
 import { dailyWeatherTable, type HourlyWeather, hourlyWeatherTable } from "../models";
 import type { ChartPeriodInput, DateRange } from "../types/chartTypes";
@@ -22,12 +22,28 @@ export namespace WeatherService {
   }
   export async function list(params: DateRange) {
     const { start, end } = params;
-    const hourly = await db.query.hourlyWeatherTable.findMany({
-      where: sql`${hourlyWeatherTable.date} >= ${start.toISO()}
-      AND ${hourlyWeatherTable.date} <= ${end.toISO()}`,
-    });
 
-    return hourly;
+    const latestPerDate = db
+      .select({
+        date: hourlyWeatherTable.date,
+        maxDate: max(hourlyWeatherTable.createdAt).as("maxDate"),
+      })
+      .from(hourlyWeatherTable)
+      .where(sql`
+             ${hourlyWeatherTable.date} >= ${start.toISO()}
+             AND ${hourlyWeatherTable.date} <= ${end.toISO()}
+             `)
+      .groupBy(hourlyWeatherTable.date)
+      .as("latest");
+
+    const hourly = await db
+      .select()
+      .from(hourlyWeatherTable)
+      .innerJoin(
+        latestPerDate,
+        and(eq(hourlyWeatherTable.date, latestPerDate.date), eq(hourlyWeatherTable.createdAt, latestPerDate.maxDate)),
+      );
+    return hourly.map((h) => h.hourly_weather);
   }
 
   export function weatherCodeToText(code: number) {

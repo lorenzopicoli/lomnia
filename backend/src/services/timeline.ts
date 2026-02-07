@@ -14,6 +14,11 @@ interface TimelineActivity {
   timezone: string;
 }
 
+type TimelineActivityInternal = Omit<TimelineActivity, "startDate" | "endDate"> & {
+  startDate: DateTime;
+  endDate?: DateTime;
+};
+
 export namespace TimelineService {
   export async function listActivities(range: DateRange) {
     const [locations, habits, weathers] = await Promise.all([
@@ -22,36 +27,48 @@ export namespace TimelineService {
       WeatherService.list(range),
     ]);
 
-    const locationsFormatted: TimelineActivity[] = locations.map((location) => ({
+    const locationsFormatted: TimelineActivityInternal[] = locations.map((location) => ({
       title: location.placeOfInterest ? `At ${location.placeOfInterest.displayName}` : "Moving",
       description: location.placeOfInterest ? undefined : `Average ${location.velocity.toFixed(1)} km/h`,
-      type: "location" as const,
+      type: "location",
       source: "Owntracks",
-      startDate: location.startDate ? (location.startDate ?? "bla") : "unknown",
-      endDate: location.endDate ? (location.endDate ?? undefined) : undefined,
+      startDate: location.startDate
+        ? DateTime.fromJSDate(location.startDate, { zone: location.timezone })
+        : DateTime.invalid("Missing startDate"),
+      endDate: location.endDate ? DateTime.fromJSDate(location.endDate, { zone: location.timezone }) : undefined,
       timezone: location.timezone,
     }));
 
-    const habitsFormatted: TimelineActivity[] = habits.map((habit) => ({
+    const habitsFormatted: TimelineActivityInternal[] = habits.map((habit) => ({
       title: `Tracked ${habit.key}`,
       description: HabitsService.formatValue(habit),
-      type: "habit" as const,
+      type: "habit",
       source: habit.source,
-      startDate: DateTime.fromJSDate(habit.date).toISO() ?? "",
+      startDate: DateTime.fromJSDate(habit.date, {
+        zone: habit.timezone,
+      }),
       timezone: habit.timezone,
     }));
-    const weatherFormatted: TimelineActivity[] = weathers.map((weather) => ({
+
+    const weatherFormatted: TimelineActivityInternal[] = weathers.map((weather) => ({
       title: WeatherService.weatherCodeToText(weather.weatherCode ?? -1),
       description: WeatherService.formatWeatherDescription(weather),
       type: "weather",
-      // How?
       source: "OpenWeather",
-      startDate: DateTime.fromJSDate(weather.date).toISO() ?? "",
+      startDate: DateTime.fromJSDate(weather.date, {
+        zone: weather.timezone,
+      }),
       timezone: weather.timezone,
     }));
 
-    const sorted = [...locationsFormatted, ...habitsFormatted, ...weatherFormatted];
-    sorted.sort((a, b) => (a.startDate < b.startDate ? 0 : 1));
+    const sortedInternal = [...locationsFormatted, ...habitsFormatted].sort(
+      (a, b) => a.startDate.toMillis() - b.startDate.toMillis(),
+    );
+    const sorted: TimelineActivity[] = sortedInternal.map((activity) => ({
+      ...activity,
+      startDate: activity.startDate.toUTC().toISO() ?? "",
+      endDate: activity.endDate?.toUTC().toISO(),
+    }));
 
     return sorted;
   }

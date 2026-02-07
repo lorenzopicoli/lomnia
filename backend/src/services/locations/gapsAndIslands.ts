@@ -149,8 +149,13 @@ export function getIslandsCte(params: {
     cte
       .with(activitiesIslands)
       .select({
-        startDate: min(activitiesIslands.startDate).as("di_start_date"),
-        endDate: max(activitiesIslands.endDate).as("di_end_date"),
+        // Have to map this way otherwise drizzle gives a weirdly formatted string back
+        startDate: min(activitiesIslands.startDate)
+          .mapWith((v) => new Date(v))
+          .as("di_start_date"),
+        endDate: max(activitiesIslands.endDate)
+          .mapWith((v) => new Date(v))
+          .as("di_end_date"),
         velocity: avg(activitiesIslands.velocity).mapWith(Number).as("di_velocity"),
         // If this island is a group of more than one placeKeys, then set it to NULL
         // otherwise return it
