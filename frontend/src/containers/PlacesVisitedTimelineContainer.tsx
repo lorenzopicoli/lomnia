@@ -1,12 +1,13 @@
 import { TZDate } from "@date-fns/tz";
 import { Text, Timeline } from "@mantine/core";
-import { IconCloud, IconListCheck, IconLocation } from "@tabler/icons-react";
+import { IconCloud, IconListCheck, IconLocation, IconWorld } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import { type Duration, intervalToDuration } from "date-fns";
 import { endOfDay } from "date-fns/endOfDay";
 import { format } from "date-fns/format";
 import { startOfDay } from "date-fns/startOfDay";
 import { uniqueId } from "lodash";
+import { Link } from "react-router-dom";
 import { trpc } from "../api/trpc";
 
 type PlacesVisitedTimelineContainerProps = {
@@ -38,19 +39,22 @@ export default function PlacesVisitedTimelineContainer(props: PlacesVisitedTimel
   }
 
   return (
-    <Timeline bulletSize={24} lineWidth={2}>
+    <Timeline bulletSize={30} lineWidth={2}>
       {data.map((place) => {
         const start = new TZDate(place.startDate, place.timezone);
         const end = place.endDate ? new TZDate(place.endDate, place.timezone) : null;
         const duration = end ? intervalToDuration({ start, end }) : null;
         const getIcon = () => {
+          const size = 20;
           switch (place.type) {
             case "location":
-              return <IconLocation size={12} />;
+              return <IconLocation size={size} />;
             case "weather":
-              return <IconCloud size={12} />;
+              return <IconCloud size={size} />;
             case "habit":
-              return <IconListCheck size={12} />;
+              return <IconListCheck size={size} />;
+            case "websiteVisit":
+              return <IconWorld size={size} />;
           }
         };
 
@@ -65,9 +69,17 @@ export default function PlacesVisitedTimelineContainer(props: PlacesVisitedTimel
                   For {formatDurationShort(duration)}
                 </Text>
               ) : null}
-              <Text size="xs" mt={4}>
-                {place.description}
-              </Text>
+              {place.description?.startsWith("https://") ? (
+                <Link to={place.description}>
+                  <Text truncate="end" size="xs" mt={4}>
+                    {place.description}
+                  </Text>
+                </Link>
+              ) : (
+                <Text truncate="end" size="xs" mt={4}>
+                  {place.description}
+                </Text>
+              )}
             </div>
           </Timeline.Item>
         );

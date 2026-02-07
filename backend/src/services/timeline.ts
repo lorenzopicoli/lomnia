@@ -1,5 +1,6 @@
 import { DateTime } from "luxon";
 import type { DateRange } from "../types/chartTypes";
+import { BrowserHistoryService } from "./browserHistory";
 import { HabitsService } from "./habits/habits";
 import { LocationChartService } from "./locations/locations";
 import { WeatherService } from "./weather";
@@ -8,7 +9,7 @@ interface TimelineActivity {
   title: string;
   description?: string | null;
   source: string;
-  type: "location" | "weather" | "habit";
+  type: "location" | "weather" | "habit" | "websiteVisit";
   startDate: string;
   endDate?: string | undefined | null;
   timezone: string;
@@ -21,10 +22,11 @@ type TimelineActivityInternal = Omit<TimelineActivity, "startDate" | "endDate"> 
 
 export namespace TimelineService {
   export async function listActivities(range: DateRange) {
-    const [locations, habits, weathers] = await Promise.all([
+    const [locations, habits, weathers, browserHistory] = await Promise.all([
       LocationChartService.getTimeline(range),
       HabitsService.list({ ...range, privateMode: false }),
       WeatherService.list(range),
+      BrowserHistoryService.list(range),
     ]);
 
     const locationsFormatted: TimelineActivityInternal[] = locations.map((location) => ({
@@ -32,10 +34,8 @@ export namespace TimelineService {
       description: location.placeOfInterest ? undefined : `Average ${location.velocity.toFixed(1)} km/h`,
       type: "location",
       source: "Owntracks",
-      startDate: location.startDate
-        ? DateTime.fromJSDate(location.startDate, { zone: location.timezone })
-        : DateTime.invalid("Missing startDate"),
-      endDate: location.endDate ? DateTime.fromJSDate(location.endDate, { zone: location.timezone }) : undefined,
+      startDate: location.startDate ? DateTime.fromJSDate(location.startDate) : DateTime.invalid("Missing startDate"),
+      endDate: location.endDate ? DateTime.fromJSDate(location.endDate) : undefined,
       timezone: location.timezone,
     }));
 
@@ -44,9 +44,7 @@ export namespace TimelineService {
       description: HabitsService.formatValue(habit),
       type: "habit",
       source: habit.source,
-      startDate: DateTime.fromJSDate(habit.date, {
-        zone: habit.timezone,
-      }),
+      startDate: DateTime.fromJSDate(habit.date),
       timezone: habit.timezone,
     }));
 
@@ -55,13 +53,22 @@ export namespace TimelineService {
       description: WeatherService.formatWeatherDescription(weather),
       type: "weather",
       source: "OpenWeather",
-      startDate: DateTime.fromJSDate(weather.date, {
-        zone: weather.timezone,
-      }),
+      startDate: DateTime.fromJSDate(weather.date),
       timezone: weather.timezone,
     }));
 
-    const sortedInternal = [...locationsFormatted, ...habitsFormatted].sort(
+    const browserHistoryFormatted: TimelineActivityInternal[] = browserHistory
+      .filter((history) => history.websites_visits.timezone)
+      .map((history) => ({
+        title: history.websites.host ?? history.websites.url,
+        description: history.websites.url,
+        type: "websiteVisit",
+        source: history.websites_visits.source ?? "Unknown",
+        startDate: DateTime.fromJSDate(history.websites_visits.recordedAt),
+        timezone: history.websites_visits.timezone ?? "Invalid",
+      }));
+
+    const sortedInternal = [...locationsFormatted, ...habitsFormatted, ...browserHistoryFormatted].sort(
       (a, b) => a.startDate.toMillis() - b.startDate.toMillis(),
     );
     const sorted: TimelineActivity[] = sortedInternal.map((activity) => ({

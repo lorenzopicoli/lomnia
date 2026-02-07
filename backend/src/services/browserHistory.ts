@@ -6,7 +6,19 @@ import { websitesTable } from "../models/Website";
 import { websitesVisitsTable } from "../models/WebsiteVisit";
 import type { DateRange } from "../types/chartTypes";
 
-class BrowserHistoryServiceInternal {}
+class BrowserHistoryServiceInternal {
+  public async list(params: DateRange) {
+    const { start, end } = params;
+
+    return db
+      .select()
+      .from(websitesVisitsTable)
+      .innerJoin(websitesTable, eq(websitesTable.externalId, websitesVisitsTable.websiteExternalId))
+      .where(
+        and(gte(websitesVisitsTable.recordedAt, start.toJSDate()), lte(websitesVisitsTable.recordedAt, end.toJSDate())),
+      );
+  }
+}
 
 class BrowserHistoryChartServiceInternal {
   public async getWebsitesCount() {
