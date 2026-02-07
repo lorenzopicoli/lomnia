@@ -94,8 +94,6 @@
     "version",
     "key",
     "value",
-    "valuePrefix",
-    "valueSuffix",
     "date",
     "source",
     "timezone",
