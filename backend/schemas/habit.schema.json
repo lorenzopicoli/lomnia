@@ -42,6 +42,14 @@
       ],
       "description": "Recorded habit value. Must be a primitive (string list, number, boolean, or null)"
     },
+    "valuePrefix": {
+      "type": "string",
+      "description": "The prefix to use when displaying the value"
+    },
+    "valueSuffix": {
+      "type": "string",
+      "description": "The suffix to use when displaying the value"
+    },
     "date": {
       "type": "string",
       "format": "date-time",
@@ -86,6 +94,8 @@
     "version",
     "key",
     "value",
+    "valuePrefix",
+    "valueSuffix",
     "date",
     "source",
     "timezone",
