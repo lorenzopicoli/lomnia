@@ -1,15 +1,17 @@
-import { ActionIcon, Container, Flex, Space, Stack } from "@mantine/core";
+import { Button, Container, Flex, Group, Space, Stack, Text } from "@mantine/core";
 import {
   IconChecklist,
   IconEye,
   IconEyeOff,
-  IconHome,
   IconLayoutDashboard,
   IconMapStar,
   IconSettings,
+  IconTimeline,
+  type ReactNode,
 } from "@tabler/icons-react";
 import { Link, useLocation } from "react-router-dom";
 import { cardDarkBackground } from "../../themes/mantineThemes";
+import { Logo } from "../Logo";
 
 type HeaderProps = {
   onChangePrivateMode: (privateMode: boolean) => void;
@@ -25,40 +27,24 @@ export default function Navbar(props: HeaderProps) {
   };
 
   const MainPages = () => {
-    const isHome = location.pathname === "/";
+    const isTimeline = location.pathname === "/";
     const isExplore = location.pathname.startsWith("/dashboard");
     const isHabits = location.pathname.startsWith("/habits");
     const isPoi = location.pathname.startsWith("/poi");
 
     return (
-      <Stack gap={"lg"}>
-        <ActionIcon component={Link} to="/" bdrs={"lg"} size={"lg"} variant={isHome ? "light" : "transparent"}>
-          <IconHome />
-        </ActionIcon>
+      <Stack gap={"xs"}>
+        <Group p="xs">
+          <Logo width={30} height={30} />
+          <Text fs="italic" size="sm" opacity={0.4}>
+            Lomnia
+          </Text>
+        </Group>
 
-        <ActionIcon
-          component={Link}
-          to="/dashboard"
-          bdrs={"lg"}
-          size={"lg"}
-          variant={isExplore ? "light" : "transparent"}
-        >
-          <IconLayoutDashboard />
-        </ActionIcon>
-
-        <ActionIcon
-          component={Link}
-          to="/habits/features"
-          bdrs={"lg"}
-          size={"lg"}
-          variant={isHabits ? "light" : "transparent"}
-        >
-          <IconChecklist />
-        </ActionIcon>
-
-        <ActionIcon component={Link} to="/poi" bdrs={"lg"} size={"lg"} variant={isPoi ? "light" : "transparent"}>
-          <IconMapStar />
-        </ActionIcon>
+        <NavButton to="/" label="Timeline" icon={<IconTimeline size={20} />} active={isTimeline} />
+        <NavButton to="/dashboard" label="Explore" icon={<IconLayoutDashboard size={20} />} active={isExplore} />
+        <NavButton to="/habits/features" label="Habits" icon={<IconChecklist size={20} />} active={isHabits} />
+        <NavButton to="/poi" label="Places" icon={<IconMapStar size={20} />} active={isPoi} />
       </Stack>
     );
   };
@@ -67,36 +53,44 @@ export default function Navbar(props: HeaderProps) {
     const isSettings = location.pathname.startsWith("/settings");
 
     return (
-      <>
-        <ActionIcon variant={"transparent"} onClick={handlePrivateModeChange}>
-          {!props.privateMode ? <IconEye /> : <IconEyeOff />}
-        </ActionIcon>
-        <ActionIcon bdrs={"lg"} variant={isSettings ? "light" : "transparent"} component={Link} to="/settings">
-          <IconSettings />
-        </ActionIcon>
-      </>
+      <Stack gap={"xs"}>
+        <NavButton
+          to="/"
+          label="Hide"
+          icon={!props.privateMode ? <IconEye /> : <IconEyeOff />}
+          active={props.privateMode}
+        />
+        <NavButton to={"/settings"} label="Settings" icon={<IconSettings />} active={isSettings} />
+      </Stack>
     );
   };
 
   return (
-    <Flex
-      component={Container}
-      p={0}
-      w={"100%"}
-      direction={"column"}
-      fluid
-      style={{ borderTopRightRadius: 20, borderBottomRightRadius: 20 }}
-      bg={cardDarkBackground}
-      h={"100%"}
-    >
-      <Space h={"xl"} />
-      <Flex flex={1} direction={"column"} component={Container} p={0}>
+    <Flex component={Container} p={0} w={"100%"} direction={"column"} fluid bg={cardDarkBackground} h={"100%"}>
+      <Space h={"lg"} />
+      <Flex flex={1} m={0} direction={"column"} component={Container} p={0}>
         <MainPages />
       </Flex>
-      <Flex direction={"column"} component={Container} p={0} gap={"md"}>
+      <Flex justify={"flex-end"} flex={1} m={0} direction={"column"} component={Container} p={0}>
         <Settings />
       </Flex>
       <Space h={"lg"} />
     </Flex>
+  );
+}
+
+export function NavButton(props: { to: string; icon: ReactNode; label: string; active?: boolean }) {
+  const { to, icon, label, active } = props;
+  return (
+    <Button
+      component={Link}
+      to={to}
+      leftSection={icon}
+      justify="flex-start"
+      p="xs"
+      variant={active ? "light" : "subtle"}
+    >
+      {label}
+    </Button>
   );
 }
