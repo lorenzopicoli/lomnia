@@ -62,15 +62,7 @@ export default function ActivityTimelineContainer() {
         filters={filters}
       />
 
-      <Flex
-        maw={1000}
-        flex={1}
-        h={"100%"}
-        pl={"lg"}
-        gap="lg"
-        align="flex-start"
-        direction={{ base: "column", md: "row" }}
-      >
+      <Flex flex={1} mih={0} h={"100%"} pl={"lg"} gap="lg" align="flex-start" direction={{ base: "column", md: "row" }}>
         <ActivityTimelineOverviewContainer day={day} />
         {isPending || !data ? (
           <Stack flex={1} pr={"lg"}>

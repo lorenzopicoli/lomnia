@@ -30,6 +30,7 @@ export function ActivityTimelineList(props: Props) {
         flex: 1,
         height: "100%",
         overflow: "auto",
+        minHeight: 0,
       }}
     >
       <div
