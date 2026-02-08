@@ -1,7 +1,8 @@
 import { Badge, Group, Stack, Text } from "@mantine/core";
-import { IconCheck, IconNotes } from "@tabler/icons-react";
+import { IconNotes } from "@tabler/icons-react";
 import { format } from "date-fns";
 import type { RouterOutputs } from "../../../api/trpc";
+import { habitActivitySourceToIcon } from "./activitySourceToIcon";
 
 type Item = Extract<RouterOutputs["timelineRouter"]["listActivities"]["activities"][number], { type: "habit" }>;
 
@@ -51,10 +52,11 @@ export function HabitActivityTimelineItem(props: { activity: Item }) {
   const timeLabel = data.isFullDay ? "All day" : data.recordedAt ? format(new Date(data.recordedAt), "HH:mm") : null;
 
   return (
-    <Stack gap={4}>
+    <Stack gap={"md"}>
       <Group justify="space-between" gap="xs">
         <Group gap={6}>
-          <IconCheck size={20} />
+          {habitActivitySourceToIcon(activity.data.source)}
+
           <Text fw={500}>{data.key}</Text>
         </Group>
 
@@ -69,7 +71,7 @@ export function HabitActivityTimelineItem(props: { activity: Item }) {
         <Group gap="xs">
           {value && (
             <Text size="sm" fw={600}>
-              {value}
+              Value: {value}
             </Text>
           )}
 

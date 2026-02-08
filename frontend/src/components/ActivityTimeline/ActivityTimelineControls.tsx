@@ -29,7 +29,7 @@ export function ActivityTimelineControls(props: Props) {
     onDateChange(date);
   };
   return (
-    <Group justify="space-between" w={"100%"}>
+    <Group pr={"md"} pl={"md"} justify="space-between" w={"100%"}>
       <Group gap={0}>
         <Menu shadow="md" width={200}>
           <Menu.Target>

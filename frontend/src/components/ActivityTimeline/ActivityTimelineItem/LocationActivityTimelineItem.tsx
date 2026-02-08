@@ -1,7 +1,7 @@
 import { Badge, Group, Stack, Text } from "@mantine/core";
-import { IconMapPin, IconRoute } from "@tabler/icons-react";
 import { format, formatDistanceStrict } from "date-fns";
 import type { RouterOutputs } from "../../../api/trpc";
+import { locationActivitySourceToIcon } from "./activitySourceToIcon";
 
 type Item = Extract<RouterOutputs["timelineRouter"]["listActivities"]["activities"][number], { type: "location" }>;
 
@@ -21,8 +21,7 @@ export function LocationActivityTimelineItem(props: { activity: Item }) {
     <Stack gap={"md"}>
       <Group gap="xs" justify="space-between">
         <Group gap={6}>
-          {isStationary ? <IconMapPin size={20} /> : <IconRoute size={20} />}
-
+          {locationActivitySourceToIcon(null)}
           <Text lineClamp={1} fw={500}>
             {data.placeOfInterest?.displayName ?? (isStationary ? "Staying in place" : "Moving")}
           </Text>

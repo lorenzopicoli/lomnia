@@ -1,7 +1,8 @@
 import { Anchor, Badge, Collapse, Group, Image, Stack, Text } from "@mantine/core";
-import { IconDownload, IconExternalLink, IconWorld } from "@tabler/icons-react";
+import { IconDownload, IconExternalLink } from "@tabler/icons-react";
 import { format } from "date-fns";
 import type { RouterOutputs } from "../../../api/trpc";
+import { websiteVisitActivitySourceToIcon } from "./activitySourceToIcon";
 
 type Item = Extract<RouterOutputs["timelineRouter"]["listActivities"]["activities"][number], { type: "websiteVisit" }>;
 
@@ -15,7 +16,7 @@ export function WebsiteVisitActivityTimelineItem(props: { activity: Item; onExpa
   return (
     <Stack gap="xs">
       <Group style={{ cursor: "pointer" }} gap="xs" wrap="nowrap" onClick={onExpand}>
-        <IconWorld size={20} />
+        {websiteVisitActivitySourceToIcon(visit.source)}
 
         <Text fw={500} truncate style={{ flex: 1 }}>
           {title}

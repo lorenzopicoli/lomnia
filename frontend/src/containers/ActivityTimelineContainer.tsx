@@ -51,7 +51,9 @@ export default function ActivityTimelineContainer() {
       style={{ verticalAlign: "top" }}
       pt={"lg"}
       pb={"md"}
-      gap={60}
+      pl={0}
+      pr={0}
+      gap={"lg"}
     >
       <ActivityTimelineControls
         date={day}
