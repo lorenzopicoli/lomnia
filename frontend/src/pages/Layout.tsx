@@ -16,7 +16,7 @@ function Layout() {
   const handleChangePrivateMode = (mode: boolean) => config.updateConfig({ privateMode: mode });
 
   return (
-    <AppShell navbar={{ width: { sm: 180, lg: 180 }, breakpoint: "sm" }} withBorder={false}>
+    <AppShell navbar={{ width: { sm: 70, md: 180, lg: 180 }, breakpoint: "sm" }} withBorder={false}>
       <AppShell.Navbar style={{ borderRadius: 0 }} bg={theme.colors.dark[9]}>
         <Navbar onChangePrivateMode={handleChangePrivateMode} privateMode={config.privateMode} />
       </AppShell.Navbar>

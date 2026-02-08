@@ -1,5 +1,5 @@
 import { Container, Paper } from "@mantine/core";
-import ActivityTimelineContainer from "../../containers/ActivityTimelineContainer";
+import ActivityTimelineContainer from "../../containers/ActivityTimeline/ActivityTimelineContainer";
 import { useConfig } from "../../contexts/ConfigContext";
 
 export default function TimelinePage() {

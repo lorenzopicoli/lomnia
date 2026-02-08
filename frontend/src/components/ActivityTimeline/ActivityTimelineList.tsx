@@ -27,6 +27,8 @@ export function ActivityTimelineList(props: Props) {
     <div
       ref={parentRef}
       style={{
+        flex: 1,
+        height: "100%",
         overflow: "auto",
       }}
     >
