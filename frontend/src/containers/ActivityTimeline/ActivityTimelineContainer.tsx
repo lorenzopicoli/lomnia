@@ -42,7 +42,18 @@ export default function ActivityTimelineContainer() {
   );
 
   return (
-    <Flex direction="column" component={Container} fluid h="100vh" ta="left" pt="lg" pl={0} pr={0} gap="lg">
+    <Flex
+      direction="column"
+      align={"center"}
+      component={Container}
+      fluid
+      h="100vh"
+      ta="left"
+      pt="lg"
+      pl={0}
+      pr={0}
+      gap="lg"
+    >
       <ActivityTimelineControls
         date={day}
         formattedDate={formattedDate}
@@ -51,7 +62,15 @@ export default function ActivityTimelineContainer() {
         filters={filters}
       />
 
-      <Flex flex={1} h={"100%"} pl={"lg"} gap="lg" align="flex-start" direction={{ base: "column", md: "row" }}>
+      <Flex
+        maw={1000}
+        flex={1}
+        h={"100%"}
+        pl={"lg"}
+        gap="lg"
+        align="flex-start"
+        direction={{ base: "column", md: "row" }}
+      >
         <ActivityTimelineOverviewContainer day={day} />
         {isPending || !data ? (
           <Stack flex={1} pr={"lg"}>
