@@ -25,11 +25,19 @@ type TimelineActivity =
     };
 
 export namespace TimelineService {
-  export async function listActivities(range: DateRange) {
+  export async function listActivities(
+    range: DateRange,
+    filtersParam?: {
+      habit: boolean;
+      location: boolean;
+      website: boolean;
+    },
+  ) {
+    const filters = filtersParam ?? { habit: true, location: true, website: true };
     const [locations, habits, browserHistory] = await Promise.all([
-      LocationChartService.getTimeline(range),
-      HabitsService.list({ ...range, privateMode: false }),
-      BrowserHistoryService.list(range),
+      filters.location ? LocationChartService.getTimeline(range) : [],
+      filters.habit ? HabitsService.list({ ...range, privateMode: false }) : [],
+      filters.website ? BrowserHistoryService.list(range) : [],
     ]);
 
     const locationsFormatted: TimelineActivity[] = locations.map((location) => {

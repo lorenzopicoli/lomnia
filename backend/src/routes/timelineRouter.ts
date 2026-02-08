@@ -10,7 +10,7 @@ export const timelineRouter = t.router({
       z.object({
         start: z.iso.datetime(),
         end: z.iso.datetime(),
-        config: z
+        filters: z
           .object({
             habit: z.boolean(),
             location: z.boolean(),
@@ -20,9 +20,12 @@ export const timelineRouter = t.router({
       }),
     )
     .query((opts) => {
-      return TimelineService.listActivities({
-        start: DateTime.fromISO(opts.input.start),
-        end: DateTime.fromISO(opts.input.end),
-      });
+      return TimelineService.listActivities(
+        {
+          start: DateTime.fromISO(opts.input.start),
+          end: DateTime.fromISO(opts.input.end),
+        },
+        opts.input.filters,
+      );
     }),
 });
