@@ -49,7 +49,7 @@ export function HabitActivityTimelineItem(props: { activity: Item }) {
 
   const value = formatValue(data);
 
-  const timeLabel = data.isFullDay ? "All day" : data.recordedAt ? format(new Date(data.recordedAt), "HH:mm") : null;
+  const timeLabel = data.isFullDay ? "All day" : data.date ? format(new Date(data.date), "HH:mm") : null;
 
   return (
     <Stack gap={"md"}>
@@ -60,27 +60,22 @@ export function HabitActivityTimelineItem(props: { activity: Item }) {
           <Text fw={500}>{data.key}</Text>
         </Group>
 
-        {timeLabel && (
+        {timeLabel && !data.periodOfDay && (
           <Text size="xs" c="dimmed">
             {timeLabel}
           </Text>
         )}
+        {data.periodOfDay && (
+          <Text size="xs" c="dimmed">
+            {data.periodOfDay.replace("_", " ")}
+          </Text>
+        )}
       </Group>
 
-      {(value || data.periodOfDay) && (
-        <Group gap="xs">
-          {value && (
-            <Text size="sm" fw={600}>
-              Value: {value}
-            </Text>
-          )}
-
-          {data.periodOfDay && (
-            <Text size="xs" c="dimmed">
-              {data.periodOfDay.replace("_", " ")}
-            </Text>
-          )}
-        </Group>
+      {value && (
+        <Text size="sm" fw={600}>
+          Value: {value}
+        </Text>
       )}
 
       {data.comments && (

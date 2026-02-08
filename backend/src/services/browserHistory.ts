@@ -7,8 +7,8 @@ import { websitesVisitsTable } from "../models/WebsiteVisit";
 import type { DateRange } from "../types/chartTypes";
 
 class BrowserHistoryServiceInternal {
-  public async list(params: DateRange) {
-    const { start, end } = params;
+  public async list(params: { day: string }) {
+    const { day } = params;
 
     return db
       .select({
@@ -18,7 +18,10 @@ class BrowserHistoryServiceInternal {
       .from(websitesVisitsTable)
       .innerJoin(websitesTable, eq(websitesTable.externalId, websitesVisitsTable.websiteExternalId))
       .where(
-        and(gte(websitesVisitsTable.recordedAt, start.toJSDate()), lte(websitesVisitsTable.recordedAt, end.toJSDate())),
+        sql`
+        (${websitesVisitsTable.recordedAt} at time zone ${websitesVisitsTable.timezone})::date >= ${day} AND
+        (${websitesVisitsTable.recordedAt} at time zone ${websitesVisitsTable.timezone})::date  <= ${day}
+      `,
       );
   }
 }

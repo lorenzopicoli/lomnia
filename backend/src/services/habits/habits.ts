@@ -7,7 +7,6 @@ import {
   habitFeaturesTable,
   type ValidatedNewHabitFeature,
 } from "../../models/HabitFeature";
-import type { DateRange } from "../../types/chartTypes";
 import { anonymize } from "../anonymize";
 
 export namespace HabitsService {
@@ -36,12 +35,12 @@ export namespace HabitsService {
       .then((r) => r[0]);
   }
 
-  export async function list(params: DateRange & { privateMode: boolean }) {
-    const { start, end, privateMode } = params;
+  export async function list(params: { day: string; privateMode: boolean }) {
+    const { day, privateMode } = params;
     const entries = await db.query.habitsTable.findMany({
       where: sql`
-        ${habitsTable.recordedAt} >= ${start.toISO()} AND
-        ${habitsTable.recordedAt} <= ${end.toISO()}
+        (${habitsTable.date} at time zone ${habitsTable.timezone})::date >= ${day} AND
+        (${habitsTable.date} at time zone ${habitsTable.timezone})::date  <= ${day}
       `,
     });
 
@@ -241,5 +240,19 @@ export namespace HabitsService {
       })
       .from(habitsTable)
       .then((r) => r[0].count);
+  }
+
+  export function getTimeForPeriod(date: DateTime, period: Habit["periodOfDay"]) {
+    const periodToTime: Record<NonNullable<Habit["periodOfDay"]>, { hour: number; minute: number }> = {
+      morning: { hour: 9, minute: 0 },
+      afternoon: { hour: 14, minute: 0 },
+      evening: { hour: 19, minute: 0 },
+      over_night: { hour: 2, minute: 0 },
+    };
+    if (period) {
+      const { hour, minute } = periodToTime[period];
+      return date.set({ hour, minute, second: 0, millisecond: 0 });
+    }
+    return date;
   }
 }

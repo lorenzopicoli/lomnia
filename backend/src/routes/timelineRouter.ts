@@ -1,4 +1,3 @@
-import { DateTime } from "luxon";
 import z from "zod";
 import { TimelineService } from "../services/timeline";
 import { loggedProcedure } from "./common/loggedProcedure";
@@ -8,8 +7,7 @@ export const timelineRouter = t.router({
   listActivities: loggedProcedure
     .input(
       z.object({
-        start: z.iso.datetime(),
-        end: z.iso.datetime(),
+        day: z.iso.date(),
         filters: z
           .object({
             habit: z.boolean(),
@@ -20,12 +18,6 @@ export const timelineRouter = t.router({
       }),
     )
     .query((opts) => {
-      return TimelineService.listActivities(
-        {
-          start: DateTime.fromISO(opts.input.start),
-          end: DateTime.fromISO(opts.input.end),
-        },
-        opts.input.filters,
-      );
+      return TimelineService.listActivities(opts.input.day, opts.input.filters);
     }),
 });

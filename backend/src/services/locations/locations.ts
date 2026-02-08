@@ -68,7 +68,7 @@ export class LocationChartServiceInternal {
    */
   public async getCitiesVisited(params: DateRange) {
     const islandsCte = getIslandsCte({
-      range: params,
+      dateFilter: { range: params },
       accuracyFilterInMeters: 100,
       activityDurationFilterInMin: config.charts.citiesVisited.minimumTimeInMin,
       placeKey: locationDetailsTable.city,
@@ -94,7 +94,7 @@ export class LocationChartServiceInternal {
    */
   public async getCountriesVisited(params: DateRange) {
     const islandsCte = getIslandsCte({
-      range: params,
+      dateFilter: { range: params },
       accuracyFilterInMeters: 100,
       activityDurationFilterInMin: config.charts.countriesVisited.minimumTimeInMin,
       // Use country rather than country_code because for some reason nominatim doesn't always
@@ -129,7 +129,7 @@ export class LocationChartServiceInternal {
    */
   public async getVisitCountsByPlace(params: Partial<DateRange>) {
     const durationIslands = getIslandsCte({
-      range: params,
+      dateFilter: { range: params },
       accuracyFilterInMeters: 20,
       activityDurationFilterInMin: config.charts.placesVisited.minimumTimeInMin,
       placeKey: locationDetailsTable.id,
@@ -154,9 +154,9 @@ export class LocationChartServiceInternal {
   /**
    * Fetch the timeline for a given period
    */
-  public async getTimeline(params: Partial<DateRange>): Promise<LocationTimelineActivity[]> {
+  public async getTimeline(day: string): Promise<LocationTimelineActivity[]> {
     const durationIslands = getIslandsCte({
-      range: params,
+      dateFilter: { day },
       accuracyFilterInMeters: 20,
       activityDurationFilterInMin: config.charts.placesVisited.minimumTimeInMin,
       placeKey: locationDetailsTable.id,

@@ -2,7 +2,6 @@ import { DateTime } from "luxon";
 import type { Habit } from "../models";
 import type { Website } from "../models/Website";
 import type { WebsiteVisit } from "../models/WebsiteVisit";
-import type { DateRange } from "../types/chartTypes";
 import { BrowserHistoryService } from "./browserHistory";
 import { HabitsService } from "./habits/habits";
 import { LocationChartService, type LocationTimelineActivity } from "./locations/locations";
@@ -26,7 +25,7 @@ type TimelineActivity =
 
 export namespace TimelineService {
   export async function listActivities(
-    range: DateRange,
+    day: string,
     filtersParam?: {
       habit: boolean;
       location: boolean;
@@ -35,9 +34,9 @@ export namespace TimelineService {
   ) {
     const filters = filtersParam ?? { habit: true, location: true, website: true };
     const [locations, habits, browserHistory] = await Promise.all([
-      filters.location ? LocationChartService.getTimeline(range) : [],
-      filters.habit ? HabitsService.list({ ...range, privateMode: false }) : [],
-      filters.website ? BrowserHistoryService.list(range) : [],
+      filters.location ? LocationChartService.getTimeline(day) : [],
+      filters.habit ? HabitsService.list({ day, privateMode: false }) : [],
+      filters.website ? BrowserHistoryService.list({ day }) : [],
     ]);
 
     const locationsFormatted: TimelineActivity[] = locations.map((location) => {
@@ -56,14 +55,19 @@ export namespace TimelineService {
     });
 
     const habitsFormatted: TimelineActivity[] = habits.map((habit) => {
-      const iso = DateTime.fromJSDate(habit.date).toISO();
+      const date = HabitsService.getTimeForPeriod(DateTime.fromJSDate(habit.date), habit.periodOfDay);
+      const iso = date.toISO();
       if (!iso) {
         throw new Error("Location missing start date (couldn't parse iso)");
       }
       return {
         type: "habit",
         date: iso,
-        data: habit,
+        data: {
+          ...habit,
+          // Just to help displaying on the FE, not sure how I want to do this long term
+          date: date.toJSDate(),
+        },
       };
     });
 

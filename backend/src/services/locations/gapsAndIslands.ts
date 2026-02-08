@@ -1,4 +1,4 @@
-import { asc, avg, eq, getTableColumns, max, min, sql } from "drizzle-orm";
+import { and, asc, avg, eq, getTableColumns, max, min, sql } from "drizzle-orm";
 import type { PgColumn } from "drizzle-orm/pg-core";
 import { db } from "../../db/connection";
 import { locationDetailsTable, locationsTable } from "../../models";
@@ -24,18 +24,25 @@ import type { DateRange } from "../../types/chartTypes";
  * @param params.placeKey the property of locationDetails that we're grouping by
  */
 export function getIslandsCte(params: {
-  range: Partial<DateRange>;
+  dateFilter: { range: Partial<DateRange> } | { day: string };
   activityDurationFilterInMin: number;
   accuracyFilterInMeters: number;
   placeKey: PgColumn;
 }) {
-  const {
-    range: { start, end },
-    activityDurationFilterInMin,
-    accuracyFilterInMeters,
-    placeKey,
-  } = params;
+  const { dateFilter, activityDurationFilterInMin, accuracyFilterInMeters, placeKey } = params;
   const activityDurationFilterInSec = activityDurationFilterInMin * 60;
+  const rangeStart =
+    "range" in dateFilter && dateFilter.range.start
+      ? sql`${locationsTable.recordedAt} >= ${dateFilter.range.start.toISO()}`
+      : sql`1=1`;
+  const rangeEnd =
+    "range" in dateFilter && dateFilter.range.end
+      ? sql`${locationsTable.recordedAt} >= ${dateFilter.range.end.toISO()}`
+      : sql`1=1`;
+  const day =
+    "day" in dateFilter
+      ? sql`(${locationsTable.recordedAt} at time zone ${locationsTable.timezone})::date = ${dateFilter.day}`
+      : sql`1=1`;
   const enrichedLocations = db.$with("enriched_locations").as((cte) =>
     cte
       .select({
@@ -44,13 +51,7 @@ export function getIslandsCte(params: {
       })
       .from(locationsTable)
       .innerJoin(locationDetailsTable, eq(locationDetailsTable.id, locationsTable.locationDetailsId))
-      .where(
-        sql`
-            ${locationsTable.accuracy} < ${accuracyFilterInMeters}
-            ${start ? sql`AND ${locationsTable.recordedAt} >= ${start.toISO()}` : sql``}
-            ${end ? sql`AND  ${locationsTable.recordedAt} <= ${end.toISO()}` : sql``}
-      `,
-      ),
+      .where(and(sql`${locationsTable.accuracy} < ${accuracyFilterInMeters}`, rangeStart, rangeEnd, day)),
   );
 
   // Prepare the locations table to be groupped in gaps/islands. Also applies base filters
