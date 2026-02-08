@@ -1,7 +1,6 @@
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useRef } from "react";
 import type { RouterOutputs } from "../../api/trpc";
-import { safeScrollableArea } from "../../constants";
 import { ActivityTimelineItem } from "./ActivityTimelineItem/ActivityTimelineItem";
 
 export type TimelineFilters = {
@@ -28,7 +27,6 @@ export function ActivityTimelineList(props: Props) {
     <div
       ref={parentRef}
       style={{
-        height: safeScrollableArea,
         overflow: "auto",
       }}
     >
@@ -68,7 +66,7 @@ export function ActivityTimelineList(props: Props) {
           >
             <div
               style={{
-                maxWidth: "70%",
+                maxWidth: "500px",
                 marginInline: "auto",
               }}
             >

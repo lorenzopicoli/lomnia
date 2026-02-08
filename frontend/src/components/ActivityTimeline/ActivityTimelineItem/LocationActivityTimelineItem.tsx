@@ -18,8 +18,8 @@ export function LocationActivityTimelineItem(props: { activity: Item }) {
   const isStationary = !!data.placeOfInterest;
 
   return (
-    <Stack gap={"md"}>
-      <Group gap="xs" justify="space-between">
+    <Stack>
+      <Group gap="xs" justify="space-between" wrap="nowrap">
         <Group gap={6}>
           {locationActivitySourceToIcon(null)}
           <Text lineClamp={1} fw={500}>

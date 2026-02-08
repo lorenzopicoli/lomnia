@@ -1,7 +1,6 @@
 import { Container, Flex } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { endOfDay } from "date-fns/endOfDay";
 import { parse } from "date-fns/parse";
 import { startOfDay } from "date-fns/startOfDay";
 import { useState } from "react";
@@ -36,8 +35,7 @@ export default function ActivityTimelineContainer() {
   const formattedDate = format(day, "MMMM do, yyyy");
   const { data, isPending } = useQuery(
     trpc.timelineRouter.listActivities.queryOptions({
-      start: startOfDay(day).toISOString(),
-      end: endOfDay(day).toISOString(),
+      day: format(day, urlDayFormat),
       filters: filters ?? { habit: true, location: true, website: true },
     }),
   );
@@ -47,10 +45,10 @@ export default function ActivityTimelineContainer() {
       direction={"column"}
       component={Container}
       fluid
+      h="100vh"
       ta={"left"}
       style={{ verticalAlign: "top" }}
       pt={"lg"}
-      pb={"md"}
       pl={0}
       pr={0}
       gap={"lg"}
