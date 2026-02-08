@@ -10,6 +10,13 @@ export const timelineRouter = t.router({
       z.object({
         start: z.iso.datetime(),
         end: z.iso.datetime(),
+        config: z
+          .object({
+            habit: z.boolean(),
+            location: z.boolean(),
+            website: z.boolean(),
+          })
+          .optional(),
       }),
     )
     .query((opts) => {
