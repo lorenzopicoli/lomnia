@@ -1,16 +1,17 @@
 import { Card, Text } from "@mantine/core";
-import type { RouterOutputs } from "../../api/trpc";
-import { cardDarkBackgroundNoTransparency } from "../../themes/mantineThemes";
+import type { RouterOutputs } from "../../../api/trpc";
+import { cardDarkBackgroundNoTransparency } from "../../../themes/mantineThemes";
 import { HabitActivityTimelineItem } from "./HabitActivityTimelineItem";
 import { LocationActivityTimelineItem } from "./LocationActivityTimelineItem";
 import { WebsiteVisitActivityTimelineItem } from "./WebsiteVisitActivityTimelineItem";
 
-type Item = RouterOutputs["timelineRouter"]["listActivities"][number];
+type Item = RouterOutputs["timelineRouter"]["listActivities"]["activities"][number];
 
 export function ActivityTimelineItem(props: { activity: Item }) {
   const { activity } = props;
   return (
     <Card
+      m="md"
       p="md"
       pos="relative"
       bdrs="lg"

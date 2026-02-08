@@ -85,6 +85,6 @@ export namespace TimelineService {
       (a, b) => DateTime.fromISO(a.date).toMillis() - DateTime.fromISO(b.date).toMillis(),
     );
 
-    return sorted;
+    return { activities: sorted, count: sorted.length };
   }
 }
