@@ -1,9 +1,9 @@
 import { Badge, Group, Stack, Text } from "@mantine/core";
 import { IconCheck, IconNotes } from "@tabler/icons-react";
 import { format } from "date-fns";
-import type { RouterOutputs } from "../../api/trpc";
+import type { RouterOutputs } from "../../../api/trpc";
 
-type Item = Extract<RouterOutputs["timelineRouter"]["listActivities"][number], { type: "habit" }>;
+type Item = Extract<RouterOutputs["timelineRouter"]["listActivities"]["activities"][number], { type: "habit" }>;
 
 export function formatValue(habit: Item["data"]): string {
   const { value, valuePrefix, valueSuffix } = habit;

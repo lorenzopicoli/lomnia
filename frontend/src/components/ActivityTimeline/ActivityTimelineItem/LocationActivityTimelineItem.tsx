@@ -1,9 +1,9 @@
 import { Badge, Group, Stack, Text } from "@mantine/core";
 import { IconMapPin, IconRoute } from "@tabler/icons-react";
 import { format, formatDistanceStrict } from "date-fns";
-import type { RouterOutputs } from "../../api/trpc";
+import type { RouterOutputs } from "../../../api/trpc";
 
-type Item = Extract<RouterOutputs["timelineRouter"]["listActivities"][number], { type: "location" }>;
+type Item = Extract<RouterOutputs["timelineRouter"]["listActivities"]["activities"][number], { type: "location" }>;
 
 export function LocationActivityTimelineItem(props: { activity: Item }) {
   const { activity } = props;

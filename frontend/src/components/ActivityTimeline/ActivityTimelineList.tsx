@@ -19,7 +19,10 @@ export function ActivityTimelineList(props: Props) {
     count: activities.length ?? 0,
     getScrollElement: () => parentRef.current,
     estimateSize: () => 200,
+    overscan: 5,
   });
+
+  const items = rowVirtualizer.getVirtualItems();
 
   return (
     <div
@@ -29,7 +32,6 @@ export function ActivityTimelineList(props: Props) {
         overflow: "auto",
       }}
     >
-      {/* The large inner element to hold all of the items */}
       <div
         style={{
           height: `${rowVirtualizer.getTotalSize()}px`,
@@ -50,20 +52,28 @@ export function ActivityTimelineList(props: Props) {
             pointerEvents: "none",
           }}
         />
-        {/* Only the visible items in the virtualizer, manually positioned to be in view */}
-        {rowVirtualizer.getVirtualItems().map((virtualItem) => (
+
+        {items.map((virtualItem) => (
           <div
             key={virtualItem.key}
+            data-index={virtualItem.index}
+            ref={rowVirtualizer.measureElement}
             style={{
               position: "absolute",
               top: 0,
               left: 0,
               width: "100%",
-              height: `${virtualItem.size}px`,
               transform: `translateY(${virtualItem.start}px)`,
             }}
           >
-            <ActivityTimelineItem activity={activities[virtualItem.index]} />
+            <div
+              style={{
+                maxWidth: "70%",
+                marginInline: "auto",
+              }}
+            >
+              <ActivityTimelineItem activity={activities[virtualItem.index]} />
+            </div>
           </div>
         ))}
       </div>
