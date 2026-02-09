@@ -7,12 +7,13 @@ export const habitsRouter = t.router({
   getByDay: loggedProcedure
     .input(
       z.object({
-        day: z.string().date(),
+        start: z.iso.datetime(),
+        end: z.iso.datetime(),
         privateMode: z.boolean(),
       }),
     )
     .query((opts) => {
-      return HabitsService.byDay(opts.input) ?? [];
+      return HabitsService.list(opts.input) ?? [];
     }),
 
   getRawHabitsTable: loggedProcedure

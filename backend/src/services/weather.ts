@@ -1,8 +1,8 @@
 import { isValid, parse } from "date-fns";
-import { asc, count, sql } from "drizzle-orm";
+import { and, asc, count, eq, max, sql } from "drizzle-orm";
 import { db } from "../db/connection";
 import { dailyWeatherTable, hourlyWeatherTable } from "../models";
-import type { ChartPeriodInput } from "../types/chartTypes";
+import type { ChartPeriodInput, DateRange } from "../types/chartTypes";
 import { getAggregatedXColumn } from "./common/getAggregatedXColumn";
 import { getAggregatedYColumn } from "./common/getAggregatedYColumn";
 
@@ -12,18 +12,38 @@ export namespace WeatherService {
     if (!isValid(parse(day, "yyyy-MM-dd", new Date()))) {
       throw new Error("Invalid date");
     }
-    const hourly = await db.query.hourlyWeatherTable.findMany({
-      where: sql`(${hourlyWeatherTable.date} AT TIME ZONE ${hourlyWeatherTable.timezone})::date = ${day}`,
-      orderBy: hourlyWeatherTable.date,
-    });
     const daily = await db.query.dailyWeatherTable.findFirst({
       where: sql`${dailyWeatherTable.date} = ${day}`,
     });
 
     return {
-      hourly,
       daily,
     };
+  }
+  export async function list(params: DateRange) {
+    const { start, end } = params;
+
+    const latestPerDate = db
+      .select({
+        date: hourlyWeatherTable.date,
+        maxDate: max(hourlyWeatherTable.createdAt).as("maxDate"),
+      })
+      .from(hourlyWeatherTable)
+      .where(sql`
+             ${hourlyWeatherTable.date} >= ${start.toISO()}
+             AND ${hourlyWeatherTable.date} <= ${end.toISO()}
+             `)
+      .groupBy(hourlyWeatherTable.date)
+      .as("latest");
+
+    const hourly = await db
+      .select()
+      .from(hourlyWeatherTable)
+      .innerJoin(
+        latestPerDate,
+        and(eq(hourlyWeatherTable.date, latestPerDate.date), eq(hourlyWeatherTable.createdAt, latestPerDate.maxDate)),
+      );
+    return hourly.map((h) => h.hourly_weather);
   }
 }
 

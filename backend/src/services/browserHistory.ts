@@ -6,6 +6,26 @@ import { websitesTable } from "../models/Website";
 import { websitesVisitsTable } from "../models/WebsiteVisit";
 import type { DateRange } from "../types/chartTypes";
 
+class BrowserHistoryServiceInternal {
+  public async list(params: { day: string }) {
+    const { day } = params;
+
+    return db
+      .select({
+        website: websitesTable,
+        visit: websitesVisitsTable,
+      })
+      .from(websitesVisitsTable)
+      .innerJoin(websitesTable, eq(websitesTable.externalId, websitesVisitsTable.websiteExternalId))
+      .where(
+        sql`
+        (${websitesVisitsTable.recordedAt} at time zone ${websitesVisitsTable.timezone})::date >= ${day} AND
+        (${websitesVisitsTable.recordedAt} at time zone ${websitesVisitsTable.timezone})::date  <= ${day}
+      `,
+      );
+  }
+}
+
 class BrowserHistoryChartServiceInternal {
   public async getWebsitesCount() {
     return db
@@ -135,3 +155,4 @@ class BrowserHistoryChartServiceInternal {
 }
 
 export const BrowserHistoryChartService = new BrowserHistoryChartServiceInternal();
+export const BrowserHistoryService = new BrowserHistoryServiceInternal();

@@ -9,8 +9,8 @@
   </defs>
 <defs>
   <radialGradient id="accentGradient" cx="50%" cy="45%" r="65%">
-    <stop offset="0%" stop-color="#6A5CBA"/>
-    <stop offset="60%" stop-color="#4E4596"/>
+    <stop offset="0%" stop-color="#ffffff"/>
+    <stop offset="60%" stop-color="#ffffff"/>
     <stop offset="100%" stop-color="#352F6B"/>
   </radialGradient>
 
@@ -29,7 +29,7 @@
   fill="url(#accentGradient)"
   stroke="none"
 />
-      <g clip-path="url(#circle-clip)">
+      <g clipPath="url(#circle-clip)">
   <g transform="translate(-1700.000000,3900.000000) scale(0.58000,-0.58000)"
    fill="#1A1533"
    stroke="none"

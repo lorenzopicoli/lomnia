@@ -11,7 +11,7 @@ import {
 } from "@tabler/icons-react";
 import { Link, useLocation } from "react-router-dom";
 import { cardDarkBackground } from "../../themes/mantineThemes";
-import { Logo } from "../Logo";
+import { Logo } from "../logos/Logo";
 
 type HeaderProps = {
   onChangePrivateMode: (privateMode: boolean) => void;

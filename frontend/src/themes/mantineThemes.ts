@@ -1,6 +1,7 @@
 import { createTheme, rem } from "@mantine/core";
 
 export const cardDarkBackground = "rgba(43,45,66, 0.5)";
+export const cardDarkBackgroundNoTransparency = "rgba(43,45,66, 1)";
 export const mantineTheme = createTheme({
   colors: {
     violet: [

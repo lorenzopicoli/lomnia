@@ -32,6 +32,18 @@ export const HeatmapInput = z
     zoom: true,
   });
 
+export interface LocationTimelineActivity {
+  startDate: Date;
+  endDate: Date;
+  velocity: number;
+  timezone: string;
+  duration: unknown;
+  placeOfInterest: {
+    displayName: string | null;
+  } | null;
+  mode: string;
+}
+
 export class LocationServiceInternal {
   public async getTimezoneForDate(tx: DBTransaction, date: DateTime): Promise<{ timezone: string } | undefined> {
     return tx
@@ -56,7 +68,7 @@ export class LocationChartServiceInternal {
    */
   public async getCitiesVisited(params: DateRange) {
     const islandsCte = getIslandsCte({
-      range: params,
+      dateFilter: { range: params },
       accuracyFilterInMeters: 100,
       activityDurationFilterInMin: config.charts.citiesVisited.minimumTimeInMin,
       placeKey: locationDetailsTable.city,
@@ -82,7 +94,7 @@ export class LocationChartServiceInternal {
    */
   public async getCountriesVisited(params: DateRange) {
     const islandsCte = getIslandsCte({
-      range: params,
+      dateFilter: { range: params },
       accuracyFilterInMeters: 100,
       activityDurationFilterInMin: config.charts.countriesVisited.minimumTimeInMin,
       // Use country rather than country_code because for some reason nominatim doesn't always
@@ -117,7 +129,7 @@ export class LocationChartServiceInternal {
    */
   public async getVisitCountsByPlace(params: Partial<DateRange>) {
     const durationIslands = getIslandsCte({
-      range: params,
+      dateFilter: { range: params },
       accuracyFilterInMeters: 20,
       activityDurationFilterInMin: config.charts.placesVisited.minimumTimeInMin,
       placeKey: locationDetailsTable.id,
@@ -142,9 +154,9 @@ export class LocationChartServiceInternal {
   /**
    * Fetch the timeline for a given period
    */
-  public async getTimeline(params: Partial<DateRange>) {
+  public async getTimeline(day: string): Promise<LocationTimelineActivity[]> {
     const durationIslands = getIslandsCte({
-      range: params,
+      dateFilter: { day },
       accuracyFilterInMeters: 20,
       activityDurationFilterInMin: config.charts.placesVisited.minimumTimeInMin,
       placeKey: locationDetailsTable.id,
@@ -155,8 +167,11 @@ export class LocationChartServiceInternal {
         startDate: durationIslands.startDate,
         endDate: durationIslands.endDate,
         velocity: durationIslands.velocity,
+        timezone: durationIslands.timezone,
         duration: durationIslands.duration,
-        placeOfInterest: locationDetailsTable,
+        placeOfInterest: {
+          displayName: locationDetailsTable.displayName,
+        },
         mode: sql`
         CASE
             WHEN ${durationIslands.placeKey} IS NOT NULL THEN 'still'

@@ -1,4 +1,3 @@
-import { isValid, parse } from "date-fns";
 import { count, countDistinct, desc, eq, sql } from "drizzle-orm";
 import { DateTime } from "luxon";
 import { db } from "../../db/connection";
@@ -36,13 +35,13 @@ export namespace HabitsService {
       .then((r) => r[0]);
   }
 
-  export async function byDay(params: { day: string; privateMode: boolean }) {
+  export async function list(params: { day: string; privateMode: boolean }) {
     const { day, privateMode } = params;
-    if (!isValid(parse(day, "yyyy-MM-dd", new Date()))) {
-      throw new Error("Invalid day");
-    }
     const entries = await db.query.habitsTable.findMany({
-      where: sql`(date at time zone ${habitsTable.timezone})::date = ${day}`,
+      where: sql`
+        (${habitsTable.date} at time zone ${habitsTable.timezone})::date >= ${day} AND
+        (${habitsTable.date} at time zone ${habitsTable.timezone})::date  <= ${day}
+      `,
     });
 
     return formatHabitResponse(entries, privateMode);
@@ -241,5 +240,19 @@ export namespace HabitsService {
       })
       .from(habitsTable)
       .then((r) => r[0].count);
+  }
+
+  export function getTimeForPeriod(date: DateTime, period: Habit["periodOfDay"]) {
+    const periodToTime: Record<NonNullable<Habit["periodOfDay"]>, { hour: number; minute: number }> = {
+      morning: { hour: 9, minute: 0 },
+      afternoon: { hour: 14, minute: 0 },
+      evening: { hour: 19, minute: 0 },
+      over_night: { hour: 2, minute: 0 },
+    };
+    if (period) {
+      const { hour, minute } = periodToTime[period];
+      return date.set({ hour, minute, second: 0, millisecond: 0 });
+    }
+    return date;
   }
 }

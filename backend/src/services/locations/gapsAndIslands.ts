@@ -1,4 +1,4 @@
-import { asc, avg, eq, getTableColumns, max, min, sql } from "drizzle-orm";
+import { and, asc, avg, eq, getTableColumns, max, min, sql } from "drizzle-orm";
 import type { PgColumn } from "drizzle-orm/pg-core";
 import { db } from "../../db/connection";
 import { locationDetailsTable, locationsTable } from "../../models";
@@ -24,18 +24,25 @@ import type { DateRange } from "../../types/chartTypes";
  * @param params.placeKey the property of locationDetails that we're grouping by
  */
 export function getIslandsCte(params: {
-  range: Partial<DateRange>;
+  dateFilter: { range: Partial<DateRange> } | { day: string };
   activityDurationFilterInMin: number;
   accuracyFilterInMeters: number;
   placeKey: PgColumn;
 }) {
-  const {
-    range: { start, end },
-    activityDurationFilterInMin,
-    accuracyFilterInMeters,
-    placeKey,
-  } = params;
+  const { dateFilter, activityDurationFilterInMin, accuracyFilterInMeters, placeKey } = params;
   const activityDurationFilterInSec = activityDurationFilterInMin * 60;
+  const rangeStart =
+    "range" in dateFilter && dateFilter.range.start
+      ? sql`${locationsTable.recordedAt} >= ${dateFilter.range.start.toISO()}`
+      : sql`1=1`;
+  const rangeEnd =
+    "range" in dateFilter && dateFilter.range.end
+      ? sql`${locationsTable.recordedAt} >= ${dateFilter.range.end.toISO()}`
+      : sql`1=1`;
+  const day =
+    "day" in dateFilter
+      ? sql`(${locationsTable.recordedAt} at time zone ${locationsTable.timezone})::date = ${dateFilter.day}`
+      : sql`1=1`;
   const enrichedLocations = db.$with("enriched_locations").as((cte) =>
     cte
       .select({
@@ -44,13 +51,7 @@ export function getIslandsCte(params: {
       })
       .from(locationsTable)
       .innerJoin(locationDetailsTable, eq(locationDetailsTable.id, locationsTable.locationDetailsId))
-      .where(
-        sql`
-            ${locationsTable.accuracy} < ${accuracyFilterInMeters}
-            ${start ? sql`AND ${locationsTable.recordedAt} >= ${start.toISO()}` : sql``}
-            ${end ? sql`AND  ${locationsTable.recordedAt} <= ${end.toISO()}` : sql``}
-      `,
-      ),
+      .where(and(sql`${locationsTable.accuracy} < ${accuracyFilterInMeters}`, rangeStart, rangeEnd, day)),
   );
 
   // Prepare the locations table to be groupped in gaps/islands. Also applies base filters
@@ -63,6 +64,7 @@ export function getIslandsCte(params: {
         recordedAt: enrichedLocations.recordedAt,
         velocity: enrichedLocations.velocity,
         placeKey: enrichedLocations.placeKey,
+        timezone: enrichedLocations.timezone,
         // Very important to use the id as a tie break since location fix can have duplicates
         // https://stackoverflow.com/questions/30877926/how-to-group-following-rows-by-not-unique-value/30880137#30880137
         totalSeq: sql`
@@ -71,7 +73,11 @@ export function getIslandsCte(params: {
         // Partition by the place key. This will split the islands by locationDetails key
         // ie. country, city or even ID if we're checking every "location" visited
         partitionSeq: sql`
-            row_number() over (partition by ${enrichedLocations.placeKey} order by ${enrichedLocations.recordedAt} asc, ${enrichedLocations.id} asc)
+            row_number() over (partition by ${enrichedLocations.placeKey}
+                               order by ${enrichedLocations.recordedAt} asc, 
+                                        ${enrichedLocations.id} asc,
+                                        ${enrichedLocations.timezone} asc
+                              )
         `.as("parition_seq"),
       })
       .from(enrichedLocations),
@@ -90,11 +96,14 @@ export function getIslandsCte(params: {
             )`.as("ai_duration"),
         velocity: avg(baseLocations.velocity).mapWith(Number).as("ai_velocity"),
         placeKey: baseLocations.placeKey,
+        timezone: baseLocations.timezone,
       })
       .from(baseLocations)
       .orderBy(asc(min(baseLocations.recordedAt)))
       // The group by here must be the same as the partitionSeq in the previous CTE
-      .groupBy(sql`${baseLocations.placeKey}, (${baseLocations.totalSeq} - ${baseLocations.partitionSeq})`),
+      .groupBy(sql`${baseLocations.placeKey},
+               (${baseLocations.totalSeq} - ${baseLocations.partitionSeq}),
+               ${baseLocations.timezone}`),
   );
 
   // Now prepare to generate gaps and islands based on the duration of each activity
@@ -110,6 +119,7 @@ export function getIslandsCte(params: {
         duration: baseActivitiesIslands.duration,
         velocity: baseActivitiesIslands.velocity,
         placeKey: baseActivitiesIslands.placeKey,
+        timezone: baseActivitiesIslands.timezone,
         totalSeq: sql`
             row_number() over (
                 order by ${baseActivitiesIslands.startDate} asc, 
@@ -128,7 +138,8 @@ export function getIslandsCte(params: {
                     ELSE NULL
                   END
                 order by ${baseActivitiesIslands.startDate} asc, 
-                ${baseActivitiesIslands.placeKey} asc
+                ${baseActivitiesIslands.placeKey} asc,
+                ${baseActivitiesIslands.timezone} asc
             )
         `.as("di_partition_seq"),
       })
@@ -139,8 +150,13 @@ export function getIslandsCte(params: {
     cte
       .with(activitiesIslands)
       .select({
-        startDate: min(activitiesIslands.startDate).as("di_start_date"),
-        endDate: max(activitiesIslands.endDate).as("di_end_date"),
+        // Have to map this way otherwise drizzle gives a weirdly formatted string back
+        startDate: min(activitiesIslands.startDate)
+          .mapWith((v) => new Date(v))
+          .as("di_start_date"),
+        endDate: max(activitiesIslands.endDate)
+          .mapWith((v) => new Date(v))
+          .as("di_end_date"),
         velocity: avg(activitiesIslands.velocity).mapWith(Number).as("di_velocity"),
         // If this island is a group of more than one placeKeys, then set it to NULL
         // otherwise return it
@@ -155,6 +171,7 @@ export function getIslandsCte(params: {
                 ${max(activitiesIslands.endDate)} - 
                 ${min(activitiesIslands.startDate)})
             )`.as("di_duration"),
+        timezone: activitiesIslands.timezone,
       })
       .from(activitiesIslands)
       .groupBy(
@@ -165,7 +182,8 @@ export function getIslandsCte(params: {
               THEN ${baseActivitiesIslands.placeKey}
               ELSE NULL
             END,
-            (${activitiesIslands.totalSeq} - ${activitiesIslands.partitionSeq})`,
+            (${activitiesIslands.totalSeq} - ${activitiesIslands.partitionSeq}),
+            ${activitiesIslands.timezone}`,
       )
       .orderBy(min(activitiesIslands.startDate)),
   );

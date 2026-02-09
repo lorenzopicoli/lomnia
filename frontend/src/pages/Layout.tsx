@@ -6,8 +6,8 @@ import { AddHabitFeature } from "./AddHabitFeature/AddHabitFeature";
 import { AddPlaceOfInterestPage } from "./AddPlaceOfInterest/AddPlaceOfInterestPage";
 import { Explore } from "./Explore/Explore";
 import { HabitsPage } from "./Habits/Habits";
-import Home from "./Home/Home";
 import { PlacesOfInterestPage } from "./PlacesOfInterest/PlacesOfInterestPage";
+import ActivityTimelinePage from "./Timeline/ActivityTimelinePage";
 
 function Layout() {
   const config = useConfig();
@@ -16,13 +16,13 @@ function Layout() {
   const handleChangePrivateMode = (mode: boolean) => config.updateConfig({ privateMode: mode });
 
   return (
-    <AppShell navbar={{ width: { sm: 180, lg: 180 }, breakpoint: "sm" }} withBorder={false}>
+    <AppShell navbar={{ width: { sm: 70, md: 180, lg: 180 }, breakpoint: "sm" }} withBorder={false}>
       <AppShell.Navbar style={{ borderRadius: 0 }} bg={theme.colors.dark[9]}>
         <Navbar onChangePrivateMode={handleChangePrivateMode} privateMode={config.privateMode} />
       </AppShell.Navbar>
       <AppShell.Main>
         <Routes>
-          <Route index element={<Home />} />
+          <Route index element={<ActivityTimelinePage />} />
           <Route path={"/dashboard/*"} element={<Explore />} />
           <Route path={"/habits/features/add"} element={<AddHabitFeature />} />
           <Route path="/habits/features/edit/:featureId" element={<AddHabitFeature />} />
