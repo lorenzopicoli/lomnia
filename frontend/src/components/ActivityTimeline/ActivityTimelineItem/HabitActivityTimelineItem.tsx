@@ -1,3 +1,4 @@
+import { TZDate } from "@date-fns/tz";
 import { Badge, Group, Stack, Text } from "@mantine/core";
 import { IconNotes } from "@tabler/icons-react";
 import { format } from "date-fns";
@@ -49,7 +50,11 @@ export function HabitActivityTimelineItem(props: { activity: Item }) {
 
   const value = formatValue(data);
 
-  const timeLabel = data.isFullDay ? "All day" : data.date ? format(new Date(data.date), "HH:mm") : null;
+  const timeLabel = data.isFullDay
+    ? "All day"
+    : data.date
+      ? format(new TZDate(data.date, data.timezone), "HH:mm")
+      : null;
 
   return (
     <Stack gap={"md"}>

@@ -1,3 +1,4 @@
+import { TZDate } from "@date-fns/tz";
 import { Anchor, Badge, Collapse, Group, Image, Stack, Text } from "@mantine/core";
 import { IconDownload, IconExternalLink } from "@tabler/icons-react";
 import { format } from "date-fns";
@@ -11,18 +12,33 @@ export function WebsiteVisitActivityTimelineItem(props: { activity: Item; onExpa
   const { website, visit } = activity.data;
 
   const title = website.title ?? website.host ?? website.url;
-  const time = format(new Date(visit.recordedAt), "HH:mm");
+  const time = format(new TZDate(visit.recordedAt, visit.timezone ?? ""), "HH:mm");
 
   return (
     <Stack gap="xs">
       <Group style={{ cursor: "pointer" }} gap="xs" wrap="nowrap" onClick={onExpand}>
-        {websiteVisitActivitySourceToIcon(visit.source)}
+        <div style={{ flexShrink: 0 }}>{websiteVisitActivitySourceToIcon(visit.source)}</div>
 
-        <Text fw={500} truncate style={{ flex: 1 }}>
+        <Text
+          fw={500}
+          style={{
+            flex: 1,
+            minWidth: 0,
+            whiteSpace: "normal",
+            wordBreak: "break-word",
+          }}
+        >
           {title}
         </Text>
 
-        <Text size="xs" c="dimmed" style={{ whiteSpace: "nowrap", flexShrink: 0 }}>
+        <Text
+          size="xs"
+          c="dimmed"
+          style={{
+            whiteSpace: "nowrap",
+            flexShrink: 0,
+          }}
+        >
           {time}
         </Text>
       </Group>

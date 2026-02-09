@@ -1,3 +1,4 @@
+import { TZDate } from "@date-fns/tz";
 import { Badge, Group, Stack, Text } from "@mantine/core";
 import { format, formatDistanceStrict } from "date-fns";
 import type { RouterOutputs } from "../../../api/trpc";
@@ -9,8 +10,8 @@ export function LocationActivityTimelineItem(props: { activity: Item }) {
   const { activity } = props;
   const { data } = activity;
 
-  const start = new Date(data.startDate);
-  const end = new Date(data.endDate);
+  const start = new TZDate(data.startDate, data.timezone);
+  const end = new TZDate(data.endDate, data.timezone);
 
   const duration = formatDistanceStrict(start, end);
   const timeRange = `${format(start, "HH:mm")}–${format(end, "HH:mm")}`;
