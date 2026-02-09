@@ -1,7 +1,7 @@
 import { isValid, parse } from "date-fns";
 import { and, asc, count, eq, max, sql } from "drizzle-orm";
 import { db } from "../db/connection";
-import { dailyWeatherTable, type HourlyWeather, hourlyWeatherTable } from "../models";
+import { dailyWeatherTable, hourlyWeatherTable } from "../models";
 import type { ChartPeriodInput, DateRange } from "../types/chartTypes";
 import { getAggregatedXColumn } from "./common/getAggregatedXColumn";
 import { getAggregatedYColumn } from "./common/getAggregatedYColumn";
@@ -45,7 +45,7 @@ export namespace WeatherService {
       );
     return hourly.map((h) => h.hourly_weather);
   }
-
+}
 
 export namespace WeatherChartService {
   export const getDailyPrecipitation = async (params: ChartPeriodInput) => {
