@@ -22,9 +22,9 @@ type HeaderProps = {
 export default function Navbar(props: HeaderProps) {
   const location = useLocation();
 
-  const handlePrivateModeChange = () => {
-    props.onChangePrivateMode(!props.privateMode);
-  };
+  // const handlePrivateModeChange = () => {
+  //   props.onChangePrivateMode(!props.privateMode);
+  // };
 
   const MainPages = () => {
     const isTimeline = location.pathname === "/";
