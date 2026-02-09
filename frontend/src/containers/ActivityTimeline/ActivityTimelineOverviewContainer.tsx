@@ -8,7 +8,9 @@ import HeatmapContainer from "../HeatmapContainer";
 
 export default function ActivityTimelineOverviewContainer(props: { day: Date }) {
   const { day } = props;
-  const { data, isLoading } = useQuery(
+
+  // Very wasteful since the same call is done in the daily weather overview container
+  const { data } = useQuery(
     trpc.weather.getByDay.queryOptions({
       day: format(startOfDay(day), "yyyy-MM-dd"),
     }),
