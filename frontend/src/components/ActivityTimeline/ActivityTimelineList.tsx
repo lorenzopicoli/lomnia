@@ -36,7 +36,7 @@ export function ActivityTimelineList(props: Props) {
       <div
         style={{
           height: `${rowVirtualizer.getTotalSize()}px`,
-          width: "100%",
+          minWidth: 500,
           position: "relative",
         }}
       >

@@ -1,3 +1,4 @@
+import { Skeleton } from "@mantine/core";
 import { useDebouncedState } from "@mantine/hooks";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
@@ -58,10 +59,10 @@ export default function HeatmapContainer(props: HeatmapContainerProps) {
   };
 
   if (!isFirstFetch) {
-    return "Loading...";
+    return <Skeleton h={"100%"} w={"100%"} />;
   }
   if (!data || data.length === 0) {
-    return null;
+    return <Skeleton h={"100%"} w={"100%"} />;
   }
 
   return <Heatmap fitToBounds={fitToBounds} points={data} onViewChange={handleViewChange} />;

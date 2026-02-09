@@ -14,7 +14,7 @@ export function HaresLogo(props: { width?: number; height?: number }) {
         </clipPath>
       </defs>
 
-      <g clip-path="url(#clip)">
+      <g clipPath="url(#clip)">
         <circle cx="24" cy="24" r="24" fill="#ffff" />
         <svg width="100%" height="100%" viewBox="0 0 768 768" preserveAspectRatio="xMidYMid meet">
           <path

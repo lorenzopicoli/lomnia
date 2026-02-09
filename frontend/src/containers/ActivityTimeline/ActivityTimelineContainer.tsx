@@ -62,16 +62,16 @@ export default function ActivityTimelineContainer() {
         filters={filters}
       />
 
-      <Flex flex={1} mih={0} h={"100%"} pl={"lg"} gap="lg" align="flex-start" direction={{ base: "column", md: "row" }}>
+      <Flex flex={1} mih={0} h={"100%"} pl={"lg"} gap="lg" align="start" direction={{ base: "column", md: "row" }}>
         <ActivityTimelineOverviewContainer day={day} />
         {isPending || !data ? (
           <Stack flex={1} pr={"lg"}>
-            <Skeleton h={150} bdrs={"lg"} />
-            <Skeleton h={150} bdrs={"lg"} />
-            <Skeleton h={150} bdrs={"lg"} />
-            <Skeleton h={150} bdrs={"lg"} />
-            <Skeleton h={150} bdrs={"lg"} />
-            <Skeleton h={150} bdrs={"lg"} />
+            <Skeleton w={500} h={150} bdrs={"lg"} />
+            <Skeleton w={500} h={150} bdrs={"lg"} />
+            <Skeleton w={500} h={150} bdrs={"lg"} />
+            <Skeleton w={500} h={150} bdrs={"lg"} />
+            <Skeleton w={500} h={150} bdrs={"lg"} />
+            <Skeleton w={500} h={150} bdrs={"lg"} />
           </Stack>
         ) : (
           <ActivityTimelineList activities={data.activities} />

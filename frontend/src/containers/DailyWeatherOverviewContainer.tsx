@@ -1,4 +1,4 @@
-import { Flex, Grid } from "@mantine/core";
+import { Flex, Grid, Skeleton } from "@mantine/core";
 import {
   IconCloud,
   IconCloudFog,
@@ -57,11 +57,11 @@ export default function DailyWeatherOverviewContainer(props: DailyWeatherOvervie
   );
 
   if (isLoading) {
-    return "Loading...";
+    return <Loading />;
   }
 
   if (!data) {
-    return null;
+    return <Loading />;
   }
 
   const sunshineInterval = isNumber(data.daily?.sunshineDuration)
@@ -129,5 +129,21 @@ export default function DailyWeatherOverviewContainer(props: DailyWeatherOvervie
         </Grid>
       )}
     </>
+  );
+}
+
+function Loading() {
+  return (
+    <Grid gutter="md">
+      {Array.from({ length: 6 }).map((_, i) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+        <Grid.Col span={6} key={i}>
+          <Flex gap="sm">
+            <Skeleton h={30} w={30} bdrs={20} />
+            <Skeleton h={30} w={100} />
+          </Flex>
+        </Grid.Col>
+      ))}
+    </Grid>
   );
 }

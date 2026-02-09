@@ -54,7 +54,7 @@ export function HabitActivityTimelineItem(props: { activity: Item }) {
   return (
     <Stack gap={"md"}>
       <Group justify="space-between" gap="xs">
-        <Group gap={6}>
+        <Group gap={"sm"}>
           {habitActivitySourceToIcon(activity.data.source)}
 
           <Text fw={500}>{data.key}</Text>

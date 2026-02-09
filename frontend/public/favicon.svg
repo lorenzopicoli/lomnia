@@ -29,7 +29,7 @@
   fill="url(#accentGradient)"
   stroke="none"
 />
-      <g clip-path="url(#circle-clip)">
+      <g clipPath="url(#circle-clip)">
   <g transform="translate(-1700.000000,3900.000000) scale(0.58000,-0.58000)"
    fill="#1A1533"
    stroke="none"

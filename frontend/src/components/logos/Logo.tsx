@@ -16,7 +16,7 @@ export function Logo(props: { width?: number; height?: number }) {
           </clipPath>
         </defs>
         <circle cx="500" cy="500" r="500" fill="#ffffff" />
-        <g clip-path="url(#circle-clip)">
+        <g clipPath="url(#circle-clip)">
           <g transform="translate(-990.000000,2800.000000) scale(0.40000,-0.40000)" fill="#000000" stroke="none">
             <path
               d="M4975 8263 c-197 -16 -383 -47 -502 -82 -56 -17 -109 -31 -116 -31

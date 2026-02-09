@@ -20,7 +20,7 @@ export function LocationActivityTimelineItem(props: { activity: Item }) {
   return (
     <Stack>
       <Group gap="xs" justify="space-between" wrap="nowrap">
-        <Group gap={6}>
+        <Group gap={"sm"}>
           {locationActivitySourceToIcon(null)}
           <Text lineClamp={1} fw={500}>
             {data.placeOfInterest?.displayName ?? (isStationary ? "Staying in place" : "Moving")}

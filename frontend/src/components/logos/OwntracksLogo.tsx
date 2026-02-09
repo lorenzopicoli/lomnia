@@ -14,7 +14,7 @@ export function OwntracksLogo(props: { width?: number; height?: number }) {
         </clipPath>
       </defs>
 
-      <g clip-path="url(#clip)">
+      <g clipPath="url(#clip)">
         <circle cx="24" cy="24" r="24" fill="#ffff" />
         <g transform="translate(0.000000,48.000000) scale(0.100000,-0.100000)" fill="#4271B0" stroke="none">
           <path d="M0 240 l0 -240 240 0 240 0 0 240 0 240 -240 0 -240 0 0 -240z m275 160 c25 0 74 -51 84 -86 6 -21 6 -46 0 -66 -10 -35 -104 -168 -118 -168 -14 0 -112 138 -121 170 -11 39 4 91 34 119 25 24 73 42 94 35 8 -2 20 -4 27 -4z" />
