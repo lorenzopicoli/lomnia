@@ -9,8 +9,8 @@
   </defs>
 <defs>
   <radialGradient id="accentGradient" cx="50%" cy="45%" r="65%">
-    <stop offset="0%" stop-color="#6A5CBA"/>
-    <stop offset="60%" stop-color="#4E4596"/>
+    <stop offset="0%" stop-color="#ffffff"/>
+    <stop offset="60%" stop-color="#ffffff"/>
     <stop offset="100%" stop-color="#352F6B"/>
   </radialGradient>
 
