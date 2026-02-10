@@ -18,8 +18,8 @@ import { TemperatureExperienced } from "../../containers/Charts/TemperatureExper
 import { TextHabitBar } from "../../containers/Charts/TextHabitBar";
 import { TextHabitCoocurrencesChord } from "../../containers/Charts/TextHabitCoocurrencesChord";
 import { WebsiteNavigationFlowChord } from "../../containers/Charts/WebsitesNavigationFlowChord";
+import { WebsitesVisitsByTimeOfDayBar } from "../../containers/Charts/WebsitesVisitsByTimeOfDayBar";
 import { WebsitesVisitsCalendarHeatmap } from "../../containers/Charts/WebsitesVisitsCalendarHeatmap";
-import { WebsitesVisitsByTimeOfDayBar } from "../../containers/Charts/WebsitesvisitsByTimeOfDayBar";
 import { cardDarkBackground } from "../../themes/mantineThemes";
 import { ChartPlaceholder } from "../ChartPlaceholder/ChartPlaceholder";
 

@@ -91,7 +91,7 @@ export function HabitActivityTimelineItem(props: { activity: Item }) {
           </Text>
         </Group>
       )}
-      <Group>
+      <Group gap="xs">
         <Badge variant="light" size="xs">
           Habit
         </Badge>

@@ -4,6 +4,7 @@ import { IconDownload, IconExternalLink } from "@tabler/icons-react";
 import { format } from "date-fns";
 import type { RouterOutputs } from "../../../api/trpc";
 import { websiteVisitActivitySourceToIcon } from "./activitySourceToIcon";
+import { websiteVisitTypeFormat } from "./websiteVistTypeFormat";
 
 type Item = Extract<RouterOutputs["timelineRouter"]["listActivities"]["activities"][number], { type: "websiteVisit" }>;
 
@@ -16,8 +17,8 @@ export function WebsiteVisitActivityTimelineItem(props: { activity: Item; onExpa
 
   return (
     <Stack gap="xs">
-      <Group style={{ cursor: "pointer" }} gap="xs" wrap="nowrap" onClick={onExpand}>
-        <div style={{ flexShrink: 0 }}>{websiteVisitActivitySourceToIcon(visit.source)}</div>
+      <Group style={{ cursor: "pointer" }} align="center" gap="xs" wrap="nowrap" onClick={onExpand}>
+        {websiteVisitActivitySourceToIcon(visit.source)}
 
         <Text
           fw={500}
@@ -44,7 +45,7 @@ export function WebsiteVisitActivityTimelineItem(props: { activity: Item; onExpa
       </Group>
 
       {website.url && (
-        <Text size="xs" c="dimmed" truncate="end">
+        <Text size="xs" c="dimmed" truncate={isExpanded ? undefined : "end"}>
           {website.url}
         </Text>
       )}
@@ -72,13 +73,18 @@ export function WebsiteVisitActivityTimelineItem(props: { activity: Item; onExpa
       </Collapse>
 
       <Group justify="space-between" align="center" mt="xs">
-        <Group>
+        <Group gap="xs">
           <Badge variant="light" size="xs">
             Website visit
           </Badge>
           <Badge variant="light" size="xs">
             {activity.data.visit.source}
           </Badge>
+          {visit.type ? (
+            <Badge variant="light" size="xs">
+              {websiteVisitTypeFormat(visit.type)}
+            </Badge>
+          ) : null}
         </Group>
 
         <Anchor href={website.url} target="_blank" size="xs" c="dimmed">
