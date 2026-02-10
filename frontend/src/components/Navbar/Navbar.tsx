@@ -2,25 +2,26 @@ import { Button, Container, Flex, Group, Space, Stack, Text } from "@mantine/cor
 import {
   IconChecklist,
   IconEye,
-  IconEyeOff,
   IconLayoutDashboard,
   IconMapStar,
   IconSettings,
   IconTimeline,
-  type ReactNode,
 } from "@tabler/icons-react";
+
+import type { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cardDarkBackground } from "../../themes/mantineThemes";
 import { Logo } from "../logos/Logo";
 
 type HeaderProps = {
-  onChangePrivateMode: (privateMode: boolean) => void;
-
-  privateMode: boolean;
+  // onChangePrivateMode: (privateMode: boolean) => void;
+  // privateMode: boolean;
+  onNavigate?: () => void;
 };
 
 export default function Navbar(props: HeaderProps) {
   const location = useLocation();
+  const { onNavigate } = props;
 
   // const handlePrivateModeChange = () => {
   //   props.onChangePrivateMode(!props.privateMode);
@@ -41,10 +42,22 @@ export default function Navbar(props: HeaderProps) {
           </Text>
         </Group>
 
-        <NavButton to="/" label="Timeline" icon={<IconTimeline size={20} />} active={isTimeline} />
-        <NavButton to="/dashboard" label="Explore" icon={<IconLayoutDashboard size={20} />} active={isExplore} />
-        <NavButton to="/habits/features" label="Habits" icon={<IconChecklist size={20} />} active={isHabits} />
-        <NavButton to="/poi" label="Places" icon={<IconMapStar size={20} />} active={isPoi} />
+        <NavButton to="/" label="Timeline" icon={<IconTimeline size={20} />} active={isTimeline} onClick={onNavigate} />
+        <NavButton
+          to="/dashboard"
+          label="Explore"
+          icon={<IconLayoutDashboard size={20} />}
+          active={isExplore}
+          onClick={onNavigate}
+        />
+        <NavButton
+          to="/habits/features"
+          label="Habits"
+          icon={<IconChecklist size={20} />}
+          active={isHabits}
+          onClick={onNavigate}
+        />
+        <NavButton to="/poi" label="Places" icon={<IconMapStar size={20} />} active={isPoi} onClick={onNavigate} />
       </Stack>
     );
   };
@@ -54,13 +67,8 @@ export default function Navbar(props: HeaderProps) {
 
     return (
       <Stack gap={"xs"}>
-        <NavButton
-          to="/"
-          label="Hide"
-          icon={!props.privateMode ? <IconEye /> : <IconEyeOff />}
-          active={props.privateMode}
-        />
-        <NavButton to={"/settings"} label="Settings" icon={<IconSettings />} active={isSettings} />
+        <NavButton to="/" label="Hide" icon={<IconEye />} active={false} onClick={onNavigate} />
+        <NavButton to={"/settings"} label="Settings" icon={<IconSettings />} active={isSettings} onClick={onNavigate} />
       </Stack>
     );
   };
@@ -79,8 +87,14 @@ export default function Navbar(props: HeaderProps) {
   );
 }
 
-export function NavButton(props: { to: string; icon: ReactNode; label: string; active?: boolean }) {
-  const { to, icon, label, active } = props;
+export function NavButton(props: {
+  to: string;
+  icon: ReactNode;
+  label: string;
+  active?: boolean;
+  onClick?: () => void;
+}) {
+  const { to, icon, label, active, onClick } = props;
   return (
     <Button
       component={Link}
@@ -89,6 +103,7 @@ export function NavButton(props: { to: string; icon: ReactNode; label: string; a
       justify="flex-start"
       p="xs"
       variant={active ? "light" : "subtle"}
+      onClick={onClick}
     >
       {label}
     </Button>

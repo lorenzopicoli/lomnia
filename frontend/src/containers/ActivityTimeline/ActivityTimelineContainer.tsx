@@ -1,4 +1,4 @@
-import { Container, Flex, Skeleton, Stack } from "@mantine/core";
+import { Container, Flex } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { parse } from "date-fns/parse";
@@ -62,20 +62,19 @@ export default function ActivityTimelineContainer() {
         filters={filters}
       />
 
-      <Flex flex={1} mih={0} h={"100%"} pl={"lg"} gap="lg" align="start" direction={{ base: "column", md: "row" }}>
+      <Flex
+        flex={1}
+        maw={"100%"}
+        mih={0}
+        h={"100%"}
+        pl={"lg"}
+        pr={"lg"}
+        gap="lg"
+        justify="center"
+        direction={{ base: "column", sm: "row" }}
+      >
         <ActivityTimelineOverviewContainer day={day} />
-        {isPending || !data ? (
-          <Stack flex={1} pr={"lg"}>
-            <Skeleton w={500} h={150} bdrs={"lg"} />
-            <Skeleton w={500} h={150} bdrs={"lg"} />
-            <Skeleton w={500} h={150} bdrs={"lg"} />
-            <Skeleton w={500} h={150} bdrs={"lg"} />
-            <Skeleton w={500} h={150} bdrs={"lg"} />
-            <Skeleton w={500} h={150} bdrs={"lg"} />
-          </Stack>
-        ) : (
-          <ActivityTimelineList activities={data.activities} />
-        )}
+        <ActivityTimelineList isLoading={isPending || !data} activities={data?.activities} />
       </Flex>
     </Flex>
   );

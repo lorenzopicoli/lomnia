@@ -16,10 +16,6 @@ export const locationChartRouter = t.router({
     return points.map((r) => [r.location.lng, r.location.lat, r.weight] as [number, number, number]);
   }),
 
-  getTimeline: loggedProcedure.input(DateRange).query((opts) => {
-    return LocationChartService.getTimeline(opts.input);
-  }),
-
   getCountriesVisited: loggedProcedure.input(DateRange).query((opts) => {
     return LocationChartService.getCountriesVisited(opts.input);
   }),

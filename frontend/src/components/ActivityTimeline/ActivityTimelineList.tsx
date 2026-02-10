@@ -1,3 +1,4 @@
+import { Skeleton } from "@mantine/core";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useRef } from "react";
 import type { RouterOutputs } from "../../api/trpc";
@@ -8,14 +9,14 @@ export type TimelineFilters = {
   location: boolean;
   website: boolean;
 };
-type Props = { activities: RouterOutputs["timelineRouter"]["listActivities"]["activities"] };
+type Props = { isLoading: boolean; activities?: RouterOutputs["timelineRouter"]["listActivities"]["activities"] };
 
 export function ActivityTimelineList(props: Props) {
-  const { activities } = props;
+  const { activities, isLoading } = props;
   const parentRef = useRef(null);
 
   const rowVirtualizer = useVirtualizer({
-    count: activities.length ?? 0,
+    count: isLoading || !activities ? 100 : activities.length,
     getScrollElement: () => parentRef.current,
     estimateSize: () => 200,
     overscan: 5,
@@ -27,16 +28,14 @@ export function ActivityTimelineList(props: Props) {
     <div
       ref={parentRef}
       style={{
-        flex: 1,
         height: "100%",
         overflow: "auto",
-        minHeight: 0,
+        minWidth: 450,
       }}
     >
       <div
         style={{
           height: `${rowVirtualizer.getTotalSize()}px`,
-          minWidth: 500,
           position: "relative",
         }}
       >
@@ -73,7 +72,11 @@ export function ActivityTimelineList(props: Props) {
                 marginInline: "auto",
               }}
             >
-              <ActivityTimelineItem activity={activities[virtualItem.index]} />
+              {!activities || isLoading ? (
+                <Skeleton w={470} h={120} m="md" bdrs={"lg"} />
+              ) : (
+                <ActivityTimelineItem activity={activities[virtualItem.index]} />
+              )}
             </div>
           </div>
         ))}

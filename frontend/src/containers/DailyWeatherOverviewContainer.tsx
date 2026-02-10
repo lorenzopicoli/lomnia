@@ -1,4 +1,4 @@
-import { Flex, Grid, Skeleton } from "@mantine/core";
+import { Box, Flex, Group, Skeleton, Text } from "@mantine/core";
 import {
   IconCloud,
   IconCloudFog,
@@ -38,91 +38,93 @@ export default function DailyWeatherOverviewContainer(props: DailyWeatherOvervie
     return <Loading />;
   }
 
-  if (!data) {
+  if (!data || !data.daily) {
     return <Loading />;
   }
+  const { daily } = data;
 
-  const sunshineInterval = isNumber(data.daily?.sunshineDuration)
+  const sunshineInterval = isNumber(daily.sunshineDuration)
     ? intervalToDuration({
         start: 0,
-        end: data.daily.sunshineDuration * 1000,
+        end: daily.sunshineDuration * 1000,
       })
     : null;
 
-  const weatherCode = isNumber(data.daily?.weatherCode) ? weatherCodeInformation(data.daily.weatherCode) : null;
+  const weatherCode = isNumber(daily.weatherCode) ? weatherCodeInformation(daily.weatherCode) : null;
+
   const zeroPad = (num: number) => String(num).padStart(2, "0");
 
+  const weatherItems = [
+    isNumber(daily.apparentTemperatureMax) && {
+      icon: IconTemperaturePlus,
+      color: "#ab264c",
+      label: `${Math.round(daily.apparentTemperatureMax)}°C`,
+    },
+    isNumber(daily.apparentTemperatureMin) && {
+      icon: IconTemperatureMinus,
+      color: "#328ac9",
+      label: `${Math.round(daily.apparentTemperatureMin)}°C`,
+    },
+    weatherCode && {
+      icon: weatherCode.icon,
+      color: getRandomColor(),
+      label: weatherCode.label,
+    },
+    sunshineInterval && {
+      icon: IconUvIndex,
+      color: getRandomColor(),
+      label: `Sunshine: ${zeroPad(sunshineInterval.hours ?? 0)}h${zeroPad(sunshineInterval.minutes ?? 0)}m`,
+    },
+    daily.sunrise && {
+      icon: IconSunrise,
+      color: getRandomColor(),
+      label: `Sunrise: ${formatDateTime(daily.sunrise)}`,
+    },
+    daily.sunset && {
+      icon: IconSunset,
+      color: getRandomColor(),
+      label: `Sunset: ${formatDateTime(daily.sunset)}`,
+    },
+  ].filter(Boolean) as WeatherInfoItemProps[];
+
   return (
-    <>
-      {!data.daily ? null : (
-        <Grid gutter={"md"}>
-          {isNumber(data.daily.apparentTemperatureMax) ? (
-            <Grid.Col span={6}>
-              <Flex align={"center"} gap={"sm"}>
-                <LoIcon Icon={IconTemperaturePlus} color="#ab264c" />
-                {Math.round(data.daily.apparentTemperatureMax)}°C
-              </Flex>
-            </Grid.Col>
-          ) : null}
-          {isNumber(data.daily.apparentTemperatureMin) ? (
-            <Grid.Col span={6}>
-              <Flex align={"center"} gap={"sm"}>
-                <LoIcon Icon={IconTemperatureMinus} color="#328ac9" />
-                {Math.round(data.daily.apparentTemperatureMin)}°C
-              </Flex>
-            </Grid.Col>
-          ) : null}
-          {weatherCode ? (
-            <Grid.Col span={6}>
-              <Flex align={"center"} gap={"sm"}>
-                <LoIcon Icon={weatherCode.icon} color={getRandomColor()} />
-                {weatherCode.label}
-              </Flex>
-            </Grid.Col>
-          ) : null}
-          {sunshineInterval ? (
-            <Grid.Col span={6}>
-              <Flex align={"center"} gap={"sm"}>
-                <LoIcon Icon={IconUvIndex} color={getRandomColor()} />
-                {`Sunshine: ${zeroPad(sunshineInterval.hours ?? 0)}h${zeroPad(sunshineInterval.minutes ?? 0)}m`}
-              </Flex>
-            </Grid.Col>
-          ) : null}
-          {data.daily.sunrise ? (
-            <Grid.Col span={6}>
-              <Flex align={"center"} gap={"sm"}>
-                <LoIcon Icon={IconSunrise} color={getRandomColor()} />
-                {`Sunrise: ${formatDateTime(data.daily.sunrise)}`}
-              </Flex>
-            </Grid.Col>
-          ) : null}
-          {data.daily.sunset ? (
-            <Grid.Col span={6}>
-              <Flex align={"center"} gap={"sm"}>
-                <LoIcon Icon={IconSunset} color={getRandomColor()} />
-                {`Sunset: ${formatDateTime(data.daily.sunset)}`}
-              </Flex>
-            </Grid.Col>
-          ) : null}
-        </Grid>
-      )}
-    </>
+    <Group style={{ flexWrap: "wrap" }} maw={"100%"} miw={0} w="100%">
+      {weatherItems.map((item) => (
+        <WeatherInfoItem key={item.label} {...item} />
+      ))}
+    </Group>
   );
 }
 
 function Loading() {
   return (
-    <Grid gutter="md">
+    <Group style={{ flexWrap: "wrap" }} maw={"100%"} miw={0} w="100%">
       {Array.from({ length: 6 }).map((_, i) => (
-        // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-        <Grid.Col span={6} key={i}>
-          <Flex gap="sm">
-            <Skeleton h={30} w={30} bdrs={20} />
-            <Skeleton h={30} w={100} />
-          </Flex>
-        </Grid.Col>
+        // biome-ignore lint/correctness/useJsxKeyInIterable: <explanation>
+        <Flex gap="sm">
+          <Skeleton h={30} w={30} bdrs={20} />
+          <Skeleton h={30} w={100} />
+        </Flex>
       ))}
-    </Grid>
+    </Group>
+  );
+}
+
+interface WeatherInfoItemProps {
+  icon: React.ComponentType;
+  color: string;
+  label: string;
+}
+function WeatherInfoItem({ icon, color, label }: WeatherInfoItemProps) {
+  return (
+    <Flex flex={1} align="center" gap="sm">
+      <Box style={{ flexShrink: 0 }}>
+        <LoIcon Icon={icon} color={color} />
+      </Box>
+      <Box style={{ minWidth: 0, overflow: "hidden", flex: 1 }}>
+        <Text truncate="end">{label}</Text>
+      </Box>
+    </Flex>
   );
 }
 

@@ -1,4 +1,6 @@
-import { AspectRatio, Card, Container, Stack } from "@mantine/core";
+import { AspectRatio, Card, Collapse, Container, Group, Stack, Title } from "@mantine/core";
+import { useDisclosure, useMediaQuery } from "@mantine/hooks";
+import { IconChevronDown } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import { endOfDay, format, startOfDay } from "date-fns";
 import { trpc } from "../../api/trpc";
@@ -9,7 +11,6 @@ import HeatmapContainer from "../HeatmapContainer";
 export default function ActivityTimelineOverviewContainer(props: { day: Date }) {
   const { day } = props;
 
-  // Very wasteful since the same call is done in the daily weather overview container
   const { data } = useQuery(
     trpc.weather.getByDay.queryOptions({
       day: format(startOfDay(day), "yyyy-MM-dd"),
@@ -17,12 +18,16 @@ export default function ActivityTimelineOverviewContainer(props: { day: Date }) 
   );
 
   const theme = getWeatherTheme(data?.daily?.weatherCode ?? 1);
+  const isSmallScreen = useMediaQuery("(max-width: 768px)");
+  const [opened, { toggle }] = useDisclosure(!isSmallScreen);
 
   return (
-    <Container flex={0} fluid p={0}>
+    <Container fluid p={0}>
       <Card
         p="md"
-        radius="lg"
+        radius="md"
+        mih={50}
+        miw={50}
         style={{
           background: theme.background,
           boxShadow: theme.glow ? `0 0 30px ${theme.glow}` : "0 10px 30px rgba(0,0,0,0.35)",
@@ -30,17 +35,36 @@ export default function ActivityTimelineOverviewContainer(props: { day: Date }) 
         }}
       >
         <Stack>
-          <DailyWeatherOverviewContainer date={day} />
-          <Container p={0} w={500} h={500}>
-            <AspectRatio
+          {isSmallScreen ? (
+            <Group
+              p={0}
+              align="center"
+              justify="space-between"
+              onClick={toggle}
               style={{
-                borderRadius: 10,
-                overflow: "clip",
+                cursor: "pointer",
               }}
             >
-              <HeatmapContainer startDate={startOfDay(day)} endDate={endOfDay(day)} />
-            </AspectRatio>
-          </Container>
+              <Title size={"xl"}>Overview</Title>
+              <IconChevronDown />
+            </Group>
+          ) : null}
+
+          <Collapse in={!isSmallScreen || opened}>
+            <Stack>
+              <DailyWeatherOverviewContainer date={day} />
+              <AspectRatio
+                style={{
+                  borderRadius: 10,
+                  overflow: "clip",
+                }}
+              >
+                <Container p={0} h="100%" mah={500}>
+                  <HeatmapContainer startDate={startOfDay(day)} endDate={endOfDay(day)} />
+                </Container>
+              </AspectRatio>
+            </Stack>
+          </Collapse>
         </Stack>
       </Card>
     </Container>

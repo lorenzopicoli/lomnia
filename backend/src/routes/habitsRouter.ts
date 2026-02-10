@@ -4,18 +4,6 @@ import { loggedProcedure } from "./common/loggedProcedure";
 import { t } from "./trpc";
 
 export const habitsRouter = t.router({
-  getByDay: loggedProcedure
-    .input(
-      z.object({
-        start: z.iso.datetime(),
-        end: z.iso.datetime(),
-        privateMode: z.boolean(),
-      }),
-    )
-    .query((opts) => {
-      return HabitsService.list(opts.input) ?? [];
-    }),
-
   getRawHabitsTable: loggedProcedure
     .input(
       z.object({
