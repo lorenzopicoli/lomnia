@@ -22,11 +22,12 @@ export default function ActivityTimelineOverviewContainer(props: { day: Date }) 
   const [opened, { toggle }] = useDisclosure(!isSmallScreen);
 
   return (
-    <Container flex={1} miw={"75%"} fluid p={0}>
+    <Container fluid p={0}>
       <Card
         p="md"
         radius="md"
         mih={50}
+        miw={50}
         style={{
           background: theme.background,
           boxShadow: theme.glow ? `0 0 30px ${theme.glow}` : "0 10px 30px rgba(0,0,0,0.35)",
@@ -49,7 +50,7 @@ export default function ActivityTimelineOverviewContainer(props: { day: Date }) 
             </Group>
           ) : null}
 
-          <Collapse flex={1} in={!isSmallScreen || opened}>
+          <Collapse in={!isSmallScreen || opened}>
             <Stack>
               <DailyWeatherOverviewContainer date={day} />
               <AspectRatio
