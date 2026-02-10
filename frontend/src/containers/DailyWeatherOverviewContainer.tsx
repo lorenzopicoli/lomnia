@@ -99,8 +99,8 @@ export default function DailyWeatherOverviewContainer(props: DailyWeatherOvervie
 function Loading() {
   return (
     <Group style={{ flexWrap: "wrap" }} maw={"100%"} miw={0} w="100%">
-      {Array.from({ length: 6 }).map((_, i) => (
-        // biome-ignore lint/correctness/useJsxKeyInIterable: <explanation>
+      {Array.from({ length: 6 }).map(() => (
+        // biome-ignore lint/correctness/useJsxKeyInIterable: not needed
         <Flex gap="sm">
           <Skeleton h={30} w={30} bdrs={20} />
           <Skeleton h={30} w={100} />
