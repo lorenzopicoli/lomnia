@@ -24,4 +24,7 @@ export const browserHistoryChartRouter = t.router({
   dailyVisits: loggedProcedure.input(DateRange.required()).query(async (opts) => {
     return BrowserHistoryChartService.dailyVisits(opts.input);
   }),
+  getVisitsByHourOfDay: loggedProcedure.input(DateRange.required()).query(async (opts) => {
+    return BrowserHistoryChartService.getWebsiteVisitsByHourOfDay(opts.input);
+  }),
 });

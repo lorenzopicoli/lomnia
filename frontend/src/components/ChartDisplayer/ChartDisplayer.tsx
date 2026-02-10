@@ -19,6 +19,7 @@ import { TextHabitBar } from "../../containers/Charts/TextHabitBar";
 import { TextHabitCoocurrencesChord } from "../../containers/Charts/TextHabitCoocurrencesChord";
 import { WebsiteNavigationFlowChord } from "../../containers/Charts/WebsitesNavigationFlowChord";
 import { WebsitesVisitsCalendarHeatmap } from "../../containers/Charts/WebsitesVisitsCalendarHeatmap";
+import { WebsitesVisitsByTimeOfDayBar } from "../../containers/Charts/WebsitesvisitsByTimeOfDayBar";
 import { cardDarkBackground } from "../../themes/mantineThemes";
 import { ChartPlaceholder } from "../ChartPlaceholder/ChartPlaceholder";
 
@@ -117,6 +118,9 @@ function ChartSwitcher(props: ChartDisplayerProps) {
     }
     case ChartId.NavigationFlowChord: {
       return <WebsiteNavigationFlowChord {...props} />;
+    }
+    case ChartId.WebsitesVisitsByTimeOfDay: {
+      return <WebsitesVisitsByTimeOfDayBar {...props} />;
     }
     case ChartId.TextHabitBar: {
       const habitKey = props.habitKey;

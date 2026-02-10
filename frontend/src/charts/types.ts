@@ -37,6 +37,7 @@ export enum ChartId {
   MostVisitedHostsPie = "mostVisitedHostsPie",
   WebsitesVisitsCalendarHeatmap = "websitesVisitsCalendarHeatmap",
   NavigationFlowChord = "navigationFlowChord",
+  WebsitesVisitsByTimeOfDay = "websitesVisitsByTimeOfDay",
 }
 
 export const chartParamByChartId: Record<ChartId, ChartParams[]> = {
@@ -59,6 +60,7 @@ export const chartParamByChartId: Record<ChartId, ChartParams[]> = {
   [ChartId.MostVisitedHostsPie]: [],
   [ChartId.WebsitesVisitsCalendarHeatmap]: [],
   [ChartId.NavigationFlowChord]: [],
+  [ChartId.WebsitesVisitsByTimeOfDay]: [],
 };
 
 export enum ChartSource {
@@ -208,6 +210,13 @@ export const availableCharts = [
     elements: [ChartElement.Bar],
   },
   {
+    id: ChartId.WebsitesVisitsByTimeOfDay,
+    title: "Most visited websites by time of day",
+    description: "Explore which web pages you've visited the most for each time of the day",
+    sources: [ChartSource.WebBrowser],
+    elements: [ChartElement.Bar],
+  },
+  {
     id: ChartId.MostVisitedWebPagesPie,
     title: "Pie Chart of the most visited web page",
     description: "Explore which web pages you've visited the most",
@@ -261,6 +270,7 @@ export const chartPreviewSize: Record<ChartId, { height: string | number; width:
   [ChartId.MostVisitedWebPagesPie]: { height: "100%", width: "100%" },
   [ChartId.MostVisitedHostsPie]: { height: "100%", width: "100%" },
   [ChartId.NavigationFlowChord]: { height: "100%", width: "100%" },
+  [ChartId.WebsitesVisitsByTimeOfDay]: { height: "100%", width: "100%" },
 };
 
 export const chartDisplayerOptions = {
@@ -319,6 +329,9 @@ export const chartDisplayerOptions = {
     componentHandlesTitle: false,
   },
   [ChartId.NavigationFlowChord]: {
+    componentHandlesTitle: false,
+  },
+  [ChartId.WebsitesVisitsByTimeOfDay]: {
     componentHandlesTitle: false,
   },
 } as const;

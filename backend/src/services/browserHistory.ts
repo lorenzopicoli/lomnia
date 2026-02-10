@@ -152,6 +152,34 @@ class BrowserHistoryChartServiceInternal {
       .orderBy(sql`${count()} DESC`)
       .limit(config.charts.browserHistory.navigationFlow.limit);
   }
+
+  public async getWebsiteVisitsByHourOfDay(range: DateRange) {
+    const { start, end } = range;
+
+    return db
+      .select({
+        hour: sql`
+        EXTRACT(
+          HOUR FROM (${websitesVisitsTable.recordedAt} AT TIME ZONE ${websitesVisitsTable.timezone})
+        )
+      `
+          .mapWith(Number)
+          .as("hour"),
+        visits: count(websitesVisitsTable.id),
+      })
+      .from(websitesVisitsTable)
+      .where(
+        and(gte(websitesVisitsTable.recordedAt, start.toJSDate()), lte(websitesVisitsTable.recordedAt, end.toJSDate())),
+      )
+      .groupBy(
+        sql`
+        EXTRACT(
+          HOUR FROM (${websitesVisitsTable.recordedAt} AT TIME ZONE ${websitesVisitsTable.timezone})
+        )
+      `,
+      )
+      .orderBy(sql`hour ASC`);
+  }
 }
 
 export const BrowserHistoryChartService = new BrowserHistoryChartServiceInternal();
