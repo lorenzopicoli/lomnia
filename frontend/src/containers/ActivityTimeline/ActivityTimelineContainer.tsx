@@ -64,7 +64,7 @@ export default function ActivityTimelineContainer() {
 
       <Flex
         flex={1}
-        maw={"100%"}
+        w={"100%"}
         mih={0}
         h={"100%"}
         pl={"lg"}

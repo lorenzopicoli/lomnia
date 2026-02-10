@@ -22,7 +22,7 @@ export default function ActivityTimelineOverviewContainer(props: { day: Date }) 
   const [opened, { toggle }] = useDisclosure(!isSmallScreen);
 
   return (
-    <Container fluid p={0}>
+    <Container maw={800} w={"100%"} fluid p={0}>
       <Card
         p="md"
         radius="md"
