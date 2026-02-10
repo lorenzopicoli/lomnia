@@ -44,7 +44,7 @@ export function WebsiteVisitActivityTimelineItem(props: { activity: Item; onExpa
       </Group>
 
       {website.url && (
-        <Text size="xs" c="dimmed">
+        <Text size="xs" c="dimmed" truncate="end">
           {website.url}
         </Text>
       )}
