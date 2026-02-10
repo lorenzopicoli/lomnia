@@ -73,7 +73,7 @@ export function ActivityTimelineList(props: Props) {
               }}
             >
               {!activities || isLoading ? (
-                <Skeleton w={470} h={120} m="md" bdrs={"lg"} />
+                <Skeleton w={400} h={120} m="md" bdrs={"lg"} />
               ) : (
                 <ActivityTimelineItem activity={activities[virtualItem.index]} />
               )}
