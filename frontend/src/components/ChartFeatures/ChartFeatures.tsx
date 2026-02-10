@@ -2,7 +2,12 @@ import { Checkbox, Flex, Select, TextInput } from "@mantine/core";
 import type { UseFormReturnType } from "@mantine/form";
 import { useQuery } from "@tanstack/react-query";
 import { trpc } from "../../api/trpc";
-import { aggregationFunctionLabels, type ChartId, chartParamByChartId } from "../../charts/types";
+import {
+  aggregationFunctionLabels,
+  aggregationPeriodsLabels,
+  type ChartId,
+  chartParamByChartId,
+} from "../../charts/types";
 
 type FormValues = {
   habitKey?: string;
@@ -49,6 +54,16 @@ export function ChartFeatures<T extends FormValues>(props: { chartId: ChartId; f
                   />
                 );
               }
+              case "aggPeriod":
+                return (
+                  <Select
+                    key={feature}
+                    label="Aggregation period (empty for automatic)"
+                    data={aggregationPeriodsLabels}
+                    searchable
+                    {...form.getInputProps("aggPeriod", { type: "input" })}
+                  />
+                );
               case "aggFun":
                 return (
                   <Select

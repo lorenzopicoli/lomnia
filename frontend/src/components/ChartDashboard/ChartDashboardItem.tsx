@@ -42,7 +42,7 @@ export function ChartsDashboardItem(props: { dashboardId: number }) {
                   chartId={chart.id}
                   startDate={startDate}
                   endDate={endDate}
-                  aggPeriod={aggPeriod}
+                  aggPeriod={chart.aggPeriod ?? aggPeriod}
                 />
               </Container>
               {isConfiguring ? (

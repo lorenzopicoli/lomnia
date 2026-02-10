@@ -23,6 +23,7 @@ export enum ChartId {
   PrecipitationExperienced = "precipitationExperienced",
   RainHeatmap = "rainHeatmap",
   NumberHabitCalendarHeatmap = "numberHabitCalendarHeatmap",
+  NumberHabitLine = "numberHabitLine",
   TextHabitCoocurrencesChord = "textHabitCoocurrencesChord ",
   Count = "Count",
   CountriesVisitedMap = "countriesVisitedMap",
@@ -43,6 +44,7 @@ export enum ChartId {
 export const chartParamByChartId: Record<ChartId, ChartParams[]> = {
   [ChartId.NumberHabitCalendarHeatmap]: ["habitKey", "aggFun"],
   [ChartId.TextHabitCoocurrencesChord]: ["habitKey"],
+  [ChartId.NumberHabitLine]: ["habitKey", "aggFun", "aggPeriod"],
   [ChartId.Count]: ["countKey", "compactNumbers"],
   [ChartId.TextHabitBar]: ["habitKey"],
   [ChartId.TemperatureExperienced]: [],
@@ -154,6 +156,13 @@ export const availableCharts = [
     elements: [ChartElement.Chord],
   },
   {
+    id: ChartId.NumberHabitLine,
+    title: "Habits line",
+    description: "Plot habits in a line chart",
+    sources: [ChartSource.Habit],
+    elements: [ChartElement.Line],
+  },
+  {
     id: ChartId.Count,
     title: "Entry count",
     description: "Displays the number of entries collected from a source",
@@ -256,6 +265,7 @@ export const chartPreviewSize: Record<ChartId, { height: string | number; width:
   [ChartId.PrecipitationExperienced]: { height: "100%", width: "100%" },
   [ChartId.RainHeatmap]: { height: 200, width: "100%" },
   [ChartId.NumberHabitCalendarHeatmap]: { height: 200, width: "100%" },
+  [ChartId.NumberHabitLine]: { height: "100%", width: "100%" },
   [ChartId.WebsitesVisitsCalendarHeatmap]: { height: 200, width: "100%" },
   [ChartId.Count]: { height: 250, width: 250 },
   [ChartId.TextHabitCoocurrencesChord]: { height: "100%", width: "100%" },
@@ -316,6 +326,9 @@ export const chartDisplayerOptions = {
   [ChartId.TextHabitBar]: {
     componentHandlesTitle: false,
   },
+  [ChartId.NumberHabitLine]: {
+    componentHandlesTitle: false,
+  },
   [ChartId.MostVisitedWebPagesBar]: {
     componentHandlesTitle: false,
   },
@@ -359,6 +372,10 @@ export type ChartAreaConfig = {
    */
   aggFun?: AggregationFunction;
   /**
+   * Which period to aggregate the data
+   */
+  aggPeriod?: AggregationPeriod;
+  /**
    * Use compact number notation (1.2k, 3.4M…)
    */
   compactNumbers?: boolean;
@@ -368,9 +385,15 @@ export type ChartAreaConfig = {
   uniqueId: string;
 };
 
-export type ChartParams = "habitKey" | "countKey" | "compactNumbers" | "aggFun";
+export type ChartParams = "habitKey" | "countKey" | "compactNumbers" | "aggFun" | "aggPeriod";
 
 const aggregationPeriods = ["month", "day", "week", "hour"] as const;
+export const aggregationPeriodsLabels = [
+  { value: "hour", label: "Hour" },
+  { value: "day", label: "Day" },
+  { value: "week", label: "Week" },
+  { value: "month", label: "Month" },
+] as const;
 export type AggregationPeriod = (typeof aggregationPeriods)[number];
 
 export const aggregationFunctions = ["avg", "median", "max", "min", "sum"] as const;

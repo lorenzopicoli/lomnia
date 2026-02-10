@@ -11,6 +11,7 @@ import { MostVisitedHostsPie } from "../../containers/Charts/MostVisitedHostsPie
 import { MostVisitedWebPagesBar } from "../../containers/Charts/MostVisitedWebPagesBar";
 import { MostVisitedWebPagesPie } from "../../containers/Charts/MostVisitedWebPagesPie";
 import { NumberHabitCalendarHeatmap } from "../../containers/Charts/NumberHabitCalendarHeatmap";
+import { NumberHabitLine } from "../../containers/Charts/NumberHabitLine";
 import { PlacesVisitCountBar } from "../../containers/Charts/PlacesVisitCountBar";
 import { PrecipitationExperienced } from "../../containers/Charts/PrecipitationExperienced";
 import { RainHeatmap } from "../../containers/Charts/RainHeatmap";
@@ -71,6 +72,13 @@ function ChartSwitcher(props: ChartDisplayerProps) {
         return <ChartPlaceholder noBg text="Select a habit key to see data in here" />;
       }
       return <NumberHabitCalendarHeatmap {...props} habitKey={habitKey} />;
+    }
+    case ChartId.NumberHabitLine: {
+      const habitKey = props.habitKey;
+      if (!habitKey) {
+        return <ChartPlaceholder noBg text="Select a habit key to see data in here" />;
+      }
+      return <NumberHabitLine {...props} habitKey={habitKey} />;
     }
     case ChartId.TextHabitCoocurrencesChord: {
       const habitKey = props.habitKey;

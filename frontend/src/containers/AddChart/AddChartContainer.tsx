@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { v4 } from "uuid";
 import {
   type AggregationFunction,
+  type AggregationPeriod,
   availableCharts,
   type ChartAreaConfig,
   type ChartId,
@@ -32,6 +33,7 @@ export type AddChartFormValues = {
   habitKey?: string;
   countKey?: string;
   aggFun?: AggregationFunction;
+  aggPeriod?: AggregationPeriod;
   compactNumbers?: boolean;
   title: string;
 };
@@ -96,6 +98,7 @@ export function AddChartContainer(props: AddChartProps) {
       countKey: values.countKey,
       title: values.title,
       aggFun: values.aggFun,
+      aggPeriod: values.aggPeriod,
       compactNumbers: values.compactNumbers,
     };
 
@@ -175,7 +178,7 @@ export function AddChartContainer(props: AddChartProps) {
                   startDate={startDate}
                   compactNumbers={values.compactNumbers}
                   endDate={endDate}
-                  aggPeriod={aggPeriod}
+                  aggPeriod={values.aggPeriod ?? aggPeriod}
                   aggFun={values.aggFun}
                 />
               </div>
