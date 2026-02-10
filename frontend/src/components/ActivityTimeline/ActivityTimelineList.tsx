@@ -1,4 +1,5 @@
 import { Skeleton } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useRef } from "react";
 import type { RouterOutputs } from "../../api/trpc";
@@ -14,6 +15,7 @@ type Props = { isLoading: boolean; activities?: RouterOutputs["timelineRouter"][
 export function ActivityTimelineList(props: Props) {
   const { activities, isLoading } = props;
   const parentRef = useRef(null);
+  const isSmallScreen = useMediaQuery("(max-width: 768px)");
 
   const rowVirtualizer = useVirtualizer({
     count: isLoading || !activities ? 100 : activities.length,
@@ -31,7 +33,7 @@ export function ActivityTimelineList(props: Props) {
         flex: 1,
         height: "100%",
         overflow: "auto",
-        minWidth: 450,
+        minWidth: isSmallScreen ? 300 : 450,
       }}
     >
       <div
