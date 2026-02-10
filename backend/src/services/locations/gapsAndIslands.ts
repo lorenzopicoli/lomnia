@@ -37,7 +37,7 @@ export function getIslandsCte(params: {
       : sql`1=1`;
   const rangeEnd =
     "range" in dateFilter && dateFilter.range.end
-      ? sql`${locationsTable.recordedAt} >= ${dateFilter.range.end.toISO()}`
+      ? sql`${locationsTable.recordedAt} <= ${dateFilter.range.end.toISO()}`
       : sql`1=1`;
   const day =
     "day" in dateFilter

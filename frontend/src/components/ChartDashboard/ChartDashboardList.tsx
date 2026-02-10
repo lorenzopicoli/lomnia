@@ -29,12 +29,7 @@ export function ChartsDashboardList() {
 
   return (
     <Flex direction={"column"} gap={"sm"}>
-      <Flex justify={"space-between"} align={"center"}>
-        <Text fs={"italic"} opacity={0.4}>
-          Lomnia
-        </Text>
         <ChartDashboardMenu />
-      </Flex>
       <Tabs keepMounted={false} value={String(dashboardId)} onChange={(value) => value && setDashboardId(+value)}>
         <Tabs.List>
           {allDashboards.map((dashboard) => (
