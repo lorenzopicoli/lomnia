@@ -39,7 +39,7 @@ export default function DailyWeatherOverviewContainer(props: DailyWeatherOvervie
   }
 
   if (!data || !data.daily) {
-    return <Loading />;
+    return null;
   }
   const { daily } = data;
 
