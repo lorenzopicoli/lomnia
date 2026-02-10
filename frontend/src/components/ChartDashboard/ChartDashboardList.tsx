@@ -1,4 +1,4 @@
-import { Flex, Tabs, Text } from "@mantine/core";
+import { Flex, Tabs } from "@mantine/core";
 import { IconPlus } from "@tabler/icons-react";
 import { useEffect } from "react";
 import { ChartDashboardMenu } from "../../components/ChartDashboardMenu/ChartDashboardMenu";
@@ -29,7 +29,7 @@ export function ChartsDashboardList() {
 
   return (
     <Flex direction={"column"} gap={"sm"}>
-        <ChartDashboardMenu />
+      <ChartDashboardMenu />
       <Tabs keepMounted={false} value={String(dashboardId)} onChange={(value) => value && setDashboardId(+value)}>
         <Tabs.List>
           {allDashboards.map((dashboard) => (
