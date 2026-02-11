@@ -21,7 +21,7 @@ fi
 echo
 echo "---------- SOURCE DATABASE ----------"
 
-DEFAULT_SRC_HOST="127.0.0.1"
+DEFAULT_SRC_HOST="192.168.40.35"
 DEFAULT_SRC_PORT="5432"
 
 read -rp "Source DB host [$DEFAULT_SRC_HOST]: " SRC_HOST_INPUT
@@ -38,7 +38,7 @@ echo
 echo
 echo "---------- DESTINATION DATABASE ----------"
 
-DEFAULT_DST_HOST="192.168.40.35"
+DEFAULT_DST_HOST="127.0.0.1"
 DEFAULT_DST_PORT="5432"
 
 read -rp "Destination DB host [$DEFAULT_DST_HOST]: " DST_HOST_INPUT
