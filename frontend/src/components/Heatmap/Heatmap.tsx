@@ -1,6 +1,9 @@
 import DeckGL, { type DeckProps, HeatmapLayer, WebMercatorViewport } from "deck.gl";
 import { Map as MapLibre } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
+import { Box } from "@mantine/core";
+import { useElementSize } from "@mantine/hooks";
+import { useMemo } from "react";
 import type MapViewParams from "../../types/MapViewParams";
 
 type DataPoint = [longitude: number, latitude: number, count: number];
@@ -36,19 +39,29 @@ function findBounds(points: DataPoint[]) {
 }
 
 function Heatmap(props: HeatmapProps) {
+  const { ref, width, height } = useElementSize();
   const MAP_STYLE = "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
 
-  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-  let initialViewState: any;
-  if (props.fitToBounds) {
-    const bounds = findBounds(props.points);
-    const { longitude, latitude, zoom } = new WebMercatorViewport({
-      width: 449,
-      height: 449,
-    }).fitBounds([bounds.topLeft, bounds.bottomRight]);
-    initialViewState = { longitude, latitude, zoom };
-  }
+  const initialViewState = useMemo(() => {
+    if (!props.fitToBounds) return undefined;
+    if (!width || !height) return undefined;
+    if (props.points.length === 0) return undefined;
 
+    const bounds = findBounds(props.points);
+
+    const viewport = new WebMercatorViewport({
+      width,
+      height,
+    }).fitBounds([bounds.topLeft, bounds.bottomRight], {
+      padding: 40,
+    });
+
+    return {
+      longitude: viewport.longitude,
+      latitude: viewport.latitude,
+      zoom: viewport.zoom,
+    };
+  }, [props.fitToBounds, props.points, width, height]);
   const layers = [
     new HeatmapLayer<DataPoint>({
       data: props.points,
@@ -81,17 +94,12 @@ function Heatmap(props: HeatmapProps) {
       zoom: viewport.zoom,
     });
   };
-
   return (
-    <DeckGL
-      style={{ position: "relative", width: "100%", height: "100%" }}
-      initialViewState={initialViewState}
-      controller={true}
-      layers={layers}
-      onViewStateChange={handleViewStateChange}
-    >
-      <MapLibre reuseMaps mapStyle={MAP_STYLE} />
-    </DeckGL>
+    <Box ref={ref} flex={1} mih={0} w="100%" h="100%" style={{ position: "relative" }}>
+      <DeckGL initialViewState={initialViewState} controller layers={layers} onViewStateChange={handleViewStateChange}>
+        <MapLibre reuseMaps mapStyle={MAP_STYLE} />
+      </DeckGL>
+    </Box>
   );
 }
 
