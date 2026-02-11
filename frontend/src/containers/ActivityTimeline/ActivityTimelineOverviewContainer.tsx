@@ -1,18 +1,23 @@
-import { AspectRatio, Card, Collapse, Container, Group, Stack, Title } from "@mantine/core";
+import { AspectRatio, Card, Collapse, Container, Group, Stack, Text, Title } from "@mantine/core";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { IconChevronDown } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
-import { endOfDay, format, startOfDay } from "date-fns";
+import { format, startOfDay } from "date-fns";
 import { trpc } from "../../api/trpc";
+import { LocationHistoryMap } from "../../components/DailyMap";
 import { cardDarkBackground } from "../../themes/mantineThemes";
 import DailyWeatherOverviewContainer from "../DailyWeatherOverviewContainer";
-import HeatmapContainer from "../HeatmapContainer";
 
 export default function ActivityTimelineOverviewContainer(props: { day: Date }) {
   const { day } = props;
 
   const { data } = useQuery(
     trpc.weather.getByDay.queryOptions({
+      day: format(startOfDay(day), "yyyy-MM-dd"),
+    }),
+  );
+  const { data: p } = useQuery(
+    trpc.charts.locations.getDailyMap.queryOptions({
       day: format(startOfDay(day), "yyyy-MM-dd"),
     }),
   );
@@ -59,8 +64,8 @@ export default function ActivityTimelineOverviewContainer(props: { day: Date }) 
                   overflow: "clip",
                 }}
               >
-                <Container p={0} h="100%" mah={500}>
-                  <HeatmapContainer startDate={startOfDay(day)} endDate={endOfDay(day)} />
+                <Container p={0} w={500} h={500} mah={500}>
+                  {p ? <LocationHistoryMap sortedPoints={p} /> : <Text>NOOOOOOOOO</Text>}
                 </Container>
               </AspectRatio>
             </Stack>

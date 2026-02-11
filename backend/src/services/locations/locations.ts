@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gte, lte, sql, sum } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, lte, sql, sum } from "drizzle-orm";
 import type { PgSelectHKT, PgSelectQueryBuilder } from "drizzle-orm/pg-core";
 import type { DateTime } from "luxon";
 import z from "zod";
@@ -238,6 +238,22 @@ export class LocationChartServiceInternal {
       })
       .from(locationsTable)
       .then((r) => r[0].count);
+  }
+
+  public async getDailyMap(day: string) {
+    return db
+      .select({
+        location: locationsTable.location,
+        recordedAt: locationsTable.recordedAt,
+      })
+      .from(locationsTable)
+      .where(
+        sql`
+        (${locationsTable.recordedAt} at time zone timezone)::date = ${day}
+        AND ${locationsTable.accuracy} < 50
+      `,
+      )
+      .orderBy(asc(locationsTable.recordedAt));
   }
 
   // =============== PRIVATE ===================
