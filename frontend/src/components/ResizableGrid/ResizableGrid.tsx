@@ -38,6 +38,8 @@ export function ResizableGrid(props: ResizableGridProps) {
         margin={{ lg: [20, 20], md: [20, 20], sm: [20, 20], xs: [20, 20], xxs: [20, 20] }}
         resizeHandles={["se"]}
         resizeHandle={<ResizeHandle />}
+        // Important so charts don't initiate on wrong width
+        measureBeforeMount
         {...otherProps}
       >
         {children}
