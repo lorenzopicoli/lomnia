@@ -25,7 +25,7 @@ export function ActivityTimelineItem(props: { activity: Item }) {
       }}
     >
       {activity.type === "location" ? (
-        <LocationActivityTimelineItem activity={activity} />
+        <LocationActivityTimelineItem activity={activity} onExpand={handleToggle} isExpanded={opened} />
       ) : activity.type === "websiteVisit" ? (
         <WebsiteVisitActivityTimelineItem activity={activity} onExpand={handleToggle} isExpanded={opened} />
       ) : activity.type === "habit" ? (
