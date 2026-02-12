@@ -8,6 +8,7 @@ import type { DBTransaction, Point } from "../../db/types";
 import { isNumber } from "../../helpers/isNumber";
 import { locationsTable } from "../../models";
 import { locationDetailsTable } from "../../models/LocationDetails";
+import { type PlaceOfInterest, placesOfInterestTable } from "../../models/PlaceOfInterest";
 import type { DateRange } from "../../types/chartTypes";
 import { LuxonDateTime } from "../../types/zodTypes";
 import { getCountryName } from "../common/getCountryName";
@@ -40,7 +41,8 @@ export interface LocationTimelineActivity {
   duration: unknown;
   placeOfInterest: {
     displayName: string | null;
-  } | null;
+    geoJson: PlaceOfInterest["geoJson"] | null;
+  };
   mode: string;
 }
 
@@ -171,6 +173,7 @@ export class LocationChartServiceInternal {
         duration: durationIslands.duration,
         placeOfInterest: {
           displayName: locationDetailsTable.displayName,
+          geoJson: placesOfInterestTable.geoJson,
         },
         mode: sql`
         CASE
@@ -184,6 +187,7 @@ export class LocationChartServiceInternal {
       })
       .from(durationIslands)
       .leftJoin(locationDetailsTable, eq(locationDetailsTable.id, durationIslands.placeKey))
+      .leftJoin(placesOfInterestTable, eq(locationDetailsTable.id, placesOfInterestTable.locationDetailsId))
       .orderBy(durationIslands.startDate);
   }
 
