@@ -4,7 +4,7 @@ import { IconChevronDown } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import { format, startOfDay } from "date-fns";
 import { trpc } from "../../api/trpc";
-import { LocationHistoryMap } from "../../components/DailyMap";
+import { DailyMap } from "../../components/DailyMap";
 import { cardDarkBackground } from "../../themes/mantineThemes";
 import { getWeatherTheme } from "../../utils/formatWeatherCode";
 import DailyWeatherOverviewContainer from "../DailyWeatherOverviewContainer";
@@ -20,7 +20,7 @@ export default function ActivityTimelineOverviewContainer(props: { day: Date }) 
   const { data: p } = useQuery(
     trpc.charts.locations.getDailyMap.queryOptions({
       day: format(startOfDay(day), "yyyy-MM-dd"),
-      groupPointsByInSec: 300,
+      groupPointsByInSec: 10,
     }),
   );
 
@@ -67,7 +67,7 @@ export default function ActivityTimelineOverviewContainer(props: { day: Date }) 
                 }}
               >
                 <Container p={0} w={500} h={500} mah={500}>
-                  {p ? <LocationHistoryMap sortedPoints={p} /> : <Text>NOOOOOOOOO</Text>}
+                  {p ? <DailyMap sortedPoints={p} /> : <Text>NOOOOOOOOO</Text>}
                 </Container>
               </AspectRatio>
             </Stack>

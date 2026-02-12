@@ -1,5 +1,5 @@
 import { PathLayer, ScatterplotLayer } from "@deck.gl/layers";
-import { Box, Card, Text } from "@mantine/core";
+import { Box } from "@mantine/core";
 import { useElementSize } from "@mantine/hooks";
 import DeckGL, { WebMercatorViewport } from "deck.gl";
 import { useEffect, useState } from "react";
@@ -15,9 +15,8 @@ type Props = {
   sortedPoints: LocationPoint[];
 };
 
-export function LocationHistoryMap({ sortedPoints }: Props) {
+export function DailyMap({ sortedPoints }: Props) {
   const { ref, width, height } = useElementSize();
-  const [selectedPoint, setSelectedPoint] = useState<LocationPoint | null>(null);
 
   const [viewState, setViewState] = useState<any>({
     longitude: -40,
@@ -49,7 +48,6 @@ export function LocationHistoryMap({ sortedPoints }: Props) {
   }, [sortedPoints, width, height]);
 
   const layers = [
-    // Movement path
     new PathLayer({
       id: "movement-path",
       data: [
@@ -63,7 +61,6 @@ export function LocationHistoryMap({ sortedPoints }: Props) {
       getColor: [100, 149, 237, 200],
     }),
 
-    // Clickable points
     new ScatterplotLayer<LocationPoint>({
       id: "points-layer",
       data: sortedPoints,
@@ -78,11 +75,6 @@ export function LocationHistoryMap({ sortedPoints }: Props) {
       },
       getLineColor: [255, 255, 255],
       lineWidthMinPixels: 1,
-      onClick: (info) => {
-        if (info.object) {
-          setSelectedPoint(info.object);
-        }
-      },
     }),
   ];
 
@@ -108,35 +100,6 @@ export function LocationHistoryMap({ sortedPoints }: Props) {
           // mapStyle={MAP_STYLE}
         />
       </DeckGL>
-
-      {/* Mantine popup */}
-      {selectedPoint && (
-        <Card
-          shadow="md"
-          padding="sm"
-          radius="md"
-          withBorder
-          style={{
-            position: "absolute",
-            bottom: 20,
-            left: 20,
-            zIndex: 10,
-            maxWidth: 260,
-          }}
-        >
-          <Text size="sm" fw={600}>
-            Location
-          </Text>
-
-          <Text size="xs" c="dimmed">
-            {new Date(selectedPoint.timestamp).toLocaleString()}
-          </Text>
-
-          <Text size="xs">Lat: {selectedPoint.latitude.toFixed(5)}</Text>
-
-          <Text size="xs">Lng: {selectedPoint.longitude.toFixed(5)}</Text>
-        </Card>
-      )}
     </Box>
   );
 }
