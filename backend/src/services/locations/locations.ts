@@ -244,20 +244,28 @@ export class LocationChartServiceInternal {
       .then((r) => r[0].count);
   }
 
-  public async getDailyMap(day: string) {
-    return db
+  public async getDailyMap(day: string, groupPointsByInSec: number) {
+    const base = db
       .select({
         location: locationsTable.location,
         recordedAt: locationsTable.recordedAt,
+        bucket: sql<number>`
+      floor(extract(epoch FROM ${locationsTable.recordedAt}) / ${groupPointsByInSec || 1})
+    `.as("bucket"),
       })
       .from(locationsTable)
-      .where(
-        sql`
-        (${locationsTable.recordedAt} at time zone timezone)::date = ${day}
-        AND ${locationsTable.accuracy} < 50
-      `,
-      )
-      .orderBy(asc(locationsTable.recordedAt));
+      .where(sql`
+    (${locationsTable.recordedAt} AT TIME ZONE timezone)::date = ${day}
+    AND ${locationsTable.accuracy} < 50
+  `)
+      .as("base");
+    return db
+      .selectDistinctOn([base.bucket], {
+        location: base.location,
+        recordedAt: base.recordedAt,
+      })
+      .from(base)
+      .orderBy(base.bucket, asc(base.recordedAt));
   }
 
   // =============== PRIVATE ===================
