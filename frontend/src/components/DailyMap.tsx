@@ -1,9 +1,10 @@
 import { PathLayer, ScatterplotLayer } from "@deck.gl/layers";
-import { Box } from "@mantine/core";
+import { Box, Skeleton } from "@mantine/core";
 import { useElementSize } from "@mantine/hooks";
 import DeckGL, { WebMercatorViewport } from "deck.gl";
 import { useEffect, useState } from "react";
 import { Map as MapLibre } from "react-map-gl/maplibre";
+import { findBounds } from "../utils/findBounds";
 
 type LocationPoint = {
   longitude: number;
@@ -12,12 +13,15 @@ type LocationPoint = {
 };
 
 type Props = {
-  sortedPoints: LocationPoint[];
+  points: LocationPoint[];
+  isLoading: boolean;
 };
 
-export function DailyMap({ sortedPoints }: Props) {
+export function DailyMap(props: Props) {
+  const { points, isLoading } = props;
   const { ref, width, height } = useElementSize();
 
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   const [viewState, setViewState] = useState<any>({
     longitude: -40,
     latitude: -20,
@@ -25,34 +29,28 @@ export function DailyMap({ sortedPoints }: Props) {
   });
 
   useEffect(() => {
-    if (!width || !height || sortedPoints.length === 0) return;
+    if (!width || !height || points.length === 0) return;
 
-    const lons = sortedPoints.map((p) => p.longitude);
-    const lats = sortedPoints.map((p) => p.latitude);
-
-    const bounds: [[number, number], [number, number]] = [
-      [Math.min(...lons), Math.min(...lats)],
-      [Math.max(...lons), Math.max(...lats)],
-    ];
+    const bounds = findBounds(points.map((p) => [p.longitude, p.latitude]));
 
     const viewport = new WebMercatorViewport({
       width,
       height,
-    }).fitBounds(bounds, { padding: 60 });
+    }).fitBounds([bounds.topLeft, bounds.bottomRight], { padding: 60 });
 
     setViewState({
       longitude: viewport.longitude,
       latitude: viewport.latitude,
       zoom: viewport.zoom,
     });
-  }, [sortedPoints, width, height]);
+  }, [points, width, height]);
 
   const layers = [
     new PathLayer({
       id: "movement-path",
       data: [
         {
-          path: sortedPoints.map((p) => [p.longitude, p.latitude]),
+          path: points.map((p) => [p.longitude, p.latitude]),
         },
       ],
       getPath: (d) => d.path,
@@ -63,7 +61,7 @@ export function DailyMap({ sortedPoints }: Props) {
 
     new ScatterplotLayer<LocationPoint>({
       id: "points-layer",
-      data: sortedPoints,
+      data: points,
       pickable: true,
       radiusUnits: "pixels",
       radiusMinPixels: 7,
@@ -79,8 +77,12 @@ export function DailyMap({ sortedPoints }: Props) {
   ];
 
   const MAP_STYLE = "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
+
+  if (isLoading) {
+    return <Skeleton h={"100%"} w={"100%"} />;
+  }
   return (
-    <Box ref={ref}>
+    <Box ref={ref} flex={1} mih={0} w="100%" h="100%" style={{ position: "relative" }}>
       <DeckGL
         viewState={viewState}
         controller

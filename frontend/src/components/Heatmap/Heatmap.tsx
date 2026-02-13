@@ -5,6 +5,7 @@ import { Box } from "@mantine/core";
 import { useElementSize } from "@mantine/hooks";
 import { useMemo } from "react";
 import type MapViewParams from "../../types/MapViewParams";
+import { findBounds } from "../../utils/findBounds";
 
 type DataPoint = [longitude: number, latitude: number, count: number];
 type HeatmapProps = {
@@ -12,31 +13,6 @@ type HeatmapProps = {
   fitToBounds: boolean;
   points: DataPoint[];
 };
-
-// This shouldn't happen here, the backend should return the bounds for the given period
-function findBounds(points: DataPoint[]) {
-  if (points.length === 0) {
-    throw new Error("Points list cannot be empty");
-  }
-
-  let minLng = points[0][0];
-  let maxLng = points[0][0];
-  let minLat = points[0][1];
-  let maxLat = points[0][1];
-
-  for (const point of points) {
-    const [lng, lat] = point;
-    if (lng < minLng) minLng = lng;
-    if (lng > maxLng) maxLng = lng;
-    if (lat < minLat) minLat = lat;
-    if (lat > maxLat) maxLat = lat;
-  }
-
-  const topLeft: [number, number] = [minLng, maxLat];
-  const bottomRight: [number, number] = [maxLng, minLat];
-
-  return { topLeft, bottomRight };
-}
 
 function Heatmap(props: HeatmapProps) {
   const { ref, width, height } = useElementSize();
@@ -94,6 +70,7 @@ function Heatmap(props: HeatmapProps) {
       zoom: viewport.zoom,
     });
   };
+
   return (
     <Box ref={ref} flex={1} mih={0} w="100%" h="100%" style={{ position: "relative" }}>
       <DeckGL initialViewState={initialViewState} controller layers={layers} onViewStateChange={handleViewStateChange}>
