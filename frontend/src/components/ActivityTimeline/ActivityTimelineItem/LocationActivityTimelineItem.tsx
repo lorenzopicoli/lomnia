@@ -1,13 +1,14 @@
 import { TZDate } from "@date-fns/tz";
-import { Badge, Group, Stack, Text } from "@mantine/core";
+import { Badge, Collapse, Container, Group, Stack, Text } from "@mantine/core";
 import { format, formatDistanceStrict } from "date-fns";
 import type { RouterOutputs } from "../../../api/trpc";
+import { CommonMap } from "../../CommonMap";
 import { locationActivitySourceToIcon } from "./activitySourceToIcon";
 
 type Item = Extract<RouterOutputs["timelineRouter"]["listActivities"]["activities"][number], { type: "location" }>;
 
-export function LocationActivityTimelineItem(props: { activity: Item }) {
-  const { activity } = props;
+export function LocationActivityTimelineItem(props: { activity: Item; onExpand: () => void; isExpanded: boolean }) {
+  const { activity, onExpand, isExpanded } = props;
   const { data } = activity;
 
   const start = new TZDate(data.startDate, data.timezone);
@@ -20,13 +21,11 @@ export function LocationActivityTimelineItem(props: { activity: Item }) {
 
   return (
     <Stack>
-      <Group gap="xs" justify="space-between" wrap="nowrap">
-        <Group gap={"sm"}>
-          {locationActivitySourceToIcon(null)}
-          <Text lineClamp={1} fw={500}>
-            {data.placeOfInterest?.displayName ?? (isStationary ? "Staying in place" : "Moving")}
-          </Text>
-        </Group>
+      <Group style={{ cursor: "pointer" }} align="center" gap="xs" wrap="nowrap" onClick={onExpand}>
+        {locationActivitySourceToIcon(null)}
+        <Text lineClamp={1} fw={500} flex={1}>
+          {data.placeOfInterest?.displayName ?? (isStationary ? "Staying in place" : "Moving")}
+        </Text>
 
         <Text size="xs" c="dimmed">
           {timeRange}
@@ -43,7 +42,20 @@ export function LocationActivityTimelineItem(props: { activity: Item }) {
           </Text>
         )}
       </Group>
-
+      <Collapse in={isExpanded}>
+        {activity.data.placeOfInterest?.geoJson ? (
+          <Container style={{ overflow: "clip" }} bdrs={"lg"} w={"100%"} h={300} fluid p={0}>
+            <CommonMap
+              readonlyPolygons={[
+                {
+                  name: activity.data.placeOfInterest.displayName ?? "",
+                  feature: activity.data.placeOfInterest.geoJson as any,
+                },
+              ]}
+            />
+          </Container>
+        ) : null}
+      </Collapse>
       <Group gap="xs">
         <Badge variant="light" size="xs">
           Location

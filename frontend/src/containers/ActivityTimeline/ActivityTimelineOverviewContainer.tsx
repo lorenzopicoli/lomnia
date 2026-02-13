@@ -2,11 +2,12 @@ import { AspectRatio, Card, Collapse, Container, Group, Stack, Title } from "@ma
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { IconChevronDown } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
-import { endOfDay, format, startOfDay } from "date-fns";
+import { format, startOfDay } from "date-fns";
 import { trpc } from "../../api/trpc";
 import { cardDarkBackground } from "../../themes/mantineThemes";
+import { getWeatherTheme } from "../../utils/formatWeatherCode";
+import DailyMapContainer from "../DailyMapContainer";
 import DailyWeatherOverviewContainer from "../DailyWeatherOverviewContainer";
-import HeatmapContainer from "../HeatmapContainer";
 
 export default function ActivityTimelineOverviewContainer(props: { day: Date }) {
   const { day } = props;
@@ -17,7 +18,7 @@ export default function ActivityTimelineOverviewContainer(props: { day: Date }) 
     }),
   );
 
-  const theme = getWeatherTheme(data?.daily?.weatherCode ?? 1);
+  const theme = getWeatherTheme(data?.daily?.weatherCode ?? 1, cardDarkBackground);
   const isSmallScreen = useMediaQuery("(max-width: 768px)");
   const [opened, { toggle }] = useDisclosure(!isSmallScreen);
 
@@ -59,9 +60,7 @@ export default function ActivityTimelineOverviewContainer(props: { day: Date }) 
                   overflow: "clip",
                 }}
               >
-                <Container p={0} h="100%" mah={500}>
-                  <HeatmapContainer startDate={startOfDay(day)} endDate={endOfDay(day)} />
-                </Container>
+                <DailyMapContainer day={day} />
               </AspectRatio>
             </Stack>
           </Collapse>
@@ -69,66 +68,4 @@ export default function ActivityTimelineOverviewContainer(props: { day: Date }) 
       </Card>
     </Container>
   );
-}
-
-type WeatherTheme = {
-  background: string;
-  glow?: string;
-};
-
-function getWeatherTheme(code: number): WeatherTheme {
-  // Clear
-  if (code === 0) {
-    return {
-      background: `
-      radial-gradient(
-        1000px 1000px at 30% 20%,
-        rgba(255, 210, 120, 0.12),
-        transparent 70%
-      ),
-      ${cardDarkBackground}
-    `,
-    };
-  }
-  // Cloudy
-  if ([1, 2, 3].includes(code)) {
-    return {
-      background: "linear-gradient(135deg, #2a2e35, #3a3f47)",
-    };
-  }
-
-  // Fog
-  if ([45, 48].includes(code)) {
-    return {
-      background: "linear-gradient(135deg, #2b2b2b, #3b3b3b)",
-    };
-  }
-
-  // Drizzle / Rain
-  if ([51, 53, 55, 61, 63, 65, 80, 81, 82].includes(code)) {
-    return {
-      background: "linear-gradient(135deg, #1f2933, #0f1720)",
-      glow: "rgba(80, 160, 255, 0.25)",
-    };
-  }
-
-  // Snow
-  if ([71, 73, 75, 77, 85, 86].includes(code)) {
-    return {
-      background: "linear-gradient(135deg, #1e2936, #3b4c5c)",
-    };
-  }
-
-  // Thunderstorm
-  if ([95, 96, 99].includes(code)) {
-    return {
-      background: "linear-gradient(135deg, #120018, #2b0033)",
-      glow: "rgba(180, 90, 255, 0.35)",
-    };
-  }
-
-  // Fallback
-  return {
-    background: cardDarkBackground,
-  };
 }
