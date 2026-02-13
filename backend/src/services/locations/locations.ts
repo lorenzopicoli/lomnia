@@ -257,7 +257,7 @@ export class LocationChartServiceInternal {
       .from(locationsTable)
       .where(sql`
     (${locationsTable.recordedAt} AT TIME ZONE timezone)::date = ${day}
-    AND ${locationsTable.accuracy} < 50
+    AND ${locationsTable.accuracy} < 40
   `)
       .as("base");
     return db
