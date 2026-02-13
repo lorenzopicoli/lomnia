@@ -1,9 +1,8 @@
 import { TZDate } from "@date-fns/tz";
-import { GeoJsonLayer, PathLayer, ScatterplotLayer, TextLayer } from "@deck.gl/layers";
 import { Box, Popover, Skeleton, Text } from "@mantine/core";
 import { useElementSize } from "@mantine/hooks";
 import { format } from "date-fns/format";
-import DeckGL, { WebMercatorViewport } from "deck.gl";
+import DeckGL, { GeoJsonLayer, PathLayer, ScatterplotLayer, TextLayer, WebMercatorViewport } from "deck.gl";
 import { useEffect, useMemo, useState } from "react";
 import { Map as MapLibre } from "react-map-gl/maplibre";
 import type { PolygonFeature, ReadonlyPolygon } from "../types/PolygonFeature";
@@ -28,6 +27,7 @@ export function CommonMap(props: Props) {
   const { value, readonlyPolygons, points, isLoading } = props;
 
   const { ref, width, height } = useElementSize();
+  // biome-ignore lint/suspicious/noExplicitAny
   const [hoverInfo, setHoverInfo] = useState<any>(null);
 
   // biome-ignore lint/suspicious/noExplicitAny
