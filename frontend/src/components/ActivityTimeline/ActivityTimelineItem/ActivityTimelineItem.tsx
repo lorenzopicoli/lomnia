@@ -16,8 +16,11 @@ export function ActivityTimelineItem(props: { activity: Item }) {
   };
   return (
     <Card
-      m="md"
-      p="md"
+      ml={{ base: 0, sm: "md" }}
+      mr={{ base: 0, sm: "md" }}
+      mt={{ base: "sm", sm: "md" }}
+      mb={{ base: "sm", sm: "md" }}
+      p={"md"}
       pos="relative"
       radius="lg"
       style={{

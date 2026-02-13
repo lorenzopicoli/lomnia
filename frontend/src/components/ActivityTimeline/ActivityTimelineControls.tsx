@@ -1,4 +1,4 @@
-import { ActionIcon, Button, Group, Menu, Space, Title } from "@mantine/core";
+import { ActionIcon, Button, Group, Menu, Title } from "@mantine/core";
 import { DatePicker } from "@mantine/dates";
 import { IconChevronLeft, IconChevronRight, IconSettings } from "@tabler/icons-react";
 import { addDays, isToday, subDays } from "date-fns";
@@ -28,34 +28,50 @@ export function ActivityTimelineControls(props: Props) {
     const date = value ? new Date(value) : new Date();
     onDateChange(date);
   };
+
   return (
-    <Group pr={"md"} pl={"md"} justify="space-between" w={"100%"}>
-      <Group gap={0}>
+    <Group w="100%" px="md" justify="space-between" align="center" wrap="nowrap">
+      <Group gap="xs" wrap="wrap" align="center" style={{ flex: 1, minWidth: 0 }}>
         <Menu shadow="md" width={200}>
           <Menu.Target>
-            <Button component={Title} fw={400} order={2} c={"unset"} p={0} variant="transparent">
+            <Button
+              component={Title}
+              order={2}
+              fw={400}
+              c="unset"
+              p={0}
+              variant="transparent"
+              fz={{ base: "h4", xs: "h2" }}
+              ta={"left"}
+              miw={0}
+            >
               {formattedDate}
             </Button>
           </Menu.Target>
+
           <Menu.Dropdown w={270}>
             <DatePicker type="default" value={date} onChange={handlePickerChange} />
           </Menu.Dropdown>
-          <Space w={"xl"} />
+        </Menu>
+
+        <Group gap={4} wrap="nowrap">
           <ActionIcon variant="transparent" onClick={handlePreviousDayClick}>
             <IconChevronLeft />
           </ActionIcon>
-          <Space w={"lg"} />
+
           <ActionIcon variant="transparent" onClick={handleNextDay} disabled={isToday(date)}>
             <IconChevronRight />
           </ActionIcon>
-        </Menu>
+        </Group>
       </Group>
+
       <Menu shadow="md" width={200}>
         <Menu.Target>
-          <ActionIcon m={0} variant="transparent" size="md" onClick={() => {}}>
+          <ActionIcon variant="transparent" size="md">
             <IconSettings />
           </ActionIcon>
         </Menu.Target>
+
         <Menu.Dropdown>
           <ActivityTimelineConfigMenu value={filters} onChange={onFiltersChange} />
         </Menu.Dropdown>
