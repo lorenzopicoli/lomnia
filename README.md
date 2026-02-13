@@ -15,8 +15,8 @@ Find out more about the data I collected in 2024: https://lorenzomodolo.com/post
   <table>
     <tr>
       <td colspan="2">
-        <img src="https://github.com/user-attachments/assets/f12e3332-b0e6-4f2c-9979-2ee69dc595ac" alt="General dashboard" width="100%"/>
-        <p align="center"><em>General dashboard</em></p>
+        <img width="100%" alt="image psd" src="https://github.com/user-attachments/assets/d6f2566a-2c1b-4462-b6eb-be3f1c8e16a6" />
+         <p align="center"><em>Timeline view showing all the events recorded throughout the day from multiple sources</em></p>
       </td>
     </tr>
     <tr>
@@ -31,8 +31,8 @@ Find out more about the data I collected in 2024: https://lorenzomodolo.com/post
     </tr>
     <tr>
       <td colspan="2">
-        <img src="https://github.com/user-attachments/assets/5f9537f0-88a3-4151-98fe-411746979f42" alt="Trip to Toronto" width="100%"/>
-        <p align="center"><em>Trip to Toronto, with diary entries and weather information (blurred by turning on private mode)</em></p>
+        <img src="https://github.com/user-attachments/assets/f12e3332-b0e6-4f2c-9979-2ee69dc595ac" alt="General dashboard" width="100%"/>
+        <p align="center"><em>General dashboard</em></p>
       </td>
     </tr>
   </table>
