@@ -76,8 +76,6 @@ export function DailyMap(props: Props) {
     }),
   ];
 
-  const MAP_STYLE = "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
-
   if (isLoading) {
     return <Skeleton h={"100%"} w={"100%"} />;
   }
@@ -96,11 +94,7 @@ export function DailyMap(props: Props) {
             : null
         }
       >
-        <MapLibre
-          reuseMaps
-          mapStyle="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
-          // mapStyle={MAP_STYLE}
-        />
+        <MapLibre reuseMaps mapStyle="https://tiles.openfreemap.org/styles/bright" />
       </DeckGL>
     </Box>
   );
