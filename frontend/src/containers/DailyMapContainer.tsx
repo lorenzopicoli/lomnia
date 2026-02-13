@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { format, startOfDay } from "date-fns";
 import { trpc } from "../api/trpc";
-import { DailyMap } from "../components/DailyMap";
+import { CommonMap } from "../components/CommonMap";
 
 export default function DailyMapContainer(props: { day: Date }) {
   const { day } = props;
@@ -13,5 +13,5 @@ export default function DailyMapContainer(props: { day: Date }) {
     }),
   );
 
-  return <DailyMap points={points ?? []} isLoading={!points || isLoading} />;
+  return <CommonMap points={points ?? []} isLoading={!points || isLoading} />;
 }

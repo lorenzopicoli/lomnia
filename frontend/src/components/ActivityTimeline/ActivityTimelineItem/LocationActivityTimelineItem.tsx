@@ -2,7 +2,7 @@ import { TZDate } from "@date-fns/tz";
 import { Badge, Collapse, Container, Group, Stack, Text } from "@mantine/core";
 import { format, formatDistanceStrict } from "date-fns";
 import type { RouterOutputs } from "../../../api/trpc";
-import { ReadonlyPoiMap } from "../../PoiMaps/ReadonlyPoiMap";
+import { CommonMap } from "../../CommonMap";
 import { locationActivitySourceToIcon } from "./activitySourceToIcon";
 
 type Item = Extract<RouterOutputs["timelineRouter"]["listActivities"]["activities"][number], { type: "location" }>;
@@ -19,7 +19,6 @@ export function LocationActivityTimelineItem(props: { activity: Item; onExpand: 
 
   const isStationary = !!data.placeOfInterest;
 
-  console.log(activity.data.placeOfInterest);
   return (
     <Stack>
       <Group style={{ cursor: "pointer" }} align="center" gap="xs" wrap="nowrap" onClick={onExpand}>
@@ -46,7 +45,7 @@ export function LocationActivityTimelineItem(props: { activity: Item; onExpand: 
       <Collapse in={isExpanded}>
         {activity.data.placeOfInterest?.geoJson ? (
           <Container style={{ overflow: "clip" }} bdrs={"lg"} w={"100%"} h={300} fluid p={0}>
-            <ReadonlyPoiMap
+            <CommonMap
               readonlyPolygons={[
                 {
                   name: activity.data.placeOfInterest.displayName ?? "",

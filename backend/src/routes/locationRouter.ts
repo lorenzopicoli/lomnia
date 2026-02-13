@@ -25,6 +25,7 @@ export const locationChartRouter = t.router({
         longitude: r.location.lng,
         latitude: r.location.lat,
         timestamp: DateTime.fromJSDate(r.recordedAt ?? new Date()).toISO() ?? "",
+        timezone: r.timezone,
       }));
     }),
 

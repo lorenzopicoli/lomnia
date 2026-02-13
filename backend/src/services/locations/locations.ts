@@ -249,6 +249,7 @@ export class LocationChartServiceInternal {
       .select({
         location: locationsTable.location,
         recordedAt: locationsTable.recordedAt,
+        timezone: locationsTable.timezone,
         bucket: sql<number>`
       floor(extract(epoch FROM ${locationsTable.recordedAt}) / ${groupPointsByInSec || 1})
     `.as("bucket"),
@@ -263,6 +264,7 @@ export class LocationChartServiceInternal {
       .selectDistinctOn([base.bucket], {
         location: base.location,
         recordedAt: base.recordedAt,
+        timezone: base.timezone,
       })
       .from(base)
       .orderBy(base.bucket, asc(base.recordedAt));
