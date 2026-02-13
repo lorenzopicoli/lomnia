@@ -1,9 +1,10 @@
 import { TZDate } from "@date-fns/tz";
-import { Badge, Group, Stack, Text } from "@mantine/core";
+import { Group, Text } from "@mantine/core";
 import { IconNotes } from "@tabler/icons-react";
 import { format } from "date-fns";
 import type { RouterOutputs } from "../../../api/trpc";
 import { habitActivitySourceToIcon } from "./activitySourceToIcon";
+import { BaseActivityTimelineItem } from "./BaseActivityTimelineItem";
 
 type Item = Extract<RouterOutputs["timelineRouter"]["listActivities"]["activities"][number], { type: "habit" }>;
 
@@ -57,48 +58,33 @@ export function HabitActivityTimelineItem(props: { activity: Item }) {
       : null;
 
   return (
-    <Stack gap={"md"}>
-      <Group justify="space-between" gap="xs">
-        <Group gap={"sm"}>
-          {habitActivitySourceToIcon(activity.data.source)}
+    <BaseActivityTimelineItem
+      activity={activity}
+      title={data.key}
+      timezone={data.timezone ?? ""}
+      tags={["Habit", activity.data.source]}
+      overwriteTime={timeLabel && !data.periodOfDay ? timeLabel : (data.periodOfDay ?? "").replace("_", " ")}
+      renderCollapsed={() => (
+        <>
+          {value && (
+            <Text size="sm" fw={600}>
+              Value: {value}
+            </Text>
+          )}
 
-          <Text fw={500}>{data.key}</Text>
-        </Group>
-
-        {timeLabel && !data.periodOfDay && (
-          <Text size="xs" c="dimmed">
-            {timeLabel}
-          </Text>
-        )}
-        {data.periodOfDay && (
-          <Text size="xs" c="dimmed">
-            {data.periodOfDay.replace("_", " ")}
-          </Text>
-        )}
-      </Group>
-
-      {value && (
-        <Text size="sm" fw={600}>
-          Value: {value}
-        </Text>
+          {data.comments && (
+            <Group gap={6} mt={2} align="flex-start">
+              <IconNotes size={14} />
+              <Text size="sm" c="dimmed" lineClamp={2}>
+                {data.comments}
+              </Text>
+            </Group>
+          )}
+        </>
       )}
-
-      {data.comments && (
-        <Group gap={6} mt={2} align="flex-start">
-          <IconNotes size={14} />
-          <Text size="sm" c="dimmed" lineClamp={2}>
-            {data.comments}
-          </Text>
-        </Group>
-      )}
-      <Group gap="xs">
-        <Badge variant="light" size="xs">
-          Habit
-        </Badge>
-        <Badge variant="light" size="xs">
-          {activity.data.source}
-        </Badge>
-      </Group>
-    </Stack>
+      renderIcon={() => habitActivitySourceToIcon(activity.data.source)}
+      onExpand={() => {}}
+      isExpanded={false}
+    />
   );
 }

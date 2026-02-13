@@ -1,9 +1,10 @@
 import { TZDate } from "@date-fns/tz";
-import { Badge, Collapse, Container, Group, Stack, Text } from "@mantine/core";
+import { Container, Text } from "@mantine/core";
 import { format, formatDistanceStrict } from "date-fns";
 import type { RouterOutputs } from "../../../api/trpc";
 import { CommonMap } from "../../CommonMap";
 import { locationActivitySourceToIcon } from "./activitySourceToIcon";
+import { BaseActivityTimelineItem } from "./BaseActivityTimelineItem";
 
 type Item = Extract<RouterOutputs["timelineRouter"]["listActivities"]["activities"][number], { type: "location" }>;
 
@@ -20,50 +21,44 @@ export function LocationActivityTimelineItem(props: { activity: Item; onExpand: 
   const isStationary = !!data.placeOfInterest;
 
   return (
-    <Stack>
-      <Group style={{ cursor: "pointer" }} align="center" gap="xs" wrap="nowrap" onClick={onExpand}>
-        {locationActivitySourceToIcon(null)}
-        <Text lineClamp={1} fw={500} flex={1}>
-          {data.placeOfInterest?.displayName ?? (isStationary ? "Staying in place" : "Moving")}
-        </Text>
-
-        <Text size="xs" c="dimmed">
-          {timeRange}
-        </Text>
-      </Group>
-      <Group>
-        <Text size="sm" lineClamp={3}>
-          {duration}
-        </Text>
-
-        {!isStationary && data.velocity > 0 && (
-          <Text size="xs" c="dimmed">
-            {Math.round(data.velocity)} km/h
+    <BaseActivityTimelineItem
+      activity={activity}
+      title={data.placeOfInterest?.displayName ?? (isStationary ? "Staying in place" : "Moving")}
+      timezone={data.timezone ?? ""}
+      overwriteTime={timeRange}
+      tags={["Location", "Owntracks"]}
+      renderCollapsed={() => (
+        <>
+          <Text size="sm" lineClamp={3}>
+            {duration}
           </Text>
-        )}
-      </Group>
-      <Collapse in={isExpanded}>
-        {activity.data.placeOfInterest?.geoJson ? (
-          <Container style={{ overflow: "clip" }} bdrs={"lg"} w={"100%"} h={300} fluid p={0}>
-            <CommonMap
-              readonlyPolygons={[
-                {
-                  name: activity.data.placeOfInterest.displayName ?? "",
-                  feature: activity.data.placeOfInterest.geoJson as any,
-                },
-              ]}
-            />
-          </Container>
-        ) : null}
-      </Collapse>
-      <Group gap="xs">
-        <Badge variant="light" size="xs">
-          Location
-        </Badge>
-        <Badge variant="light" size="xs">
-          {"Owntracks"}
-        </Badge>
-      </Group>
-    </Stack>
+
+          {!isStationary && data.velocity > 0 && (
+            <Text size="xs" c="dimmed">
+              {Math.round(data.velocity)} km/h
+            </Text>
+          )}
+        </>
+      )}
+      renderExpanded={() => (
+        <>
+          {activity.data.placeOfInterest?.geoJson ? (
+            <Container style={{ overflow: "clip" }} bdrs={"lg"} w={"100%"} h={300} fluid p={0}>
+              <CommonMap
+                readonlyPolygons={[
+                  {
+                    name: activity.data.placeOfInterest.displayName ?? "",
+                    feature: activity.data.placeOfInterest.geoJson as any,
+                  },
+                ]}
+              />
+            </Container>
+          ) : null}
+        </>
+      )}
+      renderIcon={() => locationActivitySourceToIcon(null)}
+      onExpand={onExpand}
+      isExpanded={isExpanded}
+    />
   );
 }
