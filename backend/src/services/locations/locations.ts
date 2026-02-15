@@ -245,20 +245,21 @@ export class LocationChartServiceInternal {
   }
 
   public async getDailyMap(day: string, groupPointsByInSec: number) {
+    // Adding these directly in the query seems to break tree sitter so I've moved
+    // it to vars here
+    const dayFilter = sql`(${locationsTable.recordedAt} AT TIME ZONE timezone)::date = ${day}`;
+    const accuracyFilter = sql`${locationsTable.accuracy} < 40`;
+    const bucketSelect =
+      sql<number>`floor(extract(epoch FROM ${locationsTable.recordedAt}) / ${groupPointsByInSec || 1})`.as("bucket");
     const base = db
       .select({
         location: locationsTable.location,
         recordedAt: locationsTable.recordedAt,
         timezone: locationsTable.timezone,
-        bucket: sql<number>`
-      floor(extract(epoch FROM ${locationsTable.recordedAt}) / ${groupPointsByInSec || 1})
-    `.as("bucket"),
+        bucket: bucketSelect,
       })
       .from(locationsTable)
-      .where(sql`
-    (${locationsTable.recordedAt} AT TIME ZONE timezone)::date = ${day}
-    AND ${locationsTable.accuracy} < 40
-  `)
+      .where(and(dayFilter, accuracyFilter))
       .as("base");
     return db
       .selectDistinctOn([base.bucket], {
@@ -268,6 +269,23 @@ export class LocationChartServiceInternal {
       })
       .from(base)
       .orderBy(base.bucket, asc(base.recordedAt));
+  }
+
+  public async getLocationForPeriod(range: DateRange) {
+    // Adding these directly in the query seems to break tree sitter so I've moved
+    // it to vars here
+    const start = sql`${locationsTable.recordedAt} >= ${range.start}`;
+    const end = sql`${locationsTable.recordedAt} <= ${range.end}`;
+    const accuracyFilter = sql`${locationsTable.accuracy} < 40`;
+    return db
+      .select({
+        location: locationsTable.location,
+        recordedAt: locationsTable.recordedAt,
+        timezone: locationsTable.timezone,
+      })
+      .from(locationsTable)
+      .where(and(start, end, accuracyFilter))
+      .orderBy(asc(locationsTable.recordedAt));
   }
 
   // =============== PRIVATE ===================

@@ -1,6 +1,7 @@
 import { TZDate } from "@date-fns/tz";
-import { Box, Popover, Skeleton, Text } from "@mantine/core";
+import { ActionIcon, Box, Modal, Popover, Skeleton, Text } from "@mantine/core";
 import { useElementSize } from "@mantine/hooks";
+import { IconMaximize } from "@tabler/icons-react";
 import { format } from "date-fns/format";
 import DeckGL, { GeoJsonLayer, PathLayer, ScatterplotLayer, TextLayer, WebMercatorViewport } from "deck.gl";
 import { useEffect, useMemo, useState } from "react";
@@ -235,5 +236,56 @@ export function CommonMap(props: Props) {
         </Popover>
       )}
     </Box>
+  );
+}
+
+export function MaximazibleMap(props: Props) {
+  const [opened, setOpened] = useState(false);
+  return (
+    <>
+      <Box flex={1} mih={0} w="100%" h="100%" style={{ position: "relative" }}>
+        <CommonMap {...props} />
+
+        <ActionIcon
+          variant="subtle"
+          onClick={() => setOpened(true)}
+          style={{
+            position: "absolute",
+            top: 12,
+            right: 12,
+            zIndex: 10,
+            backdropFilter: "blur(4px)",
+          }}
+        >
+          <IconMaximize size={18} />
+        </ActionIcon>
+      </Box>
+
+      <Modal
+        opened={opened}
+        onClose={() => setOpened(false)}
+        title="Map"
+        size="90vw"
+        radius="md"
+        padding={"md"}
+        overlayProps={{
+          backgroundOpacity: 0.45,
+          blur: 3,
+        }}
+        styles={{
+          content: {
+            height: "90vh",
+            display: "flex",
+            flexDirection: "column",
+          },
+          body: {
+            flex: 1,
+            padding: 0,
+          },
+        }}
+      >
+        <CommonMap {...props} />
+      </Modal>
+    </>
   );
 }
