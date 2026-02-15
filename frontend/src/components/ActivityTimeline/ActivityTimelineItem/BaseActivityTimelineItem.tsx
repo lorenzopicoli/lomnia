@@ -1,5 +1,5 @@
 import { TZDate } from "@date-fns/tz";
-import { Anchor, Badge, Collapse, Container, Group, Stack, Text } from "@mantine/core";
+import { Anchor, Badge, Collapse, Container, Divider, Group, Stack, Text } from "@mantine/core";
 import { IconExternalLink } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import { addSeconds, format, formatISO, subSeconds } from "date-fns";
@@ -81,10 +81,13 @@ export function BaseActivityTimelineItem(props: Props) {
       {renderCollapsed?.()}
 
       <Collapse in={isExpanded}>
-        {renderExpanded?.()}
-        <Container style={{ overflow: "clip" }} bdrs={"lg"} w={"100%"} h={300} fluid p={0}>
-          <MaximizableMap points={locationData ?? []} isLoading={isLoadingLocationData} />
-        </Container>
+        <Stack>
+          <Divider />
+          {renderExpanded?.()}
+          <Container style={{ overflow: "clip" }} bdrs={"lg"} w={"100%"} h={300} fluid p={0}>
+            <MaximizableMap points={locationData ?? []} isLoading={isLoadingLocationData} />
+          </Container>
+        </Stack>
       </Collapse>
 
       <Group justify="space-between" align="center" mt="xs">

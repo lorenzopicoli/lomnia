@@ -1,8 +1,8 @@
 import { TZDate } from "@date-fns/tz";
-import { Group, Text } from "@mantine/core";
-import { IconNotes } from "@tabler/icons-react";
+import { Stack } from "@mantine/core";
 import { format } from "date-fns";
 import type { RouterOutputs } from "../../../api/trpc";
+import { ActivityTimelineTextValue } from "./ActivityTimelineTextValue";
 import { habitActivitySourceToIcon } from "./activitySourceToIcon";
 import { BaseActivityTimelineItem } from "./BaseActivityTimelineItem";
 
@@ -51,11 +51,14 @@ export function HabitActivityTimelineItem(props: { activity: Item; onExpand: () 
 
   const value = formatValue(data);
 
-  const timeLabel = data.isFullDay
-    ? "All day"
-    : data.date
-      ? format(new TZDate(data.date, data.timezone), "HH:mm")
-      : null;
+  const formattedTimeLabel = (withSeconds: boolean) => {
+    const timeLabel = data.isFullDay
+      ? "All day"
+      : data.date
+        ? format(new TZDate(data.date, data.timezone), withSeconds ? "HH:mm:ss" : "HH:mm")
+        : null;
+    return timeLabel && !data.periodOfDay ? timeLabel : (data.periodOfDay ?? "").replace("_", " ");
+  };
 
   return (
     <BaseActivityTimelineItem
@@ -63,24 +66,24 @@ export function HabitActivityTimelineItem(props: { activity: Item; onExpand: () 
       title={data.key}
       timezone={data.timezone ?? ""}
       tags={["Habit", activity.data.source]}
-      overwriteTime={timeLabel && !data.periodOfDay ? timeLabel : (data.periodOfDay ?? "").replace("_", " ")}
+      overwriteTime={formattedTimeLabel(false)}
       renderCollapsed={() => (
         <>
-          {value && (
-            <Text size="sm" fw={600}>
-              Value: {value}
-            </Text>
-          )}
+          {value && <ActivityTimelineTextValue text="Value" value={value} />}
 
-          {data.comments && (
-            <Group gap={6} mt={2} align="flex-start">
-              <IconNotes size={14} />
-              <Text size="sm" c="dimmed" lineClamp={2}>
-                {data.comments}
-              </Text>
-            </Group>
-          )}
+          {data.comments && <ActivityTimelineTextValue text="Comments" value={data.comments} />}
         </>
+      )}
+      renderExpanded={() => (
+        <Stack gap={"xs"}>
+          {data.date && <ActivityTimelineTextValue text="Date" value={formattedTimeLabel(true)} />}
+          {data.recordedAt && (
+            <ActivityTimelineTextValue
+              text="Logged on"
+              value={format(new TZDate(data.recordedAt, data.timezone), "dd/MM/yyyy HH:mm:ss")}
+            />
+          )}
+        </Stack>
       )}
       renderIcon={() => habitActivitySourceToIcon(activity.data.source)}
       onExpand={onExpand}
