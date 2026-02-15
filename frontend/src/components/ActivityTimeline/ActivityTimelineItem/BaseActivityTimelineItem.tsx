@@ -11,7 +11,7 @@ type Item = RouterOutputs["timelineRouter"]["listActivities"]["activities"][numb
 type Props = {
   activity: Item;
   title: string;
-  timezone?: string;
+  timezone?: string | null;
   isExpanded: boolean;
   overwriteTime?: string;
   tags?: (string | null | undefined)[];
