@@ -16,7 +16,7 @@ export function WebsiteVisitActivityTimelineItem(props: { activity: Item; onExpa
     <BaseActivityTimelineItem
       activity={activity}
       title={title}
-      timezone={visit.timezone ?? ""}
+      timezone={visit.timezone}
       tags={["Website visit", activity.data.visit.source, visit.type && websiteVisitTypeFormat(visit.type)]}
       externalLink={website.url}
       renderCollapsed={() => (

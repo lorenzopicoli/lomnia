@@ -19,8 +19,7 @@ class BrowserHistoryServiceInternal {
       .innerJoin(websitesTable, eq(websitesTable.externalId, websitesVisitsTable.websiteExternalId))
       .where(
         sql`
-        (${websitesVisitsTable.recordedAt} at time zone ${websitesVisitsTable.timezone})::date >= ${day} AND
-        (${websitesVisitsTable.recordedAt} at time zone ${websitesVisitsTable.timezone})::date  <= ${day}
+        (${websitesVisitsTable.recordedAt} at time zone COALESCE(${websitesVisitsTable.timezone}, 'UTC'))::date = ${day}
       `,
       );
   }

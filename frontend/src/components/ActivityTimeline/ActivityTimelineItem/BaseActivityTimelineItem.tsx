@@ -11,7 +11,7 @@ type Item = RouterOutputs["timelineRouter"]["listActivities"]["activities"][numb
 type Props = {
   activity: Item;
   title: string;
-  timezone: string;
+  timezone?: string;
   isExpanded: boolean;
   overwriteTime?: string;
   tags?: (string | null | undefined)[];
@@ -64,7 +64,8 @@ export function BaseActivityTimelineItem(props: Props) {
     ),
   );
 
-  const time = overwriteTime ?? format(new TZDate(activity.date, timezone ?? ""), "HH:mm");
+  const time = overwriteTime ?? `${format(new TZDate(activity.date, timezone ?? "UTC"), "HH:mm")} (No timezone)`;
+  const noLocationData = !isLoadingLocationData && (locationData ?? []).length === 0;
 
   return (
     <Stack gap="xs">
@@ -103,7 +104,7 @@ export function BaseActivityTimelineItem(props: Props) {
           {renderExpanded?.()}
           {renderMap ? (
             renderMap({ points: locationData, isLoading: isLoadingLocationData })
-          ) : (
+          ) : noLocationData ? null : (
             <Container style={{ overflow: "clip" }} bdrs={"lg"} w={"100%"} h={300} fluid p={0}>
               <MaximizableMap points={locationData ?? []} isLoading={isLoadingLocationData} />
             </Container>

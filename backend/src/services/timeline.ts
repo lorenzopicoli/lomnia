@@ -71,19 +71,17 @@ export namespace TimelineService {
       };
     });
 
-    const browserHistoryFormatted: TimelineActivity[] = browserHistory
-      .filter((history) => history.visit.timezone)
-      .map((history) => {
-        const iso = DateTime.fromJSDate(history.visit.recordedAt).toISO();
-        if (!iso) {
-          throw new Error("Location missing start date (couldn't parse iso)");
-        }
-        return {
-          type: "websiteVisit",
-          date: iso,
-          data: history,
-        };
-      });
+    const browserHistoryFormatted: TimelineActivity[] = browserHistory.map((history) => {
+      const iso = DateTime.fromJSDate(history.visit.recordedAt).toISO();
+      if (!iso) {
+        throw new Error("Location missing start date (couldn't parse iso)");
+      }
+      return {
+        type: "websiteVisit",
+        date: iso,
+        data: history,
+      };
+    });
 
     const sorted = [...locationsFormatted, ...habitsFormatted, ...browserHistoryFormatted].sort(
       (a, b) => DateTime.fromISO(a.date).toMillis() - DateTime.fromISO(b.date).toMillis(),
