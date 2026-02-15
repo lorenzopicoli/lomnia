@@ -16,10 +16,25 @@ type Props = {
   overwriteTime?: string;
   tags?: (string | null | undefined)[];
   externalLink?: string;
+  /**
+   * Used to fetch more location data
+   */
+  activityPeriod?: { start: string; end: string };
   renderExpanded?: () => React.ReactNode;
   renderCollapsed?: () => React.ReactNode;
   renderIcon: () => React.ReactNode;
   onExpand?: () => void;
+  renderMap?: (params: {
+    points?: {
+      timezone: string;
+      recordedAt: string | null;
+      location: {
+        lat: number;
+        lng: number;
+      };
+    }[];
+    isLoading: boolean;
+  }) => React.ReactNode;
 };
 
 export function BaseActivityTimelineItem(props: Props) {
@@ -30,18 +45,20 @@ export function BaseActivityTimelineItem(props: Props) {
     overwriteTime,
     tags = [],
     externalLink,
+    activityPeriod,
+    isExpanded,
+    renderMap,
     renderCollapsed,
     renderExpanded,
     renderIcon,
     onExpand,
-    isExpanded,
   } = props;
 
   const { data: locationData, isPending: isLoadingLocationData } = useQuery(
     trpc.charts.locations.getForPeriod.queryOptions(
       {
-        start: formatISO(subSeconds(new TZDate(activity.date, "UTC"), 60)),
-        end: formatISO(addSeconds(new TZDate(activity.date, "UTC"), 60)),
+        start: activityPeriod ? activityPeriod.start : formatISO(subSeconds(new TZDate(activity.date, "UTC"), 60)),
+        end: activityPeriod ? activityPeriod.end : formatISO(addSeconds(new TZDate(activity.date, "UTC"), 60)),
       },
       { enabled: isExpanded },
     ),
@@ -84,9 +101,13 @@ export function BaseActivityTimelineItem(props: Props) {
         <Stack>
           <Divider />
           {renderExpanded?.()}
-          <Container style={{ overflow: "clip" }} bdrs={"lg"} w={"100%"} h={300} fluid p={0}>
-            <MaximizableMap points={locationData ?? []} isLoading={isLoadingLocationData} />
-          </Container>
+          {renderMap ? (
+            renderMap({ points: locationData, isLoading: isLoadingLocationData })
+          ) : (
+            <Container style={{ overflow: "clip" }} bdrs={"lg"} w={"100%"} h={300} fluid p={0}>
+              <MaximizableMap points={locationData ?? []} isLoading={isLoadingLocationData} />
+            </Container>
+          )}
         </Stack>
       </Collapse>
 

@@ -71,7 +71,7 @@ export function CommonMap(props: CommonMapProps) {
     setViewState({
       longitude: viewport.longitude,
       latitude: viewport.latitude,
-      zoom: viewport.zoom,
+      zoom: Math.min(17, viewport.zoom),
     });
   }, [value, readonlyPolygons, width, height, points]);
 
@@ -148,31 +148,33 @@ export function CommonMap(props: CommonMapProps) {
     }
 
     if (readonlyPolygons?.length) {
-      const labelData = readonlyPolygons.map((p) => {
-        const geom = p.feature.geometry;
+      const labelData = readonlyPolygons
+        .filter((p) => !!p.name)
+        .map((p) => {
+          const geom = p.feature.geometry;
 
-        let coordinates: [number, number][] = [];
+          let coordinates: [number, number][] = [];
 
-        if (geom.type === "Polygon") {
-          coordinates = geom.coordinates[0] as [number, number][];
-        }
+          if (geom.type === "Polygon") {
+            coordinates = geom.coordinates[0] as [number, number][];
+          }
 
-        const center = coordinates.reduce(
-          (acc, coord) => {
-            acc[0] += coord[0];
-            acc[1] += coord[1];
-            return acc;
-          },
-          [0, 0],
-        );
+          const center = coordinates.reduce(
+            (acc, coord) => {
+              acc[0] += coord[0];
+              acc[1] += coord[1];
+              return acc;
+            },
+            [0, 0],
+          );
 
-        const centroid: [number, number] = [center[0] / coordinates.length, center[1] / coordinates.length];
+          const centroid: [number, number] = [center[0] / coordinates.length, center[1] / coordinates.length];
 
-        return {
-          name: p.name,
-          position: centroid,
-        };
-      });
+          return {
+            name: p.name,
+            position: centroid,
+          };
+        });
 
       l.push(
         new TextLayer({

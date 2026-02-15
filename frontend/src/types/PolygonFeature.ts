@@ -12,4 +12,4 @@ export type PolygonFeature = {
   };
 };
 
-export type ReadonlyPolygon = { name: string; feature: PolygonFeature };
+export type ReadonlyPolygon = { name?: string; feature: PolygonFeature };

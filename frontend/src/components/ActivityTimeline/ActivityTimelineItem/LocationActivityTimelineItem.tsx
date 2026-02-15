@@ -27,6 +27,10 @@ export function LocationActivityTimelineItem(props: { activity: Item; onExpand: 
       timezone={data.timezone ?? ""}
       overwriteTime={timeRange}
       tags={["Location", "Owntracks"]}
+      activityPeriod={{
+        start: data.startDate,
+        end: data.endDate,
+      }}
       renderCollapsed={() => (
         <>
           <Text size="sm" lineClamp={3}>
@@ -40,23 +44,24 @@ export function LocationActivityTimelineItem(props: { activity: Item; onExpand: 
           )}
         </>
       )}
-      renderExpanded={() => (
-        <>
-          {activity.data.placeOfInterest?.geoJson ? (
-            <Container style={{ overflow: "clip" }} bdrs={"lg"} w={"100%"} h={300} fluid p={0}>
-              <MaximizableMap
-                readonlyPolygons={[
-                  {
-                    name: activity.data.placeOfInterest.displayName ?? "",
-                    feature: activity.data.placeOfInterest.geoJson as any,
-                  },
-                ]}
-              />
-            </Container>
-          ) : null}
-        </>
-      )}
       renderIcon={() => locationActivitySourceToIcon(null)}
+      renderMap={
+        activity.data.placeOfInterest?.geoJson
+          ? ({ points, isLoading }) => (
+              <Container style={{ overflow: "clip" }} bdrs={"lg"} w={"100%"} h={300} fluid p={0}>
+                <MaximizableMap
+                  points={points ?? []}
+                  isLoading={isLoading}
+                  readonlyPolygons={[
+                    {
+                      feature: activity.data.placeOfInterest.geoJson as any,
+                    },
+                  ]}
+                />
+              </Container>
+            )
+          : undefined
+      }
       onExpand={onExpand}
       isExpanded={isExpanded}
     />
