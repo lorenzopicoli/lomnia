@@ -10,20 +10,22 @@ import { findBounds } from "../utils/findBounds";
 import { getHourColors } from "../utils/getHourColors";
 
 type LocationPoint = {
-  longitude: number;
-  latitude: number;
-  timestamp?: string;
+  location: {
+    lng: number;
+    lat: number;
+  };
+  recordedAt?: string | null;
   timezone?: string;
 };
 
-type Props = {
+export type CommonMapProps = {
   value?: PolygonFeature | null;
   readonlyPolygons?: ReadonlyPolygon[];
   points?: LocationPoint[];
   isLoading?: boolean;
 };
 
-export function CommonMap(props: Props) {
+export function CommonMap(props: CommonMapProps) {
   const { value, readonlyPolygons, points, isLoading } = props;
 
   const { ref, width, height } = useElementSize();
@@ -44,7 +46,7 @@ export function CommonMap(props: Props) {
 
     if (features.length === 0 && (!points || points?.length === 0)) return;
 
-    const coordinates: [number, number][] = points?.map((p) => [p.longitude, p.latitude]) ?? [];
+    const coordinates: [number, number][] = points?.map((p) => [p.location.lng, p.location.lat]) ?? [];
 
     for (const feature of features) {
       const geom = feature.geometry;
@@ -115,10 +117,10 @@ export function CommonMap(props: Props) {
           radiusUnits: "pixels",
           radiusMinPixels: 6,
           radiusMaxPixels: 10,
-          getPosition: (d) => [d.longitude, d.latitude],
+          getPosition: (d) => [d.location.lng, d.location.lat],
           getFillColor: (d) => {
-            if (!d.timestamp) return [255, 140, 0, 200];
-            const hour = new TZDate(d.timestamp, d.timezone).getHours();
+            if (!d.recordedAt) return [255, 140, 0, 200];
+            const hour = new TZDate(d.recordedAt, d.timezone).getHours();
             return getHourColors(hour);
           },
           getLineColor: [255, 255, 255],
@@ -134,7 +136,7 @@ export function CommonMap(props: Props) {
           id: "movement-path",
           data: [
             {
-              path: points.map((p) => [p.longitude, p.latitude]),
+              path: points.map((p) => [p.location.lng, p.location.lat]),
             },
           ],
           getPath: (d) => d.path,
@@ -228,8 +230,8 @@ export function CommonMap(props: Props) {
           <Popover.Dropdown>
             <Text size="sm">
               {hoverInfo.object.timezone
-                ? format(new TZDate(hoverInfo.object.timestamp, hoverInfo.object.timezone ?? ""), "dd/MM/yyyy HH:mm")
-                : new Date(hoverInfo.object.timestamp).toLocaleString()}
+                ? format(new TZDate(hoverInfo.object.recordedAt, hoverInfo.object.timezone ?? ""), "dd/MM/yyyy HH:mm")
+                : new Date(hoverInfo.object.recordedAt).toLocaleString()}
             </Text>
           </Popover.Dropdown>
         </Popover>

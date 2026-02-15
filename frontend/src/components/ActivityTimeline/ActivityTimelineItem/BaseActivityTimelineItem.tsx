@@ -1,8 +1,10 @@
 import { TZDate } from "@date-fns/tz";
-import { Anchor, Badge, Collapse, Group, Stack, Text } from "@mantine/core";
+import { Anchor, Badge, Collapse, Container, Divider, Group, Stack, Text } from "@mantine/core";
 import { IconExternalLink } from "@tabler/icons-react";
-import { format } from "date-fns";
-import type { RouterOutputs } from "../../../api/trpc";
+import { useQuery } from "@tanstack/react-query";
+import { addSeconds, format, formatISO, subSeconds } from "date-fns";
+import { type RouterOutputs, trpc } from "../../../api/trpc";
+import { MaximizableMap } from "../../MaximizableMap";
 
 type Item = RouterOutputs["timelineRouter"]["listActivities"]["activities"][number];
 
@@ -35,17 +37,21 @@ export function BaseActivityTimelineItem(props: Props) {
     isExpanded,
   } = props;
 
+  const { data: locationData, isPending: isLoadingLocationData } = useQuery(
+    trpc.charts.locations.getForPeriod.queryOptions(
+      {
+        start: formatISO(subSeconds(new TZDate(activity.date, "UTC"), 60)),
+        end: formatISO(addSeconds(new TZDate(activity.date, "UTC"), 60)),
+      },
+      { enabled: isExpanded },
+    ),
+  );
+
   const time = overwriteTime ?? format(new TZDate(activity.date, timezone ?? ""), "HH:mm");
 
   return (
     <Stack gap="xs">
-      <Group
-        style={{ cursor: renderExpanded ? "pointer" : undefined }}
-        align="center"
-        gap="xs"
-        wrap="nowrap"
-        onClick={renderExpanded ? onExpand : undefined}
-      >
+      <Group style={{ cursor: "pointer" }} align="center" gap="xs" wrap="nowrap" onClick={onExpand}>
         {renderIcon()}
 
         <Text
@@ -74,7 +80,15 @@ export function BaseActivityTimelineItem(props: Props) {
 
       {renderCollapsed?.()}
 
-      <Collapse in={isExpanded}>{renderExpanded?.()}</Collapse>
+      <Collapse in={isExpanded}>
+        <Stack>
+          <Divider />
+          {renderExpanded?.()}
+          <Container style={{ overflow: "clip" }} bdrs={"lg"} w={"100%"} h={300} fluid p={0}>
+            <MaximizableMap points={locationData ?? []} isLoading={isLoadingLocationData} />
+          </Container>
+        </Stack>
+      </Collapse>
 
       <Group justify="space-between" align="center" mt="xs">
         <Group gap="xs">

@@ -32,7 +32,7 @@ export function ActivityTimelineItem(props: { activity: Item }) {
       ) : activity.type === "websiteVisit" ? (
         <WebsiteVisitActivityTimelineItem activity={activity} onExpand={handleToggle} isExpanded={opened} />
       ) : activity.type === "habit" ? (
-        <HabitActivityTimelineItem activity={activity} />
+        <HabitActivityTimelineItem activity={activity} onExpand={handleToggle} isExpanded={opened} />
       ) : (
         <Text size="sm">{JSON.stringify(activity)}</Text>
       )}

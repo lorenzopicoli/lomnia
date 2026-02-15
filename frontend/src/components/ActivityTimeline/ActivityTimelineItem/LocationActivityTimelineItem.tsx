@@ -2,7 +2,7 @@ import { TZDate } from "@date-fns/tz";
 import { Container, Text } from "@mantine/core";
 import { format, formatDistanceStrict } from "date-fns";
 import type { RouterOutputs } from "../../../api/trpc";
-import { CommonMap } from "../../CommonMap";
+import { MaximizableMap } from "../../MaximizableMap";
 import { locationActivitySourceToIcon } from "./activitySourceToIcon";
 import { BaseActivityTimelineItem } from "./BaseActivityTimelineItem";
 
@@ -44,7 +44,7 @@ export function LocationActivityTimelineItem(props: { activity: Item; onExpand: 
         <>
           {activity.data.placeOfInterest?.geoJson ? (
             <Container style={{ overflow: "clip" }} bdrs={"lg"} w={"100%"} h={300} fluid p={0}>
-              <CommonMap
+              <MaximizableMap
                 readonlyPolygons={[
                   {
                     name: activity.data.placeOfInterest.displayName ?? "",
