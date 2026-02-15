@@ -274,8 +274,8 @@ export class LocationChartServiceInternal {
   public async getLocationForPeriod(range: DateRange) {
     // Adding these directly in the query seems to break tree sitter so I've moved
     // it to vars here
-    const start = sql`${locationsTable.recordedAt} >= ${range.start}`;
-    const end = sql`${locationsTable.recordedAt} <= ${range.end}`;
+    const start = sql`${locationsTable.recordedAt} >= ${range.start.toISO()}`;
+    const end = sql`${locationsTable.recordedAt} <= ${range.end.toISO()}`;
     const accuracyFilter = sql`${locationsTable.accuracy} < 40`;
     return db
       .select({

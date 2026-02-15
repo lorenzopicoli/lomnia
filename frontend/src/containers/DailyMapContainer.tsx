@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { format, startOfDay } from "date-fns";
 import { trpc } from "../api/trpc";
-import { MaximazibleMap } from "../components/CommonMap";
+import { MaximizableMap } from "../components/MaximizableMap";
 
 export default function DailyMapContainer(props: { day: Date }) {
   const { day } = props;
@@ -13,5 +13,5 @@ export default function DailyMapContainer(props: { day: Date }) {
     }),
   );
 
-  return <MaximazibleMap points={points ?? []} isLoading={!points || isLoading} />;
+  return <MaximizableMap points={points ?? []} isLoading={!points || isLoading} />;
 }

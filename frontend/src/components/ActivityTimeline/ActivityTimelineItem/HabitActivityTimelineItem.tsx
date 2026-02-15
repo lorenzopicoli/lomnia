@@ -45,8 +45,8 @@ export function formatValue(habit: Item["data"]): string {
   return `${prefix}${formatted}${suffix}`.trim();
 }
 
-export function HabitActivityTimelineItem(props: { activity: Item }) {
-  const { activity } = props;
+export function HabitActivityTimelineItem(props: { activity: Item; onExpand: () => void; isExpanded: boolean }) {
+  const { activity, onExpand, isExpanded } = props;
   const { data } = activity;
 
   const value = formatValue(data);
@@ -83,8 +83,8 @@ export function HabitActivityTimelineItem(props: { activity: Item }) {
         </>
       )}
       renderIcon={() => habitActivitySourceToIcon(activity.data.source)}
-      onExpand={() => {}}
-      isExpanded={false}
+      onExpand={onExpand}
+      isExpanded={isExpanded}
     />
   );
 }

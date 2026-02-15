@@ -1,4 +1,3 @@
-import { DateTime } from "luxon";
 import z from "zod";
 import { HeatmapInput, LocationChartService } from "../services/locations/locations";
 import { DateRange } from "../types/chartTypes";
@@ -17,16 +16,14 @@ export const locationChartRouter = t.router({
     return points.map((r) => [r.location.lng, r.location.lat, r.weight] as [number, number, number]);
   }),
 
+  getForPeriod: loggedProcedure.input(DateRange).query((opts) => {
+    return LocationChartService.getLocationForPeriod(opts.input);
+  }),
+
   getDailyMap: loggedProcedure
     .input(z.object({ day: z.string(), groupPointsByInSec: z.number() }))
     .query(async (opts) => {
-      const points = await LocationChartService.getDailyMap(opts.input.day, opts.input.groupPointsByInSec);
-      return points.map((r) => ({
-        longitude: r.location.lng,
-        latitude: r.location.lat,
-        timestamp: DateTime.fromJSDate(r.recordedAt ?? new Date()).toISO() ?? "",
-        timezone: r.timezone,
-      }));
+      return await LocationChartService.getDailyMap(opts.input.day, opts.input.groupPointsByInSec);
     }),
 
   getCountriesVisited: loggedProcedure.input(DateRange).query((opts) => {
