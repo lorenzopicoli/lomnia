@@ -64,7 +64,9 @@ export function BaseActivityTimelineItem(props: Props) {
     ),
   );
 
-  const time = overwriteTime ?? `${format(new TZDate(activity.date, timezone ?? "UTC"), "HH:mm")} (No timezone)`;
+  const noTimezoneWarning = timezone ? "" : " (No timezone)";
+  const timeLabel = format(new TZDate(activity.date, timezone ?? "UTC"), "HH:mm");
+  const time = overwriteTime ?? `${timeLabel}${noTimezoneWarning}`;
   const noLocationData = !isLoadingLocationData && (locationData ?? []).length === 0;
 
   return (
