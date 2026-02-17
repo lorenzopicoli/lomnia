@@ -40,3 +40,11 @@ export function getEnvVarOrError(name: EnvVar) {
   }
   return value;
 }
+
+export function getEnvVarOrNull(name: EnvVar) {
+  const value = process.env[name];
+  if (!value) {
+    return null;
+  }
+  return value;
+}
