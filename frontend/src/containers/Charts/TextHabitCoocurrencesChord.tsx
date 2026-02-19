@@ -52,5 +52,5 @@ export function TextHabitCoocurrencesChord(props: HabitChartProps) {
     };
   }, [data]);
 
-  return <Echarts option={option} />;
+  return <Echarts title={props.title} option={option} />;
 }

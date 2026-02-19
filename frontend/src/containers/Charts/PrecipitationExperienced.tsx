@@ -82,5 +82,5 @@ export function PrecipitationExperienced(props: ChartProps) {
     };
   }, [precipitationData]);
 
-  return <Echarts option={option} />;
+  return <Echarts title={props.title} option={option} />;
 }

@@ -45,5 +45,5 @@ export function WebsiteNavigationFlowChord(props: ChartProps) {
     };
   }, [data]);
 
-  return <Echarts option={option} />;
+  return <Echarts title={props.title} option={option} />;
 }

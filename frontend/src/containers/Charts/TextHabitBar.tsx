@@ -49,5 +49,5 @@ export function TextHabitBar(props: HabitChartProps) {
     };
   }, [data]);
 
-  return <Echarts option={option} />;
+  return <Echarts title={props.title} option={option} />;
 }

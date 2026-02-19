@@ -50,5 +50,5 @@ export function MostVisitedWebPagesPie(props: ChartProps) {
     };
   }, [data]);
 
-  return <Echarts option={option} />;
+  return <Echarts title={props.title} option={option} />;
 }

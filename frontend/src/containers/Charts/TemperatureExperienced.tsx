@@ -123,5 +123,5 @@ export function TemperatureExperienced(props: ChartProps) {
     };
   }, [data]);
 
-  return <Echarts option={option} />;
+  return <Echarts title={props.title} option={option} />;
 }

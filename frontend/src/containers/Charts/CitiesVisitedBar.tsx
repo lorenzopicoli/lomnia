@@ -57,5 +57,5 @@ export function CitiesVisitedBar(props: ChartProps) {
     };
   }, [data]);
 
-  return <Echarts option={option} />;
+  return <Echarts title={props.title} option={option} />;
 }

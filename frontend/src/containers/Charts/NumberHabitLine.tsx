@@ -57,7 +57,7 @@ export function NumberHabitLine(props: HabitChartProps) {
     };
   }, [data, color]);
 
-  return <Echarts option={option} />;
+  return <Echarts title={props.title} option={option} />;
 }
 
 function pickColor(key: string, colors: string[]) {
