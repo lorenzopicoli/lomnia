@@ -1,59 +1,46 @@
-import {
-  integer,
-  pgEnum,
-  pgTable,
-  serial,
-  text,
-  timestamp,
-  uuid,
-} from 'drizzle-orm/pg-core'
-import { sleepRecordsTable } from './SleepRecord'
-import { importJobsTable } from './ImportJob'
-import type { getTableColumns } from 'drizzle-orm'
+import type { getTableColumns } from "drizzle-orm";
+import { integer, pgEnum, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { importJobsTable } from "./ImportJob";
+import { sleepsTable } from "./Sleep";
 
-export const sleepStageEnumValues = ['awake', 'light', 'deep', 'rem'] as const
-export const sleepStageEnum = pgEnum('sleep_stage', sleepStageEnumValues)
+export const sleepStageEnumValues = ["awake", "light", "deep", "rem"] as const;
+export const sleepStageEnum = pgEnum("sleep_stage", sleepStageEnumValues);
 
-export const sleepStagesTable = pgTable('sleep_stages', {
-  id: serial('id').primaryKey(),
+export const sleepStagesTable = pgTable("sleep_stages", {
+  id: serial("id").primaryKey(),
   /**
    * Start time of the sleep stage in UTC
    */
-  startTime: timestamp('start_time').notNull(),
+  startedAt: timestamp("started_at").notNull(),
   /**
    * End time of the sleep stage in UTC
    */
-  endTime: timestamp('end_time').notNull(),
+  endedAt: timestamp("ended_at").notNull(),
   /**
    * Timezone of the sleep stage
    */
-  timezone: text('timezone').notNull(),
+  timezone: text("timezone").notNull(),
   /**
    * The stage of the sleep
    */
-  stage: sleepStageEnum('stage').notNull(),
+  stage: sleepStageEnum("stage").notNull(),
   /**
    * The sleep record that the sleep stage belongs to
-   * In the lomnia DB
    */
-  sleepRecordId: integer('sleep_record_id')
-    .references(() => sleepRecordsTable.id)
+  sleepId: integer("sleep_id")
+    .references(() => sleepsTable.id)
     .notNull(),
   /**
-   * The sleep record that the sleep stage belongs to
-   * In samsung's export
+   * The external sleep id
    */
-  samsungSleepId: uuid('samsung_sleep_id'),
-  importJobId: integer('import_job_id')
+  externalId: text("external_id"),
+  importJobId: integer("import_job_id")
     .references(() => importJobsTable.id)
     .notNull(),
-  dataExportId: text('data_export_id').notNull(),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at'),
-})
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at"),
+});
 
-export type SleepStage = typeof sleepStagesTable.$inferSelect
-export type NewSleepStage = typeof sleepStagesTable.$inferInsert
-export type SleepStageColumns = keyof ReturnType<
-  typeof getTableColumns<typeof sleepStagesTable>
->
+export type SleepStage = typeof sleepStagesTable.$inferSelect;
+export type NewSleepStage = typeof sleepStagesTable.$inferInsert;
+export type SleepStageColumns = keyof ReturnType<typeof getTableColumns<typeof sleepStagesTable>>;

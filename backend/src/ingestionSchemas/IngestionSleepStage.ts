@@ -2,7 +2,7 @@ import * as z from "zod";
 
 export const SleepStageType = z.enum(["awake", "rem", "light", "deep"]);
 
-export const SleepStage = z
+export const IngestionSleepStage = z
   .object({
     entityType: z.literal("sleepStages").meta({
       description: "Entity discriminator",
@@ -14,6 +14,14 @@ export const SleepStage = z
 
     id: z.string().meta({
       description: "Unique identifier for the record. Must be stable across multiple extractions",
+    }),
+
+    sleepId: z.string().meta({
+      description: "Unique identifier for the sleep record. Must be stable across multiple extractions",
+    }),
+
+    timezone: z.string().meta({
+      description: "The user timezone",
     }),
 
     source: z.string().meta({
@@ -42,5 +50,5 @@ export const SleepStage = z
   });
 
 export default IngestionSleepStage;
-export type IngestionSleepStage = z.infer<typeof SleepStage>;
+export type IngestionSleepStage = z.infer<typeof IngestionSleepStage>;
 export const fileName = "sleep_stage.schema.json";

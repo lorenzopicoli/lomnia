@@ -1,6 +1,6 @@
 import * as z from "zod";
 
-export const Sleep = z
+export const IngestionSleep = z
   .object({
     entityType: z.literal("sleep").meta({
       description: "Entity discriminator",
@@ -16,6 +16,14 @@ export const Sleep = z
 
     source: z.string().meta({
       description: "The application source used to get this",
+    }),
+
+    timezone: z.string().meta({
+      description: "The user timezone",
+    }),
+
+    comment: z.string().meta({
+      description: "Comments by the user",
     }),
 
     startedAt: z.iso.datetime().meta({
