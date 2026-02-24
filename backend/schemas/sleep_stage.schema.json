@@ -61,9 +61,10 @@
     "sleepId",
     "source",
     "startedAt",
-    "endedAt"
+    "endedAt",
+    "type"
   ],
   "additionalProperties": false,
-  "title": "Sleep",
-  "description": "Represents a period of sleep"
+  "title": "Sleep Stage",
+  "description": "Represents a stage of sleep (ie. rem, light, awake, etc...)"
 }

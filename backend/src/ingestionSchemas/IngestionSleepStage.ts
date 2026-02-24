@@ -41,7 +41,7 @@ export const IngestionSleepStage = z
 
     type: SleepStageType.meta({
       description: "The stage for this period",
-    }).optional(),
+    }),
 
     deviceId: z
       .string()
