@@ -18,14 +18,6 @@ export const IngestionSleep = z
       description: "The application source used to get this",
     }),
 
-    timezone: z.string().meta({
-      description: "The user timezone",
-    }),
-
-    comment: z.string().meta({
-      description: "Comments by the user",
-    }),
-
     startedAt: z.iso.datetime().meta({
       description: "The date at which the sleep started, in UTC time",
     }),
@@ -34,17 +26,44 @@ export const IngestionSleep = z
       description: "The date at which the sleep ended, in UTC time",
     }),
 
-    automaticScore: z.number().min(0).max(100).meta({
-      description: "Automatic score given by the source",
-    }),
+    timezone: z
+      .string()
+      .meta({
+        description: "The user timezone",
+      })
+      .optional(),
 
-    userScore: z.number().min(0).max(100).meta({
-      description: "Automatic score given by the source",
-    }),
+    comment: z
+      .string()
+      .meta({
+        description: "Comments by the user",
+      })
+      .optional(),
 
-    deviceId: z.string().meta({
-      description: "Unique identifier for the device linked to this record",
-    }),
+    automaticScore: z
+      .number()
+      .min(0)
+      .max(100)
+      .meta({
+        description: "Automatic score given by the source",
+      })
+      .optional(),
+
+    userScore: z
+      .number()
+      .min(0)
+      .max(100)
+      .meta({
+        description: "Automatic score given by the source",
+      })
+      .optional(),
+
+    deviceId: z
+      .string()
+      .meta({
+        description: "Unique identifier for the device linked to this record",
+      })
+      .optional(),
   })
   .meta({
     title: "Sleep",
@@ -52,5 +71,5 @@ export const IngestionSleep = z
   });
 
 export default IngestionSleep;
-export type IngestionSleep = z.infer<typeof Sleep>;
+export type IngestionSleep = z.infer<typeof IngestionSleep>;
 export const fileName = "sleep.schema.json";

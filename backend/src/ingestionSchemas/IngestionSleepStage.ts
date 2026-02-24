@@ -20,10 +20,6 @@ export const IngestionSleepStage = z
       description: "Unique identifier for the sleep record. Must be stable across multiple extractions",
     }),
 
-    timezone: z.string().meta({
-      description: "The user timezone",
-    }),
-
     source: z.string().meta({
       description: "The application source used to get this",
     }),
@@ -36,17 +32,27 @@ export const IngestionSleepStage = z
       description: "The date at which the stage ended, in UTC time",
     }),
 
+    timezone: z
+      .string()
+      .meta({
+        description: "The user timezone",
+      })
+      .optional(),
+
     type: SleepStageType.meta({
       description: "The stage for this period",
     }).optional(),
 
-    deviceId: z.string().meta({
-      description: "Unique identifier for the device linked to this record",
-    }),
+    deviceId: z
+      .string()
+      .meta({
+        description: "Unique identifier for the device linked to this record",
+      })
+      .optional(),
   })
   .meta({
-    title: "Sleep",
-    description: "Represents a period of sleep",
+    title: "Sleep Stage",
+    description: "Represents a stage of sleep (ie. rem, light, awake, etc...)",
   });
 
 export default IngestionSleepStage;

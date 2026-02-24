@@ -19,14 +19,6 @@
       "type": "string",
       "description": "The application source used to get this"
     },
-    "timezone": {
-      "type": "string",
-      "description": "The user timezone"
-    },
-    "comment": {
-      "type": "string",
-      "description": "Comments by the user"
-    },
     "startedAt": {
       "type": "string",
       "format": "date-time",
@@ -38,6 +30,14 @@
       "format": "date-time",
       "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
       "description": "The date at which the sleep ended, in UTC time"
+    },
+    "timezone": {
+      "type": "string",
+      "description": "The user timezone"
+    },
+    "comment": {
+      "type": "string",
+      "description": "Comments by the user"
     },
     "automaticScore": {
       "type": "number",
@@ -61,13 +61,8 @@
     "version",
     "id",
     "source",
-    "timezone",
-    "comment",
     "startedAt",
-    "endedAt",
-    "automaticScore",
-    "userScore",
-    "deviceId"
+    "endedAt"
   ],
   "additionalProperties": false,
   "title": "Sleep",

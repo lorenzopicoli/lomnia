@@ -19,10 +19,6 @@
       "type": "string",
       "description": "Unique identifier for the sleep record. Must be stable across multiple extractions"
     },
-    "timezone": {
-      "type": "string",
-      "description": "The user timezone"
-    },
     "source": {
       "type": "string",
       "description": "The application source used to get this"
@@ -38,6 +34,10 @@
       "format": "date-time",
       "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
       "description": "The date at which the stage ended, in UTC time"
+    },
+    "timezone": {
+      "type": "string",
+      "description": "The user timezone"
     },
     "type": {
       "type": "string",
@@ -59,11 +59,9 @@
     "version",
     "id",
     "sleepId",
-    "timezone",
     "source",
     "startedAt",
-    "endedAt",
-    "deviceId"
+    "endedAt"
   ],
   "additionalProperties": false,
   "title": "Sleep",
