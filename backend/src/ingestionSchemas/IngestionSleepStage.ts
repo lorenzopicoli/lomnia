@@ -4,7 +4,7 @@ export const SleepStageType = z.enum(["awake", "rem", "light", "deep"]);
 
 export const IngestionSleepStage = z
   .object({
-    entityType: z.literal("sleepStages").meta({
+    entityType: z.literal("sleepStage").meta({
       description: "Entity discriminator",
     }),
 

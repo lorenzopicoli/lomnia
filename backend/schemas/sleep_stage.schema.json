@@ -4,7 +4,7 @@
   "properties": {
     "entityType": {
       "type": "string",
-      "const": "sleepStages",
+      "const": "sleepStage",
       "description": "Entity discriminator"
     },
     "version": {

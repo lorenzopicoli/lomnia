@@ -1,3 +1,4 @@
+import { buildUpdateOnConflict } from "../../helpers/buildUpdateOnConflict";
 import { ingestionSchemas } from "../../ingestionSchemas";
 import type IngestionDevice from "../../ingestionSchemas/IngestionDevice";
 import { externalDevicesTable, type NewExternalDevice } from "../../models/ExternalDevice";
@@ -28,6 +29,10 @@ export class DeviceIngester extends Ingester<IngestionDevice, NewExternalDevice>
   }
 
   public async insertBatch(): Promise<void> {
-    await this.tx.insert(externalDevicesTable).values(this.collected).onConflictDoNothing();
+    const updateOnConflict = buildUpdateOnConflict(externalDevicesTable, ["importJobId", "createdAt"]);
+    await this.tx.insert(externalDevicesTable).values(this.collected).onConflictDoUpdate({
+      target: externalDevicesTable.externalId,
+      set: updateOnConflict,
+    });
   }
 }

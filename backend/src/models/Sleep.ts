@@ -36,8 +36,8 @@ export const sleepsTable = pgTable("sleeps", {
    * The id of the sleep record in the samsung health export
    * Useful to link the sleep record to the sleep stages
    */
-  externalId: text("samsung_sleep_id"),
-  timezone: text("timezone").notNull(),
+  externalId: text("external_id"),
+  timezone: text("timezone"),
   importJobId: integer("import_job_id")
     .references(() => importJobsTable.id)
     .notNull(),

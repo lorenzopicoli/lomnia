@@ -1,4 +1,4 @@
-import { type SQL, sql } from "drizzle-orm";
+import { buildUpdateOnConflict } from "../../helpers/buildUpdateOnConflict";
 import { ingestionSchemas } from "../../ingestionSchemas";
 import type IngestionDeviceStatus from "../../ingestionSchemas/IngestionDeviceStatus";
 import { deviceStatusTable, type NewDeviceStatus } from "../../models/DeviceStatus";
@@ -39,17 +39,7 @@ export class DeviceStatusIngester extends Ingester<IngestionDeviceStatus, NewDev
   }
 
   public async insertBatch(): Promise<void> {
-    // Setting it like this to force new properties to be considered for update on conflict.
-    const updateOnConflict: Omit<{ [key in keyof NewDeviceStatus]: SQL }, "importJobId"> = {
-      battery: sql`excluded.battery`,
-      batteryStatus: sql`excluded.battery_status`,
-      connectionStatus: sql`excluded.connection_status`,
-      wifiSSID: sql`excluded.wifi_ssid`,
-      recordedAt: sql`excluded.recorded_at`,
-
-      source: sql`excluded.source`,
-      timezone: sql`excluded.timezone`,
-    };
+    const updateOnConflict = buildUpdateOnConflict(deviceStatusTable, ["importJobId", "createdAt"]);
     await this.tx.insert(deviceStatusTable).values(this.collected).onConflictDoUpdate({
       target: deviceStatusTable.externalId,
       set: updateOnConflict,

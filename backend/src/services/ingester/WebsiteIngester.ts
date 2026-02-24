@@ -1,4 +1,4 @@
-import { type SQL, sql } from "drizzle-orm";
+import { buildUpdateOnConflict } from "../../helpers/buildUpdateOnConflict";
 import { ingestionSchemas } from "../../ingestionSchemas";
 import type IngestionWebsite from "../../ingestionSchemas/IngestionWebsite";
 import { type NewWebsite, websitesTable } from "../../models/Website";
@@ -38,19 +38,7 @@ export class WebsiteIngester extends Ingester<IngestionWebsite, NewWebsite> {
   }
 
   public async insertBatch(): Promise<void> {
-    // Force all mutable fields to be updated on conflict
-    const updateOnConflict: Omit<{ [key in keyof NewWebsite]: SQL }, "importJobId" | "createdAt"> = {
-      externalId: sql`excluded.external_id`,
-
-      source: sql`excluded.source`,
-      url: sql`excluded.url`,
-      host: sql`excluded.host`,
-      title: sql`excluded.title`,
-      description: sql`excluded.description`,
-      previewImageUrl: sql`excluded.preview_image_url`,
-      recordedAt: sql`excluded.recorded_at`,
-    };
-
+    const updateOnConflict = buildUpdateOnConflict(websitesTable, ["importJobId", "createdAt"]);
     await this.tx.insert(websitesTable).values(this.collected).onConflictDoUpdate({
       target: websitesTable.externalId,
       set: updateOnConflict,
