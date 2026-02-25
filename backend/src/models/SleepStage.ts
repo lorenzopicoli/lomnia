@@ -19,15 +19,19 @@ export const sleepStagesTable = pgTable("sleep_stages", {
   /**
    * Timezone of the sleep stage
    */
-  timezone: text("timezone").notNull(),
+  timezone: text("timezone"),
   /**
    * The stage of the sleep
    */
   stage: sleepStageEnum("stage").notNull(),
   /**
+   * Where the sleep stage record came from
+   */
+  source: text("source"),
+  /**
    * The sleep record that the sleep stage belongs to
    */
-  sleepId: integer("sleep_id")
+  sleepId: text("sleep_id")
     .references(() => sleepsTable.id)
     .notNull(),
   /**

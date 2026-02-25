@@ -1,66 +1,49 @@
-import { type SQL, sql } from "drizzle-orm";
+import { buildUpdateOnConflict } from "../../helpers/buildUpdateOnConflict";
 import { ingestionSchemas } from "../../ingestionSchemas";
-import type IngestionLocation from "../../ingestionSchemas/IngestionLocation";
-import { locationsTable, type NewLocation } from "../../models/Location";
+import type IngestionSleepStage from "../../ingestionSchemas/IngestionSleepStage";
+import { sleepStagesTable } from "../../models";
+import type { NewSleepStage } from "../../models/SleepStage";
 import { Logger } from "../Logger";
 import { Ingester } from "./BaseIngester";
 
-export class LocationIngester extends Ingester<IngestionLocation, NewLocation> {
-  protected logger = new Logger("LocationIngester");
+export class SleepStageIngester extends Ingester<IngestionSleepStage, NewSleepStage> {
+  protected logger = new Logger("SleepStageIngester");
 
   public isIngestable(raw: unknown): {
     isIngestable: boolean;
-    parsed?: IngestionLocation;
+    parsed?: IngestionSleepStage;
   } {
-    const location = ingestionSchemas.location.safeParse(raw);
+    const location = ingestionSchemas.sleepStage.safeParse(raw);
     return {
       isIngestable: location.success,
       parsed: location.data,
     };
   }
 
-  transform(raw: IngestionLocation): NewLocation {
-    const transformed: NewLocation = {
+  transform(raw: IngestionSleepStage): NewSleepStage {
+    const transformed: NewSleepStage = {
       externalId: raw.id,
 
-      gpsSource: raw.gpsSource,
-      source: raw.source,
-      accuracy: raw.accuracy,
-      verticalAccuracy: raw.verticalAccuracy,
-      velocity: raw.velocity,
-      altitude: raw.altitude,
-      location: raw.location,
-      trigger: raw.trigger,
-      topic: raw.topic,
-      timezone: raw.timezone,
+      startedAt: new Date(raw.startedAt),
+      endedAt: new Date(raw.endedAt),
+
+      timezone: null,
       importJobId: this.importJobId,
-      recordedAt: new Date(raw.recordedAt),
+      source: raw.source,
+      sleepId: raw.sleepId,
+      stage: raw.type,
+
       createdAt: new Date(),
+      updatedAt: null,
     };
 
     return transformed;
   }
 
   public async insertBatch(): Promise<void> {
-    // Force all mutable fields to be updated on conflict
-    const updateOnConflict: Omit<{ [key in keyof NewLocation]: SQL }, "importJobId" | "createdAt"> = {
-      externalId: sql`excluded.external_id`,
-
-      gpsSource: sql`excluded.gps_source`,
-      source: sql`excluded.source`,
-      accuracy: sql`excluded.accuracy`,
-      verticalAccuracy: sql`excluded.vertical_accuracy`,
-      velocity: sql`excluded.velocity`,
-      altitude: sql`excluded.altitude`,
-      location: sql`excluded.location`,
-      trigger: sql`excluded.trigger`,
-      topic: sql`excluded.topic`,
-      timezone: sql`excluded.timezone`,
-      recordedAt: sql`excluded.recorded_at`,
-    };
-
-    await this.tx.insert(locationsTable).values(this.collected).onConflictDoUpdate({
-      target: locationsTable.externalId,
+    const updateOnConflict = buildUpdateOnConflict(sleepStagesTable, ["importJobId", "createdAt"]);
+    await this.tx.insert(sleepStagesTable).values(this.collected).onConflictDoUpdate({
+      target: sleepStagesTable.externalId,
       set: updateOnConflict,
     });
   }
