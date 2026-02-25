@@ -1,5 +1,6 @@
-import { IconCheck, IconWorld } from "@tabler/icons-react";
+import { IconCheck, IconWorld, IconZzz } from "@tabler/icons-react";
 import { FirefoxLogo } from "../../logos/Firefox";
+import { GarminLogo } from "../../logos/GarminLogo";
 import { HaresLogo } from "../../logos/HaresLogo";
 import { OwntracksLogo } from "../../logos/OwntracksLogo";
 
@@ -27,5 +28,14 @@ export function habitActivitySourceToIcon(source: string | null) {
       return <HaresLogo height={20} width={20} />;
     default:
       return <IconCheck />;
+  }
+}
+
+export function sleepActivitySourceToIcon(source: string | null) {
+  switch (source) {
+    case "garmin":
+      return <GarminLogo height={20} width={20} />;
+    default:
+      return <IconZzz stroke={1.5} />;
   }
 }

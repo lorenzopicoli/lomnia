@@ -21,6 +21,7 @@ export default function ActivityTimelineContainer() {
     habit: true,
     location: true,
     website: true,
+    sleep: true,
   });
 
   const handleDateChange = (date: Date) => {
@@ -37,7 +38,7 @@ export default function ActivityTimelineContainer() {
   const { data, isPending } = useQuery(
     trpc.timelineRouter.listActivities.queryOptions({
       day: format(day, urlDayFormat),
-      filters: filters ?? { habit: true, location: true, website: true },
+      filters: filters ?? { habit: true, location: true, website: true, sleep: true },
     }),
   );
 

@@ -13,6 +13,7 @@ export const timelineRouter = t.router({
             habit: z.boolean(),
             location: z.boolean(),
             website: z.boolean(),
+            sleep: z.boolean(),
           })
           .optional(),
       }),

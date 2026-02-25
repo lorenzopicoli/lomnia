@@ -1,4 +1,4 @@
-import type { getTableColumns } from "drizzle-orm";
+import { type getTableColumns, relations } from "drizzle-orm";
 import { integer, pgEnum, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
 import { importJobsTable } from "./ImportJob";
 import { sleepsTable } from "./Sleep";
@@ -44,7 +44,12 @@ export const sleepStagesTable = pgTable("sleep_stages", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at"),
 });
-
+export const sleepStagesRelations = relations(sleepStagesTable, ({ one }) => ({
+  sleep: one(sleepsTable, {
+    fields: [sleepStagesTable.sleepId],
+    references: [sleepsTable.externalId],
+  }),
+}));
 export type SleepStage = typeof sleepStagesTable.$inferSelect;
 export type NewSleepStage = typeof sleepStagesTable.$inferInsert;
 export type SleepStageColumns = keyof ReturnType<typeof getTableColumns<typeof sleepStagesTable>>;

@@ -1,10 +1,11 @@
 import { DateTime } from "luxon";
-import type { Habit } from "../models";
+import type { Habit, Sleep, SleepStage } from "../models";
 import type { Website } from "../models/Website";
 import type { WebsiteVisit } from "../models/WebsiteVisit";
 import { BrowserHistoryService } from "./browserHistory";
 import { HabitsService } from "./habits/habits";
 import { LocationChartService, type LocationTimelineActivity } from "./locations/locations";
+import { SleepService } from "./sleep";
 
 type TimelineActivity =
   | {
@@ -19,6 +20,11 @@ type TimelineActivity =
     }
   | {
       date: string;
+      type: "sleep";
+      data: { sleep: Sleep; sleepStages: SleepStage[] };
+    }
+  | {
+      date: string;
       type: "websiteVisit";
       data: { website: Website; visit: WebsiteVisit };
     };
@@ -30,14 +36,17 @@ export namespace TimelineService {
       habit: boolean;
       location: boolean;
       website: boolean;
+      sleep: boolean;
     },
   ) {
-    const filters = filtersParam ?? { habit: true, location: true, website: true };
-    const [locations, habits, browserHistory] = await Promise.all([
+    const filters = filtersParam ?? { habit: true, location: true, website: true, sleep: true };
+    const [locations, habits, browserHistory, sleep] = await Promise.all([
       filters.location ? LocationChartService.getTimeline(day) : [],
       filters.habit ? HabitsService.list({ day, privateMode: false }) : [],
       filters.website ? BrowserHistoryService.list({ day }) : [],
+      filters.sleep ? SleepService.getDay({ day }) : [],
     ]);
+    console.log("SLEEEEP|", sleep);
 
     const locationsFormatted: TimelineActivity[] = locations.map((location) => {
       if (!location.startDate) {
@@ -83,7 +92,19 @@ export namespace TimelineService {
       };
     });
 
-    const sorted = [...locationsFormatted, ...habitsFormatted, ...browserHistoryFormatted].sort(
+    const sleepFormatted: TimelineActivity[] = sleep.map((s) => {
+      const iso = DateTime.fromJSDate(s.sleep.startedAt).toISO();
+      if (!iso) {
+        throw new Error("Location missing start date (couldn't parse iso)");
+      }
+      return {
+        type: "sleep",
+        date: iso,
+        data: s,
+      };
+    });
+
+    const sorted = [...locationsFormatted, ...habitsFormatted, ...browserHistoryFormatted, ...sleepFormatted].sort(
       (a, b) => DateTime.fromISO(a.date).toMillis() - DateTime.fromISO(b.date).toMillis(),
     );
 

@@ -1,6 +1,7 @@
-import type { getTableColumns } from "drizzle-orm";
+import { type getTableColumns, relations } from "drizzle-orm";
 import { boolean, integer, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
 import { importJobsTable } from "./ImportJob";
+import { sleepStagesTable } from "./SleepStage";
 
 export const sleepsTable = pgTable("sleeps", {
   id: serial("id").primaryKey(),
@@ -44,7 +45,9 @@ export const sleepsTable = pgTable("sleeps", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at"),
 });
-
+export const sleepsRelations = relations(sleepsTable, ({ many }) => ({
+  stages: many(sleepStagesTable),
+}));
 export type Sleep = typeof sleepsTable.$inferSelect;
 export type NewSleep = typeof sleepsTable.$inferInsert;
 export type SleepColumns = keyof ReturnType<typeof getTableColumns<typeof sleepsTable>>;

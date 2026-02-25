@@ -4,6 +4,7 @@ import type { RouterOutputs } from "../../../api/trpc";
 import { cardDarkBackgroundNoTransparency } from "../../../themes/mantineThemes";
 import { HabitActivityTimelineItem } from "./HabitActivityTimelineItem";
 import { LocationActivityTimelineItem } from "./LocationActivityTimelineItem";
+import { SleepActivityTimelineItem } from "./SleepActivityTimelineItem";
 import { WebsiteVisitActivityTimelineItem } from "./WebsiteVisitActivityTimelineItem";
 
 type Item = RouterOutputs["timelineRouter"]["listActivities"]["activities"][number];
@@ -33,8 +34,13 @@ export function ActivityTimelineItem(props: { activity: Item }) {
         <WebsiteVisitActivityTimelineItem activity={activity} onExpand={handleToggle} isExpanded={opened} />
       ) : activity.type === "habit" ? (
         <HabitActivityTimelineItem activity={activity} onExpand={handleToggle} isExpanded={opened} />
+      ) : activity.type === "sleep" ? (
+        <SleepActivityTimelineItem activity={activity} onExpand={handleToggle} isExpanded={opened} />
       ) : (
-        <Text size="sm">{JSON.stringify(activity)}</Text>
+        <Text size="sm">
+          Couldn't find activity item. Maybe you forgot to add it to ActivityTimelineItem.tsx?{" "}
+          {JSON.stringify(activity)}
+        </Text>
       )}
     </Card>
   );
