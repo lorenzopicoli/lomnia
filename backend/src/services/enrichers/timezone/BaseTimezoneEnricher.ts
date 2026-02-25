@@ -1,21 +1,18 @@
-import { asc, eq, isNull } from "drizzle-orm";
 import { DateTime } from "luxon";
 import config from "../../../config";
-import { db } from "../../../db/connection";
 import type { DBTransaction } from "../../../db/types";
-import { websitesVisitsTable } from "../../../models/WebsiteVisit";
 import { Logger } from "../../Logger";
 import { LocationService } from "../../locations/locations";
 import { BaseEnricher } from "../BaseEnricher";
 
-export class TimezoneEnricher extends BaseEnricher {
-  protected logger = new Logger("TimezoneEnricher");
+export class BaseTimezoneEnricher extends BaseEnricher {
+  protected logger = new Logger("BaseTimezoneEnricher");
 
-  private page = 0;
-  private pageSize = 300;
+  protected page = 0;
+  protected pageSize = 300;
   private maxImportSessionDuration = config.enrichers.timezone.maxImportSessionDuration;
 
-  private currentPage: { id: number; date: Date }[] = [];
+  protected currentPage: { id: number; date: Date }[] = [];
 
   public isEnabled(): boolean {
     return config.enrichers.timezone.enabled;
@@ -36,10 +33,7 @@ export class TimezoneEnricher extends BaseEnricher {
         lastDate = entry.date;
         const timezoneResult = await LocationService.getTimezoneForDate(tx, DateTime.fromJSDate(entry.date));
         if (timezoneResult) {
-          await tx
-            .update(websitesVisitsTable)
-            .set({ timezone: timezoneResult.timezone })
-            .where(eq(websitesVisitsTable.id, entry.id));
+          await this.updateItem(tx, entry.id, timezoneResult.timezone);
         }
       }
       this.page++;
@@ -66,15 +60,10 @@ export class TimezoneEnricher extends BaseEnricher {
     }
   }
 
-  public async getPage() {
-    const result = await db
-      .select({ id: websitesVisitsTable.id, date: websitesVisitsTable.recordedAt })
-      .from(websitesVisitsTable)
-      .where(isNull(websitesVisitsTable.timezone))
-      .orderBy(asc(websitesVisitsTable.recordedAt))
-      .offset(this.page * this.pageSize)
-      .limit(this.pageSize);
-    this.currentPage = result;
-    return result.length > 0;
+  public async updateItem(_tx: DBTransaction, _id: number, _timezone: string): Promise<void> {
+    throw new Error("Not implemented");
+  }
+  public async getPage(): Promise<boolean> {
+    throw new Error("Not implemented");
   }
 }
