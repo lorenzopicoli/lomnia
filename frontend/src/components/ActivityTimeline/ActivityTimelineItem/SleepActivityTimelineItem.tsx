@@ -62,16 +62,6 @@ export function SleepActivityTimelineItem(props: { activity: Item; onExpand: () 
               </Badge>
             )}
           </Group>
-
-          <Group gap={6}>
-            {stageOrder.map((stage) =>
-              stageTotals[stage] ? (
-                <Badge key={stage} size="xs" variant="dot">
-                  {stage}: {formatStageDuration(stageTotals[stage])}
-                </Badge>
-              ) : null,
-            )}
-          </Group>
         </Stack>
       )}
       renderExpanded={() => (

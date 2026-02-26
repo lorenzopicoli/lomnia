@@ -32,7 +32,7 @@ export const sleepStagesTable = pgTable("sleep_stages", {
    * The sleep record that the sleep stage belongs to
    */
   sleepId: text("sleep_id")
-    .references(() => sleepsTable.id)
+    .references(() => sleepsTable.externalId)
     .notNull(),
   /**
    * The external sleep id

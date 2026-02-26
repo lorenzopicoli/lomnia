@@ -46,7 +46,6 @@ export namespace TimelineService {
       filters.website ? BrowserHistoryService.list({ day }) : [],
       filters.sleep ? SleepService.getDay({ day }) : [],
     ]);
-    console.log("SLEEEEP|", sleep);
 
     const locationsFormatted: TimelineActivity[] = locations.map((location) => {
       if (!location.startDate) {
