@@ -1,7 +1,7 @@
 import { Card, Text } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import type { RouterOutputs } from "../../../api/trpc";
-import { cardDarkBackgroundNoTransparency } from "../../../themes/mantineThemes";
+import { useConfig } from "../../../contexts/ConfigContext";
 import { HabitActivityTimelineItem } from "./HabitActivityTimelineItem";
 import { LocationActivityTimelineItem } from "./LocationActivityTimelineItem";
 import { SleepActivityTimelineItem } from "./SleepActivityTimelineItem";
@@ -10,6 +10,8 @@ import { WebsiteVisitActivityTimelineItem } from "./WebsiteVisitActivityTimeline
 type Item = RouterOutputs["timelineRouter"]["listActivities"]["activities"][number];
 export function ActivityTimelineItem(props: { activity: Item }) {
   const { activity } = props;
+  const { theme } = useConfig();
+
   const [opened, { toggle }] = useDisclosure(false);
 
   const handleToggle = () => {
@@ -25,7 +27,7 @@ export function ActivityTimelineItem(props: { activity: Item }) {
       pos="relative"
       radius="lg"
       style={{
-        background: cardDarkBackgroundNoTransparency,
+        background: theme.colors.gray[9],
       }}
     >
       {activity.type === "location" ? (

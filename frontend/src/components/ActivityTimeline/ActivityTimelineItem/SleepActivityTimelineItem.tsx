@@ -1,7 +1,9 @@
 import { TZDate } from "@date-fns/tz";
-import { Badge, Group, Progress, Stack, Text } from "@mantine/core";
+import { Group, Progress, Stack, Text } from "@mantine/core";
 import { format, formatDistanceStrict, intervalToDuration } from "date-fns";
 import type { RouterOutputs } from "../../../api/trpc";
+import { useConfig } from "../../../contexts/ConfigContext";
+import { ActivityTimelineTextValue } from "./ActivityTimelineTextValue";
 import { sleepActivitySourceToIcon } from "./activitySourceToIcon";
 import { BaseActivityTimelineItem } from "./BaseActivityTimelineItem";
 
@@ -9,6 +11,7 @@ type Item = Extract<RouterOutputs["timelineRouter"]["listActivities"]["activitie
 
 export function SleepActivityTimelineItem(props: { activity: Item; onExpand: () => void; isExpanded: boolean }) {
   const { activity, onExpand, isExpanded } = props;
+  const { theme } = useConfig();
   const { sleep, sleepStages } = activity.data;
 
   const timezone = sleep.timezone ?? "UTC";
@@ -54,14 +57,8 @@ export function SleepActivityTimelineItem(props: { activity: Item; onExpand: () 
       }}
       renderCollapsed={() => (
         <Stack gap={4}>
-          <Group justify="space-between">
-            <Text size="sm">{duration}</Text>
-            {score != null && (
-              <Badge color="blue" variant="light">
-                Score {score}
-              </Badge>
-            )}
-          </Group>
+          <ActivityTimelineTextValue text="Duration" value={duration} />
+          <ActivityTimelineTextValue text="Score" value={String(score)} />
         </Stack>
       )}
       renderExpanded={() => (

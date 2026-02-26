@@ -50,7 +50,6 @@ export function ActivityTimelineList(props: Props) {
             left: "50%",
             transform: "translateX(-50%)",
             width: 2,
-            background: "var(--mantine-color-violet-5)",
             zIndex: 0,
             pointerEvents: "none",
           }}
