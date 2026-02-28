@@ -1,6 +1,6 @@
 import * as z from "zod";
 
-export const SleepStageType = z.enum(["awake", "rem", "light", "deep"]);
+export const SleepStageType = z.enum(["awake", "rem", "light", "deep", "unmeasurable"]);
 
 export const IngestionSleepStage = z
   .object({

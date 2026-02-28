@@ -2,6 +2,7 @@ import { eq, inArray, sql } from "drizzle-orm";
 import { db } from "../db/connection";
 import { sleepStagesTable } from "../models";
 import { sleepsTable } from "../models/Sleep";
+import type { ChartPeriodInput } from "../types/chartTypes";
 
 export namespace SleepService {
   export const getDay = async (params: { day: string }) => {
@@ -38,5 +39,42 @@ export namespace SleepService {
       sleep,
       sleepStages: stagesBySleep.get(sleep.externalId ?? "") ?? [],
     }));
+  };
+
+  export const startEndAndDuration = async (params: ChartPeriodInput) => {
+    const sleeps = await db
+      .select({
+        date: sleepsTable.startedAt,
+        duration: sql<number>`
+      ABS(EXTRACT(EPOCH FROM (${sleepsTable.endedAt} - ${sleepsTable.startedAt}))
+      / 3600)
+    `
+          .mapWith(Number)
+          .as("duration"),
+
+        startHour: sql<number>`
+      EXTRACT(HOUR FROM ${sleepsTable.startedAt} AT TIME ZONE ${sleepsTable.timezone})
+      + EXTRACT(MINUTE FROM ${sleepsTable.startedAt} AT TIME ZONE ${sleepsTable.timezone}) / 60.0
+    `
+          .mapWith(Number)
+          .as("start_hour"),
+
+        endHour: sql<number>`
+      EXTRACT(HOUR FROM ${sleepsTable.endedAt} AT TIME ZONE ${sleepsTable.timezone})
+      + EXTRACT(MINUTE FROM ${sleepsTable.endedAt} AT TIME ZONE ${sleepsTable.timezone}) / 60.0
+    `
+          .mapWith(Number)
+          .as("end_hour"),
+      })
+      .from(sleepsTable)
+      .where(
+        sql`${sleepsTable.startedAt} >= ${params.start.toISO()} AND ${sleepsTable.endedAt} <= ${params.end.toISO()}`,
+      );
+
+    if (sleeps.length === 0) {
+      return [];
+    }
+
+    return sleeps;
   };
 }

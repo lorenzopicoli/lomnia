@@ -4,7 +4,7 @@ import { externalDevicesTable } from "./ExternalDevice";
 import { importJobsTable } from "./ImportJob";
 import { sleepsTable } from "./Sleep";
 
-export const sleepStageEnumValues = ["awake", "light", "deep", "rem"] as const;
+export const sleepStageEnumValues = ["awake", "light", "deep", "rem", "unmeasurable"] as const;
 export const sleepStageEnum = pgEnum("sleep_stage", sleepStageEnumValues);
 
 export const sleepStagesTable = pgTable("sleep_stages", {

@@ -15,6 +15,7 @@ import { NumberHabitLine } from "../../containers/Charts/NumberHabitLine";
 import { PlacesVisitCountBar } from "../../containers/Charts/PlacesVisitCountBar";
 import { PrecipitationExperienced } from "../../containers/Charts/PrecipitationExperienced";
 import { RainHeatmap } from "../../containers/Charts/RainHeatmap";
+import { SleepTimeAndDuration } from "../../containers/Charts/SleepTimeAndDuration";
 import { TemperatureExperienced } from "../../containers/Charts/TemperatureExperienced";
 import { TextHabitBar } from "../../containers/Charts/TextHabitBar";
 import { TextHabitCoocurrencesChord } from "../../containers/Charts/TextHabitCoocurrencesChord";
@@ -29,10 +30,7 @@ interface ChartDisplayerProps extends AllChartsProps {
 }
 
 export function ChartDisplayer(props: ChartDisplayerProps) {
-  if (!chartDisplayerOptions[props.chartId]) {
-    return <ChartPlaceholder noBg text={`Couldn't find the chart for "${props.chartId}"`} />;
-  }
-  const { componentHandlesTitle } = chartDisplayerOptions[props.chartId];
+  const { componentHandlesTitle } = chartDisplayerOptions[props.chartId] ?? { componentHandlesTitle: false };
   return (
     <Card
       bg={cardDarkBackground}
@@ -129,6 +127,9 @@ function ChartSwitcher(props: ChartDisplayerProps) {
     }
     case ChartId.WebsitesVisitsByTimeOfDay: {
       return <WebsitesVisitsByTimeOfDayBar {...props} />;
+    }
+    case ChartId.SleepStartEndDuration: {
+      return <SleepTimeAndDuration {...props} />;
     }
     case ChartId.TextHabitBar: {
       const habitKey = props.habitKey;

@@ -39,6 +39,7 @@ export enum ChartId {
   WebsitesVisitsCalendarHeatmap = "websitesVisitsCalendarHeatmap",
   NavigationFlowChord = "navigationFlowChord",
   WebsitesVisitsByTimeOfDay = "websitesVisitsByTimeOfDay",
+  SleepStartEndDuration = "sleepStartEndDuration",
 }
 
 export const chartParamByChartId: Record<ChartId, ChartParams[]> = {
@@ -63,6 +64,7 @@ export const chartParamByChartId: Record<ChartId, ChartParams[]> = {
   [ChartId.WebsitesVisitsCalendarHeatmap]: [],
   [ChartId.NavigationFlowChord]: [],
   [ChartId.WebsitesVisitsByTimeOfDay]: [],
+  [ChartId.SleepStartEndDuration]: [],
 };
 
 export enum ChartSource {
@@ -71,6 +73,7 @@ export enum ChartSource {
   Habit = "habit",
   HeartRate = "heartRate",
   Location = "location",
+  Sleep = "sleep",
   Meta = "meta",
 }
 
@@ -108,6 +111,11 @@ export function chartSourceTitleAndDescription(source: ChartSource): {
       return {
         title: "Heart Rate",
         description: "Heart rate data collected",
+      };
+    case ChartSource.Sleep:
+      return {
+        title: "Sleep",
+        description: "Sleep data",
       };
   }
 }
@@ -253,6 +261,13 @@ export const availableCharts = [
     sources: [ChartSource.WebBrowser],
     elements: [ChartElement.Chord],
   },
+  {
+    id: ChartId.SleepStartEndDuration,
+    title: "Sleep hours and duration",
+    description: "Explore how your sleep patterns change over time",
+    sources: [ChartSource.Sleep],
+    elements: [ChartElement.Line],
+  },
 ];
 
 /**
@@ -281,71 +296,12 @@ export const chartPreviewSize: Record<ChartId, { height: string | number; width:
   [ChartId.MostVisitedHostsPie]: { height: "100%", width: "100%" },
   [ChartId.NavigationFlowChord]: { height: "100%", width: "100%" },
   [ChartId.WebsitesVisitsByTimeOfDay]: { height: "100%", width: "100%" },
+  [ChartId.SleepStartEndDuration]: { height: "100%", width: "100%" },
 };
 
-export const chartDisplayerOptions = {
-  [ChartId.HeartRateMinMaxAvg]: {
-    componentHandlesTitle: false,
-  },
-  [ChartId.PrecipitationExperienced]: {
-    componentHandlesTitle: false,
-  },
-  [ChartId.TemperatureExperienced]: {
-    componentHandlesTitle: false,
-  },
-  [ChartId.RainHeatmap]: {
-    componentHandlesTitle: false,
-  },
-  [ChartId.NumberHabitCalendarHeatmap]: {
-    componentHandlesTitle: false,
-  },
+export const chartDisplayerOptions: Record<string, { componentHandlesTitle: boolean } | undefined> = {
   [ChartId.Count]: {
     componentHandlesTitle: true,
-  },
-  [ChartId.TextHabitCoocurrencesChord]: {
-    componentHandlesTitle: false,
-  },
-  [ChartId.CountriesVisitedMap]: {
-    componentHandlesTitle: false,
-  },
-  [ChartId.CountriesVisitedBar]: {
-    componentHandlesTitle: false,
-  },
-  [ChartId.CountriesVisitedPie]: {
-    componentHandlesTitle: false,
-  },
-  [ChartId.CitiesVisitedBar]: {
-    componentHandlesTitle: false,
-  },
-  [ChartId.CitiesVisitedPie]: {
-    componentHandlesTitle: false,
-  },
-  [ChartId.PlacesVisitCountBar]: {
-    componentHandlesTitle: false,
-  },
-  [ChartId.TextHabitBar]: {
-    componentHandlesTitle: false,
-  },
-  [ChartId.NumberHabitLine]: {
-    componentHandlesTitle: false,
-  },
-  [ChartId.MostVisitedWebPagesBar]: {
-    componentHandlesTitle: false,
-  },
-  [ChartId.MostVisitedWebPagesPie]: {
-    componentHandlesTitle: false,
-  },
-  [ChartId.WebsitesVisitsCalendarHeatmap]: {
-    componentHandlesTitle: false,
-  },
-  [ChartId.MostVisitedHostsPie]: {
-    componentHandlesTitle: false,
-  },
-  [ChartId.NavigationFlowChord]: {
-    componentHandlesTitle: false,
-  },
-  [ChartId.WebsitesVisitsByTimeOfDay]: {
-    componentHandlesTitle: false,
   },
 } as const;
 
