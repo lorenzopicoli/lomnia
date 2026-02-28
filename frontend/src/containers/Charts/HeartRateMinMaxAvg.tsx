@@ -25,7 +25,7 @@ export function HeartRateMinMaxAvg(props: ChartProps) {
       tooltip: {
         trigger: "axis",
         formatter: (params: any[]) => {
-          const t = new Date(params[0].value[0]).toLocaleString();
+          const t = new Date(params[0].value[0]).toDateString();
 
           const min = params.find((p) => p.seriesName === "Min")?.value[1];
           const max = params.find((p) => p.seriesName === "Max")?.value[1];

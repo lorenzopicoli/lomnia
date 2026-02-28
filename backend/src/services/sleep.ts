@@ -1,4 +1,4 @@
-import { eq, inArray, sql } from "drizzle-orm";
+import { asc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../db/connection";
 import { sleepStagesTable } from "../models";
 import { sleepsTable } from "../models/Sleep";
@@ -69,7 +69,8 @@ export namespace SleepService {
       .from(sleepsTable)
       .where(
         sql`${sleepsTable.startedAt} >= ${params.start.toISO()} AND ${sleepsTable.endedAt} <= ${params.end.toISO()}`,
-      );
+      )
+      .orderBy(asc(sleepsTable.startedAt));
 
     if (sleeps.length === 0) {
       return [];
