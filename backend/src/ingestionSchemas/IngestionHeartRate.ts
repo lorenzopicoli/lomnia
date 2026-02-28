@@ -29,7 +29,7 @@ export const IngestionHeartRate = z
       description: "The date at which the hr was recorded, in UTC time",
     }),
 
-    heartRarte: z.number().meta({
+    heartRate: z.number().meta({
       description: "The heart rate",
     }),
 
