@@ -8,7 +8,7 @@ import { getAggregatedYColumn } from "./common/getAggregatedYColumn";
 export namespace HeartRateChartService {
   export const minMaxAvg = async (params: ChartPeriodInput) => {
     const { start, end, aggregationPeriod } = params;
-    const aggregatedDate = getAggregatedXColumn(heartRateTable.startTime, aggregationPeriod);
+    const aggregatedDate = getAggregatedXColumn(heartRateTable.recordedAt, aggregationPeriod);
     const data = db
       .select({
         max: getAggregatedYColumn(heartRateTable.heartRate, "max").mapWith(Number),
@@ -19,8 +19,8 @@ export namespace HeartRateChartService {
       .from(heartRateTable)
       .where(
         sql`
-      ${heartRateTable.startTime} >= (${start.toISO()} AT TIME ZONE ${heartRateTable.timezone})::date 
-      AND ${heartRateTable.startTime} <= (${end.toISO()} AT TIME ZONE ${heartRateTable.timezone})::date`,
+      ${heartRateTable.recordedAt} >= ${start.toISO()}
+      AND ${heartRateTable.recordedAt} <= ${end.toISO()}`,
       )
       .groupBy(aggregatedDate)
       .orderBy(asc(aggregatedDate));
