@@ -19,6 +19,11 @@ export const externalDevicesTable = pgTable("external_devices", {
   source: text("source").notNull(),
 
   /**
+   * Name for the external device
+   */
+  name: text("name"),
+
+  /**
    * Canonical device this external device maps to
    */
   deviceId: integer("device_id").references(() => devicesTable.id),

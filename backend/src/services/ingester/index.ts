@@ -12,6 +12,7 @@ import type { Ingester } from "./BaseIngester";
 import { DeviceIngester } from "./DeviceIngester";
 import { DeviceStatusIngester } from "./DeviceStatusIngester";
 import { HabitIngester } from "./HabitIngester";
+import { HeartRateIngester } from "./HeartRateIngester";
 import { LocationIngester } from "./LocationIngester";
 import { SleepIngester } from "./SleepIngester";
 import { SleepStageIngester } from "./SleepStageIngester";
@@ -27,6 +28,7 @@ const ingestersClasses = [
   WebsiteVisitIngester,
   SleepIngester,
   SleepStageIngester,
+  HeartRateIngester,
 ];
 
 const logger = new Logger("IngesterIndex");

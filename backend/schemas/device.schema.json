@@ -15,6 +15,17 @@
       "type": "string",
       "description": "The application source used to get this device"
     },
+    "name": {
+      "anyOf": [
+        {
+          "type": "string",
+          "description": "The external name of the device"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "version": {
       "type": "string",
       "description": "The version of the schema used"
@@ -24,6 +35,7 @@
     "entityType",
     "id",
     "source",
+    "name",
     "version"
   ],
   "additionalProperties": false,

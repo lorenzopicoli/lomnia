@@ -14,6 +14,13 @@ export const IngestionDevice = z
       description: "The application source used to get this device",
     }),
 
+    name: z
+      .string()
+      .meta({
+        description: "The external name of the device",
+      })
+      .nullable(),
+
     version: z.string().meta({
       description: "The version of the schema used",
     }),

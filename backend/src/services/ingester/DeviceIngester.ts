@@ -20,6 +20,7 @@ export class DeviceIngester extends Ingester<IngestionDevice, NewExternalDevice>
     const transformed: NewExternalDevice = {
       externalId: raw.id,
 
+      name: raw.name,
       source: raw.source,
       importJobId: this.importJobId,
       createdAt: new Date(),
