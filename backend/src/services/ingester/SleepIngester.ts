@@ -34,6 +34,8 @@ export class SleepIngester extends Ingester<IngestionSleep, NewSleep> {
       automaticScore: raw.automaticScore,
       userScore: raw.userScore,
 
+      externalDeviceId: raw.deviceId,
+
       createdAt: new Date(),
       updatedAt: null,
     };

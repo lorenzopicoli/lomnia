@@ -32,6 +32,7 @@ export class SleepStageIngester extends Ingester<IngestionSleepStage, NewSleepSt
       source: raw.source,
       sleepId: raw.sleepId,
       stage: raw.type,
+      externalDeviceId: raw.deviceId,
 
       createdAt: new Date(),
       updatedAt: null,

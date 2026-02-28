@@ -1,23 +1,34 @@
-import { integer, pgTable, serial, text, timestamp, uuid } from "drizzle-orm/pg-core";
-import { importJobsTable } from "./ImportJob";
 import type { getTableColumns } from "drizzle-orm";
+import { integer, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { externalDevicesTable } from "./ExternalDevice";
+import { importJobsTable } from "./ImportJob";
 
 export const heartRateTable = pgTable("heart_rate_readings", {
   id: serial("id").primaryKey(),
-  startTime: timestamp("start_time").notNull(),
-  endTime: timestamp("end_time").notNull(),
+  startedAt: timestamp("started_at"),
+  endedAt: timestamp("ended_at"),
+  recordedAt: timestamp("recorded_at").notNull(),
   heartRate: integer("heart_rate").notNull(),
-  heartRateMax: integer("heart_rate_max").notNull(),
-  heartRateMin: integer("heart_rate_min").notNull(),
-  timezone: text("timezone").notNull(),
-  comment: text("comment"),
-  binUuid: uuid("bin_uuid"),
-
-  dataExportId: text("data_export_id").notNull(),
+  heartRateMax: integer("heart_rate_max"),
+  heartRateMin: integer("heart_rate_min"),
+  timezone: text("timezone"),
+  /**
+   * Where the record came from
+   */
+  source: text("source"),
 
   importJobId: integer("import_job_id")
     .references(() => importJobsTable.id)
     .notNull(),
+
+  /**
+   * The id of the sleep record for the external provider
+   */
+  externalId: text("external_id"),
+  /**
+   * Canonical device this status maps to
+   */
+  externalDeviceId: text("external_device_id").references(() => externalDevicesTable.externalId),
 
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at"),

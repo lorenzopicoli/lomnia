@@ -1,5 +1,6 @@
 import { type getTableColumns, relations } from "drizzle-orm";
 import { boolean, integer, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { externalDevicesTable } from "./ExternalDevice";
 import { importJobsTable } from "./ImportJob";
 import { sleepStagesTable } from "./SleepStage";
 
@@ -34,10 +35,13 @@ export const sleepsTable = pgTable("sleeps", {
    */
   comment: text("comment"),
   /**
-   * The id of the sleep record in the samsung health export
-   * Useful to link the sleep record to the sleep stages
+   * The id of the sleep record for the external provider
    */
   externalId: text("external_id"),
+  /**
+   * Canonical device this status maps to
+   */
+  externalDeviceId: text("external_device_id").references(() => externalDevicesTable.externalId),
   timezone: text("timezone"),
   importJobId: integer("import_job_id")
     .references(() => importJobsTable.id)

@@ -1,5 +1,6 @@
 import { type getTableColumns, relations } from "drizzle-orm";
 import { integer, pgEnum, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { externalDevicesTable } from "./ExternalDevice";
 import { importJobsTable } from "./ImportJob";
 import { sleepsTable } from "./Sleep";
 
@@ -34,6 +35,11 @@ export const sleepStagesTable = pgTable("sleep_stages", {
   sleepId: text("sleep_id")
     .references(() => sleepsTable.externalId)
     .notNull(),
+
+  /**
+   * Canonical device this status maps to
+   */
+  externalDeviceId: text("external_device_id").references(() => externalDevicesTable.externalId),
   /**
    * The external sleep id
    */

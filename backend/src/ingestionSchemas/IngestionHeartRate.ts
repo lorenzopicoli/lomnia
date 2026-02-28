@@ -29,9 +29,37 @@ export const IngestionHeartRate = z
       description: "The date at which the hr was recorded, in UTC time",
     }),
 
+    startedAt: z.iso
+      .datetime()
+      .meta({
+        description: "The date at which the hr was recording started, in UTC time",
+      })
+      .optional(),
+
+    endedAt: z.iso
+      .datetime()
+      .meta({
+        description: "The date at which the hr was recording ended, in UTC time",
+      })
+      .optional(),
+
     heartRate: z.number().meta({
       description: "The heart rate",
     }),
+
+    heartRateMin: z
+      .number()
+      .meta({
+        description: "The min heart rate for the period",
+      })
+      .optional(),
+
+    heartRateMax: z
+      .number()
+      .meta({
+        description: "The max heart rate for the period",
+      })
+      .optional(),
 
     timezone: z
       .string()
