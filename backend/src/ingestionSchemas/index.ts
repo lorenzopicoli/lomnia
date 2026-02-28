@@ -1,6 +1,7 @@
 import device from "./IngestionDevice";
 import deviceStatus from "./IngestionDeviceStatus";
 import habit from "./IngestionHabit";
+import heartRate from "./IngestionHeartRate";
 import location from "./IngestionLocation";
 import sleep from "./IngestionSleep";
 import sleepStage from "./IngestionSleepStage";
@@ -16,4 +17,5 @@ export const ingestionSchemas = {
   websiteVisit,
   sleep,
   sleepStage,
+  heartRate,
 };
