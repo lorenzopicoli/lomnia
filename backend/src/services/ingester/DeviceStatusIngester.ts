@@ -25,6 +25,7 @@ export class DeviceStatusIngester extends Ingester<IngestionDeviceStatus, NewDev
 
       battery: raw.battery,
       batteryStatus: raw.batteryStatus,
+      temperature: raw.temperature,
       connectionStatus: raw.connectionStatus,
       wifiSSID: raw.wifiSSID,
 

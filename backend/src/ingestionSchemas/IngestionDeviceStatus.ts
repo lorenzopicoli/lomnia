@@ -29,6 +29,13 @@ export const IngestionDeviceStatus = z
       })
       .optional(),
 
+    temperature: z
+      .number()
+      .meta({
+        description: "The device's temperature",
+      })
+      .optional(),
+
     batteryStatus: z
       .enum(["unknown", "unplugged", "charging", "full"])
       .meta({

@@ -62,6 +62,11 @@ export const deviceStatusTable = pgTable("device_statuses", {
   recordedAt: timestamp("recorded_at").notNull(),
 
   /**
+   * Temperature in celsius
+   */
+  temperature: integer("temperatuer"),
+
+  /**
    * Import job linkage
    */
   importJobId: integer("import_job_id")
