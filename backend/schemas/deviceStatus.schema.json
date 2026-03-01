@@ -87,7 +87,6 @@
     "entityType",
     "deviceId",
     "source",
-    "timezone",
     "recordedAt",
     "version"
   ],

@@ -57,9 +57,12 @@ export const IngestionDeviceStatus = z
       })
       .optional(),
 
-    timezone: z.string().meta({
-      description: "The user timezone at the time of device status recording",
-    }),
+    timezone: z
+      .string()
+      .meta({
+        description: "The user timezone at the time of device status recording",
+      })
+      .optional(),
 
     wifiSSID: z
       .string()
