@@ -16,15 +16,8 @@
       "description": "The application source used to get this device"
     },
     "name": {
-      "anyOf": [
-        {
-          "type": "string",
-          "description": "The external name of the device"
-        },
-        {
-          "type": "null"
-        }
-      ]
+      "type": "string",
+      "description": "The external name of the device"
     },
     "version": {
       "type": "string",
@@ -35,7 +28,6 @@
     "entityType",
     "id",
     "source",
-    "name",
     "version"
   ],
   "additionalProperties": false,

@@ -19,7 +19,7 @@ export const IngestionDevice = z
       .meta({
         description: "The external name of the device",
       })
-      .nullable(),
+      .optional(),
 
     version: z.string().meta({
       description: "The version of the schema used",
