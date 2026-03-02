@@ -38,12 +38,13 @@
         "strength_training",
         "volleyball",
         "cycling",
-        "yoga"
+        "yoga",
+        "generic"
       ],
       "description": "The exercise that was done"
     },
     "name": {
-      "type": "number",
+      "type": "string",
       "description": "The name given to this exercise"
     },
     "distance": {

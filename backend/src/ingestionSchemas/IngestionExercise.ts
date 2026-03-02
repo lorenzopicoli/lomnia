@@ -1,6 +1,6 @@
 import * as z from "zod";
 
-export const ExerciseTypeEnum = z.enum(["running", "strength_training", "volleyball", "cycling", "yoga"]);
+export const ExerciseTypeEnum = z.enum(["running", "strength_training", "volleyball", "cycling", "yoga", "generic"]);
 
 export const IngestionExercise = z
   .object({
@@ -32,7 +32,7 @@ export const IngestionExercise = z
       description: "The exercise that was done",
     }),
 
-    name: z.number().meta({
+    name: z.string().meta({
       description: "The name given to this exercise",
     }),
 
