@@ -18,6 +18,14 @@ export const IngestionExerciseLap = z
       description: "The application source used to get this",
     }),
 
+    startedAt: z.iso.datetime().meta({
+      description: "The date at which the lap started, in UTC time",
+    }),
+
+    endedAt: z.iso.datetime().meta({
+      description: "The date at which the lap ended, in UTC time",
+    }),
+
     distance: z
       .number()
       .meta({
@@ -46,8 +54,8 @@ export const IngestionExerciseLap = z
       })
       .optional(),
 
-    recordedAt: z.iso.datetime().meta({
-      description: "The date at which the sleep started, in UTC time",
+    exerciseId: z.string().meta({
+      description: "The exercise this lap belongs to",
     }),
 
     timezone: z

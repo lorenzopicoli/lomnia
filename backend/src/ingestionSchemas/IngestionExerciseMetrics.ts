@@ -60,6 +60,10 @@ export const IngestionExerciseMetrics = z
       })
       .optional(),
 
+    exerciseId: z.string().meta({
+      description: "The exercise this metric belongs to",
+    }),
+
     recordedAt: z.iso.datetime().meta({
       description: "The date at which the sleep started, in UTC time",
     }),

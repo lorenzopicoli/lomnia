@@ -1,4 +1,4 @@
-import { integer, pgEnum, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { integer, pgEnum, pgTable, real, serial, text, timestamp } from "drizzle-orm/pg-core";
 import { externalDevicesTable } from "./ExternalDevice";
 import { importJobsTable } from "./ImportJob";
 
@@ -49,7 +49,7 @@ export const deviceStatusTable = pgTable("device_statuses", {
   /**
    * The user timezone at the time of recording
    */
-  timezone: text("timezone").notNull(),
+  timezone: text("timezone"),
 
   /**
    * WiFi network name if connected
@@ -64,7 +64,7 @@ export const deviceStatusTable = pgTable("device_statuses", {
   /**
    * Temperature in celsius
    */
-  temperature: integer("temperatuer"),
+  temperature: real("temperature"),
 
   /**
    * Import job linkage
