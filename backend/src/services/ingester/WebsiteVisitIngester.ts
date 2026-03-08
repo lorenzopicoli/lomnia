@@ -2,6 +2,7 @@ import { buildUpdateOnConflict } from "../../helpers/buildUpdateOnConflict";
 import { ingestionSchemas } from "../../ingestionSchemas";
 import type IngestionWebsiteVisit from "../../ingestionSchemas/IngestionWebsiteVisit";
 import { type NewWebsiteVisit, websitesVisitsTable } from "../../models/WebsiteVisit";
+import type { Exhaustive } from "../../types/exhaustive";
 import { Logger } from "../Logger";
 import { Ingester } from "./BaseIngester";
 
@@ -18,18 +19,36 @@ export class WebsiteVisitIngester extends Ingester<IngestionWebsiteVisit, NewWeb
       parsed: websiteVisit.data,
     };
   }
-
   transform(raw: IngestionWebsiteVisit): NewWebsiteVisit {
-    const transformed: NewWebsiteVisit = {
-      externalId: raw.id,
+    const {
+      id,
+      source,
+      fileDownloaded,
+      type,
+      websiteId,
+      fromVisitId,
+      recordedAt,
+      // Unused
+      entityType: _type,
+      version: _version,
+      ...rest
+    } = raw;
 
-      source: raw.source,
-      fileDownloaded: raw.fileDownloaded,
-      type: raw.type,
-      websiteExternalId: raw.websiteId,
-      fromVisitExternalId: raw.fromVisitId,
+    // ensure nothing left unmapped
+    const _exhaustive: Exhaustive<typeof rest> = rest;
+    void _exhaustive;
+
+    const transformed: NewWebsiteVisit = {
+      externalId: id,
+
+      source,
+      fileDownloaded,
+      type,
+      websiteExternalId: websiteId,
+      fromVisitExternalId: fromVisitId,
+
       importJobId: this.importJobId,
-      recordedAt: new Date(raw.recordedAt),
+      recordedAt: new Date(recordedAt),
       createdAt: new Date(),
     };
 

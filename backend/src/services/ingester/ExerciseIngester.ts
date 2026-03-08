@@ -2,6 +2,7 @@ import { buildUpdateOnConflict } from "../../helpers/buildUpdateOnConflict";
 import { ingestionSchemas } from "../../ingestionSchemas";
 import type IngestionExercise from "../../ingestionSchemas/IngestionExercise";
 import { exercisesTable, type NewExercise } from "../../models/Exercise";
+import type { Exhaustive } from "../../types/exhaustive";
 import { Logger } from "../Logger";
 import { Ingester } from "./BaseIngester";
 
@@ -20,26 +21,50 @@ export class ExerciseIngester extends Ingester<IngestionExercise, NewExercise> {
   }
 
   transform(raw: IngestionExercise): NewExercise {
+    const {
+      id,
+      startedAt,
+      endedAt,
+      source,
+      exerciseType,
+      name,
+      distance,
+      avgPace,
+      avgHeartRate,
+      avgCadence,
+      deviceId,
+      timezone,
+      selfEvaluation,
+      // Unused
+      entityType: _type,
+      version: _version,
+      ...rest
+    } = raw;
+
+    // ensure nothing left unmapped
+    const _exhaustive: Exhaustive<typeof rest> = rest;
+    void _exhaustive;
+
     const transformed: NewExercise = {
-      externalId: raw.id,
+      externalId: id,
 
-      startedAt: new Date(raw.startedAt),
-      endedAt: new Date(raw.endedAt),
+      startedAt: new Date(startedAt),
+      endedAt: new Date(endedAt),
 
-      source: raw.source,
-      exerciseType: raw.exerciseType,
-      name: raw.name,
-      distance: raw.distance,
-      avgPace: raw.avgPace,
-      avgHeartRate: raw.avgHeartRate,
-      avgCadence: raw.avgCadence,
+      source,
+      exerciseType,
+      name,
+      distance,
+      avgPace,
+      avgHeartRate,
+      avgCadence,
+      selfEvaluation,
 
-      timezone: null,
-      externalDeviceId: raw.deviceId,
+      timezone,
+      externalDeviceId: deviceId,
 
       importJobId: this.importJobId,
       createdAt: new Date(),
-      updatedAt: null,
     };
 
     return transformed;

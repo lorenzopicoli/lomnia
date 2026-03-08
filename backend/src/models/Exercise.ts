@@ -48,6 +48,10 @@ export const exercisesTable = pgTable("exercises", {
    */
   avgHeartRate: real("avg_heart_rate"),
   /**
+   * Self evaluation. How hard this exercise was, from 0 to 10
+   */
+  selfEvaluation: integer("self_evaluation"),
+  /**
    * The id of the sleep record for the external provider
    */
   externalId: text("external_id").notNull(),

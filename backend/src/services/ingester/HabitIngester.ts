@@ -2,6 +2,7 @@ import { buildUpdateOnConflict } from "../../helpers/buildUpdateOnConflict";
 import { ingestionSchemas } from "../../ingestionSchemas";
 import type { IngestionHabit } from "../../ingestionSchemas/IngestionHabit";
 import { habitsTable, type NewHabit } from "../../models";
+import type { Exhaustive } from "../../types/exhaustive";
 import { Logger } from "../Logger";
 import { Ingester } from "./BaseIngester";
 
@@ -18,24 +19,46 @@ export class HabitIngester extends Ingester<IngestionHabit, NewHabit> {
       parsed: habit.data,
     };
   }
-
   transform(raw: IngestionHabit): NewHabit {
+    const {
+      id,
+      key,
+      value,
+      date,
+      source,
+      timezone,
+      comments,
+      valuePrefix,
+      valueSuffix,
+      recordedAt,
+      periodOfDay,
+      isFullDay,
+      // Unused
+      entityType: _type,
+      version: _version,
+      ...rest
+    } = raw;
+
+    // ensure nothing left unmapped
+    const _exhaustive: Exhaustive<typeof rest> = rest;
+    void _exhaustive;
+
     const transformed: NewHabit = {
-      externalId: raw.id,
+      externalId: id,
 
-      key: raw.key,
-      value: raw.value,
-      date: new Date(raw.date),
+      key,
+      value,
+      date: new Date(date),
 
-      source: raw.source,
-      timezone: raw.timezone,
-      comments: raw.comments,
-      valuePrefix: raw.valuePrefix,
-      valueSuffix: raw.valueSuffix,
-      recordedAt: new Date(raw.recordedAt),
+      source,
+      timezone,
+      comments,
+      valuePrefix,
+      valueSuffix,
+      recordedAt: new Date(recordedAt),
 
-      periodOfDay: raw.periodOfDay,
-      isFullDay: raw.isFullDay,
+      periodOfDay,
+      isFullDay,
 
       importJobId: this.importJobId,
       createdAt: new Date(),

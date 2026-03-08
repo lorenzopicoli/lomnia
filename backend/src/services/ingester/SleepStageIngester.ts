@@ -3,6 +3,7 @@ import { ingestionSchemas } from "../../ingestionSchemas";
 import type IngestionSleepStage from "../../ingestionSchemas/IngestionSleepStage";
 import { sleepStagesTable } from "../../models";
 import type { NewSleepStage } from "../../models/SleepStage";
+import type { Exhaustive } from "../../types/exhaustive";
 import { Logger } from "../Logger";
 import { Ingester } from "./BaseIngester";
 
@@ -19,20 +20,38 @@ export class SleepStageIngester extends Ingester<IngestionSleepStage, NewSleepSt
       parsed: location.data,
     };
   }
-
   transform(raw: IngestionSleepStage): NewSleepStage {
+    const {
+      id,
+      startedAt,
+      endedAt,
+      source,
+      sleepId,
+      type,
+      deviceId,
+      timezone,
+      // Unused
+      entityType: _type,
+      version: _version,
+      ...rest
+    } = raw;
+
+    // ensure nothing left unmapped
+    const _exhaustive: Exhaustive<typeof rest> = rest;
+    void _exhaustive;
+
     const transformed: NewSleepStage = {
-      externalId: raw.id,
+      externalId: id,
 
-      startedAt: new Date(raw.startedAt),
-      endedAt: new Date(raw.endedAt),
+      startedAt: new Date(startedAt),
+      endedAt: new Date(endedAt),
 
-      timezone: null,
+      timezone,
       importJobId: this.importJobId,
-      source: raw.source,
-      sleepId: raw.sleepId,
-      stage: raw.type,
-      externalDeviceId: raw.deviceId,
+      source,
+      sleepId,
+      stage: type,
+      externalDeviceId: deviceId,
 
       createdAt: new Date(),
       updatedAt: null,

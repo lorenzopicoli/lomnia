@@ -2,6 +2,7 @@ import { buildUpdateOnConflict } from "../../helpers/buildUpdateOnConflict";
 import { ingestionSchemas } from "../../ingestionSchemas";
 import type IngestionHeartRate from "../../ingestionSchemas/IngestionHeartRate";
 import { heartRateTable, type NewHeartRate } from "../../models/HeartRate";
+import type { Exhaustive } from "../../types/exhaustive";
 import { Logger } from "../Logger";
 import { Ingester } from "./BaseIngester";
 
@@ -20,22 +21,43 @@ export class HeartRateIngester extends Ingester<IngestionHeartRate, NewHeartRate
   }
 
   transform(raw: IngestionHeartRate): NewHeartRate {
+    const {
+      id,
+      startedAt,
+      endedAt,
+      recordedAt,
+      source,
+      deviceId,
+      heartRate,
+      heartRateMax,
+      heartRateMin,
+      timezone,
+      // Unused
+      entityType: _type,
+      version: _version,
+      ...rest
+    } = raw;
+
+    // ensure nothing left unmapped
+    const _exhaustive: Exhaustive<typeof rest> = rest;
+    void _exhaustive;
+
     const transformed: NewHeartRate = {
-      externalId: raw.id,
+      externalId: id,
 
-      startedAt: new Date(raw.startedAt ?? raw.recordedAt),
-      endedAt: new Date(raw.endedAt ?? raw.recordedAt),
-      recordedAt: new Date(raw.recordedAt),
+      startedAt: new Date(startedAt ?? recordedAt),
+      endedAt: new Date(endedAt ?? recordedAt),
+      recordedAt: new Date(recordedAt),
 
-      timezone: null,
+      timezone,
       importJobId: this.importJobId,
-      source: raw.source,
+      source,
 
-      externalDeviceId: raw.deviceId,
+      externalDeviceId: deviceId,
 
-      heartRate: raw.heartRate,
-      heartRateMax: raw.heartRateMax,
-      heartRateMin: raw.heartRateMin,
+      heartRate,
+      heartRateMax,
+      heartRateMin,
 
       createdAt: new Date(),
       updatedAt: null,

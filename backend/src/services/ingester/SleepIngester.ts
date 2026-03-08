@@ -2,6 +2,7 @@ import { buildUpdateOnConflict } from "../../helpers/buildUpdateOnConflict";
 import { ingestionSchemas } from "../../ingestionSchemas";
 import type IngestionSleep from "../../ingestionSchemas/IngestionSleep";
 import { type NewSleep, sleepsTable } from "../../models/Sleep";
+import type { Exhaustive } from "../../types/exhaustive";
 import { Logger } from "../Logger";
 import { Ingester } from "./BaseIngester";
 
@@ -18,23 +19,42 @@ export class SleepIngester extends Ingester<IngestionSleep, NewSleep> {
       parsed: sleep.data,
     };
   }
-
   transform(raw: IngestionSleep): NewSleep {
+    const {
+      id,
+      startedAt,
+      endedAt,
+      source,
+      comment,
+      automaticScore,
+      userScore,
+      deviceId,
+      timezone,
+      // Unused
+      entityType: _type,
+      version: _version,
+      ...rest
+    } = raw;
+
+    // ensure nothing left unmapped
+    const _exhaustive: Exhaustive<typeof rest> = rest;
+    void _exhaustive;
+
     const transformed: NewSleep = {
-      externalId: raw.id,
+      externalId: id,
 
-      startedAt: new Date(raw.startedAt),
-      endedAt: new Date(raw.endedAt),
+      startedAt: new Date(startedAt),
+      endedAt: new Date(endedAt),
 
-      timezone: null,
       isManuallyRecorded: false,
       importJobId: this.importJobId,
-      source: raw.source,
-      comment: raw.comment,
-      automaticScore: raw.automaticScore,
-      userScore: raw.userScore,
+      source,
+      comment,
+      automaticScore,
+      userScore,
+      timezone,
 
-      externalDeviceId: raw.deviceId,
+      externalDeviceId: deviceId,
 
       createdAt: new Date(),
       updatedAt: null,

@@ -31,6 +31,10 @@ export const exerciseMetricsTable = pgTable("exercise_metrics", {
    */
   pace: real("pace"),
   /**
+   * Vertical oscillation in cm
+   */
+  verticalOscillation: real("vertical_oscillation"),
+  /**
    * Cadence in steps per min
    */
   cadence: real("cadence"),

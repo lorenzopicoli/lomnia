@@ -2,6 +2,7 @@ import { buildUpdateOnConflict } from "../../helpers/buildUpdateOnConflict";
 import { ingestionSchemas } from "../../ingestionSchemas";
 import type IngestionDeviceStatus from "../../ingestionSchemas/IngestionDeviceStatus";
 import { deviceStatusTable, type NewDeviceStatus } from "../../models/DeviceStatus";
+import type { Exhaustive } from "../../types/exhaustive";
 import { Logger } from "../Logger";
 import { Ingester } from "./BaseIngester";
 
@@ -16,23 +17,45 @@ export class DeviceStatusIngester extends Ingester<IngestionDeviceStatus, NewDev
       parsed: parsed.data,
     };
   }
-
   transform(raw: IngestionDeviceStatus): NewDeviceStatus {
+    const {
+      id,
+      deviceId,
+      battery,
+      batteryStatus,
+      temperature,
+      connectionStatus,
+      wifiSSID,
+      source,
+      timezone,
+      recordedAt,
+      // Unused
+      entityType: _type,
+      version: _version,
+      trigger: _trigger,
+      ...rest
+    } = raw;
+
+    // ensure nothing left unmapped
+    const _exhaustive: Exhaustive<typeof rest> = rest;
+    void _exhaustive;
+
     const transformed: NewDeviceStatus = {
-      externalId: raw.id,
+      externalId: id,
 
-      externalDeviceId: raw.deviceId,
+      externalDeviceId: deviceId,
 
-      battery: raw.battery,
-      batteryStatus: raw.batteryStatus,
-      temperature: raw.temperature,
-      connectionStatus: raw.connectionStatus,
-      wifiSSID: raw.wifiSSID,
+      battery,
+      batteryStatus,
+      temperature,
+      connectionStatus,
+      wifiSSID,
 
-      source: raw.source,
-      timezone: raw.timezone,
+      source,
+      timezone,
+
       importJobId: this.importJobId,
-      recordedAt: new Date(raw.recordedAt),
+      recordedAt: new Date(recordedAt),
       createdAt: new Date(),
     };
 

@@ -2,6 +2,7 @@ import { buildUpdateOnConflict } from "../../helpers/buildUpdateOnConflict";
 import { ingestionSchemas } from "../../ingestionSchemas";
 import type IngestionLocation from "../../ingestionSchemas/IngestionLocation";
 import { locationsTable, type NewLocation } from "../../models/Location";
+import type { Exhaustive } from "../../types/exhaustive";
 import { Logger } from "../Logger";
 import { Ingester } from "./BaseIngester";
 
@@ -18,23 +19,47 @@ export class LocationIngester extends Ingester<IngestionLocation, NewLocation> {
       parsed: location.data,
     };
   }
-
   transform(raw: IngestionLocation): NewLocation {
-    const transformed: NewLocation = {
-      externalId: raw.id,
+    const {
+      id,
+      gpsSource,
+      source,
+      accuracy,
+      verticalAccuracy,
+      velocity,
+      altitude,
+      location,
+      trigger,
+      topic,
+      timezone,
+      recordedAt,
+      // Unused
+      entityType: _type,
+      version: _version,
+      deviceId: _deviceId,
+      ...rest
+    } = raw;
 
-      gpsSource: raw.gpsSource,
-      source: raw.source,
-      accuracy: raw.accuracy,
-      verticalAccuracy: raw.verticalAccuracy,
-      velocity: raw.velocity,
-      altitude: raw.altitude,
-      location: raw.location,
-      trigger: raw.trigger,
-      topic: raw.topic,
-      timezone: raw.timezone,
+    // ensure nothing left unmapped
+    const _exhaustive: Exhaustive<typeof rest> = rest;
+    void _exhaustive;
+
+    const transformed: NewLocation = {
+      externalId: id,
+
+      gpsSource,
+      source,
+      accuracy,
+      verticalAccuracy,
+      velocity,
+      altitude,
+      location,
+      trigger,
+      topic,
+      timezone,
+
       importJobId: this.importJobId,
-      recordedAt: new Date(raw.recordedAt),
+      recordedAt: new Date(recordedAt),
       createdAt: new Date(),
     };
 

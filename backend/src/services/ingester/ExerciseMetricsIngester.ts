@@ -2,6 +2,7 @@ import { buildUpdateOnConflict } from "../../helpers/buildUpdateOnConflict";
 import { ingestionSchemas } from "../../ingestionSchemas";
 import type IngestionExerciseMetrics from "../../ingestionSchemas/IngestionExerciseMetrics";
 import { exerciseMetricsTable, type NewExerciseMetrics } from "../../models/ExerciseMetrics";
+import type { Exhaustive } from "../../types/exhaustive";
 import { Logger } from "../Logger";
 import { Ingester } from "./BaseIngester";
 
@@ -18,23 +19,46 @@ export class ExerciseMetricIngester extends Ingester<IngestionExerciseMetrics, N
       parsed: exerciseMetrics.data,
     };
   }
-
   transform(raw: IngestionExerciseMetrics): NewExerciseMetrics {
+    const {
+      id,
+      recordedAt,
+      source,
+      speed,
+      stepLength,
+      stanceTime,
+      pace,
+      cadence,
+      exerciseId,
+      deviceId,
+      timezone,
+      verticalOscillation,
+      // Unused
+      entityType: _type,
+      version: _version,
+      ...rest
+    } = raw;
+
+    // ensure nothing left unmapped
+    const _exhaustive: Exhaustive<typeof rest> = rest;
+    void _exhaustive;
+
     const transformed: NewExerciseMetrics = {
-      externalId: raw.id,
+      externalId: id,
 
-      recordedAt: new Date(raw.recordedAt),
+      recordedAt: new Date(recordedAt),
 
-      source: raw.source,
-      speed: raw.speed,
-      stepLength: raw.stepLength,
-      stanceTime: raw.stanceTime,
-      pace: raw.pace,
-      cadence: raw.cadence,
-      externalExerciseId: raw.exerciseId,
+      source,
+      speed,
+      stepLength,
+      stanceTime,
+      pace,
+      cadence,
+      externalExerciseId: exerciseId,
+      verticalOscillation,
 
-      timezone: null,
-      externalDeviceId: raw.deviceId,
+      timezone,
+      externalDeviceId: deviceId,
 
       importJobId: this.importJobId,
       createdAt: new Date(),

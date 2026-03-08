@@ -2,6 +2,7 @@ import { buildUpdateOnConflict } from "../../helpers/buildUpdateOnConflict";
 import { ingestionSchemas } from "../../ingestionSchemas";
 import type IngestionDevice from "../../ingestionSchemas/IngestionDevice";
 import { externalDevicesTable, type NewExternalDevice } from "../../models/ExternalDevice";
+import type { Exhaustive } from "../../types/exhaustive";
 import { Logger } from "../Logger";
 import { Ingester } from "./BaseIngester";
 
@@ -17,18 +18,32 @@ export class DeviceIngester extends Ingester<IngestionDevice, NewExternalDevice>
     };
   }
   transform(raw: IngestionDevice): NewExternalDevice {
-    const transformed: NewExternalDevice = {
-      externalId: raw.id,
+    const {
+      id,
+      name,
+      source,
+      // Unused
+      entityType: _type,
+      version: _version,
+      ...rest
+    } = raw;
 
-      name: raw.name,
-      source: raw.source,
+    // ensure nothing left unmapped
+    const _exhaustive: Exhaustive<typeof rest> = rest;
+    void _exhaustive;
+
+    const transformed: NewExternalDevice = {
+      externalId: id,
+
+      name,
+      source,
+
       importJobId: this.importJobId,
       createdAt: new Date(),
     };
 
     return transformed;
   }
-
   public async insertBatch(): Promise<void> {
     const updateOnConflict = buildUpdateOnConflict(externalDevicesTable, ["importJobId", "createdAt"]);
     await this.tx.insert(externalDevicesTable).values(this.collected).onConflictDoUpdate({
