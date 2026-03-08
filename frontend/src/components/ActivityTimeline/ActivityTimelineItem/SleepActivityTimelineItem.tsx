@@ -2,7 +2,6 @@ import { TZDate } from "@date-fns/tz";
 import { Group, Progress, Stack, Text } from "@mantine/core";
 import { format, formatDistanceStrict, intervalToDuration } from "date-fns";
 import type { RouterOutputs } from "../../../api/trpc";
-import { useConfig } from "../../../contexts/ConfigContext";
 import { ActivityTimelineTextValue } from "./ActivityTimelineTextValue";
 import { sleepActivitySourceToIcon } from "./activitySourceToIcon";
 import { BaseActivityTimelineItem } from "./BaseActivityTimelineItem";
@@ -11,7 +10,6 @@ type Item = Extract<RouterOutputs["timelineRouter"]["listActivities"]["activitie
 
 export function SleepActivityTimelineItem(props: { activity: Item; onExpand: () => void; isExpanded: boolean }) {
   const { activity, onExpand, isExpanded } = props;
-  const { theme } = useConfig();
   const { sleep, sleepStages } = activity.data;
 
   const timezone = sleep.timezone ?? "UTC";
