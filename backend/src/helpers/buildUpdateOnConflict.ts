@@ -18,5 +18,7 @@ export function buildUpdateOnConflict<
     }
   }
 
+  result.updatedAt = sql`NOW()`;
+
   return result as Omit<{ [K in keyof typeof columns]: SQL }, TImmutable>;
 }

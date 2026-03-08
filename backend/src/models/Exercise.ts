@@ -40,6 +40,10 @@ export const exercisesTable = pgTable("exercises", {
    */
   avgPace: real("avg_pace"),
   /**
+   * Average cadence in steps/min
+   */
+  avgCadence: real("avg_cadence"),
+  /**
    * Average heart rate in bpm
    */
   avgHeartRate: real("avg_heart_rate"),

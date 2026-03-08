@@ -50,6 +50,13 @@ export const IngestionExercise = z
       })
       .optional(),
 
+    avgCadence: z
+      .number()
+      .meta({
+        description: "Average cadence in steps per min",
+      })
+      .optional(),
+
     avgHeartRate: z
       .number()
       .meta({

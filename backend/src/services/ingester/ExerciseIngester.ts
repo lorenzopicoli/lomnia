@@ -32,6 +32,7 @@ export class ExerciseIngester extends Ingester<IngestionExercise, NewExercise> {
       distance: raw.distance,
       avgPace: raw.avgPace,
       avgHeartRate: raw.avgHeartRate,
+      avgCadence: raw.avgCadence,
 
       timezone: null,
       externalDeviceId: raw.deviceId,

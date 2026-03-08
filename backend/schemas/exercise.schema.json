@@ -55,6 +55,10 @@
       "type": "number",
       "description": "Average pace in minute per kilometer"
     },
+    "avgCadence": {
+      "type": "number",
+      "description": "Average cadence in steps per min"
+    },
     "avgHeartRate": {
       "type": "number",
       "description": "Average heart rate during the exercise"
