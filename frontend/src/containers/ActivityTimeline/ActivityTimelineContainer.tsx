@@ -11,18 +11,21 @@ import { ActivityTimelineControls } from "../../components/ActivityTimeline/Acti
 import { ActivityTimelineList } from "../../components/ActivityTimeline/ActivityTimelineList";
 import ActivityTimelineOverviewContainer from "./ActivityTimelineOverviewContainer";
 
+const DEFAULT_TIMELINE_FILTERS: TimelineFilters = {
+  habit: true,
+  location: true,
+  website: true,
+  sleep: true,
+  exercise: true,
+};
+
 export default function ActivityTimelineContainer() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const urlDayFormat = "yyyy-MM-dd";
   const daySearchParam = searchParams.get("day");
   const day = daySearchParam ? startOfDay(parse(daySearchParam, urlDayFormat, new Date())) : startOfDay(new Date());
-  const [filters, setFilters] = useState<TimelineFilters>({
-    habit: true,
-    location: true,
-    website: true,
-    sleep: true,
-  });
+  const [filters, setFilters] = useState<TimelineFilters>(DEFAULT_TIMELINE_FILTERS);
 
   const handleDateChange = (date: Date) => {
     const day = format(date, urlDayFormat);
@@ -38,7 +41,7 @@ export default function ActivityTimelineContainer() {
   const { data, isPending } = useQuery(
     trpc.timelineRouter.listActivities.queryOptions({
       day: format(day, urlDayFormat),
-      filters: filters ?? { habit: true, location: true, website: true, sleep: true },
+      filters: filters ?? DEFAULT_TIMELINE_FILTERS,
     }),
   );
 

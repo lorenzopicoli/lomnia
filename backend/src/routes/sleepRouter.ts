@@ -14,9 +14,6 @@ export const sleepsRouter = t.router({
     .query((opts) => {
       return SleepService.getDay(opts.input) ?? [];
     }),
-  listStartEndAndDuration: loggedProcedure.input(ChartPeriodInput).query((opts) => {
-    return SleepService.startEndAndDuration(opts.input) ?? [];
-  }),
 });
 
 export const sleepsChartRouter = t.router({

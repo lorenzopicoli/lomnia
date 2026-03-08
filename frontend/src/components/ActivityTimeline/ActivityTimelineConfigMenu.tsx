@@ -5,6 +5,7 @@ export type TimelineFilters = {
   location: boolean;
   website: boolean;
   sleep: boolean;
+  exercise: boolean;
 };
 type Props = { value: TimelineFilters; onChange: (v: TimelineFilters) => void };
 
@@ -33,6 +34,11 @@ export function ActivityTimelineConfigMenu(props: Props) {
         label="Sleep"
         checked={value.sleep}
         onChange={(e) => onChange({ ...value, sleep: e.currentTarget.checked })}
+      />
+      <Switch
+        label="Exercise"
+        checked={value.exercise}
+        onChange={(e) => onChange({ ...value, exercise: e.currentTarget.checked })}
       />
     </Group>
   );

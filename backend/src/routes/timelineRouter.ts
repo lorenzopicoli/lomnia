@@ -14,6 +14,7 @@ export const timelineRouter = t.router({
             location: z.boolean(),
             website: z.boolean(),
             sleep: z.boolean(),
+            exercise: z.boolean(),
           })
           .optional(),
       }),

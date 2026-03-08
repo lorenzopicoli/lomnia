@@ -2,6 +2,7 @@ import { Card, Text } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import type { RouterOutputs } from "../../../api/trpc";
 import { useConfig } from "../../../contexts/ConfigContext";
+import { ExerciseActivityTimelineItem } from "./ExerciseActivityTimelineItem";
 import { HabitActivityTimelineItem } from "./HabitActivityTimelineItem";
 import { LocationActivityTimelineItem } from "./LocationActivityTimelineItem";
 import { SleepActivityTimelineItem } from "./SleepActivityTimelineItem";
@@ -38,6 +39,8 @@ export function ActivityTimelineItem(props: { activity: Item }) {
         <HabitActivityTimelineItem activity={activity} onExpand={handleToggle} isExpanded={opened} />
       ) : activity.type === "sleep" ? (
         <SleepActivityTimelineItem activity={activity} onExpand={handleToggle} isExpanded={opened} />
+      ) : activity.type === "exercise" ? (
+        <ExerciseActivityTimelineItem activity={activity} onExpand={handleToggle} isExpanded={opened} />
       ) : (
         <Text size="sm">
           Couldn't find activity item. Maybe you forgot to add it to ActivityTimelineItem.tsx?{" "}
