@@ -20,6 +20,7 @@ export function ChartFeatures<T extends FormValues>(props: { chartId: ChartId; f
   const { chartId, form } = props;
 
   const { data: habitKeysData } = useQuery(trpc.habitFeatures.getKeys.queryOptions());
+  const { data: exerciseKeysData } = useQuery(trpc.exercise.getKeys.queryOptions());
   const { data: countKeysData } = useQuery(trpc.charts.counts.getCountKeys.queryOptions());
 
   return (
@@ -51,6 +52,18 @@ export function ChartFeatures<T extends FormValues>(props: { chartId: ChartId; f
                     data={[...(numeric ?? []), ...(text ?? [])]}
                     searchable
                     {...form.getInputProps("habitKey", { type: "input" })}
+                  />
+                );
+              }
+              case "exerciseKey": {
+                const types = exerciseKeysData?.map((k) => ({ value: k.key, label: k.label }));
+                return (
+                  <Select
+                    key={feature}
+                    label="Exercise"
+                    data={types}
+                    searchable
+                    {...form.getInputProps("exerciseKey", { type: "input" })}
                   />
                 );
               }

@@ -31,6 +31,7 @@ export type AddChartFormValues = {
   source: ChartSource;
   chartId: ChartId | null;
   habitKey?: string;
+  exerciseKey?: string;
   countKey?: string;
   aggFun?: AggregationFunction;
   aggPeriod?: AggregationPeriod;
@@ -95,6 +96,7 @@ export function AddChartContainer(props: AddChartProps) {
       id: values.chartId,
       uniqueId: v4(),
       habitKey: values.habitKey,
+      exerciseKey: values.exerciseKey,
       countKey: values.countKey,
       title: values.title,
       aggFun: values.aggFun,

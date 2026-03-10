@@ -40,6 +40,7 @@ export enum ChartId {
   NavigationFlowChord = "navigationFlowChord",
   WebsitesVisitsByTimeOfDay = "websitesVisitsByTimeOfDay",
   SleepStartEndDuration = "sleepStartEndDuration",
+  ExerciseFrequencyCalendarHeatmap = "exerciseFrequencyCalendarHeatmap",
 }
 
 export const chartParamByChartId: Record<ChartId, ChartParams[]> = {
@@ -48,6 +49,7 @@ export const chartParamByChartId: Record<ChartId, ChartParams[]> = {
   [ChartId.NumberHabitLine]: ["habitKey", "aggFun", "aggPeriod"],
   [ChartId.Count]: ["countKey", "compactNumbers"],
   [ChartId.TextHabitBar]: ["habitKey"],
+  [ChartId.ExerciseFrequencyCalendarHeatmap]: ["exerciseKey"],
   [ChartId.TemperatureExperienced]: [],
   [ChartId.HeartRateMinMaxAvg]: [],
   [ChartId.PrecipitationExperienced]: [],
@@ -74,6 +76,7 @@ export enum ChartSource {
   HeartRate = "heartRate",
   Location = "location",
   Sleep = "sleep",
+  Exercise = "exercise",
   Meta = "meta",
 }
 
@@ -116,6 +119,11 @@ export function chartSourceTitleAndDescription(source: ChartSource): {
       return {
         title: "Sleep",
         description: "Sleep data",
+      };
+    case ChartSource.Exercise:
+      return {
+        title: "Exercise",
+        description: "Data on the exercises recorded",
       };
   }
 }
@@ -268,6 +276,13 @@ export const availableCharts = [
     sources: [ChartSource.Sleep],
     elements: [ChartElement.Line],
   },
+  {
+    id: ChartId.ExerciseFrequencyCalendarHeatmap,
+    title: "Exercise frequency",
+    description: "See how often and when you exercised",
+    sources: [ChartSource.Exercise],
+    elements: [ChartElement.CalendarHeatmap],
+  },
 ];
 
 /**
@@ -297,6 +312,7 @@ export const chartPreviewSize: Record<ChartId, { height: string | number; width:
   [ChartId.NavigationFlowChord]: { height: "100%", width: "100%" },
   [ChartId.WebsitesVisitsByTimeOfDay]: { height: "100%", width: "100%" },
   [ChartId.SleepStartEndDuration]: { height: "100%", width: "100%" },
+  [ChartId.ExerciseFrequencyCalendarHeatmap]: { height: 200, width: "100%" },
 };
 
 export const chartDisplayerOptions: Record<string, { componentHandlesTitle: boolean } | undefined> = {
@@ -320,6 +336,10 @@ export type ChartAreaConfig = {
    */
   habitKey?: string;
   /**
+   * Exercise Key
+   */
+  exerciseKey?: string;
+  /**
    * Key if a count chart
    */
   countKey?: string;
@@ -341,7 +361,7 @@ export type ChartAreaConfig = {
   uniqueId: string;
 };
 
-export type ChartParams = "habitKey" | "countKey" | "compactNumbers" | "aggFun" | "aggPeriod";
+export type ChartParams = "habitKey" | "countKey" | "compactNumbers" | "aggFun" | "aggPeriod" | "exerciseKey";
 
 const aggregationPeriods = ["month", "day", "week", "hour"] as const;
 export const aggregationPeriodsLabels = [
@@ -372,6 +392,9 @@ export interface ChartProps {
 export interface HabitChartProps extends ChartProps {
   habitKey: string;
 }
+export interface ExerciseChartProps extends ChartProps {
+  exerciseKey?: string;
+}
 
 export interface CountCardChartProps extends ChartProps {
   unit?: string;
@@ -380,4 +403,7 @@ export interface CountCardChartProps extends ChartProps {
   compactNumbers?: boolean;
 }
 
-export type AllChartsProps = ChartProps & Partial<HabitChartProps> & Partial<CountCardChartProps>;
+export type AllChartsProps = ChartProps &
+  Partial<HabitChartProps> &
+  Partial<CountCardChartProps> &
+  Partial<ExerciseChartProps>;

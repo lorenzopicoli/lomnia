@@ -6,6 +6,7 @@ import { CountCard } from "../../containers/Charts/CountCard";
 import { CountriesVisitedBar } from "../../containers/Charts/CountriesVisitedBar";
 import { CountriesVisitedMap } from "../../containers/Charts/CountriesVisitedMap";
 import { CountriesVisitedPie } from "../../containers/Charts/CountriesVisitedPie";
+import { ExerciseFrequencyCalendarHeatmap } from "../../containers/Charts/ExerciseFrequencyCalendarHeatmap";
 import { HeartRateMinMaxAvg } from "../../containers/Charts/HeartRateMinMaxAvg";
 import { MostVisitedHostsPie } from "../../containers/Charts/MostVisitedHostsPie";
 import { MostVisitedWebPagesBar } from "../../containers/Charts/MostVisitedWebPagesBar";
@@ -130,6 +131,9 @@ function ChartSwitcher(props: ChartDisplayerProps) {
     }
     case ChartId.SleepStartEndDuration: {
       return <SleepTimeAndDuration {...props} />;
+    }
+    case ChartId.ExerciseFrequencyCalendarHeatmap: {
+      return <ExerciseFrequencyCalendarHeatmap {...props} />;
     }
     case ChartId.TextHabitBar: {
       const habitKey = props.habitKey;

@@ -11,6 +11,13 @@ export const exerciseTypeEnumValues = [
   "yoga",
   "generic",
 ] as const;
+export const exerciseTypeOptions = exerciseTypeEnumValues.map((key) => ({
+  key,
+  label: key
+    .split("_")
+    .map((w) => w[0].toUpperCase() + w.slice(1))
+    .join(" "),
+}));
 export const exerciseTypeEnum = pgEnum("exercise_type", exerciseTypeEnumValues);
 
 export const exercisesTable = pgTable("exercises", {

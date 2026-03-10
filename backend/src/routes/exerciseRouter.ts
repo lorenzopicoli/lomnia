@@ -1,5 +1,5 @@
 import z from "zod";
-import { ExerciseService } from "../services/exercise";
+import { ExerciseChartPeriodInput, ExerciseService } from "../services/exercise";
 import { loggedProcedure } from "./common/loggedProcedure";
 import { t } from "./trpc";
 
@@ -15,5 +15,14 @@ export const exerciseRouter = t.router({
     }),
   getById: loggedProcedure.input(z.object({ id: z.number() })).query((opts) => {
     return ExerciseService.getById(opts.input.id) ?? [];
+  }),
+  getKeys: loggedProcedure.query(() => {
+    return ExerciseService.getKeys();
+  }),
+});
+
+export const exerciseChartRouter = t.router({
+  frequency: loggedProcedure.input(ExerciseChartPeriodInput).query((opts) => {
+    return ExerciseService.getDailyFrequency(opts.input);
   }),
 });
