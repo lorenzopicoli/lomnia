@@ -39,7 +39,8 @@
         "volleyball",
         "cycling",
         "yoga",
-        "generic"
+        "generic",
+        "fitness_equipment"
       ],
       "description": "The exercise that was done"
     },
@@ -76,6 +77,123 @@
     "deviceId": {
       "type": "string",
       "description": "Unique identifier for the device linked to this record"
+    },
+    "laps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "startedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
+            "description": "The date at which the lap started, in UTC time"
+          },
+          "endedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
+            "description": "The date at which the lap ended, in UTC time"
+          },
+          "distance": {
+            "type": "number",
+            "description": "Total distance travelled during the lap"
+          },
+          "duration": {
+            "type": "number",
+            "description": "Duration for this lap"
+          },
+          "avgPace": {
+            "type": "number",
+            "description": "Average pace in minute per kilometer"
+          },
+          "maxPace": {
+            "type": "number",
+            "description": "Max pace in minute per kilometer"
+          },
+          "avgHeartRate": {
+            "type": "number",
+            "description": "Average heart rate during the exercise"
+          },
+          "maxHeartRate": {
+            "type": "number",
+            "description": "Max heart rate during the exercise"
+          },
+          "avgCadence": {
+            "type": "number",
+            "description": "Average cadence in steps per minute"
+          },
+          "maxCadence": {
+            "type": "number",
+            "description": "Max cadence in steps per minute"
+          },
+          "avgStepLength": {
+            "type": "number",
+            "description": "Average step length"
+          },
+          "avgStanceTime": {
+            "type": "number",
+            "description": "Ground contact time throughout the lap"
+          },
+          "avgVerticalOscillation": {
+            "type": "number",
+            "description": "Vertical oscillation"
+          }
+        },
+        "required": [
+          "startedAt",
+          "endedAt"
+        ],
+        "additionalProperties": false,
+        "title": "Exercise metrics",
+        "description": "Extra metrics recorded during an exercise"
+      },
+      "description": "Laps recorded in this exercise"
+    },
+    "metrics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "pace": {
+            "type": "number",
+            "description": "The pace at a given point of the exercise"
+          },
+          "cadence": {
+            "type": "number",
+            "description": "The cadence at a given point of the exercise"
+          },
+          "verticalOscillation": {
+            "type": "number",
+            "description": "Vertical oscillation at a given point of the exercise"
+          },
+          "stepLength": {
+            "type": "number",
+            "description": "Step length at a given point of the exercise"
+          },
+          "stanceTime": {
+            "type": "number",
+            "description": "Ground contact time at a given point of the exercise"
+          },
+          "distance": {
+            "type": "number",
+            "description": "Distance travelled at this time"
+          },
+          "recordedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
+            "description": "The date at which the sleep started, in UTC time"
+          }
+        },
+        "required": [
+          "recordedAt"
+        ],
+        "additionalProperties": false,
+        "title": "Exercise metrics",
+        "description": "Extra metrics recorded during an exercise"
+      },
+      "description": "Metrics recored in this exercise"
     }
   },
   "required": [

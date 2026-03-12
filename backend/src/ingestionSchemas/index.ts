@@ -1,8 +1,6 @@
 import device from "./IngestionDevice";
 import deviceStatus from "./IngestionDeviceStatus";
 import exercise from "./IngestionExercise";
-import exerciseLap from "./IngestionExerciseLap";
-import exerciseMetrics from "./IngestionExerciseMetrics";
 import habit from "./IngestionHabit";
 import heartRate from "./IngestionHeartRate";
 import location from "./IngestionLocation";
@@ -22,6 +20,4 @@ export const ingestionSchemas = {
   sleepStage,
   heartRate,
   exercise,
-  exerciseLap,
-  exerciseMetrics,
 };
