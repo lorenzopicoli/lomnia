@@ -31,6 +31,34 @@ export const exerciseLapsTable = pgTable("exercise_laps", {
    */
   avgPace: real("avg_pace"),
   /**
+   * Max pace in min/km
+   */
+  maxPace: real("max_pace"),
+  /**
+   * Max pace in min/km
+   */
+  avgStepLength: real("avg_step_length"),
+  /**
+   * Ground contact time in ms
+   */
+  avgStanceTime: real("avg_stance_time"),
+  /**
+   * Average vertical oscillation in cm
+   */
+  avgVerticalOscillation: real("avg_vertical_oscillation"),
+  /**
+   * Max cadence in steps per minute
+   */
+  maxCadence: integer("max_cadence"),
+  /**
+   * Avg cadence in steps per minute
+   */
+  avgCadence: integer("avg_cadence"),
+  /**
+   * Max heart rate in bpm
+   */
+  maxHeartRate: real("max_heart_rate"),
+  /**
    * Average heart rate in bpm
    */
   avgHeartRate: real("avg_heart_rate"),
@@ -41,8 +69,8 @@ export const exerciseLapsTable = pgTable("exercise_laps", {
   /**
    * Exercise this maps to
    */
-  externalExerciseId: text("external_exercise_id")
-    .references(() => exercisesTable.externalId)
+  exerciseId: integer("exercise_id")
+    .references(() => exercisesTable.id)
     .notNull(),
   /**
    * Canonical device this maps to

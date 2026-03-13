@@ -83,6 +83,10 @@
       "items": {
         "type": "object",
         "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the record. Must be stable across multiple extractions"
+          },
           "startedAt": {
             "type": "string",
             "format": "date-time",
@@ -97,7 +101,7 @@
           },
           "distance": {
             "type": "number",
-            "description": "Total distance travelled during the lap"
+            "description": "Total distance travelled in this lap"
           },
           "duration": {
             "type": "number",
@@ -141,6 +145,7 @@
           }
         },
         "required": [
+          "id",
           "startedAt",
           "endedAt"
         ],
@@ -155,9 +160,17 @@
       "items": {
         "type": "object",
         "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the record. Must be stable across multiple extractions"
+          },
           "pace": {
             "type": "number",
             "description": "The pace at a given point of the exercise"
+          },
+          "speed": {
+            "type": "number",
+            "description": "The speed at a given time"
           },
           "cadence": {
             "type": "number",
@@ -177,7 +190,7 @@
           },
           "distance": {
             "type": "number",
-            "description": "Distance travelled at this time"
+            "description": "Distance travelled up until this time"
           },
           "recordedAt": {
             "type": "string",
@@ -187,6 +200,7 @@
           }
         },
         "required": [
+          "id",
           "recordedAt"
         ],
         "additionalProperties": false,

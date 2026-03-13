@@ -10,6 +10,7 @@ export const exerciseTypeEnumValues = [
   "cycling",
   "yoga",
   "generic",
+  "fitness_equipment",
 ] as const;
 export const exerciseTypeOptions = exerciseTypeEnumValues.map((key) => ({
   key,

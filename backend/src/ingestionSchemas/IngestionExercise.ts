@@ -12,6 +12,10 @@ export const ExerciseTypeEnum = z.enum([
 
 export const IngestionExerciseLap = z
   .object({
+    id: z.string().meta({
+      description: "Unique identifier for the record. Must be stable across multiple extractions",
+    }),
+
     startedAt: z.iso.datetime().meta({
       description: "The date at which the lap started, in UTC time",
     }),
@@ -104,10 +108,21 @@ export const IngestionExerciseLap = z
 
 export const IngestionExerciseMetrics = z
   .object({
+    id: z.string().meta({
+      description: "Unique identifier for the record. Must be stable across multiple extractions",
+    }),
+
     pace: z
       .number()
       .meta({
         description: "The pace at a given point of the exercise",
+      })
+      .optional(),
+
+    speed: z
+      .number()
+      .meta({
+        description: "The speed at a given time",
       })
       .optional(),
 

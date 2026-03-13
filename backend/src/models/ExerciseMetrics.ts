@@ -11,13 +11,13 @@ export const exerciseMetricsTable = pgTable("exercise_metrics", {
    */
   recordedAt: timestamp("recorded_at").notNull(),
   /**
-   * Where the sleep record came from
-   */
-  source: text("source").notNull(),
-  /**
    * Speed in m/s
    */
   speed: real("speed"),
+  /**
+   * Distance in meters
+   */
+  distance: real("distance"),
   /**
    * Step length in cm
    */
@@ -45,8 +45,8 @@ export const exerciseMetricsTable = pgTable("exercise_metrics", {
   /**
    * Exercise this maps to
    */
-  externalExerciseId: text("external_exercise_id")
-    .references(() => exercisesTable.externalId)
+  exerciseId: integer("exercise_id")
+    .references(() => exercisesTable.id)
     .notNull(),
   /**
    * Canonical device this maps to
