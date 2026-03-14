@@ -25,4 +25,19 @@ export const exerciseChartRouter = t.router({
   frequency: loggedProcedure.input(ExerciseChartPeriodInput).query((opts) => {
     return ExerciseService.getDailyFrequency(opts.input);
   }),
+  averagePacePerTemperature: loggedProcedure.input(ExerciseChartPeriodInput).query((opts) => {
+    return ExerciseService.averagePacePerTemperature(opts.input);
+  }),
+  longestDurations: loggedProcedure.input(ExerciseChartPeriodInput).query((opts) => {
+    return ExerciseService.longestDurations(opts.input);
+  }),
+  longestDistances: loggedProcedure.input(ExerciseChartPeriodInput).query((opts) => {
+    return ExerciseService.longestDistances(opts.input);
+  }),
+  highestAverageHeartRate: loggedProcedure.input(ExerciseChartPeriodInput).query((opts) => {
+    return ExerciseService.highestAverageHeartRate(opts.input);
+  }),
+  fastestLaps: loggedProcedure.input(ExerciseChartPeriodInput).query((opts) => {
+    return ExerciseService.fastestLaps(opts.input);
+  }),
 });
