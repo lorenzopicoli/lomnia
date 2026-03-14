@@ -15,6 +15,7 @@ export enum ChartElement {
   Value = "value",
   Chord = "chord",
   Geo = "geo",
+  Scatter = "scatter",
 }
 
 export enum ChartId {
@@ -41,32 +42,21 @@ export enum ChartId {
   WebsitesVisitsByTimeOfDay = "websitesVisitsByTimeOfDay",
   SleepStartEndDuration = "sleepStartEndDuration",
   ExerciseFrequencyCalendarHeatmap = "exerciseFrequencyCalendarHeatmap",
+  PaceTemperatureScatter = "paceTemperatureScatter",
+  ExerciseDistanceLine = "exerciseDistanceLine",
+  ExerciseDurationLine = "exerciseDurationLine",
 }
 
-export const chartParamByChartId: Record<ChartId, ChartParams[]> = {
+export const chartParamByChartId: Partial<Record<ChartId, ChartParams[]>> = {
   [ChartId.NumberHabitCalendarHeatmap]: ["habitKey", "aggFun"],
   [ChartId.TextHabitCoocurrencesChord]: ["habitKey"],
   [ChartId.NumberHabitLine]: ["habitKey", "aggFun", "aggPeriod"],
   [ChartId.Count]: ["countKey", "compactNumbers"],
   [ChartId.TextHabitBar]: ["habitKey"],
   [ChartId.ExerciseFrequencyCalendarHeatmap]: ["exerciseKey"],
-  [ChartId.TemperatureExperienced]: [],
-  [ChartId.HeartRateMinMaxAvg]: [],
-  [ChartId.PrecipitationExperienced]: [],
-  [ChartId.RainHeatmap]: [],
-  [ChartId.CountriesVisitedMap]: [],
-  [ChartId.CountriesVisitedBar]: [],
-  [ChartId.CountriesVisitedPie]: [],
-  [ChartId.CitiesVisitedBar]: [],
-  [ChartId.CitiesVisitedPie]: [],
-  [ChartId.PlacesVisitCountBar]: [],
-  [ChartId.MostVisitedWebPagesBar]: [],
-  [ChartId.MostVisitedWebPagesPie]: [],
-  [ChartId.MostVisitedHostsPie]: [],
-  [ChartId.WebsitesVisitsCalendarHeatmap]: [],
-  [ChartId.NavigationFlowChord]: [],
-  [ChartId.WebsitesVisitsByTimeOfDay]: [],
-  [ChartId.SleepStartEndDuration]: [],
+  [ChartId.PaceTemperatureScatter]: ["exerciseKey"],
+  [ChartId.ExerciseDistanceLine]: ["exerciseKey", "aggFun", "aggPeriod"],
+  [ChartId.ExerciseDurationLine]: ["exerciseKey", "aggFun", "aggPeriod"],
 };
 
 export enum ChartSource {
@@ -283,37 +273,42 @@ export const availableCharts = [
     sources: [ChartSource.Exercise],
     elements: [ChartElement.CalendarHeatmap],
   },
+  {
+    id: ChartId.PaceTemperatureScatter,
+    title: "Pace vs Temperature Scatter Chart",
+    description: "How the temperature affects the exercises' pace",
+    sources: [ChartSource.Exercise, ChartSource.Weather],
+    elements: [ChartElement.Scatter],
+  },
+  {
+    id: ChartId.ExerciseDurationLine,
+    title: "Exercise duration over time",
+    description: "Insights into how the duration average/max/sum changed over time",
+    sources: [ChartSource.Exercise],
+    elements: [ChartElement.Line],
+  },
+  {
+    id: ChartId.ExerciseDistanceLine,
+    title: "Exercise distance over time",
+    description: "Insights into how the distance average/max/sum changed over time",
+    sources: [ChartSource.Exercise],
+    elements: [ChartElement.Line],
+  },
 ];
 
 /**
  * How a chart should behave in the preview container. Think of this like
  * some sane defaults to make the chart look presentable when adding/configuring it
  */
-export const chartPreviewSize: Record<ChartId, { height: string | number; width: string | number }> = {
-  [ChartId.TemperatureExperienced]: { height: "100%", width: "100%" },
-  [ChartId.HeartRateMinMaxAvg]: { height: "100%", width: "100%" },
-  [ChartId.PrecipitationExperienced]: { height: "100%", width: "100%" },
+export const chartPreviewSize: Partial<Record<ChartId, { height: string | number; width: string | number }>> = {
   [ChartId.RainHeatmap]: { height: 200, width: "100%" },
   [ChartId.NumberHabitCalendarHeatmap]: { height: 200, width: "100%" },
-  [ChartId.NumberHabitLine]: { height: "100%", width: "100%" },
   [ChartId.WebsitesVisitsCalendarHeatmap]: { height: 200, width: "100%" },
   [ChartId.Count]: { height: 250, width: 250 },
-  [ChartId.TextHabitCoocurrencesChord]: { height: "100%", width: "100%" },
-  [ChartId.CountriesVisitedMap]: { height: "100%", width: "100%" },
-  [ChartId.CountriesVisitedBar]: { height: "100%", width: "100%" },
-  [ChartId.CountriesVisitedPie]: { height: "100%", width: "100%" },
-  [ChartId.CitiesVisitedBar]: { height: "100%", width: "100%" },
-  [ChartId.CitiesVisitedPie]: { height: "100%", width: "100%" },
-  [ChartId.PlacesVisitCountBar]: { height: "100%", width: "100%" },
-  [ChartId.TextHabitBar]: { height: "100%", width: "100%" },
-  [ChartId.MostVisitedWebPagesBar]: { height: "100%", width: "100%" },
-  [ChartId.MostVisitedWebPagesPie]: { height: "100%", width: "100%" },
-  [ChartId.MostVisitedHostsPie]: { height: "100%", width: "100%" },
-  [ChartId.NavigationFlowChord]: { height: "100%", width: "100%" },
-  [ChartId.WebsitesVisitsByTimeOfDay]: { height: "100%", width: "100%" },
-  [ChartId.SleepStartEndDuration]: { height: "100%", width: "100%" },
   [ChartId.ExerciseFrequencyCalendarHeatmap]: { height: 200, width: "100%" },
 };
+
+export const defaultPreviewSize = { height: "100%", width: "100%" };
 
 export const chartDisplayerOptions: Record<string, { componentHandlesTitle: boolean } | undefined> = {
   [ChartId.Count]: {

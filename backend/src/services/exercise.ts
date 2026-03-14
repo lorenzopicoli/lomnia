@@ -1,16 +1,23 @@
-import { and, asc, avg, count, eq, gt, sql } from "drizzle-orm";
+import { and, asc, avg, count, eq, gt, isNotNull, sql } from "drizzle-orm";
 import z from "zod";
 import { db } from "../db/connection";
+import { hourlyWeatherTable } from "../models";
 import { exercisesTable, exerciseTypeOptions } from "../models/Exercise";
 import { exerciseLapsTable } from "../models/ExerciseLap";
-import { ChartAggregationInput } from "../types/chartTypes";
+import { ChartAggregationInput, DateRange } from "../types/chartTypes";
 import { getAggregatedXColumn } from "./common/getAggregatedXColumn";
+import { getAggregatedYColumn } from "./common/getAggregatedYColumn";
 
 export const ExerciseChartPeriodInput = z.object({
   ...ChartAggregationInput.shape,
   exerciseKey: z.string().optional().nullable(),
 });
 export type ExerciseChartPeriodInput = z.infer<typeof ExerciseChartPeriodInput>;
+export const ExerciseChartDateRangeInput = z.object({
+  ...DateRange.shape,
+  exerciseKey: z.string().optional().nullable(),
+});
+export type ExerciseChartDateRangeInput = z.infer<typeof ExerciseChartDateRangeInput>;
 
 export namespace ExerciseService {
   export const getByDay = async (params: { day: string }) => {
@@ -34,7 +41,7 @@ export namespace ExerciseService {
     return exerciseTypeOptions;
   };
 
-  const exerciseChartFilters = ({ exerciseKey, start, end }: ExerciseChartPeriodInput) => {
+  const exerciseChartFilters = ({ exerciseKey, start, end }: ExerciseChartDateRangeInput) => {
     return sql`
     ${exerciseKey ? sql`${exercisesTable.exerciseType} = ${exerciseKey}` : sql`1=1`}
     AND ${exercisesTable.startedAt} >= ${start.toISO()}
@@ -59,29 +66,33 @@ export namespace ExerciseService {
     return data;
   };
 
-  export const averagePacePerTemperature = async (params: ExerciseChartPeriodInput) => {
+  export const averagePacePerTemperature = async (params: ExerciseChartDateRangeInput) => {
     const data = db
       .select({
-        temp: sql`ROUND(hourlyWeatherTable.apparentTemperature)`.mapWith(Number),
+        temp: sql`ROUND(${hourlyWeatherTable.apparentTemperature})`.mapWith(Number),
         pace: avg(exercisesTable.avgPace),
         count: count(),
       })
       .from(exercisesTable)
-      .innerJoin(exerciseLapsTable, eq(exerciseLapsTable.exerciseId, exercisesTable.id))
+      .innerJoin(hourlyWeatherTable, eq(hourlyWeatherTable.date, sql`date_trunc('hour', ${exercisesTable.startedAt})`))
       .where(and(exerciseChartFilters(params), gt(exercisesTable.avgPace, 0)))
-      .groupBy(sql`ROUND(hourlyWeatherTable.apparentTemperature)`)
-      .orderBy(sql`ROUND(hourlyWeatherTable.apparentTemperature)`);
+      .groupBy(sql`ROUND(${hourlyWeatherTable.apparentTemperature})`)
+      .orderBy(sql`ROUND(${hourlyWeatherTable.apparentTemperature})`);
 
     return data;
   };
 
-  export const longestDurations = async (params: ExerciseChartPeriodInput) => {
+  export const durations = async (params: ExerciseChartPeriodInput) => {
     const { aggregation } = params;
-
     const aggregatedDate = getAggregatedXColumn(exercisesTable.startedAt, aggregation.period);
+    const duration = sql`
+    EXTRACT(EPOCH FROM (${exercisesTable.endedAt} - ${exercisesTable.startedAt}))
+  `;
+    const aggregatedDuration = getAggregatedYColumn(duration, aggregation.function);
+
     const data = db
       .select({
-        value: sql`MAX(EXTRACT(EPOCH FROM (${exercisesTable.endedAt} - ${exercisesTable.startedAt})))`.mapWith(Number),
+        value: aggregatedDuration.mapWith(Number),
         date: aggregatedDate.mapWith(String),
       })
       .from(exercisesTable)
@@ -92,17 +103,18 @@ export namespace ExerciseService {
     return data;
   };
 
-  export const longestDistances = async (params: ExerciseChartPeriodInput) => {
+  export const distances = async (params: ExerciseChartPeriodInput) => {
     const { aggregation } = params;
-
     const aggregatedDate = getAggregatedXColumn(exercisesTable.startedAt, aggregation.period);
-    const data = db
+    const aggregatedDistance = getAggregatedYColumn(exercisesTable.distance, aggregation.function);
+
+    const data = await db
       .select({
-        value: sql`MAX(${exercisesTable.distance})`.mapWith(Number),
+        value: aggregatedDistance.mapWith(Number),
         date: aggregatedDate.mapWith(String),
       })
       .from(exercisesTable)
-      .where(exerciseChartFilters(params))
+      .where(and(exerciseChartFilters(params), isNotNull(exercisesTable.distance)))
       .groupBy(aggregatedDate)
       .orderBy(asc(aggregatedDate));
 

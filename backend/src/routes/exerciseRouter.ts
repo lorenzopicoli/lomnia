@@ -1,5 +1,5 @@
 import z from "zod";
-import { ExerciseChartPeriodInput, ExerciseService } from "../services/exercise";
+import { ExerciseChartDateRangeInput, ExerciseChartPeriodInput, ExerciseService } from "../services/exercise";
 import { loggedProcedure } from "./common/loggedProcedure";
 import { t } from "./trpc";
 
@@ -25,14 +25,14 @@ export const exerciseChartRouter = t.router({
   frequency: loggedProcedure.input(ExerciseChartPeriodInput).query((opts) => {
     return ExerciseService.getDailyFrequency(opts.input);
   }),
-  averagePacePerTemperature: loggedProcedure.input(ExerciseChartPeriodInput).query((opts) => {
+  averagePacePerTemperature: loggedProcedure.input(ExerciseChartDateRangeInput).query((opts) => {
     return ExerciseService.averagePacePerTemperature(opts.input);
   }),
-  longestDurations: loggedProcedure.input(ExerciseChartPeriodInput).query((opts) => {
-    return ExerciseService.longestDurations(opts.input);
+  durations: loggedProcedure.input(ExerciseChartPeriodInput).query((opts) => {
+    return ExerciseService.durations(opts.input);
   }),
-  longestDistances: loggedProcedure.input(ExerciseChartPeriodInput).query((opts) => {
-    return ExerciseService.longestDistances(opts.input);
+  distances: loggedProcedure.input(ExerciseChartPeriodInput).query((opts) => {
+    return ExerciseService.distances(opts.input);
   }),
   highestAverageHeartRate: loggedProcedure.input(ExerciseChartPeriodInput).query((opts) => {
     return ExerciseService.highestAverageHeartRate(opts.input);

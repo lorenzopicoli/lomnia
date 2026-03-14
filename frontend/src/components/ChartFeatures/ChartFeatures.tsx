@@ -27,7 +27,7 @@ export function ChartFeatures<T extends FormValues>(props: { chartId: ChartId; f
     <Flex direction={"column"} gap={"lg"} pb={"md"}>
       <TextInput flex={1} label="Title" withAsterisk {...form.getInputProps("title", { type: "input" })} />
       {chartId
-        ? chartParamByChartId[chartId].map((feature) => {
+        ? (chartParamByChartId[chartId] ?? []).map((feature) => {
             switch (feature) {
               case "countKey":
                 return (

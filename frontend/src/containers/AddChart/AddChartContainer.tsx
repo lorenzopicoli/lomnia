@@ -12,6 +12,7 @@ import {
   type ChartId,
   ChartSource,
   chartPreviewSize,
+  defaultPreviewSize,
 } from "../../charts/types";
 import { ChartDisplayer } from "../../components/ChartDisplayer/ChartDisplayer";
 import { ChartFeatures } from "../../components/ChartFeatures/ChartFeatures";
@@ -171,10 +172,11 @@ export function AddChartContainer(props: AddChartProps) {
         <Container mt={65} maw={"100%"} flex={1}>
           <Container fluid w={"100%"} h={chartPreviewMaxHeight} flex={1}>
             {values.chartId && currentStep > 0 ? (
-              <div style={{ ...chartPreviewSize[values.chartId] }}>
+              <div style={chartPreviewSize[values.chartId] ?? defaultPreviewSize}>
                 <ChartDisplayer
                   chartId={values.chartId}
                   habitKey={values.habitKey}
+                  exerciseKey={values.exerciseKey}
                   countKey={values.countKey}
                   title={values.title || "Title"}
                   startDate={startDate}
