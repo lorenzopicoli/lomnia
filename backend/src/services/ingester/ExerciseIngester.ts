@@ -1,3 +1,4 @@
+import { chunk } from "lodash";
 import { buildUpdateOnConflict } from "../../helpers/buildUpdateOnConflict";
 import { ingestionSchemas } from "../../ingestionSchemas";
 import type IngestionExercise from "../../ingestionSchemas/IngestionExercise";
@@ -110,7 +111,7 @@ export class ExerciseIngester extends Ingester<IngestionExercise, NewRow> {
         distance,
         avgPace,
         avgHeartRate,
-        duration,
+        duration: duration ? Math.round(duration) : duration,
         timezone,
 
         maxPace,
@@ -195,17 +196,23 @@ export class ExerciseIngester extends Ingester<IngestionExercise, NewRow> {
 
         if (entry.laps.length > 0) {
           const formattedLaps = entry.laps.map((l) => ({ ...l, exerciseId }));
-          await this.tx.insert(exerciseLapsTable).values(formattedLaps).onConflictDoUpdate({
-            target: exerciseLapsTable.externalId,
-            set: updateOnConflict,
-          });
+          const chunks = chunk(formattedLaps, this.batchSize);
+          for (const values of chunks) {
+            await this.tx.insert(exerciseLapsTable).values(values).onConflictDoUpdate({
+              target: exerciseLapsTable.externalId,
+              set: updateOnConflict,
+            });
+          }
         }
         if (entry.metrics.length > 0) {
           const formattedMetrics = entry.metrics.map((l) => ({ ...l, exerciseId }));
-          await this.tx.insert(exerciseMetricsTable).values(formattedMetrics).onConflictDoUpdate({
-            target: exerciseMetricsTable.externalId,
-            set: updateOnConflict,
-          });
+          const chunks = chunk(formattedMetrics, this.batchSize);
+          for (const values of chunks) {
+            await this.tx.insert(exerciseMetricsTable).values(values).onConflictDoUpdate({
+              target: exerciseMetricsTable.externalId,
+              set: updateOnConflict,
+            });
+          }
         }
       }),
     );
