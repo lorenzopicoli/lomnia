@@ -8,5 +8,5 @@ export function formatPace(pace: number | null): string | null {
 
   const paddedSeconds = seconds.toString().padStart(2, "0");
 
-  return `${minutes}:${paddedSeconds} /km`;
+  return `${minutes}:${paddedSeconds}/km`;
 }

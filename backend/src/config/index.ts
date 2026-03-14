@@ -166,6 +166,12 @@ export default {
        */
       limit: 20,
     },
+    exerciseFastestLapsBar: {
+      /**
+       * How many values are shown in the chart
+       */
+      limit: 10,
+    },
     browserHistory: {
       mostVisited: {
         /**

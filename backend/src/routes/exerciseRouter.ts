@@ -34,10 +34,7 @@ export const exerciseChartRouter = t.router({
   distances: loggedProcedure.input(ExerciseChartPeriodInput).query((opts) => {
     return ExerciseService.distances(opts.input);
   }),
-  highestAverageHeartRate: loggedProcedure.input(ExerciseChartPeriodInput).query((opts) => {
-    return ExerciseService.highestAverageHeartRate(opts.input);
-  }),
-  fastestLaps: loggedProcedure.input(ExerciseChartPeriodInput).query((opts) => {
+  fastestLaps: loggedProcedure.input(ExerciseChartDateRangeInput).query((opts) => {
     return ExerciseService.fastestLaps(opts.input);
   }),
 });

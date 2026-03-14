@@ -8,6 +8,7 @@ import { CountriesVisitedMap } from "../../containers/Charts/CountriesVisitedMap
 import { CountriesVisitedPie } from "../../containers/Charts/CountriesVisitedPie";
 import { ExerciseDistanceLine } from "../../containers/Charts/ExerciseDistanceLine";
 import { ExerciseDurationLine } from "../../containers/Charts/ExerciseDurationLine";
+import { ExerciseFastestLapsBar } from "../../containers/Charts/ExerciseFastestLapsBar";
 import { ExerciseFrequencyCalendarHeatmap } from "../../containers/Charts/ExerciseFrequencyCalendarHeatmap";
 import { ExercisePaceTemperatureScatter } from "../../containers/Charts/ExercisePaceTemperatureScatter";
 import { HeartRateMinMaxAvg } from "../../containers/Charts/HeartRateMinMaxAvg";
@@ -146,6 +147,9 @@ function ChartSwitcher(props: ChartDisplayerProps) {
     }
     case ChartId.ExerciseDurationLine: {
       return <ExerciseDurationLine {...props} />;
+    }
+    case ChartId.ExerciseFastestLapsBar: {
+      return <ExerciseFastestLapsBar {...props} />;
     }
     case ChartId.TextHabitBar: {
       const habitKey = props.habitKey;

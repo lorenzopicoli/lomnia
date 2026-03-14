@@ -1,5 +1,6 @@
 import { and, asc, avg, count, eq, gt, isNotNull, sql } from "drizzle-orm";
 import z from "zod";
+import config from "../config";
 import { db } from "../db/connection";
 import { hourlyWeatherTable } from "../models";
 import { exercisesTable, exerciseTypeOptions } from "../models/Exercise";
@@ -121,37 +122,18 @@ export namespace ExerciseService {
     return data;
   };
 
-  export const highestAverageHeartRate = async (params: ExerciseChartPeriodInput) => {
-    const { aggregation } = params;
-
-    const aggregatedDate = getAggregatedXColumn(exercisesTable.startedAt, aggregation.period);
+  export const fastestLaps = async (params: ExerciseChartDateRangeInput) => {
     const data = db
       .select({
-        value: sql`MAX(${exercisesTable.avgHeartRate})`.mapWith(Number),
-        date: aggregatedDate.mapWith(String),
+        name: exercisesTable.name,
+        date: exercisesTable.startedAt,
+        pace: exerciseLapsTable.avgPace,
       })
-      .from(exercisesTable)
-      .where(exerciseChartFilters(params))
-      .groupBy(aggregatedDate)
-      .orderBy(asc(aggregatedDate));
-
-    return data;
-  };
-
-  export const fastestLaps = async (params: ExerciseChartPeriodInput) => {
-    const { aggregation } = params;
-
-    const aggregatedDate = getAggregatedXColumn(exercisesTable.startedAt, aggregation.period);
-    const data = db
-      .select({
-        value: sql`MAX(${exerciseLapsTable.avgPace})`.mapWith(Number),
-        date: aggregatedDate.mapWith(String),
-      })
-      .from(exercisesTable)
-      .innerJoin(exerciseLapsTable, eq(exerciseLapsTable.exerciseId, exercisesTable.id))
-      .where(exerciseChartFilters(params))
-      .groupBy(aggregatedDate)
-      .orderBy(asc(aggregatedDate));
+      .from(exerciseLapsTable)
+      .innerJoin(exercisesTable, eq(exerciseLapsTable.exerciseId, exercisesTable.id))
+      .where(and(exerciseChartFilters(params), isNotNull(exerciseLapsTable.avgPace)))
+      .orderBy(asc(exerciseLapsTable.avgPace))
+      .limit(config.charts.exerciseFastestLapsBar.limit);
 
     return data;
   };

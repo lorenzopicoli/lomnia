@@ -45,6 +45,7 @@ export enum ChartId {
   PaceTemperatureScatter = "paceTemperatureScatter",
   ExerciseDistanceLine = "exerciseDistanceLine",
   ExerciseDurationLine = "exerciseDurationLine",
+  ExerciseFastestLapsBar = "exerciseFastestLapsBar",
 }
 
 export const chartParamByChartId: Partial<Record<ChartId, ChartParams[]>> = {
@@ -57,6 +58,7 @@ export const chartParamByChartId: Partial<Record<ChartId, ChartParams[]>> = {
   [ChartId.PaceTemperatureScatter]: ["exerciseKey"],
   [ChartId.ExerciseDistanceLine]: ["exerciseKey", "aggFun", "aggPeriod"],
   [ChartId.ExerciseDurationLine]: ["exerciseKey", "aggFun", "aggPeriod"],
+  [ChartId.ExerciseFastestLapsBar]: ["exerciseKey"],
 };
 
 export enum ChartSource {
@@ -293,6 +295,13 @@ export const availableCharts = [
     description: "Insights into how the distance average/max/sum changed over time",
     sources: [ChartSource.Exercise],
     elements: [ChartElement.Line],
+  },
+  {
+    id: ChartId.ExerciseFastestLapsBar,
+    title: "Fastest exercise laps",
+    description: "The fastest laps taken. Laps are usually 1km",
+    sources: [ChartSource.Exercise],
+    elements: [ChartElement.Bar],
   },
 ];
 
