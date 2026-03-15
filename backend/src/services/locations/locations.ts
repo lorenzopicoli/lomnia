@@ -37,6 +37,7 @@ export interface LocationTimelineActivity {
   startDate: Date;
   endDate: Date;
   velocity: number;
+  source: string;
   timezone: string;
   duration: unknown;
   placeOfInterest: {
@@ -169,6 +170,7 @@ export class LocationChartServiceInternal {
         startDate: durationIslands.startDate,
         endDate: durationIslands.endDate,
         velocity: durationIslands.velocity,
+        source: durationIslands.source,
         timezone: durationIslands.timezone,
         duration: durationIslands.duration,
         placeOfInterest: {

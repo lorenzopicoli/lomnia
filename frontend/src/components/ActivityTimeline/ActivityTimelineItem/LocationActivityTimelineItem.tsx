@@ -26,7 +26,7 @@ export function LocationActivityTimelineItem(props: { activity: Item; onExpand: 
       title={data.placeOfInterest?.displayName ?? (isStationary ? "Staying in place" : "Moving")}
       timezone={data.timezone ?? ""}
       overwriteTime={timeRange}
-      tags={["Location", "Owntracks"]}
+      tags={["Location", data.source]}
       activityPeriod={{
         start: data.startDate,
         end: data.endDate,
@@ -44,7 +44,7 @@ export function LocationActivityTimelineItem(props: { activity: Item; onExpand: 
           )}
         </>
       )}
-      renderIcon={() => locationActivitySourceToIcon(null)}
+      renderIcon={() => locationActivitySourceToIcon(data.source)}
       renderMap={
         activity.data.placeOfInterest?.geoJson
           ? ({ points, isLoading }) => (

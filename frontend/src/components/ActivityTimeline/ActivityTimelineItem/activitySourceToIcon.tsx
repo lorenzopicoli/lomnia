@@ -1,4 +1,4 @@
-import { IconCheck, IconRun, IconWorld, IconZzz } from "@tabler/icons-react";
+import { IconCheck, IconPin, IconRun, IconWorld, IconZzz } from "@tabler/icons-react";
 import { FirefoxLogo } from "../../logos/Firefox";
 import { GarminLogo } from "../../logos/GarminLogo";
 import { HaresLogo } from "../../logos/HaresLogo";
@@ -18,7 +18,7 @@ export function locationActivitySourceToIcon(source: string | null) {
     case "owntracks":
       return <OwntracksLogo />;
     default:
-      return <OwntracksLogo height={20} width={20} />;
+      return <IconPin height={20} width={20} />;
   }
 }
 

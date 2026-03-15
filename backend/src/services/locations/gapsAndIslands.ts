@@ -63,6 +63,7 @@ export function getIslandsCte(params: {
         id: enrichedLocations.id,
         recordedAt: enrichedLocations.recordedAt,
         velocity: enrichedLocations.velocity,
+        source: enrichedLocations.source,
         placeKey: enrichedLocations.placeKey,
         timezone: enrichedLocations.timezone,
         // Very important to use the id as a tie break since location fix can have duplicates
@@ -95,6 +96,7 @@ export function getIslandsCte(params: {
                 ${min(baseLocations.recordedAt)})
             )`.as("ai_duration"),
         velocity: avg(baseLocations.velocity).mapWith(Number).as("ai_velocity"),
+        source: max(baseLocations.source).mapWith(String).as("ai_source"),
         placeKey: baseLocations.placeKey,
         timezone: baseLocations.timezone,
       })
@@ -118,6 +120,7 @@ export function getIslandsCte(params: {
         endDate: baseActivitiesIslands.endDate,
         duration: baseActivitiesIslands.duration,
         velocity: baseActivitiesIslands.velocity,
+        source: baseActivitiesIslands.source,
         placeKey: baseActivitiesIslands.placeKey,
         timezone: baseActivitiesIslands.timezone,
         totalSeq: sql`
@@ -158,6 +161,7 @@ export function getIslandsCte(params: {
           .mapWith((v) => new Date(v))
           .as("di_end_date"),
         velocity: avg(activitiesIslands.velocity).mapWith(Number).as("di_velocity"),
+        source: max(activitiesIslands.source).mapWith(String).as("di_source"),
         // If this island is a group of more than one placeKeys, then set it to NULL
         // otherwise return it
         placeKey: sql`
