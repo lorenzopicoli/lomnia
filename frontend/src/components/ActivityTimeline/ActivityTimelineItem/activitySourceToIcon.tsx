@@ -16,7 +16,7 @@ export function websiteVisitActivitySourceToIcon(source: string | null) {
 export function locationActivitySourceToIcon(source: string | null) {
   switch (source) {
     case "owntracks":
-      return <OwntracksLogo />;
+      return <OwntracksLogo height={20} width={20} />;
     default:
       return <IconPin height={20} width={20} />;
   }
