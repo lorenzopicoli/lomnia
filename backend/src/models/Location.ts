@@ -1,4 +1,4 @@
-import { boolean, integer, pgEnum, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, integer, pgEnum, pgTable, real, serial, text, timestamp } from "drizzle-orm/pg-core";
 import { geography } from "../db/types";
 import { importJobsTable } from "./ImportJob";
 import { locationDetailsTable } from "./LocationDetails";
@@ -28,7 +28,7 @@ export const locationsTable = pgTable("locations", {
   /***
    * In km/h
    */
-  velocity: integer("velocity"),
+  velocity: real("velocity"),
   /***
    * In meters
    */
