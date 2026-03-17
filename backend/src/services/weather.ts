@@ -1,10 +1,12 @@
 import { isValid, parse } from "date-fns";
 import { and, asc, count, eq, max, sql } from "drizzle-orm";
+import { DateTime } from "luxon";
 import { db } from "../db/connection";
 import { dailyWeatherTable, hourlyWeatherTable } from "../models";
 import type { ChartPeriodInput, DateRange } from "../types/chartTypes";
 import { getAggregatedXColumn } from "./common/getAggregatedXColumn";
 import { getAggregatedYColumn } from "./common/getAggregatedYColumn";
+import { LocationService } from "./locations/locations";
 
 export namespace WeatherService {
   export async function getByDay(params: { day: string }) {
@@ -16,8 +18,11 @@ export namespace WeatherService {
       where: sql`${dailyWeatherTable.date} = ${day}`,
     });
 
+    const timezone = await LocationService.getTimezoneForDate(DateTime.fromSQL(day));
+
     return {
       daily,
+      predominantTimezone: timezone?.timezone,
     };
   }
   export async function list(params: DateRange) {

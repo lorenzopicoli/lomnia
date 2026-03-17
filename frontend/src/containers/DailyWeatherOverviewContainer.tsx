@@ -1,3 +1,4 @@
+import { TZDate } from "@date-fns/tz";
 import { Flex, Group, Skeleton } from "@mantine/core";
 import { IconSunset, IconTemperaturePlus } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
@@ -6,7 +7,6 @@ import { intervalToDuration } from "date-fns/intervalToDuration";
 import { startOfDay } from "date-fns/startOfDay";
 import { trpc } from "../api/trpc";
 import { WeatherInfoItem, type WeatherInfoItemProps } from "../components/WeatherInfoItem/WeatherInfoItem";
-import { formatDateTime } from "../utils/formatDateTime";
 import { formatDurationShort } from "../utils/formatDurationShort";
 import { weatherCodeInformation } from "../utils/formatWeatherCode";
 import { getRandomColor } from "../utils/getRandomColor";
@@ -30,7 +30,7 @@ export default function DailyWeatherOverviewContainer(props: DailyWeatherOvervie
   if (!data || !data.daily) {
     return null;
   }
-  const { daily } = data;
+  const { daily, predominantTimezone = "UTC" } = data;
 
   const sunshineInterval = isNumber(daily.sunshineDuration)
     ? intervalToDuration({
@@ -39,7 +39,8 @@ export default function DailyWeatherOverviewContainer(props: DailyWeatherOvervie
       })
     : null;
   const formattedDuration = sunshineInterval ? formatDurationShort(sunshineInterval, { skipSeconds: true }) : null;
-
+  const sunrise = daily.sunrise ? new TZDate(daily.sunrise, predominantTimezone) : null;
+  const sunset = daily.sunset ? new TZDate(daily.sunset, predominantTimezone) : null;
   const weatherCode = isNumber(daily.weatherCode) ? weatherCodeInformation(daily.weatherCode) : null;
 
   const weatherItems = [
@@ -55,11 +56,11 @@ export default function DailyWeatherOverviewContainer(props: DailyWeatherOvervie
         label: `${Math.round(daily.apparentTemperatureMin)}°C → ${Math.round(daily.apparentTemperatureMax)}°C`,
       },
     formattedDuration &&
-      daily.sunrise &&
-      daily.sunset && {
+      sunrise &&
+      sunset && {
         icon: IconSunset,
         color: getRandomColor(),
-        label: `${formatDateTime(daily.sunrise)} → ${formatDateTime(daily.sunset)} (${formattedDuration})`,
+        label: `${format(sunrise, "HH:mm")} → ${format(sunset, "HH:mm")} (${formattedDuration})`,
       },
   ].filter(Boolean) as WeatherInfoItemProps[];
 

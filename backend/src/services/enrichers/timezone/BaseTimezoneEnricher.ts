@@ -31,7 +31,7 @@ export class BaseTimezoneEnricher extends BaseEnricher {
       for (const entry of this.currentPage) {
         rowsProcessed++;
         lastDate = entry.date;
-        const timezoneResult = await LocationService.getTimezoneForDate(tx, DateTime.fromJSDate(entry.date));
+        const timezoneResult = await LocationService.getTimezoneForDate(DateTime.fromJSDate(entry.date), tx);
         if (timezoneResult) {
           await this.updateItem(tx, entry.id, timezoneResult.timezone);
         }

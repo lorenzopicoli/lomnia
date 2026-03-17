@@ -1,3 +1,4 @@
+import { TZDate } from "@date-fns/tz";
 import { Flex, Group, Skeleton, Stack } from "@mantine/core";
 import { IconBed, IconMoon } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
@@ -29,8 +30,8 @@ export default function DailySleepOverviewContainer(props: DailySleepOverviewCon
 
   const sleep = data[0].sleep;
 
-  const start = new Date(sleep.startedAt);
-  const end = new Date(sleep.endedAt);
+  const start = new TZDate(sleep.startedAt, sleep.timezone || "UTC");
+  const end = new TZDate(sleep.endedAt, sleep.timezone || "UTC");
 
   const duration = intervalToDuration({
     start,
@@ -54,7 +55,6 @@ export default function DailySleepOverviewContainer(props: DailySleepOverviewCon
 
   return (
     <Stack w="100%" gap="md">
-      {/* --- Top stats --- */}
       <Group style={{ flexWrap: "wrap" }} maw={"100%"} miw={0} w="100%">
         {items.map((item) => (
           <WeatherInfoItem key={item.label} {...item} />

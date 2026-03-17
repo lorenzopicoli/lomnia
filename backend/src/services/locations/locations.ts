@@ -48,8 +48,8 @@ export interface LocationTimelineActivity {
 }
 
 export class LocationServiceInternal {
-  public async getTimezoneForDate(tx: DBTransaction, date: DateTime): Promise<{ timezone: string } | undefined> {
-    return tx
+  public async getTimezoneForDate(date: DateTime, tx?: DBTransaction): Promise<{ timezone: string } | undefined> {
+    return (tx ?? db)
       .select({ timezone: locationsTable.timezone })
       .from(locationsTable)
       .where(
