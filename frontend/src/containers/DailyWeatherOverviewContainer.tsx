@@ -1,5 +1,5 @@
 import { Flex, Group, Skeleton } from "@mantine/core";
-import { IconSunrise, IconSunset, IconTemperatureMinus, IconTemperaturePlus, IconUvIndex } from "@tabler/icons-react";
+import { IconSunset, IconTemperaturePlus } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns/format";
 import { intervalToDuration } from "date-fns/intervalToDuration";
@@ -7,6 +7,7 @@ import { startOfDay } from "date-fns/startOfDay";
 import { trpc } from "../api/trpc";
 import { WeatherInfoItem, type WeatherInfoItemProps } from "../components/WeatherInfoItem/WeatherInfoItem";
 import { formatDateTime } from "../utils/formatDateTime";
+import { formatDurationShort } from "../utils/formatDurationShort";
 import { weatherCodeInformation } from "../utils/formatWeatherCode";
 import { getRandomColor } from "../utils/getRandomColor";
 import { isNumber } from "../utils/isNumber";
@@ -37,42 +38,29 @@ export default function DailyWeatherOverviewContainer(props: DailyWeatherOvervie
         end: daily.sunshineDuration * 1000,
       })
     : null;
+  const formattedDuration = sunshineInterval ? formatDurationShort(sunshineInterval, { skipSeconds: true }) : null;
 
   const weatherCode = isNumber(daily.weatherCode) ? weatherCodeInformation(daily.weatherCode) : null;
 
-  const zeroPad = (num: number) => String(num).padStart(2, "0");
-
   const weatherItems = [
-    isNumber(daily.apparentTemperatureMax) && {
-      icon: IconTemperaturePlus,
-      color: "#ab264c",
-      label: `${Math.round(daily.apparentTemperatureMax)}°C`,
-    },
-    isNumber(daily.apparentTemperatureMin) && {
-      icon: IconTemperatureMinus,
-      color: "#328ac9",
-      label: `${Math.round(daily.apparentTemperatureMin)}°C`,
-    },
     weatherCode && {
       icon: weatherCode.icon,
       color: getRandomColor(),
       label: weatherCode.label,
     },
-    sunshineInterval && {
-      icon: IconUvIndex,
-      color: getRandomColor(),
-      label: `Sunshine: ${zeroPad(sunshineInterval.hours ?? 0)}h${zeroPad(sunshineInterval.minutes ?? 0)}m`,
-    },
-    daily.sunrise && {
-      icon: IconSunrise,
-      color: getRandomColor(),
-      label: `Sunrise: ${formatDateTime(daily.sunrise)}`,
-    },
-    daily.sunset && {
-      icon: IconSunset,
-      color: getRandomColor(),
-      label: `Sunset: ${formatDateTime(daily.sunset)}`,
-    },
+    isNumber(daily.apparentTemperatureMin) &&
+      isNumber(daily.apparentTemperatureMax) && {
+        icon: IconTemperaturePlus,
+        color: "#ab264c",
+        label: `${Math.round(daily.apparentTemperatureMin)}°C → ${Math.round(daily.apparentTemperatureMax)}°C`,
+      },
+    formattedDuration &&
+      daily.sunrise &&
+      daily.sunset && {
+        icon: IconSunset,
+        color: getRandomColor(),
+        label: `${formatDateTime(daily.sunrise)} → ${formatDateTime(daily.sunset)} (${formattedDuration})`,
+      },
   ].filter(Boolean) as WeatherInfoItemProps[];
 
   return (

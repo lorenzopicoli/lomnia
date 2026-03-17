@@ -1,10 +1,9 @@
-import { ActionIcon, alpha, Group, Text } from "@mantine/core";
+import { Text } from "@mantine/core";
 import { modals } from "@mantine/modals";
 import { notifications } from "@mantine/notifications";
-import { IconPencil, IconTrash } from "@tabler/icons-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { format } from "date-fns/format";
 import { useEffect } from "react";
-import { Link } from "react-router-dom";
 import { NumberParam, StringParam, useQueryParams } from "use-query-params";
 import { type RouterOutputs, trpc } from "../api/trpc";
 import { Table, type TableColumn } from "../components/Table/Table";
@@ -83,23 +82,29 @@ export function PlacesOfInterestTable(props: { search?: string }) {
     {
       key: "createdAt",
       header: "Created At",
-      render: (poi) => poi.createdAt?.toLocaleString(),
+      render: (poi) => {
+        if (!poi.createdAt) {
+          return "Unknown";
+        }
+        const formattedDate = format(new Date(poi.createdAt), "dd/MM/yyyy HH:mm");
+        return formattedDate;
+      },
     },
-    {
-      key: "actions",
-      header: "Actions",
-      width: 200,
-      render: (poi) => (
-        <Group>
-          <ActionIcon component={Link} to={`/poi/${poi.id}/edit`} flex={0} variant="subtle">
-            <IconPencil size={20} />
-          </ActionIcon>
-          <ActionIcon flex={0} variant="subtle" onClick={() => handleDelete(poi.id)}>
-            <IconTrash size={20} color={alpha(theme.colors.red[9], 0.8)} />
-          </ActionIcon>
-        </Group>
-      ),
-    },
+    // {
+    //   key: "actions",
+    //   header: "Actions",
+    //   width: 200,
+    //   render: (poi) => (
+    //     <Group>
+    //       <ActionIcon component={Link} to={`/poi/${poi.id}/edit`} flex={0} variant="subtle">
+    //         <IconPencil size={20} />
+    //       </ActionIcon>
+    //       <ActionIcon flex={0} variant="subtle" onClick={() => handleDelete(poi.id)}>
+    //         <IconTrash size={20} color={alpha(theme.colors.red[9], 0.8)} />
+    //       </ActionIcon>
+    //     </Group>
+    //   ),
+    // },
   ];
 
   const handleNextPage = () => {

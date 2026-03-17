@@ -5,7 +5,7 @@ import { loggedProcedure } from "./common/loggedProcedure";
 import { t } from "./trpc";
 
 export const sleepsRouter = t.router({
-  getSleepForDay: loggedProcedure
+  getByDay: loggedProcedure
     .input(
       z.object({
         day: z.iso.date(),

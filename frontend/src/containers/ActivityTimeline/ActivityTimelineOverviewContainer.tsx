@@ -7,6 +7,7 @@ import { trpc } from "../../api/trpc";
 import { cardDarkBackground } from "../../themes/mantineThemes";
 import { getWeatherTheme } from "../../utils/formatWeatherCode";
 import DailyMapContainer from "../DailyMapContainer";
+import DailySleepOverviewContainer from "../DailySleepOverviewContainer";
 import DailyWeatherOverviewContainer from "../DailyWeatherOverviewContainer";
 
 export default function ActivityTimelineOverviewContainer(props: { day: Date }) {
@@ -53,6 +54,7 @@ export default function ActivityTimelineOverviewContainer(props: { day: Date }) 
 
           <Collapse in={!isSmallScreen || opened}>
             <Stack>
+              <DailySleepOverviewContainer date={day} />
               <DailyWeatherOverviewContainer date={day} />
               <AspectRatio
                 style={{
