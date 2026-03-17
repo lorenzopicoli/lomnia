@@ -15,6 +15,12 @@ export const sleepsTable = pgTable("sleeps", {
    */
   endedAt: timestamp("ended_at").notNull(),
   /**
+   * The day for the sleep that should be used for charts and when displaying to the user
+   * It doesn't contain time information and the day is on the user timezone. If timezone is undefined
+   * it'll use UTC
+   */
+  sleepDate: timestamp("sleep_date").notNull(),
+  /**
    * Whether the sleep time was manually set by the user
    */
   isManuallyRecorded: boolean("is_manually_recorded").notNull(),

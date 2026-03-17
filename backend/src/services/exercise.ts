@@ -1,4 +1,4 @@
-import { and, asc, avg, count, eq, gt, isNotNull, sql } from "drizzle-orm";
+import { and, asc, avg, count, eq, gt, gte, isNotNull, sql } from "drizzle-orm";
 import z from "zod";
 import config from "../config";
 import { db } from "../db/connection";
@@ -131,7 +131,9 @@ export namespace ExerciseService {
       })
       .from(exerciseLapsTable)
       .innerJoin(exercisesTable, eq(exerciseLapsTable.exerciseId, exercisesTable.id))
-      .where(and(exerciseChartFilters(params), isNotNull(exerciseLapsTable.avgPace)))
+      .where(
+        and(exerciseChartFilters(params), isNotNull(exerciseLapsTable.avgPace), gte(exerciseLapsTable.distance, 1000)),
+      )
       .orderBy(asc(exerciseLapsTable.avgPace))
       .limit(config.charts.exerciseFastestLapsBar.limit);
 

@@ -1,7 +1,8 @@
 import { TZDate } from "@date-fns/tz";
 import { Group, Progress, Stack, Text } from "@mantine/core";
-import { format, formatDistanceStrict, intervalToDuration } from "date-fns";
+import { format, intervalToDuration } from "date-fns";
 import type { RouterOutputs } from "../../../api/trpc";
+import { formatDurationShort } from "../../../utils/formatDurationShort";
 import { ActivityTimelineTextValue } from "./ActivityTimelineTextValue";
 import { sleepActivitySourceToIcon } from "./activitySourceToIcon";
 import { BaseActivityTimelineItem } from "./BaseActivityTimelineItem";
@@ -18,7 +19,8 @@ export function SleepActivityTimelineItem(props: { activity: Item; onExpand: () 
   const end = new TZDate(sleep.endedAt, timezone);
 
   const totalMs = end.getTime() - start.getTime();
-  const duration = formatDistanceStrict(start, end);
+  const d = intervalToDuration({ start, end });
+  const duration = formatDurationShort(d);
   const timeRange = `${format(start, "HH:mm")}–${format(end, "HH:mm")}`;
 
   const score = sleep.userScore ?? sleep.automaticScore;

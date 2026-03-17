@@ -1,4 +1,4 @@
-import { asc, eq, inArray, sql } from "drizzle-orm";
+import { asc, inArray, sql } from "drizzle-orm";
 import { db } from "../db/connection";
 import { sleepStagesTable } from "../models";
 import { sleepsTable } from "../models/Sleep";
@@ -8,10 +8,7 @@ export namespace SleepService {
   export const getDay = async (params: { day: string }) => {
     // Have to group the results in JS because drizzle's schema query seems to break the stages date for some reason
     const { day } = params;
-    const sleeps = await db
-      .select()
-      .from(sleepsTable)
-      .where(eq(sql`DATE(${sleepsTable.startedAt} AT TIME ZONE COALESCE(${sleepsTable.timezone}, 'UTC'))`, day));
+    const sleeps = await db.select().from(sleepsTable).where(sql`${sleepsTable.sleepDate} = ${day}`);
 
     if (sleeps.length === 0) {
       return [];
