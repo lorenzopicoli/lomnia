@@ -1,4 +1,4 @@
-import { type getTableColumns, relations } from "drizzle-orm";
+import { type getTableColumns, relations, sql } from "drizzle-orm";
 import { boolean, integer, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
 import { externalDevicesTable } from "./ExternalDevice";
 import { importJobsTable } from "./ImportJob";
@@ -19,7 +19,7 @@ export const sleepsTable = pgTable("sleeps", {
    * It doesn't contain time information and the day is on the user timezone. If timezone is undefined
    * it'll use UTC
    */
-  sleepDate: timestamp("sleep_date").notNull(),
+  sleepDate: timestamp("sleep_date").notNull().generatedAlwaysAs(sql``),
   /**
    * Whether the sleep time was manually set by the user
    */
