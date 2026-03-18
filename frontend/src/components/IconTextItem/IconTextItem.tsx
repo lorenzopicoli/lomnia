@@ -1,12 +1,12 @@
 import { Box, Flex, Text } from "@mantine/core";
 import { LoIcon } from "../LoIcon";
 
-export interface WeatherInfoItemProps {
+export interface IconTextItemProps {
   icon: React.ComponentType;
   color: string;
   label: string;
 }
-export function WeatherInfoItem({ icon, color, label }: WeatherInfoItemProps) {
+export function IconTextItem({ icon, color, label }: IconTextItemProps) {
   return (
     <Flex flex={1} align="center" gap="sm">
       <Box style={{ flexShrink: 0 }}>

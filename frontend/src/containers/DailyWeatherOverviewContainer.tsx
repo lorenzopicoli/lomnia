@@ -6,7 +6,7 @@ import { format } from "date-fns/format";
 import { intervalToDuration } from "date-fns/intervalToDuration";
 import { startOfDay } from "date-fns/startOfDay";
 import { trpc } from "../api/trpc";
-import { WeatherInfoItem, type WeatherInfoItemProps } from "../components/WeatherInfoItem/WeatherInfoItem";
+import { IconTextItem, type IconTextItemProps } from "../components/IconTextItem/IconTextItem";
 import { formatDurationShort } from "../utils/formatDurationShort";
 import { weatherCodeInformation } from "../utils/formatWeatherCode";
 import { getRandomColor } from "../utils/getRandomColor";
@@ -62,12 +62,12 @@ export default function DailyWeatherOverviewContainer(props: DailyWeatherOvervie
         color: getRandomColor(),
         label: `${format(sunrise, "HH:mm")} → ${format(sunset, "HH:mm")} (${formattedDuration})`,
       },
-  ].filter(Boolean) as WeatherInfoItemProps[];
+  ].filter(Boolean) as IconTextItemProps[];
 
   return (
     <Group style={{ flexWrap: "wrap" }} maw={"100%"} miw={0} w="100%">
       {weatherItems.map((item) => (
-        <WeatherInfoItem key={item.label} {...item} />
+        <IconTextItem key={item.label} {...item} />
       ))}
     </Group>
   );

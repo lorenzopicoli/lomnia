@@ -6,7 +6,7 @@ import { format } from "date-fns/format";
 import { intervalToDuration } from "date-fns/intervalToDuration";
 import { startOfDay } from "date-fns/startOfDay";
 import { trpc } from "../api/trpc";
-import { WeatherInfoItem, type WeatherInfoItemProps } from "../components/WeatherInfoItem/WeatherInfoItem";
+import { IconTextItem, type IconTextItemProps } from "../components/IconTextItem/IconTextItem";
 import { formatDurationShort } from "../utils/formatDurationShort";
 
 type DailySleepOverviewContainerProps = {
@@ -40,7 +40,7 @@ export default function DailySleepOverviewContainer(props: DailySleepOverviewCon
 
   const score = sleep.userScore ?? sleep.automaticScore;
 
-  const items: WeatherInfoItemProps[] = [
+  const items: IconTextItemProps[] = [
     score != null && {
       icon: IconMoon,
       color: "#7c5cff",
@@ -51,13 +51,13 @@ export default function DailySleepOverviewContainer(props: DailySleepOverviewCon
       color: "#82c91e",
       label: `${format(start, "HH:mm")} → ${format(end, "HH:mm")} (${formatDurationShort(duration)})`,
     },
-  ].filter(Boolean) as WeatherInfoItemProps[];
+  ].filter(Boolean) as IconTextItemProps[];
 
   return (
     <Stack w="100%" gap="md">
       <Group style={{ flexWrap: "wrap" }} maw={"100%"} miw={0} w="100%">
         {items.map((item) => (
-          <WeatherInfoItem key={item.label} {...item} />
+          <IconTextItem key={item.label} {...item} />
         ))}
       </Group>
     </Stack>
