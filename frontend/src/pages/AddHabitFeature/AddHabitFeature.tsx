@@ -1,4 +1,4 @@
-import { Card, Container, Flex, Paper, ScrollArea } from "@mantine/core";
+import { Card, Container, Flex, Paper, ScrollArea, Skeleton } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -52,21 +52,21 @@ export function AddHabitFeature() {
     [saveHabitFeature, featureToEdit?.id],
   );
 
-  if (isFetching) {
-    return <>Loading...</>;
-  }
-
   return (
-    <Paper component={Container} fluid h={"100vh"} bg={theme.colors.dark[9]}>
+    <Paper component={Container} p={0} fluid h={"100vh"} bg={theme.colors.dark[9]}>
       <ScrollArea h={safeScrollableArea} type="never">
-        <Flex p={"lg"} gap={"lg"} mih={"90vh"} direction={"row"}>
+        <Flex p={"md"} gap={"md"} mih={"90vh"} direction={"row"}>
           {/* Left panel */}
-          <Card p={"md"} w={"40%"} bg={cardDarkBackground}>
-            <HabitFeatureBuilder onChange={setRules} onSave={handleSave} initialData={featureToEdit} />
+          <Card bdrs={"md"} p={"md"} w={"40%"} bg={cardDarkBackground}>
+            {isFetching ? (
+              <Skeleton h={"100%"} w={"100%"} />
+            ) : (
+              <HabitFeatureBuilder onChange={setRules} onSave={handleSave} initialData={featureToEdit} />
+            )}
           </Card>
           {/* Right panel */}
-          <Card flex={1} w={"60%"} bg={cardDarkBackground}>
-            <AddHabitFeaturePreview rules={debouncedRules} />
+          <Card bdrs={"md"} flex={1} w={"60%"} bg={cardDarkBackground}>
+            {isFetching ? <Skeleton h={"100%"} w={"100%"} /> : <AddHabitFeaturePreview rules={debouncedRules} />}
           </Card>
         </Flex>
       </ScrollArea>

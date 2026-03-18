@@ -1,4 +1,4 @@
-import { ActionIcon, Button, Container, Flex, Input, Paper, Stack } from "@mantine/core";
+import { ActionIcon, Button, Container, Flex, Input, Paper, Space, Stack } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
 import { IconPlus, IconSearch, IconTable, IconTransform } from "@tabler/icons-react";
 import type { ChangeEvent } from "react";
@@ -64,6 +64,7 @@ export function HabitsPage() {
           </Routes>
         </Flex>
 
+        <Space />
         <Routes>
           <Route index element={<RawHabitsTable search={debouncedParams.search ?? undefined} />} />
           <Route path={"features"} element={<HabitsFeaturesTable search={debouncedParams.search ?? undefined} />} />

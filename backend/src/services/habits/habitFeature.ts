@@ -47,6 +47,9 @@ export namespace HabitFeaturesService {
         name: habitFeaturesTable.name,
         createdAt: habitFeaturesTable.createdAt,
         matchedHabitEntries: countDistinct(extractedHabitFeaturesTable.habitId).as("matchedHabitEntries"),
+        extractionType: sql`${habitFeaturesTable.rules}->0->'extraction'->>'type'`
+          .mapWith(String)
+          .as("extraction_type"),
       })
       .from(habitFeaturesTable)
       .leftJoin(extractedHabitFeaturesTable, eq(extractedHabitFeaturesTable.habitFeatureId, habitFeaturesTable.id))
