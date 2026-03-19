@@ -64,7 +64,7 @@ export class SleepIngester extends Ingester<IngestionSleep, NewSleep> {
   }
 
   public async insertBatch(): Promise<void> {
-    const updateOnConflict = buildUpdateOnConflict(sleepsTable, ["importJobId", "createdAt"]);
+    const updateOnConflict = buildUpdateOnConflict(sleepsTable, ["importJobId", "createdAt", "sleepDate"]);
     await this.tx.insert(sleepsTable).values(this.collected).onConflictDoUpdate({
       target: sleepsTable.externalId,
       set: updateOnConflict,
