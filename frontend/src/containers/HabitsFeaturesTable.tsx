@@ -1,16 +1,14 @@
-import { alpha, Box, Group, Skeleton, Stack, Text } from "@mantine/core";
+import { Skeleton, Text } from "@mantine/core";
 import { modals } from "@mantine/modals";
 import { notifications } from "@mantine/notifications";
-import { IconArrowsShuffle, IconBrackets, IconLetterA, IconList } from "@tabler/icons-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { NumberParam, StringParam, useQueryParams } from "use-query-params";
-import { type RouterOutputs, trpc } from "../api/trpc";
+import { trpc } from "../api/trpc";
 import { List } from "../components/List/List";
-import { UnstyledLink } from "../components/UnstyledLink/UnstyledLink";
+import { HabitFeatureRow } from "../components/Rows/HabitFeatureRow";
 import { useConfig } from "../contexts/ConfigContext";
 
-type HabitFeature = RouterOutputs["habitFeatures"]["getTable"]["entries"][number];
 export function HabitsFeaturesTable(props: { search?: string }) {
   const { theme } = useConfig();
   const { search } = props;
@@ -80,63 +78,4 @@ export function HabitsFeaturesTable(props: { search?: string }) {
       }
     />
   );
-}
-
-type HabitFeatureRowProps = {
-  feature: HabitFeature;
-};
-
-export function HabitFeatureRow({ feature }: HabitFeatureRowProps) {
-  const { theme } = useConfig();
-  const Icon = getExtractionTypeIcon(feature.extractionType);
-  return (
-    <UnstyledLink to={`/habits/features/edit/${feature.id}`}>
-      <Group p={3} justify="space-between" align="center">
-        <Group align="flex-start" gap="md">
-          <Box
-            bdrs={"md"}
-            h={36}
-            w={36}
-            display={"flex"}
-            style={{
-              backgroundColor: alpha(theme.colors.gray[6], 0.15),
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-            }}
-          >
-            <Icon color={theme.colors.violet[4]} size={18} />
-          </Box>
-
-          <Stack gap={4}>
-            <Text fw={600}>{feature.name}</Text>
-
-            <Text size="sm" c="dimmed">
-              {feature.matchedHabitEntries} habits matched
-            </Text>
-
-            <Text size="xs" c="dimmed">
-              {feature.createdAt ? `Last matched 2 days ago` : "—"}
-            </Text>
-          </Stack>
-        </Group>
-      </Group>
-    </UnstyledLink>
-  );
-}
-
-function getExtractionTypeIcon(type: string) {
-  switch (type) {
-    case "array_values":
-      return IconList;
-    case "constant":
-      return IconLetterA;
-    case "map_values":
-      return IconArrowsShuffle;
-    case "entry_value":
-      return IconBrackets;
-    default:
-      return IconLetterA;
-  }
 }

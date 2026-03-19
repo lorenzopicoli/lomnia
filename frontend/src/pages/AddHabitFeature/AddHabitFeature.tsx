@@ -55,9 +55,9 @@ export function AddHabitFeature() {
   return (
     <Paper component={Container} p={0} fluid h={"100vh"} bg={theme.colors.dark[9]}>
       <ScrollArea h={safeScrollableArea} type="never">
-        <Flex p={"md"} gap={"md"} mih={"90vh"} direction={"row"}>
+        <Flex p={"md"} gap={"md"} mih={"90vh"} direction={{ base: "column", md: "row" }}>
           {/* Left panel */}
-          <Card bdrs={"md"} p={"md"} w={"40%"} bg={cardDarkBackground}>
+          <Card bdrs={"md"} p={"md"} w={{ base: "100%", md: "40%" }} bg={cardDarkBackground}>
             {isFetching ? (
               <Skeleton h={"100%"} w={"100%"} />
             ) : (
@@ -65,7 +65,7 @@ export function AddHabitFeature() {
             )}
           </Card>
           {/* Right panel */}
-          <Card bdrs={"md"} flex={1} w={"60%"} bg={cardDarkBackground}>
+          <Card bdrs={"md"} flex={1} w={{ base: "100%", md: "60%" }} bg={cardDarkBackground}>
             {isFetching ? <Skeleton h={"100%"} w={"100%"} /> : <AddHabitFeaturePreview rules={debouncedRules} />}
           </Card>
         </Flex>
