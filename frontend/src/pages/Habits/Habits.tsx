@@ -4,6 +4,7 @@ import { IconPlus, IconSearch, IconTable, IconTransform } from "@tabler/icons-re
 import type { ChangeEvent } from "react";
 import { Link, Route, Routes } from "react-router-dom";
 import { StringParam, useQueryParams } from "use-query-params";
+import { smallContentMaxWidth } from "../../constants";
 import { HabitsFeaturesTable } from "../../containers/HabitsFeaturesTable";
 import { RawHabitsTable } from "../../containers/RawHabitsTable";
 import { useConfig } from "../../contexts/ConfigContext";
@@ -22,7 +23,7 @@ export function HabitsPage() {
 
   return (
     <Paper component={Container} fluid bg={theme.colors.dark[9]}>
-      <Stack pt={"md"} h="100vh" style={{ overflow: "hidden" }}>
+      <Stack ml={"auto"} mr={"auto"} maw={smallContentMaxWidth} pt={"md"} h="100vh" style={{ overflow: "hidden" }}>
         <Flex w={"100%"} direction={"row"} justify={"space-between"} align={"center"} p={0}>
           <Container p={0} m={0} flex={1}>
             <Input

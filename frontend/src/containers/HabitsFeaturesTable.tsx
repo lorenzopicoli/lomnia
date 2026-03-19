@@ -1,4 +1,4 @@
-import { alpha, Box, Center, Divider, Flex, Group, Pagination, ScrollArea, Stack, Text } from "@mantine/core";
+import { alpha, Box, Group, Skeleton, Stack, Text } from "@mantine/core";
 import { modals } from "@mantine/modals";
 import { notifications } from "@mantine/notifications";
 import { IconArrowsShuffle, IconBrackets, IconLetterA, IconList } from "@tabler/icons-react";
@@ -6,9 +6,9 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { NumberParam, StringParam, useQueryParams } from "use-query-params";
 import { type RouterOutputs, trpc } from "../api/trpc";
+import { List } from "../components/List/List";
 import { UnstyledLink } from "../components/UnstyledLink/UnstyledLink";
 import { useConfig } from "../contexts/ConfigContext";
-import { cardDarkBackground } from "../themes/mantineThemes";
 
 type HabitFeature = RouterOutputs["habitFeatures"]["getTable"]["entries"][number];
 export function HabitsFeaturesTable(props: { search?: string }) {
@@ -65,12 +65,14 @@ export function HabitsFeaturesTable(props: { search?: string }) {
   }, [search]);
 
   return (
-    <HabitFeaturesList
+    <List
       data={entries ?? []}
       page={page}
       total={total}
       limit={limit}
       isLoading={isLoading}
+      renderRow={(row) => <HabitFeatureRow feature={row} />}
+      loadingRow={<Skeleton />}
       onPageChange={(newPage) =>
         setParams({
           page: newPage,
@@ -115,58 +117,12 @@ export function HabitFeatureRow({ feature }: HabitFeatureRowProps) {
             </Text>
 
             <Text size="xs" c="dimmed">
-              {feature.createdAt ? new Date(feature.createdAt).toLocaleString() : "—"}
+              {feature.createdAt ? `Last matched 2 days ago` : "—"}
             </Text>
           </Stack>
         </Group>
       </Group>
     </UnstyledLink>
-  );
-}
-
-type HabitFeaturesListProps = {
-  data: HabitFeature[];
-  page?: number;
-  total?: number;
-  limit?: number;
-  isLoading?: boolean;
-  onPageChange: (page: number) => void;
-};
-
-export function HabitFeaturesList({
-  data,
-  page = 1,
-  total = 0,
-  limit = 10,
-  isLoading,
-  onPageChange,
-}: HabitFeaturesListProps) {
-  const totalPages = Math.ceil(total / limit);
-
-  if (!isLoading && data.length === 0) {
-    return (
-      <Center py="lg">
-        <Text c="dimmed">No features found</Text>
-      </Center>
-    );
-  }
-
-  return (
-    <Flex gap={0} direction="column" h="100%" mb={"sm"} mih={0} bg={cardDarkBackground} bdrs={"md"}>
-      <ScrollArea flex={1} p={"md"}>
-        <Stack>
-          {data.map((feature) => (
-            <>
-              <HabitFeatureRow key={feature.id} feature={feature} />
-              <Divider />
-            </>
-          ))}
-        </Stack>
-      </ScrollArea>
-      <Center mb={"sm"}>
-        <Pagination size={"md"} value={page} onChange={onPageChange} total={totalPages} />
-      </Center>
-    </Flex>
   );
 }
 

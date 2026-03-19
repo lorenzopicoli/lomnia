@@ -9,6 +9,7 @@ import { trpc } from "../../api/trpc";
 import type { TimelineFilters } from "../../components/ActivityTimeline/ActivityTimelineConfigMenu";
 import { ActivityTimelineControls } from "../../components/ActivityTimeline/ActivityTimelineControls";
 import { ActivityTimelineList } from "../../components/ActivityTimeline/ActivityTimelineList";
+import { smallContentMaxWidth } from "../../constants";
 import ActivityTimelineOverviewContainer from "./ActivityTimelineOverviewContainer";
 
 const DEFAULT_TIMELINE_FILTERS: TimelineFilters = {
@@ -57,6 +58,7 @@ export default function ActivityTimelineContainer() {
       pl={0}
       pr={0}
       gap="lg"
+      maw={smallContentMaxWidth}
     >
       <ActivityTimelineControls
         date={day}
