@@ -1,8 +1,11 @@
+import { Skeleton } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { NumberParam, StringParam, useQueryParams } from "use-query-params";
 import { type RouterOutputs, trpc } from "../api/trpc";
-import { Table, type TableColumn } from "../components/Table/Table";
+import { List } from "../components/List/List";
+import { RawHabitRow } from "../components/Rows/RawHabitRow";
+import type { TableColumn } from "../components/Table/Table";
 
 type Habit = RouterOutputs["habits"]["getRawHabitsTable"]["entries"][number];
 export function RawHabitsTable(props: { search?: string }) {
@@ -20,6 +23,7 @@ export function RawHabitsTable(props: { search?: string }) {
     }),
   );
   const { page, entries, total, limit } = data ?? {};
+  console.log(entries);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: reset pagination if search changes
   useEffect(() => {
@@ -69,16 +73,30 @@ export function RawHabitsTable(props: { search?: string }) {
   };
 
   return (
-    <Table
+    <List
       data={entries ?? []}
-      columns={columns}
-      getRowKey={(habit) => habit.id}
-      isLoading={isLoading}
       page={page}
-      limit={limit}
       total={total}
-      onNextPage={handleNextPage}
-      onPrevPage={handlePrevPage}
+      limit={limit}
+      isLoading={isLoading}
+      renderRow={(row) => <RawHabitRow {...row} habitKey={row.key} />}
+      loadingRow={<Skeleton />}
+      onPageChange={(newPage) =>
+        setParams({
+          page: newPage,
+        })
+      }
     />
+    // <Table
+    //   data={entries ?? []}
+    //   columns={columns}
+    //   getRowKey={(habit) => habit.id}
+    //   isLoading={isLoading}
+    //   page={page}
+    //   limit={limit}
+    //   total={total}
+    //   onNextPage={handleNextPage}
+    //   onPrevPage={handlePrevPage}
+    // />
   );
 }

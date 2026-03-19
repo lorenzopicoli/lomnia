@@ -22,12 +22,12 @@ export function locationActivitySourceToIcon(source: string | null) {
   }
 }
 
-export function habitActivitySourceToIcon(source: string | null) {
+export function habitActivitySourceToIcon(source: string | null, size: number = 20) {
   switch (source) {
     case "hares":
-      return <HaresLogo height={20} width={20} />;
+      return <HaresLogo height={size} width={size} />;
     default:
-      return <IconCheck />;
+      return <IconCheck height={size} width={size} />;
   }
 }
 
