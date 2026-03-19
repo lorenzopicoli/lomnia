@@ -23,7 +23,6 @@ export function RawHabitsTable(props: { search?: string }) {
     }),
   );
   const { page, entries, total, limit } = data ?? {};
-  console.log(entries);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: reset pagination if search changes
   useEffect(() => {
