@@ -4,6 +4,7 @@ import { IconMap, IconPlus, IconSearch, IconTable } from "@tabler/icons-react";
 import type { ChangeEvent } from "react";
 import { Link, Route, Routes } from "react-router-dom";
 import { StringParam, useQueryParams } from "use-query-params";
+import { smallContentMaxWidth } from "../../constants";
 import { PlaceOfInterestMapContainer } from "../../containers/PlaceOfInterestMapContainer";
 import { PlacesOfInterestTable } from "../../containers/PlacesOfInterestTable";
 import { useConfig } from "../../contexts/ConfigContext";
@@ -22,7 +23,7 @@ export function PlacesOfInterestPage() {
 
   return (
     <Paper component={Container} fluid bg={theme.colors.dark[9]}>
-      <Stack pt={"md"} h="100vh" style={{ overflow: "hidden" }}>
+      <Stack ml={"auto"} mr={"auto"} maw={smallContentMaxWidth} pt={"md"} h="100vh" style={{ overflow: "hidden" }}>
         <Flex w={"100%"} direction={"row"} justify={"space-between"} align={"center"} p={0}>
           <Container p={0} m={0} flex={1}>
             <Input
@@ -58,15 +59,17 @@ export function PlacesOfInterestPage() {
             </ActionIcon>
           </Flex>
         </Flex>
-        <Flex flex={1} style={{ minHeight: 0 }}>
-          <Routes>
-            <Route index element={<PlacesOfInterestTable search={debouncedParams.search ?? undefined} />} />
-            <Route
-              path={"map"}
-              element={<PlaceOfInterestMapContainer search={debouncedParams.search ?? undefined} />}
-            />
-          </Routes>
-        </Flex>
+        <Routes>
+          <Route index element={<PlacesOfInterestTable search={debouncedParams.search ?? undefined} />} />
+          <Route
+            path={"map"}
+            element={
+              <Flex flex={1} style={{ minHeight: 0 }}>
+                <PlaceOfInterestMapContainer search={debouncedParams.search ?? undefined} />
+              </Flex>
+            }
+          />
+        </Routes>
       </Stack>
     </Paper>
   );

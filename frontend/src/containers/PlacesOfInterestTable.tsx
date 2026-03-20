@@ -1,12 +1,12 @@
-import { Text } from "@mantine/core";
+import { Skeleton, Text } from "@mantine/core";
 import { modals } from "@mantine/modals";
 import { notifications } from "@mantine/notifications";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { format } from "date-fns/format";
 import { useEffect } from "react";
 import { NumberParam, StringParam, useQueryParams } from "use-query-params";
 import { type RouterOutputs, trpc } from "../api/trpc";
-import { Table, type TableColumn } from "../components/Table/Table";
+import { List } from "../components/List/List";
+import { PlaceOfInterestRow } from "../components/Rows/PlaceOfInterestRow";
 import { useConfig } from "../contexts/ConfigContext";
 
 type PlaceOfInterest = RouterOutputs["placesOfInterest"]["getTable"]["entries"][number];
@@ -63,49 +63,6 @@ export function PlacesOfInterestTable(props: { search?: string }) {
       page: 1,
     }));
   }, [search]);
-  const columns: TableColumn<PlaceOfInterest>[] = [
-    {
-      key: "name",
-      header: "Name",
-      render: (poi) => poi.name,
-    },
-    {
-      key: "city",
-      header: "City",
-      render: (poi) => poi.city,
-    },
-    {
-      key: "country",
-      header: "Country",
-      render: (poi) => poi.country,
-    },
-    {
-      key: "createdAt",
-      header: "Created At",
-      render: (poi) => {
-        if (!poi.createdAt) {
-          return "Unknown";
-        }
-        const formattedDate = format(new Date(poi.createdAt), "dd/MM/yyyy HH:mm");
-        return formattedDate;
-      },
-    },
-    // {
-    //   key: "actions",
-    //   header: "Actions",
-    //   width: 200,
-    //   render: (poi) => (
-    //     <Group>
-    //       <ActionIcon component={Link} to={`/poi/${poi.id}/edit`} flex={0} variant="subtle">
-    //         <IconPencil size={20} />
-    //       </ActionIcon>
-    //       <ActionIcon flex={0} variant="subtle" onClick={() => handleDelete(poi.id)}>
-    //         <IconTrash size={20} color={alpha(theme.colors.red[9], 0.8)} />
-    //       </ActionIcon>
-    //     </Group>
-    //   ),
-    // },
-  ];
 
   const handleNextPage = () => {
     setParams({
@@ -119,16 +76,31 @@ export function PlacesOfInterestTable(props: { search?: string }) {
   };
 
   return (
-    <Table
+    <List
       data={entries ?? []}
-      columns={columns}
-      getRowKey={(poi) => poi.id}
-      isLoading={isLoading}
       page={page}
-      limit={limit}
       total={total}
-      onNextPage={handleNextPage}
-      onPrevPage={handlePrevPage}
+      limit={limit}
+      isLoading={isLoading}
+      renderRow={(row) => <PlaceOfInterestRow poi={row} />}
+      loadingRow={<Skeleton />}
+      onPageChange={(newPage) =>
+        setParams({
+          page: newPage,
+        })
+      }
     />
+
+    // <Table
+    //   data={entries ?? []}
+    //   columns={columns}
+    //   getRowKey={(poi) => poi.id}
+    //   isLoading={isLoading}
+    //   page={page}
+    //   limit={limit}
+    //   total={total}
+    //   onNextPage={handleNextPage}
+    //   onPrevPage={handlePrevPage}
+    // />
   );
 }
