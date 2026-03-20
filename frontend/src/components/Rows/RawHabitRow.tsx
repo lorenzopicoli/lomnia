@@ -1,12 +1,11 @@
 import { TZDate } from "@date-fns/tz";
 import { Group, Stack, Text } from "@mantine/core";
 import { format } from "date-fns";
-import { useConfig } from "../../contexts/ConfigContext";
 import { formatDate } from "../../utils/formatDate";
+import { formatHabitValue } from "../../utils/formatHabitValue";
 import { habitActivitySourceToIcon } from "../ActivityTimeline/ActivityTimelineItem/activitySourceToIcon";
 
 type RawHabitRowProps = {
-  id: number;
   source: string;
   habitKey: string;
   date: string;
@@ -24,20 +23,15 @@ type RawHabitRowProps = {
 };
 
 export function RawHabitRow(props: RawHabitRowProps) {
-  const { theme } = useConfig();
   const {
-    id,
     source,
     habitKey,
     date,
     recordedAt,
     timezone,
-
     comments,
-
     valuePrefix,
     valueSuffix,
-
     periodOfDay,
     isFullDay,
     value,
@@ -48,18 +42,27 @@ export function RawHabitRow(props: RawHabitRowProps) {
 
   return (
     <Group p={3} justify="space-between" align="center">
-      <Group align="flex-start" gap="md">
+      <Group align="flex-start" gap="md" flex={1}>
         {habitActivitySourceToIcon(source, 30)}
 
-        <Stack gap={4}>
-          <Text fw={600}>{habitKey}</Text>
+        <Stack gap={4} flex={1}>
+          <Group justify="space-between">
+            <Text fw={600}>{habitKey}</Text>
 
-          <Text size="sm" c="dimmed">
-            {`${formatDate(date, timezone, false)} - ${formattedTimeLabel}`}
-          </Text>
+            <Text size="sm" c="dimmed">
+              {`${formatDate(date, timezone, false)} - ${formattedTimeLabel}`}
+            </Text>
+          </Group>
+          <Text size="sm">{formatHabitValue({ value, valuePrefix, valueSuffix })}</Text>
+
           {recordedAt && recordedAt !== date ? (
             <Text size="sm" c="dimmed">
               {`Recorded on ${formatDate(recordedAt, timezone)}`}
+            </Text>
+          ) : null}
+          {comments ? (
+            <Text size="sm" c="dimmed">
+              {comments}
             </Text>
           ) : null}
         </Stack>
