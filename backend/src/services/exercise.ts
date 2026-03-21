@@ -5,6 +5,7 @@ import { db } from "../db/connection";
 import { hourlyWeatherTable } from "../models";
 import { exercisesTable, exerciseTypeOptions } from "../models/Exercise";
 import { exerciseLapsTable } from "../models/ExerciseLap";
+import { exerciseMetricsTable } from "../models/ExerciseMetrics";
 import { ChartAggregationInput, DateRange } from "../types/chartTypes";
 import { getAggregatedXColumn } from "./common/getAggregatedXColumn";
 import { getAggregatedYColumn } from "./common/getAggregatedYColumn";
@@ -32,10 +33,21 @@ export namespace ExerciseService {
     return exercises;
   };
 
-  export const getById = async (id: number) => {
-    const exercise = await db.select().from(exercisesTable).where(eq(exercisesTable.id, id)).limit(1);
+  export const getById = async (id: number, includeAdvancedDetails?: boolean) => {
+    const exercise = await db
+      .select()
+      .from(exercisesTable)
+      .where(eq(exercisesTable.id, id))
+      .limit(1)
+      .then((e) => e[0]);
+    if (includeAdvancedDetails) {
+      const laps = await db.select().from(exerciseLapsTable).where(eq(exerciseLapsTable.exerciseId, id));
+      const metrics = await db.select().from(exerciseMetricsTable).where(eq(exerciseMetricsTable.exerciseId, id));
 
-    return exercise[0];
+      return { exercise, laps, metrics };
+    }
+
+    return { exercise, laps: null, metrics: null };
   };
 
   export const getKeys = () => {

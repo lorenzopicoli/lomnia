@@ -4,7 +4,11 @@ import { DateRange } from "../types/chartTypes";
 import { loggedProcedure } from "./common/loggedProcedure";
 import { t } from "./trpc";
 
-export const locationRouter = t.router({});
+export const locationRouter = t.router({
+  getForPeriod: loggedProcedure.input(DateRange).query((opts) => {
+    return LocationChartService.getLocationForPeriod(opts.input);
+  }),
+});
 
 export const locationChartRouter = t.router({
   getCount: loggedProcedure.input(z.object({ day: z.iso.date() })).query((_opts) => {
@@ -14,10 +18,6 @@ export const locationChartRouter = t.router({
   getHeatmap: loggedProcedure.input(HeatmapInput).query(async (opts) => {
     const points = await LocationChartService.getHeatmap(opts.input);
     return points.map((r) => [r.location.lng, r.location.lat, r.weight] as [number, number, number]);
-  }),
-
-  getForPeriod: loggedProcedure.input(DateRange).query((opts) => {
-    return LocationChartService.getLocationForPeriod(opts.input);
   }),
 
   getDailyMap: loggedProcedure

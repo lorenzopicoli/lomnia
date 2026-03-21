@@ -55,7 +55,7 @@ export function BaseActivityTimelineItem(props: Props) {
   } = props;
 
   const { data: locationData, isPending: isLoadingLocationData } = useQuery(
-    trpc.charts.locations.getForPeriod.queryOptions(
+    trpc.location.getForPeriod.queryOptions(
       {
         start: activityPeriod ? activityPeriod.start : formatISO(subSeconds(new TZDate(activity.date, "UTC"), 60)),
         end: activityPeriod ? activityPeriod.end : formatISO(addSeconds(new TZDate(activity.date, "UTC"), 60)),

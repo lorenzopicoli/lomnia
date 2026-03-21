@@ -13,9 +13,11 @@ export const exerciseRouter = t.router({
     .query((opts) => {
       return ExerciseService.getByDay(opts.input) ?? [];
     }),
-  getById: loggedProcedure.input(z.object({ id: z.number() })).query((opts) => {
-    return ExerciseService.getById(opts.input.id) ?? [];
-  }),
+  getById: loggedProcedure
+    .input(z.object({ id: z.number(), includeAdvancedDetails: z.boolean().optional() }))
+    .query((opts) => {
+      return ExerciseService.getById(opts.input.id, opts.input.includeAdvancedDetails) ?? [];
+    }),
   getKeys: loggedProcedure.query(() => {
     return ExerciseService.getKeys();
   }),

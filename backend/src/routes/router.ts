@@ -6,7 +6,7 @@ import { exerciseChartRouter, exerciseRouter } from "./exerciseRouter";
 import { habitFeaturesChartRouter, habitFeaturesRouter } from "./habitFeatureRouter";
 import { habitsRouter } from "./habitsRouter";
 import { heartRateChartRouter } from "./heartRateRouter";
-import { locationChartRouter } from "./locationRouter";
+import { locationChartRouter, locationRouter } from "./locationRouter";
 import { placeOfInterestRouter } from "./placeOfInterestRouter";
 import { sleepsChartRouter, sleepsRouter } from "./sleepRouter";
 import { timelineRouter } from "./timelineRouter";
@@ -20,6 +20,7 @@ export const appRouter = t.router({
   habitFeatures: habitFeaturesRouter,
   dashboards: dashboardsRouter,
   placesOfInterest: placeOfInterestRouter,
+  location: locationRouter,
   timelineRouter: timelineRouter,
   exercise: exerciseRouter,
   sleep: sleepsRouter,

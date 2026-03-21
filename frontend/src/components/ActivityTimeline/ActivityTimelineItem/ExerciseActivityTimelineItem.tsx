@@ -2,7 +2,9 @@ import { TZDate } from "@date-fns/tz";
 import { Stack } from "@mantine/core";
 import { format, formatDistanceStrict } from "date-fns";
 import type { RouterOutputs } from "../../../api/trpc";
+import { formatCadence } from "../../../utils/formatCadence";
 import { formatExerciseType } from "../../../utils/formatExerciseType";
+import { formatHeartRate } from "../../../utils/formatHeartRate";
 import { ActivityTimelineTextValue } from "./ActivityTimelineTextValue";
 import { exerciseActivitySourceToIcon } from "./activitySourceToIcon";
 import { BaseActivityTimelineItem } from "./BaseActivityTimelineItem";
@@ -57,9 +59,13 @@ export function ExerciseActivityTimelineItem(props: { activity: Item; onExpand: 
       )}
       renderExpanded={() => (
         <Stack gap={4}>
-          {exercise.avgHeartRate && <ActivityTimelineTextValue text="Avg HR" value={`${exercise.avgHeartRate} bpm`} />}
+          {exercise.avgHeartRate && (
+            <ActivityTimelineTextValue text="Avg HR" value={formatHeartRate(exercise.avgHeartRate)} />
+          )}
 
-          {exercise.avgCadence && <ActivityTimelineTextValue text="Cadence" value={`${exercise.avgCadence} spm`} />}
+          {exercise.avgCadence && (
+            <ActivityTimelineTextValue text="Cadence" value={formatCadence(exercise.avgCadence)} />
+          )}
           {exercise.selfEvaluation && (
             <ActivityTimelineTextValue text="Effort score" value={String(exercise.selfEvaluation)} />
           )}
