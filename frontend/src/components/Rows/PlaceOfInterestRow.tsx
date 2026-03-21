@@ -10,7 +10,7 @@ type PlaceOfInterestRowProps = {
     city: string | null;
     country: string;
     // JSON feature
-    geoJson: string;
+    geoJson?: unknown;
   };
 };
 
@@ -33,7 +33,7 @@ export function PlaceOfInterestRow({ poi }: PlaceOfInterestRowProps) {
               flexShrink: 0,
             }}
           >
-            <svg color={theme.colors.violet[4]} width={25} height={25} viewBox="0 0 24 24">
+            <svg width={25} height={25} viewBox="0 0 24 24">
               <title>{poi.name}</title>
               <GeoJsonPreview geoJson={poi.geoJson} />
             </svg>
@@ -56,6 +56,7 @@ export function PlaceOfInterestRow({ poi }: PlaceOfInterestRowProps) {
  * This function is AI generated
  */
 function GeoJsonPreview({ geoJson }: { geoJson: any }) {
+  const { theme } = useConfig();
   try {
     const geometry = geoJson.geometry;
 
@@ -85,7 +86,15 @@ function GeoJsonPreview({ geoJson }: { geoJson: any }) {
 
       const points = normalized.join(" ");
 
-      return <polygon points={points} fill="currentColor" stroke="currentColor" strokeWidth="1.5" />;
+      return (
+        <polygon
+          points={points}
+          fill={theme.colors.violet[4]}
+          stroke={theme.colors.violet[9]}
+          strokeWidth="1"
+          strokeLinejoin="round"
+        />
+      );
     }
 
     return null;
