@@ -159,9 +159,9 @@ export function AddPlaceOfInterestContainer(_props: { search?: string }) {
   return (
     <Paper component={Container} fluid h={"100vh"} bg={theme.colors.dark[9]}>
       <ScrollArea h={safeScrollableArea} type="never">
-        <Flex p={"lg"} gap={"lg"} mih={"90vh"} direction={"row"}>
+        <Flex p={"lg"} gap={"lg"} mih={"90vh"} direction={{ base: "column", md: "row" }}>
           {/* Left panel */}
-          <Card p={"md"} w={"40%"} bg={cardDarkBackground}>
+          <Card p={"md"} w={{ base: "100%", md: "40%" }} bg={cardDarkBackground}>
             <Card.Section p={"md"}>
               <Title order={3}>General</Title>
             </Card.Section>
@@ -192,7 +192,7 @@ export function AddPlaceOfInterestContainer(_props: { search?: string }) {
             </Stack>
           </Card>
           {/* Right panel */}
-          <Card flex={1} w={"60%"} title="Edit place in the map" bg={cardDarkBackground}>
+          <Card flex={1} w={{ base: "100%", md: "60%" }} title="Edit place in the map" bg={cardDarkBackground}>
             <Card.Section p={"md"}>
               <Title order={3}>Map area</Title>
               <Text size="sm">Draw one shape on the map to define the area covered by this place of interest.</Text>

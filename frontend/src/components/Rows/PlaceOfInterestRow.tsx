@@ -1,5 +1,4 @@
 import { alpha, Box, Group, Stack, Text } from "@mantine/core";
-import { IconMap } from "@tabler/icons-react";
 import { useConfig } from "../../contexts/ConfigContext";
 import { UnstyledLink } from "../UnstyledLink/UnstyledLink";
 
@@ -10,6 +9,8 @@ type PlaceOfInterestRowProps = {
     createdAt: string | null;
     city: string | null;
     country: string;
+    // JSON feature
+    geoJson: string;
   };
 };
 
@@ -32,7 +33,10 @@ export function PlaceOfInterestRow({ poi }: PlaceOfInterestRowProps) {
               flexShrink: 0,
             }}
           >
-            <IconMap color={theme.colors.violet[4]} size={18} />
+            <svg color={theme.colors.violet[4]} width={25} height={25} viewBox="0 0 24 24">
+              <title>{poi.name}</title>
+              <GeoJsonPreview geoJson={poi.geoJson} />
+            </svg>
           </Box>
 
           <Stack gap={4}>
@@ -46,4 +50,46 @@ export function PlaceOfInterestRow({ poi }: PlaceOfInterestRowProps) {
       </Group>
     </UnstyledLink>
   );
+}
+
+/**
+ * This function is AI generated
+ */
+function GeoJsonPreview({ geoJson }: { geoJson: any }) {
+  try {
+    const geometry = geoJson.geometry;
+
+    if (geometry.type === "Polygon") {
+      const coords: [number, number][] = geometry.coordinates[0]; // outer ring
+
+      // 1. Find bounds
+      const xs = coords.map((c) => c[0]);
+      const ys = coords.map((c) => c[1]);
+
+      const minX = Math.min(...xs);
+      const maxX = Math.max(...xs);
+      const minY = Math.min(...ys);
+      const maxY = Math.max(...ys);
+
+      const width = maxX - minX || 1;
+      const height = maxY - minY || 1;
+
+      // 2. Normalize to 0–24 (your SVG size)
+      const normalized = coords.map(([x, y]) => {
+        const nx = ((x - minX) / width) * 20 + 2;
+        const ny = ((y - minY) / height) * 20 + 2;
+
+        // Flip Y axis (important for correct orientation)
+        return `${nx},${24 - ny}`;
+      });
+
+      const points = normalized.join(" ");
+
+      return <polygon points={points} fill="currentColor" stroke="currentColor" strokeWidth="1.5" />;
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
 }
