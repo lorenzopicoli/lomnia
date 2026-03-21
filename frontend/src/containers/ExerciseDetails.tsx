@@ -1,8 +1,9 @@
 import { TZDate } from "@date-fns/tz";
-import { Container, Flex, Group, Paper, ScrollArea, SimpleGrid, Skeleton, Stack, Text, Title } from "@mantine/core";
+import { Container, Flex, Paper, ScrollArea, SimpleGrid, Skeleton, Stack, Text, Title } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
 import { intervalToDuration } from "date-fns";
 import { trpc } from "../api/trpc";
+import { ExerciseLapsTable } from "../components/Exercise/ExerciseLapsTable";
 import { MaximizableMap } from "../components/MaximizableMap";
 import { formatCadence } from "../utils/formatCadence";
 import { formatDistance } from "../utils/formatDistance";
@@ -67,33 +68,21 @@ export function ExerciseDetails(props: { id: number }) {
           <SimpleGrid cols={{ base: 2, sm: 3, md: 4 }}>
             {exercise.distance ? <StatCard label="Distance" value={formatDistance(exercise.distance)} /> : null}
             <StatCard label="Duration" value={formatDurationShort(duration, { skipSeconds: false })} />
-            <StatCard label="Avg Pace" value={formatPace(exercise.avgPace)} />
+            {exercise.avgPace ? <StatCard label="Avg Pace" value={formatPace(exercise.avgPace)} /> : null}
             <StatCard label="Avg HR" value={exercise.avgHeartRate ? formatHeartRate(exercise.avgHeartRate) : "-"} />
-            <StatCard label="Cadence" value={exercise.avgCadence ? formatCadence(exercise.avgCadence) : "-"} />
+            {exercise.avgCadence ? (
+              <StatCard label="Cadence" value={exercise.avgCadence ? formatCadence(exercise.avgCadence) : "-"} />
+            ) : null}
             <StatCard label="Type" value={formatExerciseType(exercise.exerciseType)} />
           </SimpleGrid>
 
-          <Container style={{ overflow: "clip" }} bdrs="lg" w="100%" h={400} fluid p={0}>
-            {isLoadingMap || (locationData?.length ?? 0) > 0 ? (
+          {isLoadingMap || (locationData?.length ?? 0) > 0 ? (
+            <Container style={{ overflow: "clip" }} bdrs="lg" w="100%" h={400} fluid p={0}>
               <MaximizableMap points={locationData ?? []} isLoading={isLoadingMap} />
-            ) : null}
-          </Container>
+            </Container>
+          ) : null}
 
-          {laps && laps.length > 0 && (
-            <Stack gap="xs">
-              <Text fw={600}>Laps</Text>
-              <Stack gap={4}>
-                {laps.map((lap) => (
-                  <Group key={lap.id} justify="space-between">
-                    {lap.distance ? <Text size="sm">{formatDistance(lap.distance)}</Text> : null}
-                    <Text size="sm" c="dimmed">
-                      {formatPace(lap.avgPace)}
-                    </Text>
-                  </Group>
-                ))}
-              </Stack>
-            </Stack>
-          )}
+          {laps && laps.length > 0 ? <ExerciseLapsTable laps={laps} /> : null}
         </Stack>
       </ScrollArea>
     </Flex>
