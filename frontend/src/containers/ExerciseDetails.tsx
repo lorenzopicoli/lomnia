@@ -121,7 +121,7 @@ export function ExerciseDetails(props: { id: number }) {
 
           {isLoadingMap || (locationData?.length ?? 0) > 0 ? (
             <Container style={{ overflow: "clip" }} bdrs="lg" w="100%" maw={1000} h={400} fluid p={0}>
-              <MaximizableMap points={locationData ?? []} isLoading={isLoadingMap} />
+              <MaximizableMap isInteractive={false} points={locationData ?? []} isLoading={isLoadingMap} />
             </Container>
           ) : null}
 

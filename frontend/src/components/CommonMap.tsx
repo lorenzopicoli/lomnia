@@ -23,10 +23,11 @@ export type CommonMapProps = {
   readonlyPolygons?: ReadonlyPolygon[];
   points?: LocationPoint[];
   isLoading?: boolean;
+  isInteractive?: boolean;
 };
 
 export function CommonMap(props: CommonMapProps) {
-  const { value, readonlyPolygons, points, isLoading } = props;
+  const { value, readonlyPolygons, points, isLoading, isInteractive } = props;
 
   const { ref, width, height } = useElementSize();
   // biome-ignore lint/suspicious/noExplicitAny
@@ -205,7 +206,14 @@ export function CommonMap(props: CommonMapProps) {
   }
 
   return (
-    <Box ref={ref} flex={1} mih={0} w="100%" h="100%" style={{ position: "relative" }}>
+    <Box
+      ref={ref}
+      flex={1}
+      mih={0}
+      w="100%"
+      h="100%"
+      style={{ position: "relative", pointerEvents: isInteractive ? "auto" : "none" }}
+    >
       <DeckGL
         viewState={viewState}
         controller

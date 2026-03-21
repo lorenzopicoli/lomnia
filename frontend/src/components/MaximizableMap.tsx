@@ -48,7 +48,7 @@ export function MaximizableMap(props: CommonMapProps) {
           },
         }}
       >
-        <CommonMap {...props} />
+        <CommonMap {...props} isInteractive={true} />
       </Modal>
     </>
   );
