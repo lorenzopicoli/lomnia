@@ -55,23 +55,3 @@ export function HabitActivityTimelineItem(props: { activity: Item; onExpand: () 
     />
   );
 }
-function formatValue(data: {
-  valuePrefix: string | null;
-  valueSuffix: string | null;
-  source: string;
-  key: string;
-  id: number;
-  date: string;
-  createdAt: string | null;
-  updatedAt: string | null;
-  externalId: string | null;
-  importJobId: number;
-  timezone: string;
-  comments: string | null;
-  recordedAt: string | null;
-  periodOfDay: "morning" | "afternoon" | "evening" | "over_night" | null;
-  isFullDay: boolean | null;
-  value?: unknown;
-}) {
-  throw new Error("Function not implemented.");
-}
