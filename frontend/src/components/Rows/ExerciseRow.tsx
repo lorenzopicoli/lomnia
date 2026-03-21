@@ -6,6 +6,7 @@ import { formatDate } from "../../utils/formatDate";
 import { formatDistance } from "../../utils/formatDistance";
 import { formatDurationShort } from "../../utils/formatDurationShort";
 import { formatExerciseType } from "../../utils/formatExerciseType";
+import { formatPace } from "../../utils/formatPace";
 import { exerciseActivitySourceToIcon } from "../ActivityTimeline/ActivityTimelineItem/activitySourceToIcon";
 import { UnstyledLink } from "../UnstyledLink/UnstyledLink";
 
@@ -21,7 +22,7 @@ export function ExerciseRow(props: Exercise) {
   });
 
   return (
-    <UnstyledLink to={`/exercises/${props.id}/edit`}>
+    <UnstyledLink to={`/exercises/${props.id}`}>
       <Group p={3} justify="space-between" align="center">
         <Group flex={1} align="flex-start" gap="md">
           {exerciseActivitySourceToIcon(props.source, 30)}
@@ -33,6 +34,7 @@ export function ExerciseRow(props: Exercise) {
             {props.distance ? (
               <Text size="sm" c="dimmed">
                 {formatDistance(props.distance)}
+                {props.avgPace ? <>{` - ${formatPace(props.avgPace)}`} </> : null}
               </Text>
             ) : null}
           </Stack>
