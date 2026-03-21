@@ -3,14 +3,18 @@ import { Container, Flex, Paper, ScrollArea, SimpleGrid, Skeleton, Stack, Text, 
 import { useQuery } from "@tanstack/react-query";
 import { intervalToDuration } from "date-fns";
 import { trpc } from "../api/trpc";
+import { NonRegisteredChartDisplayer } from "../components/ChartDisplayer/ChartDisplayer";
 import { ExerciseLapsTable } from "../components/Exercise/ExerciseLapsTable";
 import { MaximizableMap } from "../components/MaximizableMap";
+import { smallContentMaxWidth } from "../constants";
 import { formatCadence } from "../utils/formatCadence";
 import { formatDistance } from "../utils/formatDistance";
 import { formatDurationShort } from "../utils/formatDurationShort";
 import { formatExerciseType } from "../utils/formatExerciseType";
 import { formatHeartRate } from "../utils/formatHeartRate";
 import { formatPace } from "../utils/formatPace";
+import { ExerciseMetricsLine } from "./Charts/ExerciseMetricsLine";
+import { HeartRateLine } from "./Charts/HeartRateLine";
 
 function StatCard({ label, value }: { label: string; value: string | number | null }) {
   return (
@@ -45,11 +49,21 @@ export function ExerciseDetails(props: { id: number }) {
     ),
   );
 
+  const { data: heartData } = useQuery(
+    trpc.heartRate.getForPeriod.queryOptions(
+      {
+        start: exerciseData ? exerciseData.exercise.startedAt : "",
+        end: exerciseData ? exerciseData.exercise.endedAt : "",
+      },
+      { enabled: !!exerciseData },
+    ),
+  );
+
   if (!exerciseData) {
     return <Loading />;
   }
 
-  const { exercise, laps } = exerciseData;
+  const { exercise, laps, metrics } = exerciseData;
 
   const start = new TZDate(exercise.startedAt, exercise.timezone || "UTC");
   const end = new TZDate(exercise.endedAt, exercise.timezone || "UTC");
@@ -62,7 +76,7 @@ export function ExerciseDetails(props: { id: number }) {
   return (
     <Flex direction="column" h="100%" mb="sm" mih={0}>
       <ScrollArea flex={1} p="md" type="never">
-        <Stack>
+        <Stack maw={smallContentMaxWidth} ml={"auto"} mr={"auto"}>
           <Title order={2}>{exercise.name}</Title>
 
           <SimpleGrid cols={{ base: 2, sm: 3, md: 4 }}>
@@ -74,15 +88,56 @@ export function ExerciseDetails(props: { id: number }) {
               <StatCard label="Cadence" value={exercise.avgCadence ? formatCadence(exercise.avgCadence) : "-"} />
             ) : null}
             <StatCard label="Type" value={formatExerciseType(exercise.exerciseType)} />
+            <StatCard label="Device" value={exercise.externalDeviceId} />
           </SimpleGrid>
 
           {isLoadingMap || (locationData?.length ?? 0) > 0 ? (
-            <Container style={{ overflow: "clip" }} bdrs="lg" w="100%" h={400} fluid p={0}>
+            <Container style={{ overflow: "clip" }} bdrs="lg" w="100%" maw={1000} h={400} fluid p={0}>
               <MaximizableMap points={locationData ?? []} isLoading={isLoadingMap} />
             </Container>
           ) : null}
 
           {laps && laps.length > 0 ? <ExerciseLapsTable laps={laps} /> : null}
+          {metrics && metrics.length > 0 ? (
+            <>
+              {heartData ? (
+                <Container w="100%" h={400} fluid p={0}>
+                  <NonRegisteredChartDisplayer title="Heart rate">
+                    <HeartRateLine data={heartData} startTime={start} />
+                  </NonRegisteredChartDisplayer>
+                </Container>
+              ) : null}
+              {metrics && metrics.length > 0 ? (
+                <>
+                  <Container w="100%" h={400} fluid p={0}>
+                    <NonRegisteredChartDisplayer title="Pace">
+                      <ExerciseMetricsLine
+                        // Filter out weird pace entries. Might be a better way to do this? Maybe at least on the BE?
+                        metrics={metrics.map((m) => ((m.pace ?? 0) > 9 ? { ...m, pace: null } : m))}
+                        exerciseStartTime={start}
+                        metric={{
+                          key: "pace",
+                          format: (v) => formatPace(v) ?? "-",
+                        }}
+                      />
+                    </NonRegisteredChartDisplayer>
+                  </Container>
+                  <Container w="100%" h={400} fluid p={0}>
+                    <NonRegisteredChartDisplayer title="Cadence">
+                      <ExerciseMetricsLine
+                        metrics={metrics}
+                        exerciseStartTime={start}
+                        metric={{
+                          key: "cadence",
+                          format: (v) => formatCadence(v) ?? "-",
+                        }}
+                      />
+                    </NonRegisteredChartDisplayer>
+                  </Container>{" "}
+                </>
+              ) : null}
+            </>
+          ) : null}
         </Stack>
       </ScrollArea>
     </Flex>

@@ -5,7 +5,7 @@ import { diaryEntriesRouter } from "./diaryEntiesRouter";
 import { exerciseChartRouter, exerciseRouter } from "./exerciseRouter";
 import { habitFeaturesChartRouter, habitFeaturesRouter } from "./habitFeatureRouter";
 import { habitsRouter } from "./habitsRouter";
-import { heartRateChartRouter } from "./heartRateRouter";
+import { heartRateChartRouter, heartRateRouter } from "./heartRateRouter";
 import { locationChartRouter, locationRouter } from "./locationRouter";
 import { placeOfInterestRouter } from "./placeOfInterestRouter";
 import { sleepsChartRouter, sleepsRouter } from "./sleepRouter";
@@ -24,6 +24,7 @@ export const appRouter = t.router({
   timelineRouter: timelineRouter,
   exercise: exerciseRouter,
   sleep: sleepsRouter,
+  heartRate: heartRateRouter,
   charts: {
     weather: weatherChartRouter,
     habits: habitFeaturesChartRouter,

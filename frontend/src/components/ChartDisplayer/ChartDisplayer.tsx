@@ -1,4 +1,5 @@
 import { Card, Text } from "@mantine/core";
+import type { ReactNode } from "react";
 import { type AllChartsProps, ChartId, chartDisplayerOptions } from "../../charts/types";
 import { CitiesVisitedBar } from "../../containers/Charts/CitiesVisitedBar";
 import { CitiesVisitedPie } from "../../containers/Charts/CitiesVisitedPie";
@@ -34,8 +35,7 @@ interface ChartDisplayerProps extends AllChartsProps {
   chartId: ChartId;
 }
 
-export function ChartDisplayer(props: ChartDisplayerProps) {
-  const { componentHandlesTitle } = chartDisplayerOptions[props.chartId] ?? { componentHandlesTitle: false };
+export function NonRegisteredChartDisplayer(props: { title?: string; children: ReactNode }) {
   return (
     <Card
       bg={cardDarkBackground}
@@ -46,16 +46,25 @@ export function ChartDisplayer(props: ChartDisplayerProps) {
       h={"100%"}
     >
       <Card.Section style={{ textAlign: "center" }} w={"100%"} pl={"md"} pt={"md"}>
-        {props.title && !componentHandlesTitle ? (
+        {props.title ? (
           <Text fw={"bolder"} size="sm">
             {props.title}
           </Text>
         ) : null}
       </Card.Section>
       <Card.Section flex={1} pl={"md"} pr={"md"} pb={"md"}>
-        <ChartSwitcher {...props} />
+        {props.children}
       </Card.Section>
     </Card>
+  );
+}
+
+export function ChartDisplayer(props: ChartDisplayerProps) {
+  const { componentHandlesTitle } = chartDisplayerOptions[props.chartId] ?? { componentHandlesTitle: false };
+  return (
+    <NonRegisteredChartDisplayer title={componentHandlesTitle ? undefined : props.title}>
+      <ChartSwitcher {...props} />
+    </NonRegisteredChartDisplayer>
   );
 }
 
