@@ -2,12 +2,10 @@ import { Skeleton } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { NumberParam, StringParam, useQueryParams } from "use-query-params";
-import { type RouterOutputs, trpc } from "../api/trpc";
+import { trpc } from "../api/trpc";
 import { List } from "../components/List/List";
 import { RawHabitRow } from "../components/Rows/RawHabitRow";
-import type { TableColumn } from "../components/Table/Table";
 
-type Habit = RouterOutputs["habits"]["getRawHabitsTable"]["entries"][number];
 export function RawHabitsTable(props: { search?: string }) {
   const { search } = props;
   const [params, setParams] = useQueryParams({
@@ -23,6 +21,11 @@ export function RawHabitsTable(props: { search?: string }) {
     }),
   );
   const { page, entries, total, limit } = data ?? {};
+  const handlePageChange = (newPage: number) => {
+    setParams({
+      page: newPage,
+    });
+  };
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: reset pagination if search changes
   useEffect(() => {
@@ -31,45 +34,6 @@ export function RawHabitsTable(props: { search?: string }) {
       page: 1,
     }));
   }, [search]);
-  const columns: TableColumn<Habit>[] = [
-    {
-      key: "date",
-      header: "Date",
-      render: (habit) => (
-        <>
-          {habit.periodOfDay ? `${habit.periodOfDay} - ` : null}
-          {habit.isFullDay ? new Date(habit.date).toLocaleDateString() : new Date(habit.date).toLocaleString()}
-        </>
-      ),
-    },
-    {
-      key: "key",
-      header: "Key",
-      render: (habit) => habit.key,
-    },
-    {
-      key: "value",
-      header: "Value",
-      render: (habit) =>
-        typeof habit.value === "string" || typeof habit.value === "number" ? habit.value : JSON.stringify(habit.value),
-    },
-    {
-      key: "source",
-      header: "Source",
-      render: (habit) => habit.source,
-    },
-  ];
-
-  const handleNextPage = () => {
-    setParams({
-      page: (page ?? 1) + 1,
-    });
-  };
-  const handlePrevPage = () => {
-    setParams({
-      page: (page ?? 1) - 1,
-    });
-  };
 
   return (
     <List
@@ -80,22 +44,7 @@ export function RawHabitsTable(props: { search?: string }) {
       isLoading={isLoading}
       renderRow={(row) => <RawHabitRow {...row} habitKey={row.key} />}
       loadingRow={<Skeleton />}
-      onPageChange={(newPage) =>
-        setParams({
-          page: newPage,
-        })
-      }
+      onPageChange={handlePageChange}
     />
-    // <Table
-    //   data={entries ?? []}
-    //   columns={columns}
-    //   getRowKey={(habit) => habit.id}
-    //   isLoading={isLoading}
-    //   page={page}
-    //   limit={limit}
-    //   total={total}
-    //   onNextPage={handleNextPage}
-    //   onPrevPage={handlePrevPage}
-    // />
   );
 }

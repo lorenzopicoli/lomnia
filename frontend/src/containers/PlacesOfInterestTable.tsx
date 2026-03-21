@@ -30,14 +30,9 @@ export function PlacesOfInterestTable(props: { search?: string }) {
     }));
   }, [search]);
 
-  const handleNextPage = () => {
+  const handlePageChange = (newPage: number) => {
     setParams({
-      page: (page ?? 1) + 1,
-    });
-  };
-  const handlePrevPage = () => {
-    setParams({
-      page: (page ?? 1) - 1,
+      page: newPage,
     });
   };
 
@@ -50,23 +45,7 @@ export function PlacesOfInterestTable(props: { search?: string }) {
       isLoading={isLoading}
       renderRow={(row) => <PlaceOfInterestRow poi={row} />}
       loadingRow={<Skeleton />}
-      onPageChange={(newPage) =>
-        setParams({
-          page: newPage,
-        })
-      }
+      onPageChange={handlePageChange}
     />
-
-    // <Table
-    //   data={entries ?? []}
-    //   columns={columns}
-    //   getRowKey={(poi) => poi.id}
-    //   isLoading={isLoading}
-    //   page={page}
-    //   limit={limit}
-    //   total={total}
-    //   onNextPage={handleNextPage}
-    //   onPrevPage={handlePrevPage}
-    // />
   );
 }

@@ -66,8 +66,8 @@ export function List<T>(props: ListProps<T>) {
         {isNumber(page) && isNumber(total) && isNumber(limit) ? (
           <Pagination
             page={page}
-            onPrevPage={() => onPageChange?.(page ?? 0 + 1)}
-            onNextPage={() => onPageChange?.(page ?? 0 + 1)}
+            onPrevPage={() => onPageChange?.((page ?? 0) - 1)}
+            onNextPage={() => onPageChange?.((page ?? 0) + 1)}
             total={total}
             limit={limit}
           />
