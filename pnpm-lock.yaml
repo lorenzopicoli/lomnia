@@ -147,6 +147,9 @@ importers:
       '@date-fns/tz':
         specifier: ^1.4.1
         version: 1.4.1
+      '@echarts-x/custom-stage':
+        specifier: ^1.1.1
+        version: 1.1.1(echarts@6.0.0)
       '@geoman-io/leaflet-geoman-free':
         specifier: ^2.19.0
         version: 2.19.0(leaflet@1.9.4)
@@ -766,6 +769,11 @@ packages:
 
   '@drizzle-team/brocli@0.10.2':
     resolution: {integrity: sha512-z33Il7l5dKjUgGULTqBsQBQwckHh5AbIuxhdsIxDDiZAzBOrZO6q9ogcWC65kU382AfynTfgNumVcNIjuIua6w==}
+
+  '@echarts-x/custom-stage@1.1.1':
+    resolution: {integrity: sha512-A7WjKqIiodrZzV3E3bofahdR0eVoR7FhmBt9NDnXhm9HGmLc136gGoAlsfZUGnXRL0uIbsuO6KL92o5h4n9Dyw==}
+    peerDependencies:
+      echarts: ^6.0.0
 
   '@esbuild-kit/core-utils@3.3.2':
     resolution: {integrity: sha512-sPRAnw9CdSsRmEtnsl2WXWdyquogVpB3yZ3dgwJfe8zrOzTsV7cJvmwrKVa+0ma5BoiGJ+BoqkMvawbayKUsqQ==}
@@ -2690,6 +2698,7 @@ packages:
   basic-ftp@5.1.0:
     resolution: {integrity: sha512-RkaJzeJKDbaDWTIPiJwubyljaEPwpVWkm9Rt5h9Nd6h7tEXTJ3VB4qxdZBioV7JO5yLUaOKwz7vDOzlncUsegw==}
     engines: {node: '>=10.0.0'}
+    deprecated: Security vulnerability fixed in 5.2.0, please upgrade
 
   bignumber.js@9.3.1:
     resolution: {integrity: sha512-Ko0uX15oIUS7wJ3Rb30Fs6SkVbLmPBAKdlm7q9+ak9bbIeFf0MwuBsQV6z7+X768/cHsfg+WlysDWJcmthjsjQ==}
@@ -3754,6 +3763,7 @@ packages:
   glob@11.1.0:
     resolution: {integrity: sha512-vuNwKSaKiqm7g0THUBu2x7ckSs3XJLXE+2ssL7/MfTGPLLcrJQ/4Uq1CjPTtO5cCIiRxqvN6Twy1qOwhL0Xjcw==}
     engines: {node: 20 || >=22}
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
     hasBin: true
 
   glob@13.0.0:
@@ -4841,6 +4851,7 @@ packages:
 
   react-resizable@3.1.1:
     resolution: {integrity: sha512-lYxM0Av7XtFXXvvRuyup5RHHTjfb7070+NZQ1Peg1iDsel5F2ULukj1/eMKfysgwE9HbR165/ga1xl6/AhLEKQ==}
+    deprecated: This build contains an SSR bug. If you use SSR, upgrade to >=3.1.2.
     peerDependencies:
       react: '>= 16.3'
       react-dom: '>= 16.3'
@@ -6393,7 +6404,7 @@ snapshots:
       '@luma.gl/webgl': 9.2.5(@luma.gl/core@9.2.5)
       esri-loader: 3.7.0
 
-  '@deck.gl/carto@9.2.5(7ytkyssjzara2nhq77k4m2lfay)':
+  '@deck.gl/carto@9.2.5(87e66da4f47275c9c667d82e95471ef6)':
     dependencies:
       '@carto/api-client': 0.5.23(@loaders.gl/core@4.3.4)
       '@deck.gl/aggregation-layers': 9.2.5(@deck.gl/core@9.2.5)(@deck.gl/layers@9.2.5(@deck.gl/core@9.2.5)(@loaders.gl/core@4.3.4)(@luma.gl/core@9.2.5)(@luma.gl/engine@9.2.5(@luma.gl/core@9.2.5)(@luma.gl/shadertools@9.2.5(@luma.gl/core@9.2.5))))(@luma.gl/core@9.2.5)(@luma.gl/engine@9.2.5(@luma.gl/core@9.2.5)(@luma.gl/shadertools@9.2.5(@luma.gl/core@9.2.5)))
@@ -6545,6 +6556,10 @@ snapshots:
       preact: 10.28.1
 
   '@drizzle-team/brocli@0.10.2': {}
+
+  '@echarts-x/custom-stage@1.1.1(echarts@6.0.0)':
+    dependencies:
+      echarts: 6.0.0
 
   '@esbuild-kit/core-utils@3.3.2':
     dependencies:
@@ -9171,7 +9186,7 @@ snapshots:
     dependencies:
       '@deck.gl/aggregation-layers': 9.2.5(@deck.gl/core@9.2.5)(@deck.gl/layers@9.2.5(@deck.gl/core@9.2.5)(@loaders.gl/core@4.3.4)(@luma.gl/core@9.2.5)(@luma.gl/engine@9.2.5(@luma.gl/core@9.2.5)(@luma.gl/shadertools@9.2.5(@luma.gl/core@9.2.5))))(@luma.gl/core@9.2.5)(@luma.gl/engine@9.2.5(@luma.gl/core@9.2.5)(@luma.gl/shadertools@9.2.5(@luma.gl/core@9.2.5)))
       '@deck.gl/arcgis': 9.2.5(@arcgis/core@4.34.8)(@deck.gl/core@9.2.5)(@luma.gl/core@9.2.5)(@luma.gl/engine@9.2.5(@luma.gl/core@9.2.5)(@luma.gl/shadertools@9.2.5(@luma.gl/core@9.2.5)))(@luma.gl/webgl@9.2.5(@luma.gl/core@9.2.5))
-      '@deck.gl/carto': 9.2.5(7ytkyssjzara2nhq77k4m2lfay)
+      '@deck.gl/carto': 9.2.5(87e66da4f47275c9c667d82e95471ef6)
       '@deck.gl/core': 9.2.5
       '@deck.gl/extensions': 9.2.5(@deck.gl/core@9.2.5)(@luma.gl/core@9.2.5)(@luma.gl/engine@9.2.5(@luma.gl/core@9.2.5)(@luma.gl/shadertools@9.2.5(@luma.gl/core@9.2.5)))
       '@deck.gl/geo-layers': 9.2.5(@deck.gl/core@9.2.5)(@deck.gl/extensions@9.2.5(@deck.gl/core@9.2.5)(@luma.gl/core@9.2.5)(@luma.gl/engine@9.2.5(@luma.gl/core@9.2.5)(@luma.gl/shadertools@9.2.5(@luma.gl/core@9.2.5))))(@deck.gl/layers@9.2.5(@deck.gl/core@9.2.5)(@loaders.gl/core@4.3.4)(@luma.gl/core@9.2.5)(@luma.gl/engine@9.2.5(@luma.gl/core@9.2.5)(@luma.gl/shadertools@9.2.5(@luma.gl/core@9.2.5))))(@deck.gl/mesh-layers@9.2.5(@deck.gl/core@9.2.5)(@loaders.gl/core@4.3.4)(@luma.gl/core@9.2.5)(@luma.gl/engine@9.2.5(@luma.gl/core@9.2.5)(@luma.gl/shadertools@9.2.5(@luma.gl/core@9.2.5)))(@luma.gl/gltf@9.2.5(@luma.gl/constants@9.2.5)(@luma.gl/core@9.2.5)(@luma.gl/engine@9.2.5(@luma.gl/core@9.2.5)(@luma.gl/shadertools@9.2.5(@luma.gl/core@9.2.5)))(@luma.gl/shadertools@9.2.5(@luma.gl/core@9.2.5)))(@luma.gl/shadertools@9.2.5(@luma.gl/core@9.2.5)))(@loaders.gl/core@4.3.4)(@luma.gl/constants@9.2.5)(@luma.gl/core@9.2.5)(@luma.gl/engine@9.2.5(@luma.gl/core@9.2.5)(@luma.gl/shadertools@9.2.5(@luma.gl/core@9.2.5)))

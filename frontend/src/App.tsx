@@ -13,6 +13,7 @@ import "react-resizable/css/styles.css";
 
 import "maplibre-gl/dist/maplibre-gl.css";
 import "allotment/dist/style.css";
+import stageInstaller from "@echarts-x/custom-stage";
 import { MantineProvider } from "@mantine/core";
 import { ModalsProvider } from "@mantine/modals";
 import { Notifications } from "@mantine/notifications";
@@ -30,6 +31,7 @@ import { mantineTheme } from "./themes/mantineThemes";
 echarts.registerMap("world", world as any);
 
 echarts.registerTheme("default_dark", EchartsThemes.darkDefault);
+echarts.use(stageInstaller);
 
 const router = createBrowserRouter([
   {

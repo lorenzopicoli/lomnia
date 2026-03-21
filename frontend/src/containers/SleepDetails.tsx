@@ -12,6 +12,7 @@ import { formatDateLong } from "../utils/formatDateLong";
 import { formatDurationShort } from "../utils/formatDurationShort";
 import { isNumber } from "../utils/isNumber";
 import { HeartRateLine } from "./Charts/HeartRateLine";
+import { SleepStage } from "./Charts/SleepStage";
 
 export function SleepDetails(props: { id: number }) {
   const { data: sleepData } = useQuery(
@@ -78,6 +79,13 @@ export function SleepDetails(props: { id: number }) {
             </Container>
           ) : null}
 
+          {stages && stages.length > 0 ? (
+            <Container w="100%" h={400} fluid p={0}>
+              <NonRegisteredChartDisplayer title="Sleep stages">
+                <SleepStage stages={stages} timezone={sleep.timezone ?? "UTC"} />
+              </NonRegisteredChartDisplayer>
+            </Container>
+          ) : null}
           {heartData ? (
             <Container w="100%" h={400} fluid p={0}>
               <NonRegisteredChartDisplayer title="Heart rate">

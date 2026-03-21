@@ -29,9 +29,9 @@ export function HeartRateLine(props: { data: { date: string; heartRate: number }
     return {
       xAxis: {
         type: "value",
-        name: "Time",
         axisLabel: {
-          formatter: (x: number) => formatDurationShort(intervalToDuration({ start: 0, end: x * 1000 })),
+          formatter: (x: number) =>
+            formatDurationShort(intervalToDuration({ start: 0, end: x * 1000 }), { skipSeconds: true }),
         },
         min: "dataMin",
         max: "dataMax",
