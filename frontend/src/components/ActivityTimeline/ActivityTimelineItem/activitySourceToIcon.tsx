@@ -31,12 +31,12 @@ export function habitActivitySourceToIcon(source: string | null, size: number = 
   }
 }
 
-export function sleepActivitySourceToIcon(source: string | null) {
+export function sleepActivitySourceToIcon(source: string | null, size: number = 20) {
   switch (source) {
     case "garmin":
-      return <GarminLogo height={20} width={20} />;
+      return <GarminLogo height={size} width={size} />;
     default:
-      return <IconZzz stroke={1.5} />;
+      return <IconZzz stroke={1.5} height={size} width={size} />;
   }
 }
 

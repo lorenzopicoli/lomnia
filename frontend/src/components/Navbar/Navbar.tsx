@@ -7,6 +7,7 @@ import {
   IconRun,
   IconSettings,
   IconTimeline,
+  IconZzz,
 } from "@tabler/icons-react";
 
 import type { ReactNode } from "react";
@@ -34,6 +35,7 @@ export default function Navbar(props: HeaderProps) {
     const isHabits = location.pathname.startsWith("/habits");
     const isPoi = location.pathname.startsWith("/poi");
     const isExercises = location.pathname.startsWith("/exercises");
+    const isSleeps = location.pathname.startsWith("/sleeps");
 
     return (
       <Stack gap={"xs"}>
@@ -67,6 +69,7 @@ export default function Navbar(props: HeaderProps) {
           active={isExercises}
           onClick={onNavigate}
         />
+        <NavButton to="/sleeps" label="Sleep" icon={<IconZzz size={20} />} active={isSleeps} onClick={onNavigate} />
       </Stack>
     );
   };

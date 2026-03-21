@@ -9,6 +9,8 @@ import { ExercisesListPage } from "./Exercise/ExercisesListPage";
 import { Explore } from "./Explore/Explore";
 import { HabitsPage } from "./Habits/Habits";
 import { PlacesOfInterestPage } from "./PlacesOfInterest/PlacesOfInterestPage";
+import { SleepDetailsPage } from "./Sleep/SleepDetailsPage";
+import { SleepsListPage } from "./Sleep/SleepsListPage";
 import ActivityTimelinePage from "./Timeline/ActivityTimelinePage";
 
 export default function Layout() {
@@ -55,6 +57,8 @@ export default function Layout() {
             <Route path={"/poi/*"} element={<PlacesOfInterestPage />} />
             <Route path={"/exercises/*"} element={<ExercisesListPage />} />
             <Route path={"/exercises/:exerciseId"} element={<ExerciseDetailsPage />} />
+            <Route path={"/sleeps/*"} element={<SleepsListPage />} />
+            <Route path={"/sleeps/:sleepId"} element={<SleepDetailsPage />} />
           </Routes>
         </AppShell.Main>
       </AppShell>

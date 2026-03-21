@@ -14,6 +14,20 @@ export const sleepsRouter = t.router({
     .query((opts) => {
       return SleepService.getDay(opts.input) ?? [];
     }),
+  getTable: loggedProcedure
+    .input(
+      z.object({
+        page: z.number().min(0),
+        search: z.string().optional(),
+        limit: z.number().min(1),
+      }),
+    )
+    .query((opts) => {
+      return SleepService.getTableData(opts.input);
+    }),
+  getById: loggedProcedure.input(z.object({ id: z.number() })).query((opts) => {
+    return SleepService.getById(opts.input.id) ?? [];
+  }),
 });
 
 export const sleepsChartRouter = t.router({

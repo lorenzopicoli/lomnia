@@ -1,5 +1,5 @@
 import { TZDate } from "@date-fns/tz";
-import { Container, Flex, Paper, ScrollArea, SimpleGrid, Skeleton, Stack, Text, Title } from "@mantine/core";
+import { Container, Flex, ScrollArea, SimpleGrid, Skeleton, Stack, Text, Title } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
 import { intervalToDuration } from "date-fns";
 import { isNumber } from "lodash";
@@ -9,6 +9,7 @@ import { ExerciseLapsTable } from "../components/Exercise/ExerciseLapsTable";
 import { List } from "../components/List/List";
 import { MaximizableMap } from "../components/MaximizableMap";
 import { RawHabitRow } from "../components/Rows/RawHabitRow";
+import { StatCard } from "../components/StatCard/StartCard";
 import { smallContentMaxWidth } from "../constants";
 import { formatCadence } from "../utils/formatCadence";
 import { formatDate } from "../utils/formatDate";
@@ -19,21 +20,6 @@ import { formatHeartRate } from "../utils/formatHeartRate";
 import { formatPace } from "../utils/formatPace";
 import { ExerciseMetricsLine } from "./Charts/ExerciseMetricsLine";
 import { HeartRateLine } from "./Charts/HeartRateLine";
-
-function StatCard({ label, value }: { label: string; value: string | number | null }) {
-  return (
-    <Paper p="md" radius="md" withBorder>
-      <Stack gap={4}>
-        <Text size="xs" c="dimmed">
-          {label}
-        </Text>
-        <Text size="lg" fw={600}>
-          {value ?? "-"}
-        </Text>
-      </Stack>
-    </Paper>
-  );
-}
 
 export function ExerciseDetails(props: { id: number }) {
   const { data: exerciseData } = useQuery(

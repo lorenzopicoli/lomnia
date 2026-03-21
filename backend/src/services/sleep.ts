@@ -1,4 +1,4 @@
-import { asc, inArray, sql } from "drizzle-orm";
+import { asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../db/connection";
 import { sleepStagesTable } from "../models";
 import { sleepsTable } from "../models/Sleep";
@@ -74,5 +74,48 @@ export namespace SleepService {
     }
 
     return sleeps;
+  };
+
+  export async function getTableData(params: { limit: number; page: number; search?: string }) {
+    const { limit, page, search } = params;
+    const searchQuery = `%${search}%`;
+
+    const whereClause = !search ? sql`1=1` : sql`${sleepsTable.comment} ILIKE ${searchQuery}`;
+
+    const baseQuery = db.select().from(sleepsTable).where(whereClause).$dynamic();
+
+    const [entries, [{ count }]] = await Promise.all([
+      baseQuery
+        .orderBy(desc(sleepsTable.startedAt))
+        .limit(limit)
+        .offset((page - 1) * limit),
+
+      db
+        .select({ count: sql`COUNT(*)`.mapWith(Number) })
+        .from(sleepsTable)
+        .where(whereClause),
+    ]);
+
+    return {
+      entries,
+      total: Number(count),
+      page,
+      limit,
+    };
+  }
+
+  export const getById = async (id: number) => {
+    const sleep = await db
+      .select()
+      .from(sleepsTable)
+      .where(eq(sleepsTable.id, id))
+      .limit(1)
+      .then((e) => e[0]);
+    const stages = await db
+      .select()
+      .from(sleepStagesTable)
+      .where(eq(sleepStagesTable.sleepId, sleep.externalId ?? ""));
+
+    return { sleep, stages };
   };
 }
