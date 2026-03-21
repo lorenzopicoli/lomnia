@@ -64,11 +64,17 @@
       "type": "number",
       "description": "Average heart rate during the exercise"
     },
-    "selfEvaluation": {
+    "perceivedEffort": {
       "type": "number",
       "minimum": 0,
-      "maximum": 10,
-      "description": "Self evaluation out of 10"
+      "maximum": 100,
+      "description": "How much effort it took"
+    },
+    "feelScore": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "How the user felt"
     },
     "timezone": {
       "type": "string",

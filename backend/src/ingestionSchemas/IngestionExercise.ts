@@ -232,12 +232,21 @@ export const IngestionExercise = z
       })
       .optional(),
 
-    selfEvaluation: z
+    perceivedEffort: z
       .number()
       .min(0)
-      .max(10)
+      .max(100)
       .meta({
-        description: "Self evaluation out of 10",
+        description: "How much effort it took",
+      })
+      .optional(),
+
+    feelScore: z
+      .number()
+      .min(0)
+      .max(100)
+      .meta({
+        description: "How the user felt",
       })
       .optional(),
 

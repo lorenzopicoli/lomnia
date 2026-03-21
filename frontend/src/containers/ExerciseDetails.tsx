@@ -2,12 +2,14 @@ import { TZDate } from "@date-fns/tz";
 import { Container, Flex, Paper, ScrollArea, SimpleGrid, Skeleton, Stack, Text, Title } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
 import { intervalToDuration } from "date-fns";
+import { isNumber } from "lodash";
 import { trpc } from "../api/trpc";
 import { NonRegisteredChartDisplayer } from "../components/ChartDisplayer/ChartDisplayer";
 import { ExerciseLapsTable } from "../components/Exercise/ExerciseLapsTable";
 import { MaximizableMap } from "../components/MaximizableMap";
 import { smallContentMaxWidth } from "../constants";
 import { formatCadence } from "../utils/formatCadence";
+import { formatDate } from "../utils/formatDate";
 import { formatDistance } from "../utils/formatDistance";
 import { formatDurationShort } from "../utils/formatDurationShort";
 import { formatExerciseType } from "../utils/formatExerciseType";
@@ -76,12 +78,26 @@ export function ExerciseDetails(props: { id: number }) {
   return (
     <Flex direction="column" h="100%" mb="sm" mih={0}>
       <ScrollArea flex={1} p="md" type="never">
-        <Stack maw={smallContentMaxWidth} ml={"auto"} mr={"auto"}>
-          <Title order={2}>{exercise.name}</Title>
+        <Stack gap={"xl"} maw={smallContentMaxWidth} ml={"auto"} mr={"auto"}>
+          <Stack gap={2}>
+            <Title order={2}>{exercise.name}</Title>
+            <Text c="dimmed">
+              {`${formatDate(exercise.startedAt, exercise.timezone ?? "UTC")} - ${formatDate(exercise.endedAt, exercise.timezone ?? "UTC")}`}
+            </Text>
+          </Stack>
 
           <SimpleGrid cols={{ base: 2, sm: 3, md: 4 }}>
             {exercise.distance ? <StatCard label="Distance" value={formatDistance(exercise.distance)} /> : null}
             <StatCard label="Duration" value={formatDurationShort(duration, { skipSeconds: false })} />
+            {isNumber(exercise.perceivedEffort) ? (
+              <StatCard
+                label="Perceived Effort"
+                value={exercise.perceivedEffort ? `${exercise.perceivedEffort}/100` : "-"}
+              />
+            ) : null}
+            {isNumber(exercise.feelScore) ? (
+              <StatCard label="Feel" value={exercise.feelScore ? `${exercise.feelScore}/100` : "-"} />
+            ) : null}
             {exercise.avgPace ? <StatCard label="Avg Pace" value={formatPace(exercise.avgPace)} /> : null}
             <StatCard label="Avg HR" value={exercise.avgHeartRate ? formatHeartRate(exercise.avgHeartRate) : "-"} />
             {exercise.avgCadence ? (

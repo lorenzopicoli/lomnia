@@ -42,7 +42,8 @@ export class ExerciseIngester extends Ingester<IngestionExercise, NewRow> {
       avgCadence,
       deviceId,
       timezone,
-      selfEvaluation,
+      feelScore,
+      perceivedEffort,
       laps: rawLaps,
       metrics: rawMetrics,
       // Unused
@@ -68,7 +69,8 @@ export class ExerciseIngester extends Ingester<IngestionExercise, NewRow> {
       avgPace,
       avgHeartRate,
       avgCadence,
-      selfEvaluation,
+      feelScore,
+      perceivedEffort,
 
       timezone,
       externalDeviceId: deviceId,

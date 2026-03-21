@@ -56,9 +56,13 @@ export const exercisesTable = pgTable("exercises", {
    */
   avgHeartRate: real("avg_heart_rate"),
   /**
-   * Self evaluation. How hard this exercise was, from 0 to 10
+   * Perceived effort for the activity out of 100
    */
-  selfEvaluation: integer("self_evaluation"),
+  perceivedEffort: integer("perceived_effort"),
+  /**
+   * How well the user felt during the activity out of 100 (100 being strong)
+   */
+  feelScore: integer("feel_score"),
   /**
    * The id of the sleep record for the external provider
    */
