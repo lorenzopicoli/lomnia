@@ -4,6 +4,7 @@ import { Route, Routes } from "react-router-dom";
 import Navbar from "../components/Navbar/Navbar";
 import { AddHabitFeature } from "./AddHabitFeature/AddHabitFeature";
 import { AddPlaceOfInterestPage } from "./AddPlaceOfInterest/AddPlaceOfInterestPage";
+import { ExercisesListPage } from "./Exercise/ExercisesListPage";
 import { Explore } from "./Explore/Explore";
 import { HabitsPage } from "./Habits/Habits";
 import { PlacesOfInterestPage } from "./PlacesOfInterest/PlacesOfInterestPage";
@@ -51,6 +52,7 @@ export default function Layout() {
             <Route path={"/poi/add"} element={<AddPlaceOfInterestPage />} />
             <Route path={"/poi/:poiId/edit"} element={<AddPlaceOfInterestPage />} />
             <Route path={"/poi/*"} element={<PlacesOfInterestPage />} />
+            <Route path={"/exercises/*"} element={<ExercisesListPage />} />
           </Routes>
         </AppShell.Main>
       </AppShell>

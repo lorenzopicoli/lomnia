@@ -2,29 +2,12 @@ import { TZDate } from "@date-fns/tz";
 import { Stack } from "@mantine/core";
 import { format, formatDistanceStrict } from "date-fns";
 import type { RouterOutputs } from "../../../api/trpc";
+import { formatExerciseType } from "../../../utils/formatExerciseType";
 import { ActivityTimelineTextValue } from "./ActivityTimelineTextValue";
 import { exerciseActivitySourceToIcon } from "./activitySourceToIcon";
 import { BaseActivityTimelineItem } from "./BaseActivityTimelineItem";
 
 type Item = Extract<RouterOutputs["timelineRouter"]["listActivities"]["activities"][number], { type: "exercise" }>;
-function exerciseTypeToName(exercise: Item["data"]) {
-  switch (exercise.exerciseType) {
-    case "running":
-      return "Run";
-    case "strength_training":
-      return "Gym";
-    case "volleyball":
-      return "Volleyball";
-    case "cycling":
-      return "Cycling";
-    case "yoga":
-      return "Yoga";
-    case "generic":
-      return "Exercise";
-    default:
-      return "Exercise";
-  }
-}
 
 export function ExerciseActivityTimelineItem(props: { activity: Item; onExpand: () => void; isExpanded: boolean }) {
   const { activity, onExpand, isExpanded } = props;
@@ -38,7 +21,7 @@ export function ExerciseActivityTimelineItem(props: { activity: Item; onExpand: 
   const duration = formatDistanceStrict(start, end);
   const timeRange = `${format(start, "HH:mm")}–${format(end, "HH:mm")}`;
 
-  const title = exerciseTypeToName(exercise);
+  const title = formatExerciseType(exercise.exerciseType);
 
   const formatDistance = (meters: number) => {
     return `${(meters / 1000).toFixed(2)} km`;

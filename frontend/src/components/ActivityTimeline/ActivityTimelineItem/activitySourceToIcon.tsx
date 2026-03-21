@@ -40,11 +40,11 @@ export function sleepActivitySourceToIcon(source: string | null) {
   }
 }
 
-export function exerciseActivitySourceToIcon(source: string | null) {
+export function exerciseActivitySourceToIcon(source: string | null, size: number = 20) {
   switch (source) {
     case "garmin":
-      return <GarminLogo height={20} width={20} />;
+      return <GarminLogo height={size} width={size} />;
     default:
-      return <IconRun stroke={1.5} />;
+      return <IconRun stroke={1.5} height={size} width={size} />;
   }
 }

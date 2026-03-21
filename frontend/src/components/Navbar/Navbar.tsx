@@ -4,6 +4,7 @@ import {
   IconEye,
   IconLayoutDashboard,
   IconMapStar,
+  IconRun,
   IconSettings,
   IconTimeline,
 } from "@tabler/icons-react";
@@ -32,6 +33,7 @@ export default function Navbar(props: HeaderProps) {
     const isExplore = location.pathname.startsWith("/dashboard");
     const isHabits = location.pathname.startsWith("/habits");
     const isPoi = location.pathname.startsWith("/poi");
+    const isExercises = location.pathname.startsWith("/exercises");
 
     return (
       <Stack gap={"xs"}>
@@ -58,6 +60,13 @@ export default function Navbar(props: HeaderProps) {
           onClick={onNavigate}
         />
         <NavButton to="/poi" label="Places" icon={<IconMapStar size={20} />} active={isPoi} onClick={onNavigate} />
+        <NavButton
+          to="/exercises"
+          label="Exercises"
+          icon={<IconRun size={20} />}
+          active={isExercises}
+          onClick={onNavigate}
+        />
       </Stack>
     );
   };

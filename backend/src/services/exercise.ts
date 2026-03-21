@@ -1,4 +1,4 @@
-import { and, asc, avg, count, eq, gt, gte, isNotNull, sql } from "drizzle-orm";
+import { and, asc, avg, count, desc, eq, gt, gte, isNotNull, sql } from "drizzle-orm";
 import z from "zod";
 import config from "../config";
 import { db } from "../db/connection";
@@ -139,4 +139,47 @@ export namespace ExerciseService {
 
     return data;
   };
+
+  export async function getTableData(params: { limit: number; page: number; search?: string }) {
+    const { limit, page, search } = params;
+    const searchQuery = `%${search}%`;
+
+    const whereClause = !search ? sql`1=1` : sql`${exercisesTable.name} ILIKE ${searchQuery}`;
+
+    const baseQuery = db
+      .select({
+        id: exercisesTable.id,
+        name: exercisesTable.name,
+        type: exercisesTable.exerciseType,
+        source: exercisesTable.source,
+        startedAt: exercisesTable.startedAt,
+        endedAt: exercisesTable.endedAt,
+        distance: exercisesTable.distance,
+        avgPace: exercisesTable.avgPace,
+        createdAt: exercisesTable.createdAt,
+        timezone: exercisesTable.timezone,
+      })
+      .from(exercisesTable)
+      .where(whereClause)
+      .$dynamic();
+
+    const [entries, [{ count }]] = await Promise.all([
+      baseQuery
+        .orderBy(desc(exercisesTable.startedAt))
+        .limit(limit)
+        .offset((page - 1) * limit),
+
+      db
+        .select({ count: sql`COUNT(*)`.mapWith(Number) })
+        .from(exercisesTable)
+        .where(whereClause),
+    ]);
+
+    return {
+      entries,
+      total: Number(count),
+      page,
+      limit,
+    };
+  }
 }

@@ -19,6 +19,18 @@ export const exerciseRouter = t.router({
   getKeys: loggedProcedure.query(() => {
     return ExerciseService.getKeys();
   }),
+
+  getTable: loggedProcedure
+    .input(
+      z.object({
+        page: z.number().min(0),
+        search: z.string().optional(),
+        limit: z.number().min(1),
+      }),
+    )
+    .query((opts) => {
+      return ExerciseService.getTableData(opts.input);
+    }),
 });
 
 export const exerciseChartRouter = t.router({
