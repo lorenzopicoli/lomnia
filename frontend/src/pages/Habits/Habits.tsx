@@ -5,8 +5,8 @@ import type { ChangeEvent } from "react";
 import { Link, Route, Routes } from "react-router-dom";
 import { StringParam, useQueryParams } from "use-query-params";
 import { smallContentMaxWidth } from "../../constants";
-import { HabitsFeaturesTable } from "../../containers/HabitsFeaturesTable";
-import { RawHabitsTable } from "../../containers/RawHabitsTable";
+import { HabitsFeaturesList } from "../../containers/HabitsFeaturesList";
+import { RawHabitsList } from "../../containers/RawHabitsList";
 import { useConfig } from "../../contexts/ConfigContext";
 
 export function HabitsPage() {
@@ -67,8 +67,8 @@ export function HabitsPage() {
 
         <Space />
         <Routes>
-          <Route index element={<RawHabitsTable search={debouncedParams.search ?? undefined} />} />
-          <Route path={"features"} element={<HabitsFeaturesTable search={debouncedParams.search ?? undefined} />} />
+          <Route index element={<RawHabitsList search={debouncedParams.search ?? undefined} />} />
+          <Route path={"features"} element={<HabitsFeaturesList search={debouncedParams.search ?? undefined} />} />
         </Routes>
       </Stack>
     </Paper>

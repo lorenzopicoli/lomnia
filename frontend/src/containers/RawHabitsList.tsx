@@ -4,29 +4,28 @@ import { useEffect } from "react";
 import { NumberParam, StringParam, useQueryParams } from "use-query-params";
 import { trpc } from "../api/trpc";
 import { List } from "../components/List/List";
-import { HabitFeatureRow } from "../components/Rows/HabitFeatureRow";
+import { RawHabitRow } from "../components/Rows/RawHabitRow";
 
-export function HabitsFeaturesTable(props: { search?: string }) {
+export function RawHabitsList(props: { search?: string }) {
   const { search } = props;
   const [params, setParams] = useQueryParams({
     search: StringParam,
     page: NumberParam,
   });
+
   const { data, isLoading } = useQuery(
-    trpc.habitFeatures.getTable.queryOptions({
+    trpc.habits.getRawHabitsTable.queryOptions({
       page: params.page ?? 1,
       search,
       limit: 100,
     }),
   );
-
+  const { page, entries, total, limit } = data ?? {};
   const handlePageChange = (newPage: number) => {
     setParams({
       page: newPage,
     });
   };
-
-  const { page, entries, total, limit } = data ?? {};
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: reset pagination if search changes
   useEffect(() => {
@@ -43,7 +42,7 @@ export function HabitsFeaturesTable(props: { search?: string }) {
       total={total}
       limit={limit}
       isLoading={isLoading}
-      renderRow={(row) => <HabitFeatureRow feature={row} />}
+      renderRow={(row) => <RawHabitRow {...row} habitKey={row.key} />}
       loadingRow={<Skeleton />}
       onPageChange={handlePageChange}
     />

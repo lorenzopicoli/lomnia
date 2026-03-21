@@ -6,7 +6,7 @@ import { Link, Route, Routes } from "react-router-dom";
 import { StringParam, useQueryParams } from "use-query-params";
 import { smallContentMaxWidth } from "../../constants";
 import { PlaceOfInterestMapContainer } from "../../containers/PlaceOfInterestMapContainer";
-import { PlacesOfInterestTable } from "../../containers/PlacesOfInterestTable";
+import { PlacesOfInterestList } from "../../containers/PlacesOfInterestList";
 import { useConfig } from "../../contexts/ConfigContext";
 
 export function PlacesOfInterestPage() {
@@ -60,7 +60,7 @@ export function PlacesOfInterestPage() {
           </Flex>
         </Flex>
         <Routes>
-          <Route index element={<PlacesOfInterestTable search={debouncedParams.search ?? undefined} />} />
+          <Route index element={<PlacesOfInterestList search={debouncedParams.search ?? undefined} />} />
           <Route
             path={"map"}
             element={

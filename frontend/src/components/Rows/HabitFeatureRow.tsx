@@ -1,5 +1,6 @@
 import { alpha, Box, Group, Stack, Text } from "@mantine/core";
 import { IconArrowsShuffle, IconBrackets, IconLetterA, IconList } from "@tabler/icons-react";
+import { formatDistanceToNow } from "date-fns";
 import { useConfig } from "../../contexts/ConfigContext";
 import { UnstyledLink } from "../UnstyledLink/UnstyledLink";
 
@@ -9,6 +10,7 @@ type HabitFeatureRowProps = {
     id: number;
     matchedHabitEntries: number;
     name: string;
+    lastMatched: string;
   };
 };
 
@@ -26,9 +28,22 @@ function getExtractionTypeIcon(type: string) {
       return IconLetterA;
   }
 }
+
+function formatLastMatched(dateString: string) {
+  if (!dateString) return "Never";
+
+  try {
+    const date = new Date(dateString);
+
+    return formatDistanceToNow(date, { addSuffix: true });
+  } catch {
+    return "Unknown";
+  }
+}
 export function HabitFeatureRow({ feature }: HabitFeatureRowProps) {
   const { theme } = useConfig();
   const Icon = getExtractionTypeIcon(feature.extractionType);
+
   return (
     <UnstyledLink to={`/habits/features/edit/${feature.id}`}>
       <Group p={3} justify="space-between" align="center">
@@ -57,7 +72,7 @@ export function HabitFeatureRow({ feature }: HabitFeatureRowProps) {
             </Text>
 
             <Text size="xs" c="dimmed">
-              {`Last matched 2 days ago`}
+              {`Last matched ${formatLastMatched(feature.lastMatched)}`}
             </Text>
           </Stack>
         </Group>

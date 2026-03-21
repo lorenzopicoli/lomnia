@@ -4,22 +4,28 @@ import { useEffect } from "react";
 import { NumberParam, StringParam, useQueryParams } from "use-query-params";
 import { trpc } from "../api/trpc";
 import { List } from "../components/List/List";
-import { PlaceOfInterestRow } from "../components/Rows/PlaceOfInterestRow";
+import { HabitFeatureRow } from "../components/Rows/HabitFeatureRow";
 
-export function PlacesOfInterestTable(props: { search?: string }) {
+export function HabitsFeaturesList(props: { search?: string }) {
   const { search } = props;
   const [params, setParams] = useQueryParams({
     search: StringParam,
     page: NumberParam,
   });
-
   const { data, isLoading } = useQuery(
-    trpc.placesOfInterest.getTable.queryOptions({
+    trpc.habitFeatures.getTable.queryOptions({
       page: params.page ?? 1,
       search,
       limit: 100,
     }),
   );
+
+  const handlePageChange = (newPage: number) => {
+    setParams({
+      page: newPage,
+    });
+  };
+
   const { page, entries, total, limit } = data ?? {};
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: reset pagination if search changes
@@ -30,12 +36,6 @@ export function PlacesOfInterestTable(props: { search?: string }) {
     }));
   }, [search]);
 
-  const handlePageChange = (newPage: number) => {
-    setParams({
-      page: newPage,
-    });
-  };
-
   return (
     <List
       data={entries ?? []}
@@ -43,7 +43,7 @@ export function PlacesOfInterestTable(props: { search?: string }) {
       total={total}
       limit={limit}
       isLoading={isLoading}
-      renderRow={(row) => <PlaceOfInterestRow poi={row} />}
+      renderRow={(row) => <HabitFeatureRow feature={row} />}
       loadingRow={<Skeleton />}
       onPageChange={handlePageChange}
     />

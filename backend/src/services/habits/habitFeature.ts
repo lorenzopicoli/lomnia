@@ -3,6 +3,7 @@ import { alias } from "drizzle-orm/pg-core";
 import z from "zod";
 import config from "../../config";
 import { db } from "../../db/connection";
+import { habitsTable } from "../../models";
 import {
   extractedHabitFeaturesTable,
   habitFeaturesTable,
@@ -50,16 +51,18 @@ export namespace HabitFeaturesService {
         extractionType: sql`${habitFeaturesTable.rules}->0->'extraction'->>'type'`
           .mapWith(String)
           .as("extraction_type"),
+        lastMatched: sql`MAX(${habitsTable.recordedAt})`.mapWith(String).as("last_matched"),
       })
       .from(habitFeaturesTable)
       .leftJoin(extractedHabitFeaturesTable, eq(extractedHabitFeaturesTable.habitFeatureId, habitFeaturesTable.id))
+      .leftJoin(habitsTable, eq(extractedHabitFeaturesTable.habitId, habitsTable.id))
       .where(whereClause)
       .groupBy(habitFeaturesTable.id)
       .$dynamic();
 
     const [entries, [{ count }]] = await Promise.all([
       baseQuery
-        .orderBy(desc(habitFeaturesTable.createdAt))
+        .orderBy(desc(sql`MAX(${habitsTable.recordedAt})`))
         .limit(limit)
         .offset((page - 1) * limit),
 
