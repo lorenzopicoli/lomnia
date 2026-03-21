@@ -1,8 +1,8 @@
-import { ActionIcon, Flex, Group, Table as MantineTable, Paper, Text } from "@mantine/core";
-import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
+import { Table as MantineTable, Paper } from "@mantine/core";
 import { useConfig } from "../../contexts/ConfigContext";
 import { cardDarkBackground } from "../../themes/mantineThemes";
 import { isNotNill } from "../../utils/isNotNil";
+import { Pagination } from "../Pagination/Pagination";
 
 export interface TableColumn<T> {
   /**
@@ -121,38 +121,5 @@ export function Table<T>(props: TableProps<T>) {
         <Pagination page={page} limit={limit} total={total} onPrevPage={onPrevPage} onNextPage={onNextPage} />
       ) : null}
     </Paper>
-  );
-}
-
-function Pagination(props: {
-  limit: number;
-  page: number;
-  total: number;
-
-  onNextPage: () => void;
-  onPrevPage: () => void;
-}) {
-  const { limit, page, total, onNextPage, onPrevPage } = props;
-  const first = (page - 1) * limit + 1;
-  const last = first + limit - 1;
-  return (
-    <Flex justify={"flex-end"}>
-      <Group p={"sm"}>
-        <Flex>
-          <Text fz={"sm"} span>
-            <Text fz={"sm"} span fw={"bolder"}>
-              {`${first}-${last} `}
-            </Text>
-            of {total}
-          </Text>
-        </Flex>
-        <ActionIcon variant="transparent" onClick={onPrevPage} disabled={page === 1}>
-          <IconChevronLeft />
-        </ActionIcon>
-        <ActionIcon variant="transparent" onClick={onNextPage} disabled={last >= total}>
-          <IconChevronRight />
-        </ActionIcon>
-      </Group>
-    </Flex>
   );
 }

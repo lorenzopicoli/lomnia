@@ -1,15 +1,19 @@
-import { Button, Card, Stack, Textarea, TextInput, Title } from "@mantine/core";
+import { ActionIcon, alpha, Button, Card, Group, Stack, Textarea, TextInput, Title } from "@mantine/core";
+import { IconTrash } from "@tabler/icons-react";
 import { type ChangeEvent, type ChangeEventHandler, useEffect, useMemo, useState } from "react";
 import { DashedButton } from "../../components/DashedButton/DashedButton";
+import { useConfig } from "../../contexts/ConfigContext";
 import { RulesList } from "./RulesList";
 import type { HabitFeature, HabitFeatureRule } from "./types";
 
 export function HabitFeatureBuilder(props: {
-  initialData?: HabitFeature;
+  initialData?: HabitFeature & { id: number };
   onSave: (feature: HabitFeature) => void;
   onChange: (rules: HabitFeatureRule[]) => void;
+  onDelete: (id: number) => void;
 }) {
   const { onSave, onChange, initialData } = props;
+  const { theme } = useConfig();
 
   const newRuleSkeleton = (rules: HabitFeatureRule[]) => ({
     name: `Rule ${rules.length + 1}`,
@@ -59,7 +63,19 @@ export function HabitFeatureBuilder(props: {
   return (
     <>
       <Card.Section p={"md"}>
-        <Title order={3}>Builder</Title>
+        <Group justify="space-between">
+          <Title order={3}>Builder</Title>
+          {initialData ? (
+            <ActionIcon
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={() => props.onDelete(initialData?.id)}
+              size="lg"
+              variant="light"
+            >
+              <IconTrash size={20} color={alpha(theme.colors.red[9], 0.8)} />
+            </ActionIcon>
+          ) : null}
+        </Group>
       </Card.Section>
       <Card.Section p={"md"}>
         <Stack>

@@ -1,11 +1,12 @@
-import { ActionIcon, Button, Container, Flex, Input, Paper, Stack } from "@mantine/core";
+import { ActionIcon, Button, Container, Flex, Input, Paper, Space, Stack } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
 import { IconPlus, IconSearch, IconTable, IconTransform } from "@tabler/icons-react";
 import type { ChangeEvent } from "react";
 import { Link, Route, Routes } from "react-router-dom";
 import { StringParam, useQueryParams } from "use-query-params";
-import { HabitsFeaturesTable } from "../../containers/HabitsFeaturesTable";
-import { RawHabitsTable } from "../../containers/RawHabitsTable";
+import { smallContentMaxWidth } from "../../constants";
+import { HabitsFeaturesList } from "../../containers/HabitsFeaturesList";
+import { RawHabitsList } from "../../containers/RawHabitsList";
 import { useConfig } from "../../contexts/ConfigContext";
 
 export function HabitsPage() {
@@ -22,7 +23,7 @@ export function HabitsPage() {
 
   return (
     <Paper component={Container} fluid bg={theme.colors.dark[9]}>
-      <Stack pt={"md"} h="100vh" style={{ overflow: "hidden" }}>
+      <Stack ml={"auto"} mr={"auto"} maw={smallContentMaxWidth} pt={"md"} h="100vh" style={{ overflow: "hidden" }}>
         <Flex w={"100%"} direction={"row"} justify={"space-between"} align={"center"} p={0}>
           <Container p={0} m={0} flex={1}>
             <Input
@@ -64,9 +65,10 @@ export function HabitsPage() {
           </Routes>
         </Flex>
 
+        <Space />
         <Routes>
-          <Route index element={<RawHabitsTable search={debouncedParams.search ?? undefined} />} />
-          <Route path={"features"} element={<HabitsFeaturesTable search={debouncedParams.search ?? undefined} />} />
+          <Route index element={<RawHabitsList search={debouncedParams.search ?? undefined} />} />
+          <Route path={"features"} element={<HabitsFeaturesList search={debouncedParams.search ?? undefined} />} />
         </Routes>
       </Stack>
     </Paper>

@@ -57,6 +57,7 @@ export namespace PlaceOfInterestService {
   || ${locationDetailsTable.countryCode}
   || ')'
 `.mapWith(String),
+        geoJson: placesOfInterestTable.geoJson,
       })
       .from(placesOfInterestTable)
       .innerJoin(locationDetailsTable, eq(placesOfInterestTable.locationDetailsId, locationDetailsTable.id))
