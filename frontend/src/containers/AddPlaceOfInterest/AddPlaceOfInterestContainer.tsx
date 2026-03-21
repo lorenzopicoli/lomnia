@@ -1,9 +1,12 @@
 import {
   Accordion,
+  ActionIcon,
+  alpha,
   Button,
   Card,
   Container,
   Flex,
+  Group,
   Input,
   Paper,
   ScrollArea,
@@ -14,8 +17,9 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useDebouncedValue } from "@mantine/hooks";
+import { modals } from "@mantine/modals";
 import { notifications } from "@mantine/notifications";
-import { IconSearch } from "@tabler/icons-react";
+import { IconSearch, IconTrash } from "@tabler/icons-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { type ChangeEvent, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -123,6 +127,20 @@ export function AddPlaceOfInterestContainer(_props: { search?: string }) {
   const { data: poiToEdit, isFetching } = useQuery(
     trpc.placesOfInterest.getById.queryOptions(+(poiId || 0), { enabled: isEditing, gcTime: 0 }),
   );
+  const { mutate: deletePoi } = useMutation(
+    trpc.placesOfInterest.delete.mutationOptions({
+      onSuccess() {
+        navigate({
+          pathname: "/poi",
+        });
+        notifications.show({
+          color: theme.colors.green[9],
+          title: "Place deleted",
+          message: "",
+        });
+      },
+    }),
+  );
 
   useEffect(() => {
     if (reverseGeocodeData) {
@@ -152,6 +170,19 @@ export function AddPlaceOfInterestContainer(_props: { search?: string }) {
     savePoi({ ...values, address: { ...address, name }, polygon });
   };
 
+  const handleDelete = (id: number) => {
+    modals.openConfirmModal({
+      title: "Are you sure?",
+      children: <Text size="sm">Deleting this place means no location will be linked to this</Text>,
+      confirmProps: {
+        color: theme.colors.red[9],
+      },
+      labels: { confirm: "Delete", cancel: "Cancel" },
+      onConfirm: () => deletePoi(id),
+      onCancel: () => {},
+    });
+  };
+
   if (isFetching) {
     return <>Loading...</>;
   }
@@ -163,7 +194,19 @@ export function AddPlaceOfInterestContainer(_props: { search?: string }) {
           {/* Left panel */}
           <Card p={"md"} w={{ base: "100%", md: "40%" }} bg={cardDarkBackground}>
             <Card.Section p={"md"}>
-              <Title order={3}>General</Title>
+              <Group justify="space-between">
+                <Title order={3}>General</Title>
+                {poiToEdit ? (
+                  <ActionIcon
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onClick={() => handleDelete(poiToEdit.id)}
+                    size="lg"
+                    variant="light"
+                  >
+                    <IconTrash size={20} color={alpha(theme.colors.red[9], 0.8)} />
+                  </ActionIcon>
+                ) : null}
+              </Group>
             </Card.Section>
             <Stack gap={"md"}>
               <TextInput
@@ -212,7 +255,6 @@ export function AddPlaceOfInterestContainer(_props: { search?: string }) {
                   readonlyPolygons={allPOIsGeoJSONs?.map((poi) => ({ name: poi.name, feature: poi.geoJson as any }))}
                   center={geocodeData ?? undefined}
                   onChange={(poly) => {
-                    console.group("on change", poly);
                     form.setFieldValue("polygon", poly);
                   }}
                 />

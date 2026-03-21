@@ -1,5 +1,6 @@
-import { Card, Container, Flex, Paper, ScrollArea, Skeleton } from "@mantine/core";
+import { Card, Container, Flex, Paper, ScrollArea, Skeleton, Text } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
+import { modals } from "@mantine/modals";
 import { notifications } from "@mantine/notifications";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
@@ -38,6 +39,34 @@ export function AddHabitFeature() {
     }),
   );
 
+  const { mutate: deleteHabitFeature } = useMutation(
+    trpc.habitFeatures.delete.mutationOptions({
+      onSuccess() {
+        navigate({
+          pathname: "/habits/features",
+        });
+        notifications.show({
+          color: theme.colors.green[9],
+          title: "Habit Feature Deleted",
+          message: "",
+        });
+      },
+    }),
+  );
+
+  const handleDeleteFeature = (id: number) => {
+    modals.openConfirmModal({
+      title: "Are you sure?",
+      children: <Text size="sm">Deleting this habit feature means you won't be able to query this data anymore</Text>,
+      confirmProps: {
+        color: theme.colors.red[9],
+      },
+      labels: { confirm: "Delete", cancel: "Cancel" },
+      onConfirm: () => deleteHabitFeature(id),
+      onCancel: () => {},
+    });
+  };
+
   useEffect(() => {
     if (featureToEdit) {
       setRules(featureToEdit.rules);
@@ -61,7 +90,12 @@ export function AddHabitFeature() {
             {isFetching ? (
               <Skeleton h={"100%"} w={"100%"} />
             ) : (
-              <HabitFeatureBuilder onChange={setRules} onSave={handleSave} initialData={featureToEdit} />
+              <HabitFeatureBuilder
+                onChange={setRules}
+                onSave={handleSave}
+                onDelete={handleDeleteFeature}
+                initialData={featureToEdit}
+              />
             )}
           </Card>
           {/* Right panel */}
