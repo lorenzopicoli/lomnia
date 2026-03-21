@@ -66,8 +66,8 @@ export function ExerciseActivityTimelineItem(props: { activity: Item; onExpand: 
           {exercise.avgCadence && (
             <ActivityTimelineTextValue text="Cadence" value={formatCadence(exercise.avgCadence)} />
           )}
-          {exercise.selfEvaluation && (
-            <ActivityTimelineTextValue text="Perceived Effort" value={String(exercise.selfEvaluation)} />
+          {exercise.perceivedEffort && (
+            <ActivityTimelineTextValue text="Perceived Effort" value={`${exercise.perceivedEffort}/100`} />
           )}
         </Stack>
       )}
