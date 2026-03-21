@@ -33,6 +33,8 @@ export function HeartRateLine(props: { data: { date: string; heartRate: number }
         axisLabel: {
           formatter: (x: number) => formatDurationShort(intervalToDuration({ start: 0, end: x * 1000 })),
         },
+        min: "dataMin",
+        max: "dataMax",
       },
       yAxis: {
         axisLabel: {
@@ -44,7 +46,7 @@ export function HeartRateLine(props: { data: { date: string; heartRate: number }
       tooltip: {
         trigger: "axis",
         formatter: EchartsCommonConfig.dateNumberSeriesFormatter<number, number>(
-          [],
+          ["Heart Rate"],
           (x) => formatDurationShort(intervalToDuration({ start: 0, end: x * 1000 })),
           (y) => `<b>${formatHeartRate(y)}</b>`,
         ),

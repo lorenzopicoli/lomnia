@@ -54,10 +54,10 @@ export function List<T>(props: ListProps<T>) {
     >
       <ScrollArea flex={1} p={"md"} type={"never"}>
         <Stack>
-          {data.map((row) => (
+          {data.map((row, i) => (
             <>
               {isLoading ? loadingRow : renderRow(row)}
-              <Divider />
+              {i < data.length - 1 ? <Divider /> : null}
             </>
           ))}
         </Stack>

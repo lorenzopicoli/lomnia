@@ -6,7 +6,9 @@ import { isNumber } from "lodash";
 import { trpc } from "../api/trpc";
 import { NonRegisteredChartDisplayer } from "../components/ChartDisplayer/ChartDisplayer";
 import { ExerciseLapsTable } from "../components/Exercise/ExerciseLapsTable";
+import { List } from "../components/List/List";
 import { MaximizableMap } from "../components/MaximizableMap";
+import { RawHabitRow } from "../components/Rows/RawHabitRow";
 import { smallContentMaxWidth } from "../constants";
 import { formatCadence } from "../utils/formatCadence";
 import { formatDate } from "../utils/formatDate";
@@ -53,6 +55,16 @@ export function ExerciseDetails(props: { id: number }) {
 
   const { data: heartData } = useQuery(
     trpc.heartRate.getForPeriod.queryOptions(
+      {
+        start: exerciseData ? exerciseData.exercise.startedAt : "",
+        end: exerciseData ? exerciseData.exercise.endedAt : "",
+      },
+      { enabled: !!exerciseData },
+    ),
+  );
+
+  const { data: habitsData } = useQuery(
+    trpc.habits.getForPeriod.queryOptions(
       {
         start: exerciseData ? exerciseData.exercise.startedAt : "",
         end: exerciseData ? exerciseData.exercise.endedAt : "",
@@ -114,45 +126,51 @@ export function ExerciseDetails(props: { id: number }) {
           ) : null}
 
           {laps && laps.length > 0 ? <ExerciseLapsTable laps={laps} /> : null}
+          {heartData ? (
+            <Container w="100%" h={400} fluid p={0}>
+              <NonRegisteredChartDisplayer title="Heart rate">
+                <HeartRateLine data={heartData} startTime={start} />
+              </NonRegisteredChartDisplayer>
+            </Container>
+          ) : null}
           {metrics && metrics.length > 0 ? (
             <>
-              {heartData ? (
-                <Container w="100%" h={400} fluid p={0}>
-                  <NonRegisteredChartDisplayer title="Heart rate">
-                    <HeartRateLine data={heartData} startTime={start} />
-                  </NonRegisteredChartDisplayer>
-                </Container>
-              ) : null}
-              {metrics && metrics.length > 0 ? (
-                <>
-                  <Container w="100%" h={400} fluid p={0}>
-                    <NonRegisteredChartDisplayer title="Pace">
-                      <ExerciseMetricsLine
-                        // Filter out weird pace entries. Might be a better way to do this? Maybe at least on the BE?
-                        metrics={metrics.map((m) => ((m.pace ?? 0) > 9 ? { ...m, pace: null } : m))}
-                        exerciseStartTime={start}
-                        metric={{
-                          key: "pace",
-                          format: (v) => formatPace(v) ?? "-",
-                        }}
-                      />
-                    </NonRegisteredChartDisplayer>
-                  </Container>
-                  <Container w="100%" h={400} fluid p={0}>
-                    <NonRegisteredChartDisplayer title="Cadence">
-                      <ExerciseMetricsLine
-                        metrics={metrics}
-                        exerciseStartTime={start}
-                        metric={{
-                          key: "cadence",
-                          format: (v) => formatCadence(v) ?? "-",
-                        }}
-                      />
-                    </NonRegisteredChartDisplayer>
-                  </Container>{" "}
-                </>
-              ) : null}
+              <Container w="100%" h={400} fluid p={0}>
+                <NonRegisteredChartDisplayer title="Pace">
+                  <ExerciseMetricsLine
+                    // Filter out weird pace entries. Might be a better way to do this? Maybe at least on the BE?
+                    metrics={metrics.map((m) => ((m.pace ?? 0) > 9 ? { ...m, pace: null } : m))}
+                    exerciseStartTime={start}
+                    metric={{
+                      key: "pace",
+                      format: (v) => formatPace(v) ?? "-",
+                    }}
+                  />
+                </NonRegisteredChartDisplayer>
+              </Container>
+              <Container w="100%" h={400} fluid p={0}>
+                <NonRegisteredChartDisplayer title="Cadence">
+                  <ExerciseMetricsLine
+                    metrics={metrics}
+                    exerciseStartTime={start}
+                    metric={{
+                      key: "cadence",
+                      format: (v) => formatCadence(v) ?? "-",
+                    }}
+                  />
+                </NonRegisteredChartDisplayer>
+              </Container>{" "}
             </>
+          ) : null}
+          {habitsData && habitsData.length > 0 ? (
+            <Container p={0} maw={"100%"} w={"100%"}>
+              <Title order={4}>Habits</Title>
+              <List
+                data={habitsData}
+                renderRow={(row) => <RawHabitRow {...row} habitKey={row.key} />}
+                loadingRow={<Skeleton />}
+              />
+            </Container>
           ) : null}
         </Stack>
       </ScrollArea>

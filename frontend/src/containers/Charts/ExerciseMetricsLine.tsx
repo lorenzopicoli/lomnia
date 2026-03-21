@@ -45,6 +45,8 @@ export function ExerciseMetricsLine(props: {
         axisLabel: {
           formatter: (x: number) => formatDurationShort(intervalToDuration({ start: 0, end: x * 1000 })),
         },
+        min: "dataMin",
+        max: "dataMax",
       },
       yAxis: {
         axisLabel: {
@@ -56,7 +58,7 @@ export function ExerciseMetricsLine(props: {
       tooltip: {
         trigger: "axis",
         formatter: EchartsCommonConfig.dateNumberSeriesFormatter<number, number>(
-          [],
+          [metric.key],
           (x) => formatDurationShort(intervalToDuration({ start: 0, end: x * 1000 })),
           (y) => `<b>${metric.format ? metric.format(y) : y}</b>`,
         ),

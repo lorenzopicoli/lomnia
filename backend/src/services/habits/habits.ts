@@ -1,4 +1,4 @@
-import { count, countDistinct, desc, eq, sql } from "drizzle-orm";
+import { asc, count, countDistinct, desc, eq, sql } from "drizzle-orm";
 import { DateTime } from "luxon";
 import { db } from "../../db/connection";
 import { type Habit, habitsTable } from "../../models/Habit";
@@ -7,6 +7,7 @@ import {
   habitFeaturesTable,
   type ValidatedNewHabitFeature,
 } from "../../models/HabitFeature";
+import type { DateRange } from "../../types/chartTypes";
 import { anonymize } from "../anonymize";
 
 export namespace HabitsService {
@@ -25,6 +26,21 @@ export namespace HabitsService {
           label: shouldAnonymize ? anonymize(label) : label,
         };
       });
+  };
+
+  export const getForPeriod = async (params: DateRange) => {
+    const { start, end } = params;
+    const data = db
+      .select()
+      .from(habitsTable)
+      .where(
+        sql`
+      ${habitsTable.date} >= ${start.toISO()}
+      AND ${habitsTable.date} <= ${end.toISO()}`,
+      )
+      .orderBy(asc(habitsTable.date));
+
+    return data;
   };
 
   export async function featureById(id: number) {
