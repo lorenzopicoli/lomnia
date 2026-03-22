@@ -49,19 +49,22 @@ export interface LocationTimelineActivity {
 
 export class LocationServiceInternal {
   public async getTimezoneForDate(date: DateTime, tx?: DBTransaction): Promise<{ timezone: string } | undefined> {
-    return (tx ?? db)
-      .select({ timezone: locationsTable.timezone })
-      .from(locationsTable)
-      .where(
-        and(
-          // Within a day of the requested date
-          gte(locationsTable.recordedAt, date.minus({ day: 1 }).toJSDate()),
-          lte(locationsTable.recordedAt, date.plus({ day: 1 }).toJSDate()),
-        ),
-      )
-      .orderBy(sql`ABS(EXTRACT(EPOCH FROM ${locationsTable.recordedAt} - ${date.toISO()}))`)
-      .limit(1)
-      .then((result) => result[0]);
+    return (
+      (tx ?? db)
+        .select({ timezone: locationsTable.timezone })
+        .from(locationsTable)
+        .where(
+          and(
+            // Within a few days of the requested date
+            gte(locationsTable.recordedAt, date.minus({ day: 5 }).toJSDate()),
+            lte(locationsTable.recordedAt, date.plus({ day: 5 }).toJSDate()),
+          ),
+        )
+        // Take the closest one to the requested date
+        .orderBy(sql`ABS(EXTRACT(EPOCH FROM ${locationsTable.recordedAt} - ${date.toISO()}))`)
+        .limit(1)
+        .then((result) => result[0])
+    );
   }
 }
 
