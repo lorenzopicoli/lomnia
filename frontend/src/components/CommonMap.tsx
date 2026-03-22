@@ -27,7 +27,7 @@ export type CommonMapProps = {
 };
 
 export function CommonMap(props: CommonMapProps) {
-  const { value, readonlyPolygons, points, isLoading, isInteractive } = props;
+  const { value, readonlyPolygons, points, isLoading, isInteractive = true } = props;
 
   const { ref, width, height } = useElementSize();
   // biome-ignore lint/suspicious/noExplicitAny
