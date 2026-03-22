@@ -35,11 +35,13 @@ export function SleepStage(props: {
       },
       xAxis: {
         type: "time",
-        min: (value) => {
+        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+        min: (value: any) => {
           // Max whole hour that is no biggeer than value
           return Math.floor(value.min / (60 * 60 * 1000)) * 60 * 60 * 1000;
         },
-        max: (value) => {
+        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+        max: (value: any) => {
           // Min whole hour that is no smaller than value
           return Math.ceil(value.max / (60 * 60 * 1000)) * 60 * 60 * 1000;
         },
