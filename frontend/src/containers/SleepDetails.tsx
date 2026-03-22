@@ -10,6 +10,7 @@ import { smallContentMaxWidth } from "../constants";
 import { formatDate } from "../utils/formatDate";
 import { formatDateLong } from "../utils/formatDateLong";
 import { formatDurationShort } from "../utils/formatDurationShort";
+import { getSleepStagesTotals } from "../utils/getSleepStagesTotals";
 import { isNumber } from "../utils/isNumber";
 import { HeartRateLine } from "./Charts/HeartRateLine";
 import { SleepStage } from "./Charts/SleepStage";
@@ -46,23 +47,25 @@ export function SleepDetails(props: { id: number }) {
   }
 
   const { sleep, stages } = sleepData;
-
-  const start = new TZDate(sleep.startedAt, sleep.timezone || "UTC");
-  const end = new TZDate(sleep.endedAt, sleep.timezone || "UTC");
+  const timezone = sleep.timezone || "UTC";
+  const start = new TZDate(sleep.startedAt, timezone);
+  const end = new TZDate(sleep.endedAt, timezone);
 
   const duration = intervalToDuration({
     start,
     end,
   });
 
+  const stageTotals = getSleepStagesTotals(stages, timezone);
+
   return (
     <Flex direction="column" h="100%" mb="sm" mih={0}>
       <ScrollArea flex={1} p="md" type="never">
         <Stack gap={"xl"} maw={smallContentMaxWidth} ml={"auto"} mr={"auto"}>
           <Stack gap={2}>
-            <Title order={2}>{formatDateLong(sleep.endedAt, sleep.timezone ?? "UTC", false)}</Title>
+            <Title order={2}>{formatDateLong(sleep.endedAt, timezone, false)}</Title>
             <Text c="dimmed">
-              {`${formatDate(sleep.startedAt, sleep.timezone ?? "UTC")} - ${formatDate(sleep.endedAt, sleep.timezone ?? "UTC")}`}
+              {`${formatDate(sleep.startedAt, timezone)} - ${formatDate(sleep.endedAt, sleep.timezone ?? "UTC")}`}
             </Text>
           </Stack>
 
@@ -70,6 +73,25 @@ export function SleepDetails(props: { id: number }) {
             <StatCard label="Duration" value={formatDurationShort(duration, { skipSeconds: false })} />
             {isNumber(sleep.automaticScore) ? <StatCard label="Automatic score" value={sleep.automaticScore} /> : null}
             {isNumber(sleep.userScore) ? <StatCard label="User score" value={sleep.userScore} /> : null}
+            <StatCard
+              label="Deep"
+              value={formatDurationShort(intervalToDuration({ start: 0, end: stageTotals.deep }))}
+            />
+            <StatCard label="REM" value={formatDurationShort(intervalToDuration({ start: 0, end: stageTotals.rem }))} />
+            <StatCard
+              label="Light"
+              value={formatDurationShort(intervalToDuration({ start: 0, end: stageTotals.light }))}
+            />
+            <StatCard
+              label="Awake"
+              value={formatDurationShort(intervalToDuration({ start: 0, end: stageTotals.awake }))}
+            />
+            {stageTotals.unmeasurable ? (
+              <StatCard
+                label="Unmeasurable"
+                value={formatDurationShort(intervalToDuration({ start: 0, end: stageTotals.unmeasurable }))}
+              />
+            ) : null}
             <StatCard label="Device" value={sleep.externalDeviceId} />
           </SimpleGrid>
 
@@ -82,7 +104,7 @@ export function SleepDetails(props: { id: number }) {
           {stages && stages.length > 0 ? (
             <Container w="100%" h={400} fluid p={0}>
               <NonRegisteredChartDisplayer title="Sleep stages">
-                <SleepStage stages={stages} timezone={sleep.timezone ?? "UTC"} />
+                <SleepStage stages={stages} timezone={timezone} />
               </NonRegisteredChartDisplayer>
             </Container>
           ) : null}

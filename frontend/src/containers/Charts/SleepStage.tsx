@@ -1,17 +1,13 @@
 import { TZDate } from "@date-fns/tz";
 import { useMemo } from "react";
 import { Echarts } from "../../components/Echarts/Echarts";
-
-// IMPORTANT: make sure this is registered somewhere once
-// echarts.use(stageCustomSeriesInstaller);
-
-type SleepStage = "awake" | "light" | "deep" | "rem" | "unmeasurable";
+import type { SleepStageType } from "../../utils/getSleepStagesTotals";
 
 export function SleepStage(props: {
   stages: {
     startedAt: string;
     endedAt: string;
-    stage: SleepStage;
+    stage: SleepStageType;
   }[];
   timezone: string;
 }) {
@@ -19,7 +15,7 @@ export function SleepStage(props: {
     const { stages, timezone } = props;
     if (!stages?.length) return {};
 
-    const STAGE_LABELS: Record<SleepStage, string> = {
+    const STAGE_LABELS: Record<SleepStageType, string> = {
       deep: "Deep",
       light: "Light",
       rem: "REM",

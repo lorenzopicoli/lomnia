@@ -73,6 +73,7 @@ export function ExerciseActivityTimelineItem(props: { activity: Item; onExpand: 
       )}
       renderIcon={() => exerciseActivitySourceToIcon(exercise.source)}
       onExpand={onExpand}
+      externalLink={`/exercises/${exercise.id}`}
       isExpanded={isExpanded}
     />
   );

@@ -3,6 +3,7 @@ import { Group, Progress, Stack, Text } from "@mantine/core";
 import { format, intervalToDuration } from "date-fns";
 import type { RouterOutputs } from "../../../api/trpc";
 import { formatDurationShort } from "../../../utils/formatDurationShort";
+import { getSleepStagesTotals } from "../../../utils/getSleepStagesTotals";
 import { ActivityTimelineTextValue } from "./ActivityTimelineTextValue";
 import { sleepActivitySourceToIcon } from "./activitySourceToIcon";
 import { BaseActivityTimelineItem } from "./BaseActivityTimelineItem";
@@ -25,14 +26,7 @@ export function SleepActivityTimelineItem(props: { activity: Item; onExpand: () 
 
   const score = sleep.userScore ?? sleep.automaticScore;
 
-  const stageTotals = sleepStages.reduce<Record<string, number>>((acc, stage) => {
-    const s = new TZDate(stage.startedAt, timezone);
-    const e = new TZDate(stage.endedAt, timezone);
-    const diff = e.getTime() - s.getTime();
-
-    acc[stage.stage] = (acc[stage.stage] ?? 0) + diff;
-    return acc;
-  }, {});
+  const stageTotals = getSleepStagesTotals(sleepStages, timezone);
 
   const stageOrder: Array<"deep" | "light" | "rem" | "awake"> = ["deep", "light", "rem", "awake"];
 
@@ -86,6 +80,7 @@ export function SleepActivityTimelineItem(props: { activity: Item; onExpand: () 
         </Stack>
       )}
       renderIcon={() => sleepActivitySourceToIcon(sleep.source)}
+      externalLink={`/sleeps/${sleep.id}`}
       onExpand={onExpand}
       isExpanded={isExpanded}
     />
