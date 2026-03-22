@@ -1,5 +1,4 @@
 
-
 <div align="center">
   
 <img src="https://github.com/user-attachments/assets/8f5ed4d8-be94-44ad-a1f4-1e80202f8b29" alt="Logo" height="350px"/>
@@ -19,6 +18,16 @@ Find out more about the data I collected in 2024: https://lorenzomodolo.com/post
          <p align="center"><em>Timeline view showing all the events recorded throughout the day from multiple sources</em></p>
       </td>
     </tr>
+     <tr>
+      <td width="50%">
+        <img src="https://github.com/user-attachments/assets/18d68b04-d52f-42de-bbbe-f5dfbc63ccec" alt="Exercise Details" width="100%"/>
+        <p align="center"><em>Exercise Details</em></p>
+      </td>
+      <td width="50%">
+        <img src="https://github.com/user-attachments/assets/e285e462-1abd-4827-8a23-26bd869d6b5f" alt="Browser history charts" width="100%"/>
+        <p align="center"><em>Browser history charts</em></p>
+      </td>
+    </tr>
     <tr>
       <td width="50%">
         <img src="https://github.com/user-attachments/assets/e2d7c25d-c569-41d5-a9ad-59f0cc7d7088" alt="Creating a new chart" width="100%"/>
@@ -29,6 +38,12 @@ Find out more about the data I collected in 2024: https://lorenzomodolo.com/post
         <p align="center"><em>Creating Habit Feature rules to report on habits</em></p>
       </td>
     </tr>
+        <tr>
+      <td colspan="2">
+        <img src="https://github.com/user-attachments/assets/0c9d8a5f-d4e9-4098-8778-5374b1518688" alt="Running dashboard showcase" width="100%"/>
+        <p align="center"><em>Running dashboard showcase</em></p>
+      </td>
+    </tr>
     <tr>
       <td colspan="2">
         <img src="https://github.com/user-attachments/assets/f12e3332-b0e6-4f2c-9979-2ee69dc595ac" alt="General dashboard" width="100%"/>
@@ -37,6 +52,7 @@ Find out more about the data I collected in 2024: https://lorenzomodolo.com/post
     </tr>
   </table>
 </div>
+
 
 ## Overview
 
@@ -55,7 +71,7 @@ Lomnia aggregates data from multiple sources like smart watches, self-hosted sof
 Lomnia integrates with a wide variety of data sources:
 
 - ✅ **Location Tracking**: Owntracks for GPS data
-- ✅ **Health & Activity**: Samsung Health
+- ✅ **Health & Activity**: Garmin
 - ⬜ **Music**: Spotify API
 - ✅ **Weather**: OpenWeather API
 - ✅ **Location Details**: Nominatim
