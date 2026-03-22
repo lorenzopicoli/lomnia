@@ -2,7 +2,6 @@ import { eq, isNull } from "drizzle-orm";
 import { db } from "../../../db/connection";
 import type { DBTransaction } from "../../../db/types";
 import { sleepStagesTable } from "../../../models";
-import { sleepsTable } from "../../../models/Sleep";
 import { Logger } from "../../Logger";
 import { BaseTimezoneEnricher } from "./BaseTimezoneEnricher";
 
@@ -10,7 +9,7 @@ export class SleepStageTimezoneEnricher extends BaseTimezoneEnricher {
   protected logger = new Logger("SleepStageTimezoneEnricher");
 
   override async updateItem(tx: DBTransaction, id: number, timezone: string): Promise<void> {
-    await tx.update(sleepsTable).set({ timezone }).where(eq(sleepsTable.id, id));
+    await tx.update(sleepStagesTable).set({ timezone }).where(eq(sleepStagesTable.id, id));
   }
   override async getPage() {
     const result = await db
