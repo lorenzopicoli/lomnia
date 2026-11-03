@@ -12,28 +12,47 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * 60 years of accurate weather, anywhere with up to 5 km resolution
-         * @description The Historical Weather API is based on reanalysis datasets and uses a combination of weather station, aircraft, buoy, radar, and satellite observations to create a comprehensive record of past weather conditions.
+         * Open-Meteo Historical Weather API
+         * @description Historical weather data from ERA5 and ERA5-Land reanalysis going back to 1940.
          */
         get: {
             parameters: {
                 query: {
-                    /** @description The time interval to get weather data. A day must be specified as an ISO8601 date (e.g. 2022-01-01). */
+                    /** @description Geographical WGS84 coordinates. Multiple coordinates can be comma separated. */
+                    latitude: string;
+                    longitude: string;
+                    /** @description A list of weather variables which should be returned. */
+                    hourly?: ("temperature_2m" | "relative_humidity_2m" | "dew_point_2m" | "apparent_temperature" | "precipitation" | "rain" | "snowfall" | "snow_depth" | "weather_code" | "pressure_msl" | "surface_pressure" | "cloud_cover" | "cloud_cover_low" | "cloud_cover_mid" | "cloud_cover_high" | "et0_fao_evapotranspiration" | "vapour_pressure_deficit" | "wind_speed_10m" | "wind_speed_100m" | "wind_direction_10m" | "wind_direction_100m" | "wind_gusts_10m" | "soil_temperature_0_to_7cm" | "soil_temperature_7_to_28cm" | "soil_temperature_28_to_100cm" | "soil_temperature_100_to_255cm" | "soil_moisture_0_to_7cm" | "soil_moisture_7_to_28cm" | "soil_moisture_28_to_100cm" | "soil_moisture_100_to_255cm" | "soil_moisture_0_to_100cm" | "soil_temperature_0_to_100cm" | "soil_moisture_index_0_to_7cm" | "soil_moisture_index_7_to_28cm" | "soil_moisture_index_28_to_100cm" | "soil_moisture_index_0_to_100cm" | "boundary_layer_height" | "wet_bulb_temperature_2m" | "total_column_integrated_water_vapour" | "is_day" | "sunshine_duration" | "growing_degree_days_base_0_limit_50" | "leaf_wetness_probability" | "wave_height" | "wave_direction" | "wave_period" | "sea_surface_temperature" | "shortwave_radiation" | "direct_radiation" | "diffuse_radiation" | "direct_normal_irradiance" | "global_tilted_irradiance" | "terrestrial_radiation" | "shortwave_radiation_instant" | "direct_radiation_instant" | "diffuse_radiation_instant" | "direct_normal_irradiance_instant" | "global_tilted_irradiance_instant" | "terrestrial_radiation_instant")[];
+                    /** @description A list of daily weather variable aggregations. */
+                    daily?: ("weather_code" | "temperature_2m_mean" | "temperature_2m_max" | "temperature_2m_min" | "apparent_temperature_mean" | "apparent_temperature_max" | "apparent_temperature_min" | "sunrise" | "sunset" | "daylight_duration" | "sunshine_duration" | "precipitation_sum" | "rain_sum" | "snowfall_sum" | "precipitation_hours" | "wind_speed_10m_max" | "wind_gusts_10m_max" | "wind_direction_10m_dominant" | "shortwave_radiation_sum" | "et0_fao_evapotranspiration" | "cloud_cover_mean" | "dew_point_2m_mean" | "dew_point_2m_max" | "dew_point_2m_min" | "relative_humidity_2m_mean" | "relative_humidity_2m_max" | "relative_humidity_2m_min" | "pressure_msl_mean" | "wind_speed_10m_mean" | "wet_bulb_temperature_2m_mean" | "vapour_pressure_deficit_max" | "soil_moisture_0_to_7cm_mean" | "soil_moisture_7_to_28cm_mean" | "soil_moisture_28_to_100cm_mean" | "soil_moisture_0_to_100cm_mean" | "soil_temperature_0_to_7cm_mean" | "soil_temperature_7_to_28cm_mean" | "soil_temperature_28_to_100cm_mean")[];
+                    /** @description Start date in ISO 8601 format. Required. */
                     start_date: string;
-                    /** @description The time interval to get weather data. A day must be specified as an ISO8601 date (e.g. 2022-12-31). */
+                    /** @description End date in ISO 8601 format. Required. */
                     end_date: string;
-                    hourly?: ("temperature_2m" | "relative_humidity_2m" | "dew_point_2m" | "apparent_temperature" | "pressure_msl" | "cloud_cover" | "cloud_cover_low" | "cloud_cover_mid" | "cloud_cover_high" | "wind_speed_10m" | "wind_speed_100m" | "wind_direction_10m" | "wind_direction_100m" | "wind_gusts_10m" | "shortwave_radiation" | "direct_radiation" | "direct_normal_irradiance" | "diffuse_radiation" | "vapour_pressure_deficit" | "et0_fao_evapotranspiration" | "precipitation" | "rain" | "weather_code" | "snowfall" | "snow_depth" | "soil_temperature_0_to_7cm" | "soil_temperature_7_to_28cm" | "soil_temperature_28_to_100cm" | "soil_temperature_100_to_255cm" | "soil_moisture_0_to_7cm" | "soil_moisture_7_to_28cm" | "soil_moisture_28_to_100cm" | "soil_moisture_100_to_255cm")[];
-                    daily?: ("temperature_2m_max" | "temperature_2m_min" | "temperature_2m_mean" | "apparent_temperature_max" | "apparent_temperature_min" | "precipitation_sum" | "precipitation_hours" | "weather_code" | "sunrise" | "sunset" | "wind_speed_10m_max" | "wind_gusts_10m_max" | "wind_direction_10m_dominant" | "shortwave_radiation_sum" | "et0_fao_evapotranspiration" | "daylight_duration" | "sunshine_duration" | "rain_sum" | "snowfall_sum")[];
-                    /** @description WGS84 coordinate */
-                    latitude: number;
-                    /** @description WGS84 coordinate */
-                    longitude: number;
+                    elevation?: number;
                     temperature_unit?: "celsius" | "fahrenheit";
                     wind_speed_unit?: "kmh" | "ms" | "mph" | "kn";
-                    /** @description If format `unixtime` is selected, all time values are returned in UNIX epoch time in seconds. Please not that all time is then in GMT+0! For daily values with unix timestamp, please apply `utc_offset_seconds` again to get the correct date. */
+                    precipitation_unit?: "mm" | "inch";
+                    /** @description If format unixtime is selected, all time values are returned in UNIX epoch time. */
                     timeformat?: "iso8601" | "unixtime";
-                    /** @description If `timezone` is set, all timestamps are returned as local-time and data is returned starting at 0:00 local-time. Any time zone name from the [time zone database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) is supported. */
+                    /** @description Any IANA time zone name is supported. Use auto to resolve the local time zone. */
                     timezone?: string;
+                    /** @description Return past days of data. */
+                    past_days?: number;
+                    /** @description Number of forecast days. */
+                    forecast_days?: number;
+                    past_hours?: number;
+                    forecast_hours?: number;
+                    /** @description Slope tilt in degrees for global_tilted_irradiance calculation. */
+                    tilt?: number;
+                    /** @description Azimuth for global_tilted_irradiance. North=0, East=90, South=180, West=270. */
+                    azimuth?: number;
+                    /** @description Grid cell selection preference: land, sea, or nearest. */
+                    cell_selection?: "land" | "sea" | "nearest";
+                    /** @description Only required for commercial subscriptions. */
+                    apikey?: string;
+                    /** @description Manually select one or more weather models. */
+                    models?: ("best_match" | "era5_seamless" | "era5" | "era5_land" | "ecmwf_ifs" | "cerra" | "era5_ensemble" | "ecmwf_ifs_analysis_long_window")[];
                 };
                 header?: never;
                 path?: never;
@@ -48,39 +67,223 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /**
-                             * @description WGS84 of the center of the weather grid-cell which was used to generate this forecast. This coordinate might be up to 5 km away.
-                             * @example 52.52
-                             */
+                            /** Format: float */
                             latitude?: number;
-                            /**
-                             * @description WGS84 of the center of the weather grid-cell which was used to generate this forecast. This coordinate might be up to 5 km away.
-                             * @example 13.419.52
-                             */
+                            /** Format: float */
                             longitude?: number;
-                            /**
-                             * @description The elevation in meters of the selected weather grid-cell. In mountain terrain it might differ from the location you would expect.
-                             * @example 44.812
-                             */
+                            /** Format: float */
                             elevation?: number;
-                            /**
-                             * @description Generation time of the weather forecast in milli seconds. This is mainly used for performance monitoring and improvements.
-                             * @example 2.2119
-                             */
+                            /** Format: float */
                             generationtime_ms?: number;
-                            /**
-                             * @description Applied timezone offset from the &timezone= parameter.
-                             * @example 3600
-                             */
                             utc_offset_seconds?: number;
-                            /** @description For each selected weather variable, data will be returned as a floating point array. Additionally a `time` array will be returned with ISO8601 timestamps. */
-                            hourly?: Record<string, never>;
-                            /** @description For each selected weather variable, the unit will be listed here. */
-                            hourly_units?: Record<string, never>;
-                            /** @description For each selected daily weather variable, data will be returned as a floating point array. Additionally a `time` array will be returned with ISO8601 timestamps. */
-                            daily?: Record<string, never>;
-                            /** @description For each selected daily weather variable, the unit will be listed here. */
-                            daily_units?: Record<string, never>;
+                            timezone?: string;
+                            timezone_abbreviation?: string;
+                            hourly?: {
+                                time?: (string | number)[];
+                                temperature_2m?: number[];
+                                relative_humidity_2m?: number[];
+                                dew_point_2m?: number[];
+                                apparent_temperature?: number[];
+                                precipitation?: number[];
+                                rain?: number[];
+                                snowfall?: number[];
+                                snow_depth?: number[];
+                                weather_code?: number[];
+                                pressure_msl?: number[];
+                                surface_pressure?: number[];
+                                cloud_cover?: number[];
+                                cloud_cover_low?: number[];
+                                cloud_cover_mid?: number[];
+                                cloud_cover_high?: number[];
+                                et0_fao_evapotranspiration?: number[];
+                                vapour_pressure_deficit?: number[];
+                                wind_speed_10m?: number[];
+                                wind_speed_100m?: number[];
+                                wind_direction_10m?: number[];
+                                wind_direction_100m?: number[];
+                                wind_gusts_10m?: number[];
+                                soil_temperature_0_to_7cm?: number[];
+                                soil_temperature_7_to_28cm?: number[];
+                                soil_temperature_28_to_100cm?: number[];
+                                soil_temperature_100_to_255cm?: number[];
+                                soil_moisture_0_to_7cm?: number[];
+                                soil_moisture_7_to_28cm?: number[];
+                                soil_moisture_28_to_100cm?: number[];
+                                soil_moisture_100_to_255cm?: number[];
+                                soil_moisture_0_to_100cm?: number[];
+                                soil_temperature_0_to_100cm?: number[];
+                                soil_moisture_index_0_to_7cm?: number[];
+                                soil_moisture_index_7_to_28cm?: number[];
+                                soil_moisture_index_28_to_100cm?: number[];
+                                soil_moisture_index_0_to_100cm?: number[];
+                                boundary_layer_height?: number[];
+                                wet_bulb_temperature_2m?: number[];
+                                total_column_integrated_water_vapour?: number[];
+                                is_day?: number[];
+                                sunshine_duration?: number[];
+                                growing_degree_days_base_0_limit_50?: number[];
+                                leaf_wetness_probability?: number[];
+                                wave_height?: number[];
+                                wave_direction?: number[];
+                                wave_period?: number[];
+                                sea_surface_temperature?: number[];
+                                shortwave_radiation?: number[];
+                                direct_radiation?: number[];
+                                diffuse_radiation?: number[];
+                                direct_normal_irradiance?: number[];
+                                global_tilted_irradiance?: number[];
+                                terrestrial_radiation?: number[];
+                                shortwave_radiation_instant?: number[];
+                                direct_radiation_instant?: number[];
+                                diffuse_radiation_instant?: number[];
+                                direct_normal_irradiance_instant?: number[];
+                                global_tilted_irradiance_instant?: number[];
+                                terrestrial_radiation_instant?: number[];
+                            };
+                            hourly_units?: {
+                                time?: string;
+                                temperature_2m?: string;
+                                relative_humidity_2m?: string;
+                                dew_point_2m?: string;
+                                apparent_temperature?: string;
+                                precipitation?: string;
+                                rain?: string;
+                                snowfall?: string;
+                                snow_depth?: string;
+                                weather_code?: string;
+                                pressure_msl?: string;
+                                surface_pressure?: string;
+                                cloud_cover?: string;
+                                cloud_cover_low?: string;
+                                cloud_cover_mid?: string;
+                                cloud_cover_high?: string;
+                                et0_fao_evapotranspiration?: string;
+                                vapour_pressure_deficit?: string;
+                                wind_speed_10m?: string;
+                                wind_speed_100m?: string;
+                                wind_direction_10m?: string;
+                                wind_direction_100m?: string;
+                                wind_gusts_10m?: string;
+                                soil_temperature_0_to_7cm?: string;
+                                soil_temperature_7_to_28cm?: string;
+                                soil_temperature_28_to_100cm?: string;
+                                soil_temperature_100_to_255cm?: string;
+                                soil_moisture_0_to_7cm?: string;
+                                soil_moisture_7_to_28cm?: string;
+                                soil_moisture_28_to_100cm?: string;
+                                soil_moisture_100_to_255cm?: string;
+                                soil_moisture_0_to_100cm?: string;
+                                soil_temperature_0_to_100cm?: string;
+                                soil_moisture_index_0_to_7cm?: string;
+                                soil_moisture_index_7_to_28cm?: string;
+                                soil_moisture_index_28_to_100cm?: string;
+                                soil_moisture_index_0_to_100cm?: string;
+                                boundary_layer_height?: string;
+                                wet_bulb_temperature_2m?: string;
+                                total_column_integrated_water_vapour?: string;
+                                is_day?: string;
+                                sunshine_duration?: string;
+                                growing_degree_days_base_0_limit_50?: string;
+                                leaf_wetness_probability?: string;
+                                wave_height?: string;
+                                wave_direction?: string;
+                                wave_period?: string;
+                                sea_surface_temperature?: string;
+                                shortwave_radiation?: string;
+                                direct_radiation?: string;
+                                diffuse_radiation?: string;
+                                direct_normal_irradiance?: string;
+                                global_tilted_irradiance?: string;
+                                terrestrial_radiation?: string;
+                                shortwave_radiation_instant?: string;
+                                direct_radiation_instant?: string;
+                                diffuse_radiation_instant?: string;
+                                direct_normal_irradiance_instant?: string;
+                                global_tilted_irradiance_instant?: string;
+                                terrestrial_radiation_instant?: string;
+                            };
+                            daily?: {
+                                time?: (string | number)[];
+                                weather_code?: number[];
+                                temperature_2m_mean?: number[];
+                                temperature_2m_max?: number[];
+                                temperature_2m_min?: number[];
+                                apparent_temperature_mean?: number[];
+                                apparent_temperature_max?: number[];
+                                apparent_temperature_min?: number[];
+                                sunrise?: (string | number)[];
+                                sunset?: (string | number)[];
+                                daylight_duration?: number[];
+                                sunshine_duration?: number[];
+                                precipitation_sum?: number[];
+                                rain_sum?: number[];
+                                snowfall_sum?: number[];
+                                precipitation_hours?: number[];
+                                wind_speed_10m_max?: number[];
+                                wind_gusts_10m_max?: number[];
+                                wind_direction_10m_dominant?: number[];
+                                shortwave_radiation_sum?: number[];
+                                et0_fao_evapotranspiration?: number[];
+                                cloud_cover_mean?: number[];
+                                dew_point_2m_mean?: number[];
+                                dew_point_2m_max?: number[];
+                                dew_point_2m_min?: number[];
+                                relative_humidity_2m_mean?: number[];
+                                relative_humidity_2m_max?: number[];
+                                relative_humidity_2m_min?: number[];
+                                pressure_msl_mean?: number[];
+                                wind_speed_10m_mean?: number[];
+                                wet_bulb_temperature_2m_mean?: number[];
+                                vapour_pressure_deficit_max?: number[];
+                                soil_moisture_0_to_7cm_mean?: number[];
+                                soil_moisture_7_to_28cm_mean?: number[];
+                                soil_moisture_28_to_100cm_mean?: number[];
+                                soil_moisture_0_to_100cm_mean?: number[];
+                                soil_temperature_0_to_7cm_mean?: number[];
+                                soil_temperature_7_to_28cm_mean?: number[];
+                                soil_temperature_28_to_100cm_mean?: number[];
+                            };
+                            daily_units?: {
+                                time?: string;
+                                weather_code?: string;
+                                temperature_2m_mean?: string;
+                                temperature_2m_max?: string;
+                                temperature_2m_min?: string;
+                                apparent_temperature_mean?: string;
+                                apparent_temperature_max?: string;
+                                apparent_temperature_min?: string;
+                                sunrise?: string;
+                                sunset?: string;
+                                daylight_duration?: string;
+                                sunshine_duration?: string;
+                                precipitation_sum?: string;
+                                rain_sum?: string;
+                                snowfall_sum?: string;
+                                precipitation_hours?: string;
+                                wind_speed_10m_max?: string;
+                                wind_gusts_10m_max?: string;
+                                wind_direction_10m_dominant?: string;
+                                shortwave_radiation_sum?: string;
+                                et0_fao_evapotranspiration?: string;
+                                cloud_cover_mean?: string;
+                                dew_point_2m_mean?: string;
+                                dew_point_2m_max?: string;
+                                dew_point_2m_min?: string;
+                                relative_humidity_2m_mean?: string;
+                                relative_humidity_2m_max?: string;
+                                relative_humidity_2m_min?: string;
+                                pressure_msl_mean?: string;
+                                wind_speed_10m_mean?: string;
+                                wet_bulb_temperature_2m_mean?: string;
+                                vapour_pressure_deficit_max?: string;
+                                soil_moisture_0_to_7cm_mean?: string;
+                                soil_moisture_7_to_28cm_mean?: string;
+                                soil_moisture_28_to_100cm_mean?: string;
+                                soil_moisture_0_to_100cm_mean?: string;
+                                soil_temperature_0_to_7cm_mean?: string;
+                                soil_temperature_7_to_28cm_mean?: string;
+                                soil_temperature_28_to_100cm_mean?: string;
+                            };
                         };
                     };
                 };
@@ -91,12 +294,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @description Always set true for errors */
                             error?: boolean;
-                            /**
-                             * @description Description of the error
-                             * @example Latitude must be in range of -90 to 90°. Given: 300
-                             */
                             reason?: string;
                         };
                     };

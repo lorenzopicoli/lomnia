@@ -185,7 +185,11 @@ export class OpenMeteo {
       ? cachedResult.response
       : await this.http.GET(`/${OpenMeteo.apiVersion}/archive`, {
           params: {
-            query,
+            query: {
+              ...query,
+              latitude: String(query.latitude),
+              longitude: String(query.longitude),
+            },
           },
         });
     const fetchedAt = DateTime.utc();
@@ -277,7 +281,11 @@ export class OpenMeteo {
       ? cachedResult.response
       : await this.http.GET(`/${OpenMeteo.apiVersion}/archive`, {
           params: {
-            query,
+            query: {
+              ...query,
+              latitude: String(query.latitude),
+              longitude: String(query.longitude),
+            },
           },
         });
     const fetchedAt = DateTime.utc();
