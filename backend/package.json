@@ -11,7 +11,7 @@
     "dev:ingester": "npm run tsx-patch src/listenQueue.ts",
     "dev:ingester:file": "tsx src/ingestFile.ts",
     "schemas:generate": "tsx src/generateIngestionSchemas.ts",
-    "openMeteo:generate": "npx openapi-typescript https://raw.githubusercontent.com/open-meteo/open-meteo/refs/heads/main/openapi_historical_weather_api.yml -o ./src/services/openMeteo/gen/openMeteoOpenApiTypes.d.ts",
+    "openMeteo:generate": "npx openapi-typescript https://raw.githubusercontent.com/open-meteo/open-meteo/refs/heads/main/openapi/historical-weather.yml -o ./src/services/openMeteo/gen/openMeteoOpenApiTypes.d.ts",
     "build": "rimraf build && npm run openMeteo:generate && tsc",
     "server": "NODE_ENV=production npm run migration:up && NODE_ENV=production node build/src/server.js",
     "ingester": "node build/src/listenQueue.js",
