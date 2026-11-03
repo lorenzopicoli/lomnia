@@ -67,12 +67,6 @@ export class LocationIngester extends Ingester<IngestionLocation, NewLocation> {
   }
 
   public async insertBatch(): Promise<void> {
-    // To avoid inserting conflicting rows in the same batch
-    const lastIndexById = new Map(this.collected.map((location, index) => [location.externalId, index]));
-    this.collected = this.collected.filter(
-      (location, index) => location.externalId == null || lastIndexById.get(location.externalId) === index,
-    );
-
     const updateOnConflict = buildUpdateOnConflict(locationsTable, ["importJobId", "createdAt"]);
     await this.tx.insert(locationsTable).values(this.collected).onConflictDoUpdate({
       target: locationsTable.externalId,

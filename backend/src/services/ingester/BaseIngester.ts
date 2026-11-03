@@ -1,8 +1,11 @@
 import type { DBTransaction } from "../../db/types";
 import { Logger } from "../Logger";
 
-export abstract class Ingester<SchemaModel, NewRowModel> {
+export type IngestionRecord = { id?: string | null };
+
+export abstract class Ingester<SchemaModel extends IngestionRecord, NewRowModel> {
   protected collected: NewRowModel[] = [];
+  private collectedIndexById = new Map<string, number>();
   protected logger = new Logger("BaseIngester");
   constructor(
     public readonly importJobId: number,
@@ -31,7 +34,17 @@ export abstract class Ingester<SchemaModel, NewRowModel> {
    */
   protected async ingest(schemaRow: SchemaModel): Promise<number> {
     const transformed = this.transform(schemaRow);
-    this.collected.push(transformed);
+    const existingIndex = schemaRow.id != null ? this.collectedIndexById.get(schemaRow.id) : undefined;
+
+    // Avoids inserting duplicates in the same batch, which postgres doesn't like
+    if (existingIndex !== undefined) {
+      this.collected[existingIndex] = transformed;
+    } else {
+      if (schemaRow.id != null) {
+        this.collectedIndexById.set(schemaRow.id, this.collected.length);
+      }
+      this.collected.push(transformed);
+    }
 
     if (this.collected.length > this.batchSize) {
       return await this.commitInsertions();
@@ -46,6 +59,7 @@ export abstract class Ingester<SchemaModel, NewRowModel> {
       }
       const inserted = this.collected.length;
       this.collected = [];
+      this.collectedIndexById.clear();
 
       return inserted;
     } catch (e) {

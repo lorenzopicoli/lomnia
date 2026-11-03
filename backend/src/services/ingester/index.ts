@@ -8,7 +8,7 @@ import { DateTime } from "luxon";
 import { db } from "../../db/connection";
 import { importJobsTable } from "../../models";
 import { Logger } from "../Logger";
-import type { Ingester } from "./BaseIngester";
+import type { Ingester, IngestionRecord } from "./BaseIngester";
 import { DeviceIngester } from "./DeviceIngester";
 import { DeviceStatusIngester } from "./DeviceStatusIngester";
 import { ExerciseIngester } from "./ExerciseIngester";
@@ -35,7 +35,7 @@ const ingestersClasses = [
 
 const logger = new Logger("IngesterIndex");
 
-async function ingest(params: { data: unknown; ingesters: Ingester<unknown, unknown>[] }): Promise<number> {
+async function ingest(params: { data: unknown; ingesters: Ingester<IngestionRecord, unknown>[] }): Promise<number> {
   const { data, ingesters } = params;
   for (const ingester of ingesters) {
     const { insertedCount, wasIngested } = await ingester.tryIngest(data);
